@@ -19,28 +19,14 @@ using System.Threading;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Delegate of the log source initialization callback that configures how the logging subsystem is set up.
-	/// </summary>
-	/// <param name="settings">Settings to configure.</param>
-	public delegate void LogSourceInitializer(LogSourceSettings settings);
-
-	/// <summary>
 	/// The access point to the logging subsystem.
 	/// </summary>
 	public class LogSource
 	{
-		private static readonly ReaderWriterLockSlim sLock;
-		private static LogSourceSettings sSettings;
-		private static Dictionary<string, LogWriter> sLogWritersByName;
-
-		/// <summary>
-		/// Intializes the <see cref="LogSource"/> class.
-		/// </summary>
-		static LogSource()
-		{
-			sLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-			sLogWritersByName = new Dictionary<string, LogWriter>();
-		}
+		private static readonly ReaderWriterLockSlim sLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+		private static readonly Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
+		private static readonly LogMessagePool sLogMessagePool = new LogMessagePool();
+		private static ILogMessageProcessingPipelineStage sLogMessageProcessingPipeline;
 
 		/// <summary>
 		/// Gets the reader-writer-lock protecting access to the logging subsystem.
@@ -51,37 +37,12 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes the log source.
+		/// Gets or sets the log message processing pipeline that receives any log messages written to the logging subsystem.
 		/// </summary>
-		/// <param name="settings">Settings to use.</param>
-		/// <exception cref="InvalidOperationException">The log source is already initialized.</exception>
-		public static void Init(LogSourceSettings settings)
+		public static ILogMessageProcessingPipelineStage LogMessageProcessingPipeline
 		{
-			if (sSettings != null)
-			{
-				throw new InvalidOperationException("The log source is already initialized.");
-			}
-
-			settings.Freeze();
-			sSettings = settings;
-		}
-
-		/// <summary>
-		/// Initializes the log source.
-		/// </summary>
-		/// <param name="with">Callback modifying the settings.</param>
-		/// <exception cref="InvalidOperationException">The log source is already initialized.</exception>
-		public static void Init(LogSourceInitializer with)
-		{
-			if (sSettings != null)
-			{
-				throw new InvalidOperationException("The log source is already initialized.");
-			}
-
-			LogSourceSettings settings = new LogSourceSettings();
-			sSettings = settings;
-			with(sSettings);
-			sSettings.Freeze();
+			get { return sLogMessageProcessingPipeline; }
+			set { sLogMessageProcessingPipeline = value; }
 		}
 
 		/// <summary>
@@ -92,14 +53,29 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="text">Text of the log message.</param>
 		internal static void WriteMessage(LogWriter writer, LogLevel level, string text)
 		{
-			LogMessage message = new LogMessage(
-				DateTimeOffset.Now,
-				Stopwatch.GetTimestamp(),
-				writer,
-				level,
-				text);
+			ILogMessageProcessingPipelineStage pipeline = sLogMessageProcessingPipeline;
+			if (pipeline != null)
+			{
+				LogMessage message = null;
+				try
+				{
+					message = sLogMessagePool.GetMessage(
+						DateTimeOffset.Now,
+						Stopwatch.GetTimestamp(),
+						writer,
+						level,
+						text);
 
-			// TODO: push message into the processing pipeline here...
+					pipeline.Process(message);
+				}
+				finally
+				{
+					if (message != null)
+					{
+						sLogMessagePool.ReturnMessage(message);
+					}
+				}
+			}
 		}
 
 		/// <summary>
