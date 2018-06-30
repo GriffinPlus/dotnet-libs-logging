@@ -18,8 +18,9 @@
 using System.Linq;
 using System;
 using Xunit;
+using GriffinPlus.Lib.Logging;
 
-namespace GriffinPlus.Lib.Logging.Tests
+namespace UnitTests
 {
 	/// <summary>
 	/// Tests around the <see cref="LogWriter"/> class.
@@ -37,11 +38,31 @@ namespace GriffinPlus.Lib.Logging.Tests
 		/// Checks whether the name of a log writer instance matches the name specified when retrieving it.
 		/// </summary>
 		[Fact]
-		public void CheckName()
+		public void CreateNewByName()
 		{
 			string name = Guid.NewGuid().ToString("D");
 			LogWriter writer = LogSource.GetWriter(name);
 			Assert.Equal(name, writer.Name);
+		}
+
+		/// <summary>
+		/// Checks whether the name of a log writer instance matches the type's full name when retrieving it.
+		/// </summary>
+		[Fact]
+		public void CreateNewByTypeParameter()
+		{
+			LogWriter writer = LogSource.GetWriter(typeof(LogWriterTests));
+			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
+		}
+
+		/// <summary>
+		/// Checks whether the name of a log writer instance matches the type's full name when retrieving it.
+		/// </summary>
+		[Fact]
+		public void CreateNewByGenericTypeParameter()
+		{
+			LogWriter writer = LogSource.GetWriter<LogWriterTests>();
+			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
 		}
 
 		/// <summary>

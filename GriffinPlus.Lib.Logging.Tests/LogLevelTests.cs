@@ -15,12 +15,11 @@
 // If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
+using GriffinPlus.Lib.Logging;
 using System.Linq;
 using Xunit;
-using LogLevel = GriffinPlus.Lib.Logging.LogLevel; // ambiguity with System.LogLevel
 
-namespace GriffinPlus.Lib.Logging.Tests
+namespace UnitTests
 {
 	/// <summary>
 	/// Tests around the <see cref="LogLevel"/> class.
@@ -68,6 +67,7 @@ namespace GriffinPlus.Lib.Logging.Tests
 			new LogLevelItem(22, "Trace17"),
 			new LogLevelItem(23, "Trace18"),
 			new LogLevelItem(24, "Trace19"),
+			// -- start of aspect log levels
 			new LogLevelItem(25, "Timing"),
 		};
 
@@ -77,7 +77,7 @@ namespace GriffinPlus.Lib.Logging.Tests
 		/// Checks whether the special log level 'All' has the expected name and id.
 		/// </summary>
 		[Fact]
-		public void Check_LogLevel_All()
+		public void CheckSpecialLogLevel_All()
 		{
 			Assert.Equal(int.MaxValue, LogLevel.All.Id);
 			Assert.Equal("All", LogLevel.All.Name);
@@ -87,7 +87,7 @@ namespace GriffinPlus.Lib.Logging.Tests
 		/// Checks whether the static properties providing access to predefined log levels return a log level with the expected name and id.
 		/// </summary>
 		[Fact]
-		public void Check_Predefined_Log_Levels()
+		public void CheckPredefinedLogLevels()
 		{
 			// ensure that the log level id is as expected
 			Assert.Equal(sExpectedPredefinedLogLevels[ 0].Id, LogLevel.Failure.Id);
@@ -150,7 +150,7 @@ namespace GriffinPlus.Lib.Logging.Tests
 		/// Checks that the predefined log level enumeration returns all predefined log levels in the proper order.
 		/// </summary>
 		[Fact]
-		public void Check_Predefined_Log_Level_Enumeration()
+		public void CheckPredefinedLogLevelEnumeration()
 		{
 			LogLevel[] levels = LogLevel.PredefinedLogLevels.ToArray();
 			Assert.Equal(sExpectedPredefinedLogLevels.Length, levels.Length);
