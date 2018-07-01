@@ -12,16 +12,25 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Globalization;
+using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// A log message processing pipeline stage that logs messages to stdout/stderr (thread-safe, since immutable).
+	/// A log message processing pipeline stage that logs messages to stdout/stderr (thread-safe).
 	/// </summary>
 	public class ConsoleLogger : LogMessageProcessingPipelineStage<ConsoleLogger>
 	{
 		private string mTimestampFormat = "u"; // conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ.
-		private string mFormat;                // combined format string for the entire log message
+		private string mFormatWithoutMessage;  // combined format string fot the log message without the message text
+		private string mLineFormat;            // combined format string for the entire log message
+		private CultureInfo mCultureInfo = CultureInfo.InvariantCulture;
+		private StringBuilder mLineBuilder = new StringBuilder();
+		private int mTimestampMaxLength;
+		private int mLogWriterMaxLength;
+		private int mLogLevelMaxLength;
+		private object mSync = new object();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConsoleLogger"/> class.
@@ -63,14 +72,54 @@ namespace GriffinPlus.Lib.Logging
 		/// </remarks>
 		public override void Process(LogMessage message)
 		{
-			// build line to write to the console
-			var line = string.Format(mFormat, message.Timestamp, message.LogWriter.Name, message.LogLevel.Name, message.Text);
+			string text;
+
+			lock (mSync)
+			{
+				// update paddings
+				int timestampLength = message.Timestamp.ToString(mTimestampFormat, mCultureInfo).Length;
+				int logWriterLength = message.LogWriter.Name.Length;
+				int logLevelLength = message.LogLevel.Name.Length;
+				if (timestampLength > mTimestampMaxLength || logWriterLength > mLogWriterMaxLength || logLevelLength > mLogLevelMaxLength)
+				{
+					mTimestampMaxLength = Math.Max(mTimestampMaxLength, timestampLength);
+					mLogWriterMaxLength = Math.Max(mLogWriterMaxLength, logWriterLength);
+					mLogLevelMaxLength = Math.Max(mLogLevelMaxLength, logLevelLength);
+					UpdateFormat();
+				}
+
+				// build line to write to the console
+				int indent = -1;
+				mLineBuilder.Clear();
+				var messageLines = message.Text.Replace("\r", "").Split('\n');
+				for (int i = 0; i < messageLines.Length; i++)
+				{
+					if (i == 0)
+					{
+						mLineBuilder.AppendFormat(mCultureInfo, mLineFormat, message.Timestamp, message.LogWriter.Name, message.LogLevel.Name, messageLines[i]);
+						mLineBuilder.AppendLine();
+					}
+					else
+					{
+						if (indent < 0) {
+							indent = string.Format(mCultureInfo, mFormatWithoutMessage, message.Timestamp, message.LogWriter.Name, message.LogLevel.Name).Length;
+						}
+						mLineBuilder.Append(' ', indent);
+						mLineBuilder.AppendLine(messageLines[i]);
+					}
+				}
+
+				text = mLineBuilder.ToString();
+			}
 
 			// write message to the console
-			if (message.LogLevel == LogLevel.Failure || message.LogLevel == LogLevel.Error) {
-				Console.Error.WriteLine(line);
-			} else {
-				Console.Out.WriteLine(line);
+			if (message.LogLevel == LogLevel.Failure || message.LogLevel == LogLevel.Error)
+			{
+				Console.Error.Write(text);
+			}
+			else
+			{
+				Console.Out.Write(text);
 			}
 
 			// pass message to the next pipeline stages
@@ -100,7 +149,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private void UpdateFormat()
 		{
-			mFormat = string.Format("{{0:{0}}} | {{1}} | {{2}} | {{3}}", mTimestampFormat);
+			mFormatWithoutMessage = string.Format("{{0,-{0}:{1}}} | {{1,-{2}}} | {{2,-{3}}} | ", mTimestampMaxLength, mTimestampFormat, mLogWriterMaxLength, mLogLevelMaxLength);
+			mLineFormat           = string.Format("{{0,-{0}:{1}}} | {{1,-{2}}} | {{2,-{3}}} | {{3}}", mTimestampMaxLength, mTimestampFormat, mLogWriterMaxLength, mLogLevelMaxLength);
 		}
 	}
 }
