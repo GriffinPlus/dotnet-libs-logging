@@ -188,8 +188,7 @@ namespace GriffinPlus.Lib.Logging
 			Timing
 		};
 
-		private static Dictionary<int,LogLevel> sLogLevelsById;
-		private static SortedDictionary<string,LogLevel> sLogLevelsByName;
+		private static Dictionary<string,LogLevel> sLogLevelsByName;
 		private static int sNextId = 0;
 
 		internal readonly int mId;
@@ -201,13 +200,10 @@ namespace GriffinPlus.Lib.Logging
 		static LogLevel()
 		{
 			// populate log level collections with predefined log levels
-			sLogLevelsById = new Dictionary<int,LogLevel>();
-			sLogLevelsByName = new SortedDictionary<string,LogLevel>();
+			sLogLevelsByName = new Dictionary<string,LogLevel>();
 			sLogLevelsByName.Add(All.Name, All);
-			sLogLevelsById.Add(All.Id, All);
 			foreach (LogLevel level in sPredefinedLogLevels) {
 				sLogLevelsByName.Add(level.Name, level);
-				sLogLevelsById.Add(level.Id, level);
 			}
 		}
 
@@ -288,7 +284,6 @@ namespace GriffinPlus.Lib.Logging
 						if (!sLogLevelsByName.TryGetValue(name, out level)) {
 							level = new LogLevel(name);
 							sLogLevelsByName.Add(level.Name, level);
-							sLogLevelsById.Add(level.Id, level);
 						}
 					} finally {
 						LogSource.Lock.ExitWriteLock();
