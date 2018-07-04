@@ -23,38 +23,38 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogWriter
 	{
-		internal readonly string mName;
 		private static IFormatProvider sDefaultFormatProvider = CultureInfo.InvariantCulture;
 		[ThreadStatic] private static StringBuilder sBuilder;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriter"/> class wrapping an unmanaged log writer instance.
+		/// Initializes a new instance of the <see cref="LogWriter"/> class.
 		/// </summary>
-		/// <param name="name">Name of the log weiter.</param>
+		/// <param name="name">Name of the log writer.</param>
 		internal LogWriter(string name)
 		{
-			mName = name;
+			Name = name;
+			ActiveLogLevelMask = BitMask.Zeros;
 		}
 
 		/// <summary>
 		/// Gets the name of the log writer.
 		/// </summary>
-		public string Name
-		{
-			get {
-				return mName;
-			}
-		}
+		public string Name { get; }
 
 		/// <summary>
-		/// Checks whether the specified <see cref="LogLevel"/> is active, so a message written
-		/// using that <see cref="LogLevel"/> really gets into the log.
+		/// Gets or sets the bit mask indicating which log levels are active for the log writer.
+		/// </summary>
+		internal BitMask ActiveLogLevelMask { get; set; }
+
+		/// <summary>
+		/// Checks whether the specified log level is active, so a message written using that level
+		/// really gets into the log.
 		/// </summary>
 		/// <param name="level">Log level to check.</param>
 		/// <returns>true, if the specified log level is active; otherwise false.</returns>
 		public bool IsLogLevelActive(LogLevel level)
 		{
-			return true;
+			return ActiveLogLevelMask.IsBitSet(level.Id);
 		}
 
 		/// <summary>
@@ -78,6 +78,18 @@ namespace GriffinPlus.Lib.Logging
 		public void Write(LogLevel level, string format, params object[] args)
 		{
 			Write(sDefaultFormatProvider, level, format, args);
+		}
+
+		/// <summary>
+		/// Writes a formatted message with a variable number of placeholders to the log
+		/// (bypasses filters induced by the log source configuration, for internal use only).
+		/// </summary>
+		/// <param name="level">Log level to write the message to.</param>
+		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
+		/// <param name="args">Arguments to put into the placeholders.</param>
+		internal void ForceWrite(LogLevel level, string format, params object[] args)
+		{
+			ForceWrite(sDefaultFormatProvider, level, format, args);
 		}
 
 		/// <summary>
@@ -499,6 +511,37 @@ namespace GriffinPlus.Lib.Logging
 				builder.AppendFormat(provider, format, args);
 				LogSource.WriteMessage(this, level, builder.ToString());
 			}
+		}
+
+		/// <summary>
+		/// Writes a formatted message with a variable number of placeholders to the log
+		/// (bypasses filters induced by the log source configuration, for internal use only).
+		/// </summary>
+		/// <param name="provider">Format provider to use when formatting the message.</param>
+		/// <param name="level">Log level to write the message to.</param>
+		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
+		/// <param name="args">Arguments to put into the placeholders.</param>
+		internal void ForceWrite(IFormatProvider provider, LogLevel level, string format, params object[] args)
+		{
+			// unwrap exceptions to ensure inner exceptions are logged as well
+			object[] modifiedArgs = args;
+			for (int i = 0; i < modifiedArgs.Length; i++)
+			{
+				object obj = modifiedArgs[i];
+				if (obj is Exception)
+				{
+					if (modifiedArgs == args) modifiedArgs = (object[])args.Clone();
+					modifiedArgs[i] = UnwrapException(obj as Exception);
+				}
+			}
+			args = modifiedArgs;
+
+			// write message to the log
+			StringBuilder builder = sBuilder;
+			if (builder == null) sBuilder = builder = new StringBuilder();
+			builder.Clear();
+			builder.AppendFormat(provider, format, args);
+			LogSource.WriteMessage(this, level, builder.ToString());
 		}
 
 		/// <summary>
