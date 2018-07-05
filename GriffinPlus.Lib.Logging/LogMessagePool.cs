@@ -40,8 +40,7 @@ namespace GriffinPlus.Lib.Logging
 			string text)
 		{
 			LogMessage message;
-			if (mMessages.TryTake(out message)) return message;
-			message = new LogMessage();
+			if (!mMessages.TryTake(out message)) message = new LogMessage();
 			message.Init(timestamp, highAccuracyTimestamp, logWriter, logLevel, text);
 			return message;
 		}
