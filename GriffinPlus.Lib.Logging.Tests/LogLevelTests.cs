@@ -67,8 +67,6 @@ namespace UnitTests
 			new LogLevelItem(22, "Trace17"),
 			new LogLevelItem(23, "Trace18"),
 			new LogLevelItem(24, "Trace19"),
-			// -- start of aspect log levels
-			new LogLevelItem(25, "Timing"),
 		};
 
 		#endregion
@@ -115,7 +113,6 @@ namespace UnitTests
 			Assert.Equal(sExpectedPredefinedLogLevels[22].Id, LogLevel.Trace17.Id);
 			Assert.Equal(sExpectedPredefinedLogLevels[23].Id, LogLevel.Trace18.Id);
 			Assert.Equal(sExpectedPredefinedLogLevels[24].Id, LogLevel.Trace19.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[25].Id, LogLevel.Timing.Id);
 
 			// ensure that the log level name is as expected
 			Assert.Equal(sExpectedPredefinedLogLevels[ 0].Name, LogLevel.Failure.Name);
@@ -143,7 +140,6 @@ namespace UnitTests
 			Assert.Equal(sExpectedPredefinedLogLevels[22].Name, LogLevel.Trace17.Name);
 			Assert.Equal(sExpectedPredefinedLogLevels[23].Name, LogLevel.Trace18.Name);
 			Assert.Equal(sExpectedPredefinedLogLevels[24].Name, LogLevel.Trace19.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[25].Name, LogLevel.Timing.Name);
 		}
 
 		/// <summary>

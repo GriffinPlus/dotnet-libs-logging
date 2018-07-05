@@ -11,7 +11,9 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -182,13 +184,16 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		static public readonly LogLevel All = new LogLevel("All", int.MaxValue);
 
+		/// <summary>
+		/// All predefined log levels (the index corresponds to the id of the log level).
+		/// </summary>
 		private static LogLevel[] sPredefinedLogLevels = new LogLevel[] {
 			Failure, Error, Warning, Note, Developer,
-			Trace0, Trace1, Trace2, Trace3, Trace4, Trace5, Trace6, Trace7, Trace8, Trace9, Trace10, Trace11, Trace12, Trace13, Trace14, Trace15, Trace16, Trace17, Trace18, Trace19,
-			Timing
+			Trace0, Trace1, Trace2, Trace3, Trace4, Trace5, Trace6, Trace7, Trace8, Trace9, Trace10, Trace11, Trace12, Trace13, Trace14, Trace15, Trace16, Trace17, Trace18, Trace19
 		};
 
 		private static Dictionary<string,LogLevel> sLogLevelsByName;
+		private static LogLevel[] sLogLevelsById;
 		private static int sNextId = 0;
 
 		internal readonly int mId;
@@ -205,6 +210,7 @@ namespace GriffinPlus.Lib.Logging
 			foreach (LogLevel level in sPredefinedLogLevels) {
 				sLogLevelsByName.Add(level.Name, level);
 			}
+			sLogLevelsById = sPredefinedLogLevels;
 		}
 
 		/// <summary>
@@ -230,16 +236,6 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets predefined log levels (all log levels that are not an aspect).
-		/// </summary>
-		public static IEnumerable<LogLevel> PredefinedLogLevels
-		{
-			get {
-				return sPredefinedLogLevels;
-			}
-		}
-
-		/// <summary>
 		/// Gets the name of the log level.
 		/// </summary>
 		public string Name
@@ -260,6 +256,30 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets predefined log levels (all log levels that are not an aspect).
+		/// </summary>
+		public static IReadOnlyList<LogLevel> PredefinedLogLevels
+		{
+			get { return sPredefinedLogLevels; }
+		}
+
+		/// <summary>
+		/// Gets all log levels that are currently known (except log level 'All').
+		/// </summary>
+		public static IReadOnlyList<LogLevel> KnownLevels
+		{
+			get { return sLogLevelsById; }
+		}
+
+		/// <summary>
+		/// Gets a dictionary containing all known log levels by name.
+		/// </summary>
+		public static IReadOnlyDictionary<string,LogLevel> KnownLevelsByName
+		{
+			get { return sLogLevelsByName; }
+		}
+
+		/// <summary>
 		/// Gets the aspect log level with the specified name (or creates a new one, if it does not exist, yet).
 		/// </summary>
 		/// <param name="name">Name of the aspect log level to get.</param>
@@ -268,25 +288,24 @@ namespace GriffinPlus.Lib.Logging
 		{
 			LogLevel level;
 
-			try {} finally  // prevents ThreadAbortException from disrupting the following block
+			sLogLevelsByName.TryGetValue(name, out level);
+			if (level == null)
 			{
-				LogSource.Lock.EnterReadLock();
-				try {
-					sLogLevelsByName.TryGetValue(name, out level);
-				} finally {
-					LogSource.Lock.ExitReadLock();
-				}
-
-				if (level == null)
+				lock (LogSource.Sync)
 				{
-					LogSource.Lock.EnterWriteLock();
-					try {
-						if (!sLogLevelsByName.TryGetValue(name, out level)) {
-							level = new LogLevel(name);
-							sLogLevelsByName.Add(level.Name, level);
-						}
-					} finally {
-						LogSource.Lock.ExitWriteLock();
+					if (!sLogLevelsByName.TryGetValue(name, out level))
+					{
+						// log level does not exist, yet
+						// => add a new one...
+						level = new LogLevel(name);
+						Dictionary<string, LogLevel> newLogLevelsByName = new Dictionary<string, LogLevel>(sLogLevelsByName);
+						newLogLevelsByName.Add(level.Name, level);
+						LogLevel[] newLogLevelById = new LogLevel[sLogLevelsById.Length + 1];
+						Array.Copy(sLogLevelsById, newLogLevelById, sLogLevelsById.Length);
+						newLogLevelById[sLogLevelsById.Length] = level;
+						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
+						sLogLevelsByName = newLogLevelsByName;
+						sLogLevelsById = newLogLevelById;
 					}
 				}
 			}
