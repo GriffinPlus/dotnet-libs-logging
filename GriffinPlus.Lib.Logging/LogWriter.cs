@@ -15,6 +15,7 @@ using System;
 using System.Text;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -24,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 	public class LogWriter
 	{
 		private static IFormatProvider sDefaultFormatProvider = CultureInfo.InvariantCulture;
-		[ThreadStatic] private static StringBuilder sBuilder;
+		private static ThreadLocal<StringBuilder> sBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder());
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogWriter"/> class.
@@ -505,8 +506,7 @@ namespace GriffinPlus.Lib.Logging
 				args = modifiedArgs;
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, args);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -537,8 +537,7 @@ namespace GriffinPlus.Lib.Logging
 			args = modifiedArgs;
 
 			// write message to the log
-			StringBuilder builder = sBuilder;
-			if (builder == null) sBuilder = builder = new StringBuilder();
+			StringBuilder builder = sBuilder.Value;
 			builder.Clear();
 			builder.AppendFormat(provider, format, args);
 			LogSource.WriteMessage(this, level, builder.ToString());
@@ -560,8 +559,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg = PrepareArgument(arg);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -587,8 +585,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg1 = PrepareArgument(arg1);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -617,8 +614,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg2 = PrepareArgument(arg2);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -650,8 +646,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg3 = PrepareArgument(arg3);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -686,8 +681,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg4 = PrepareArgument(arg4);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -725,8 +719,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg5 = PrepareArgument(arg5);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -767,8 +760,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg6 = PrepareArgument(arg6);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -812,8 +804,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg7 = PrepareArgument(arg7);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -860,8 +851,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg8 = PrepareArgument(arg8);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -911,8 +901,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg9 = PrepareArgument(arg9);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -965,8 +954,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg10 = PrepareArgument(arg10);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -1022,8 +1010,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg11 = PrepareArgument(arg11);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -1082,8 +1069,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg12 = PrepareArgument(arg12);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -1145,8 +1131,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg13 = PrepareArgument(arg13);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13);
 				LogSource.WriteMessage(this, level, builder.ToString());
@@ -1211,8 +1196,7 @@ namespace GriffinPlus.Lib.Logging
 				object carg14 = PrepareArgument(arg14);
 
 				// write message to the log
-				StringBuilder builder = sBuilder;
-				if (builder == null) sBuilder = builder = new StringBuilder();
+				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13, carg14);
 				LogSource.WriteMessage(this, level, builder.ToString());
