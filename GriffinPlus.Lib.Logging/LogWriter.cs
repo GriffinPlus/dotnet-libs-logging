@@ -34,7 +34,7 @@ namespace GriffinPlus.Lib.Logging
 		internal LogWriter(string name)
 		{
 			Name = name;
-			ActiveLogLevelMask = BitMask.Zeros;
+			ActiveLogLevelMask = LogLevelBitMask.Zeros;
 		}
 
 		/// <summary>
@@ -45,7 +45,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the bit mask indicating which log levels are active for the log writer.
 		/// </summary>
-		internal BitMask ActiveLogLevelMask { get; set; }
+		internal LogLevelBitMask ActiveLogLevelMask { get; set; }
 
 		/// <summary>
 		/// Checks whether the specified log level is active, so a message written using that level

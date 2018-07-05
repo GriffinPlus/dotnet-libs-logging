@@ -18,14 +18,14 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A bit field of variable size.
 	/// </summary>
-	internal class BitMask
+	public class LogLevelBitMask
 	{
 		private static uint[] sEmptyBitField = new uint[0];
 		private uint[] mBitField;
 		private bool mPaddingValue;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BitMask"/> class.
+		/// Initializes a new instance of the <see cref="LogLevelBitMask"/> class.
 		/// </summary>
 		/// <param name="size">Size of the bit field (is rounded up to the next multiple of 32).</param>
 		/// <param name="set">Initial value of the bits in the bit mask.</param>
@@ -33,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 		/// true to consider bits outside the mask as 'set';
 		/// false to consider them as 'cleared'.
 		/// </param>
-		public BitMask(int size, bool set, bool paddingValue)
+		public LogLevelBitMask(int size, bool set, bool paddingValue)
 		{
 			if (size < 0) throw new ArgumentException("The size of the bit field must be positive.", nameof(size));
 			int count = (size + 31) / 32;
@@ -50,9 +50,9 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BitMask"/> class (for internal use only).
+		/// Initializes a new instance of the <see cref="LogLevelBitMask"/> class (for internal use only).
 		/// </summary>
-		private BitMask()
+		private LogLevelBitMask()
 		{
 
 		}
@@ -60,12 +60,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets a bit mask of zero length with '0' padding.
 		/// </summary>
-		public static BitMask Zeros { get; } = new BitMask(0, false, false);
+		public static LogLevelBitMask Zeros { get; } = new LogLevelBitMask(0, false, false);
 
 		/// <summary>
 		/// Gets a bit mask of zero length with '1' padding.
 		/// </summary>
-		public static BitMask Ones { get; } = new BitMask(0, true, true);
+		public static LogLevelBitMask Ones { get; } = new LogLevelBitMask(0, true, true);
 
 		/// <summary>
 		/// Gets the size of the bit mask (in bits).
@@ -80,9 +80,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="mask">Bit mask to invert.</param>
 		/// <returns>The resulting bit mask.</returns>
-		public static BitMask operator ~(BitMask mask)
+		public static LogLevelBitMask operator ~(LogLevelBitMask mask)
 		{
-			BitMask result = new BitMask();
+			LogLevelBitMask result = new LogLevelBitMask();
 			int count = mask.mBitField.Length;
 			result.mBitField = count > 0 ? new uint[count] : sEmptyBitField;
 			result.mPaddingValue = !mask.mPaddingValue;
@@ -96,7 +96,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="mask1">First bit mask.</param>
 		/// <param name="mask2">Second bit mask.</param>
 		/// <returns>true, if the bit masks are equal; otherwise false.</returns>
-		public static bool operator ==(BitMask mask1, BitMask mask2)
+		public static bool operator ==(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
 			int count1 = mask1.mBitField.Length;
 			int count2 = mask2.mBitField.Length;
@@ -143,7 +143,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="mask1">First bit mask.</param>
 		/// <param name="mask2">Second bit mask.</param>
 		/// <returns>true, if the bit masks are equal; otherwise false.</returns>
-		public static bool operator !=(BitMask mask1, BitMask mask2)
+		public static bool operator !=(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
 			return !(mask1 == mask2);
 		}
@@ -156,9 +156,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>
 		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
 		/// </returns>
-		public static BitMask operator |(BitMask mask1, BitMask mask2)
+		public static LogLevelBitMask operator |(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
-			BitMask result = new BitMask();
+			LogLevelBitMask result = new LogLevelBitMask();
 			int count1 = mask1.mBitField.Length;
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
@@ -184,9 +184,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>
 		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
 		/// </returns>
-		public static BitMask operator &(BitMask mask1, BitMask mask2)
+		public static LogLevelBitMask operator &(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
-			BitMask result = new BitMask();
+			LogLevelBitMask result = new LogLevelBitMask();
 			int count1 = mask1.mBitField.Length;
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
@@ -212,9 +212,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>
 		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
 		/// </returns>
-		public static BitMask operator ^(BitMask mask1, BitMask mask2)
+		public static LogLevelBitMask operator ^(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
-			BitMask result = new BitMask();
+			LogLevelBitMask result = new LogLevelBitMask();
 			int count1 = mask1.mBitField.Length;
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
@@ -313,7 +313,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>true, if the specified bit mask equals the current one; otherwise false.</returns>
 		public override bool Equals(object obj)
 		{
-			BitMask other = obj as BitMask;
+			LogLevelBitMask other = obj as LogLevelBitMask;
 			if (other == null) return false;
 			return this == other; // use overloaded equality operator
 		}
