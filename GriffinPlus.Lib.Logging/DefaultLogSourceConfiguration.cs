@@ -61,6 +61,7 @@ namespace GriffinPlus.Lib.Logging
 			// valuable information, so renaming/deleting is sufficient)
 			mFileSystemWatcher = new FileSystemWatcher();
 			mFileSystemWatcher.Path = Path.GetDirectoryName(path);
+			mFileSystemWatcher.Filter = "*" + Path.GetExtension(mFileName);
 			mFileSystemWatcher.Renamed += EH_FileSystemWatcher_Renamed;
 			mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Deleted;
 			mFileSystemWatcher.EnableRaisingEvents = true;
@@ -147,6 +148,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested active log level mask.</returns>
 		public LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
 		{
+			// TODO
 			return new LogLevelBitMask(0, true, true);
 		}
 
@@ -159,7 +161,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Checks whether the specified file name is the name of the configuration file of the log source.
+		/// Checks whether the specified file name is the name of the configuration file of the log source
+		/// (the comparison is case insensitive).
 		/// </summary>
 		/// <param name="fileName">File name to check.</param>
 		/// <returns>
