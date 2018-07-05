@@ -11,6 +11,8 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System.Collections.Generic;
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -18,6 +20,18 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public interface ILogMessageProcessingPipelineStage
 	{
+		/// <summary>
+		/// Gets all pipeline stages following the current stage (including the current one).
+		/// </summary>
+		/// <param name="stages">Set to add the pipeline stages to.</param>
+		void GetAllStages(HashSet<ILogMessageProcessingPipelineStage> stages);
+
+		/// <summary>
+		/// Initializes the specified dictionary with default settings the pipeline stage operates with.
+		/// </summary>
+		/// <param name="settings">Dictionary to populate with default settings.</param>
+		void InitializeDefaultSettings(IDictionary<string, string> settings);
+
 		/// <summary>
 		/// Processes the specified log message.
 		/// </summary>

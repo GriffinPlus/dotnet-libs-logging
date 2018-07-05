@@ -13,7 +13,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -63,6 +62,28 @@ namespace GriffinPlus.Lib.Logging
 		/// The implementation should use the copy constructor to init base class members.
 		/// </remarks>
 		public abstract T Dupe();
+
+		/// <summary>
+		/// Gets all pipeline stages following the current stage (including the current one).
+		/// </summary>
+		/// <param name="stages">Set to add the pipeline stages to.</param>
+		public void GetAllStages(HashSet<ILogMessageProcessingPipelineStage> stages)
+		{
+			stages.Add(this);
+			for (int i = 0; i < mNextStages.Length; i++) {
+				mNextStages[i].GetAllStages(stages);
+			}
+		}
+
+		/// <summary>
+		/// When overridden in a derived class, initializes the specified dictionary with default settings the
+		/// pipeline stage operates with.
+		/// </summary>
+		/// <param name="settings">Dictionary to populate with default settings.</param>
+		public virtual void InitializeDefaultSettings(IDictionary<string, string> settings)
+		{
+
+		}
 
 		/// <summary>
 		/// When overridden in a derived class, processes the specified log message and passes the log message

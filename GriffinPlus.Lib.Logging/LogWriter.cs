@@ -55,6 +55,17 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>true, if the specified log level is active; otherwise false.</returns>
 		public bool IsLogLevelActive(LogLevel level)
 		{
+			if (ActiveLogLevelMask.Size == 0)
+			{
+				// active log level mask is empty
+				// => the log source configuration is not initialized, yet
+				// => create default configuration...
+				lock (LogSource.Sync)
+				{
+					LogSource.InitDefaultConfiguration();
+				}
+			}
+
 			return ActiveLogLevelMask.IsBitSet(level.Id);
 		}
 

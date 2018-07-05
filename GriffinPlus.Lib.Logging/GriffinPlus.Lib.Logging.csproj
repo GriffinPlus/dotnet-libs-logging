@@ -28,7 +28,7 @@ Part of the Griffin+ Common Library Suite.
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-    <PackageReference Include="System.Memory" Version="4.5.1" />
+    <PackageReference Include="System.IO.FileSystem.Watcher" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

@@ -14,6 +14,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -23,17 +25,61 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogSource
 	{
-		private static readonly ReaderWriterLockSlim sLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
-		private static readonly Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
+		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static readonly LogMessagePool sLogMessagePool = new LogMessagePool();
+		private static ILogSourceConfiguration sLogSourceConfiguration;
 		private static ILogMessageProcessingPipelineStage sLogMessageProcessingPipeline;
+		private static string sApplicationName;
 
 		/// <summary>
-		/// Gets the reader-writer-lock protecting access to the logging subsystem.
+		/// Initializes the <see cref="LogSource"/> class.
 		/// </summary>
-		internal static ReaderWriterLockSlim Lock
+		static LogSource()
 		{
-			get { return sLock; }
+			sApplicationName = AppDomain.CurrentDomain.FriendlyName;
+		}
+
+		/// <summary>
+		/// Gets the object that is used to synchronize access to shared resources in the logging subsystem.
+		/// </summary>
+		internal static object Sync { get; } = new object();
+
+		/// <summary>
+		/// Gets or sets the log source configuration that determines the behavior of the log source
+		/// (if set to <c>null</c> the default log source configuration with its ini-style configuration file is used).
+		/// </summary>
+		public static ILogSourceConfiguration Configuration
+		{
+			get
+			{
+				// handle lazy initialization to avoid that the default .logconf file is created,
+				// if a custom log source configuration is to be used instead
+				if (sLogSourceConfiguration == null)
+				{
+					lock (Sync)
+					{
+						InitDefaultConfiguration();
+					}
+				}
+
+				return sLogSourceConfiguration;
+			}
+
+			set
+			{
+				lock (Sync)
+				{
+					if (value != null)
+					{
+						sLogSourceConfiguration = value;
+						UpdateLogWriters();
+					}
+					else
+					{
+						InitDefaultConfiguration();
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -41,8 +87,82 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public static ILogMessageProcessingPipelineStage LogMessageProcessingPipeline
 		{
-			get { return sLogMessageProcessingPipeline; }
-			set { sLogMessageProcessingPipeline = value; }
+			get
+			{
+				return sLogMessageProcessingPipeline;
+			}
+
+			set
+			{
+				if (value != null)
+				{
+					lock (Sync)
+					{
+						// get all stages of the processing pipeline recursively
+						HashSet<ILogMessageProcessingPipelineStage> stages = new HashSet<ILogMessageProcessingPipelineStage>();
+						value.GetAllStages(stages);
+
+						bool modified = false;
+						foreach (var stage in stages)
+						{
+							Dictionary<string, string> defaultSettings = new Dictionary<string, string>();
+							stage.InitializeDefaultSettings(defaultSettings);
+							/*
+							IDictionary<string,string> persistentSettings = sLogSourceConfiguration.GetProcessingPipelineStageSettings(stage.GetType().Name);
+							foreach (var kvp in defaultSettings)
+							{
+								if (persistentSettings.ContainsKey(kvp.Key)) {
+									continue;
+								}
+
+								persistentSettings.Add(kvp.Key, kvp.Value);
+								modified = true;
+							}
+							*/
+						}
+
+						if (modified)
+						{
+							//Configuration.Save();
+						}
+					}
+				}
+
+				sLogMessageProcessingPipeline = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the name of the application.
+		/// </summary>
+		public static string ApplicationName
+		{
+			get { return sApplicationName; }
+			set {
+				if (value == null) throw new ArgumentNullException(nameof(value));
+				if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("The application name must not consist of whitespaces only.", nameof(value));
+				sApplicationName = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets a bit mask indicating which log levels are active for the specified log writer.
+		/// </summary>
+		/// <param name="writer">Log writer to get the active log level mask for.</param>
+		/// <returns>The active log level bit mask.</returns>
+		internal static LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
+		{
+			ILogSourceConfiguration configuration = sLogSourceConfiguration;
+			if (configuration != null)
+			{
+
+				return new LogLevelBitMask(0, false, false);
+			}
+			else
+			{
+				// configuration is not initialized, yet...
+				return new LogLevelBitMask(0, false, false);
+			}
 		}
 
 		/// <summary>
@@ -53,7 +173,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="text">Text of the log message.</param>
 		internal static void WriteMessage(LogWriter writer, LogLevel level, string text)
 		{
-			ILogMessageProcessingPipelineStage pipeline = sLogMessageProcessingPipeline;
+			// remove preceding and trailing line breaks
+			text = text.Trim('\r', '\n');
+
+			ILogMessageProcessingPipelineStage pipeline = LogMessageProcessingPipeline;
 			if (pipeline != null)
 			{
 				LogMessage message = null;
@@ -87,35 +210,18 @@ namespace GriffinPlus.Lib.Logging
 		{
 			LogWriter writer;
 
-			try { }
-			finally  // prevents ThreadAbortException from disrupting the following block
+			sLogWritersByName.TryGetValue(name, out writer);
+			if (writer == null)
 			{
-				// try to get an existing log writer
-				LogSource.Lock.EnterReadLock();
-				try
+				lock (Sync)
 				{
-					sLogWritersByName.TryGetValue(name, out writer);
-				}
-				finally
-				{
-					LogSource.Lock.ExitReadLock();
-				}
-
-				// ask unmanaged log source for the log writer, if it does not exist in the managed world, yet
-				if (writer == null)
-				{
-					LogSource.Lock.EnterWriteLock();
-					try
+					if (!sLogWritersByName.TryGetValue(name, out writer))
 					{
-						if (!sLogWritersByName.TryGetValue(name, out writer))
-						{
-							writer = new LogWriter(name);
-							sLogWritersByName.Add(writer.Name, writer);
-						}
-					}
-					finally
-					{
-						LogSource.Lock.ExitWriteLock();
+						writer = new LogWriter(name);
+						Dictionary<string, LogWriter> copy = new Dictionary<string, LogWriter>(sLogWritersByName);
+						copy.Add(writer.Name, writer);
+						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
+						sLogWritersByName = copy;
 					}
 				}
 			}
@@ -145,5 +251,53 @@ namespace GriffinPlus.Lib.Logging
 			return GetWriter(typeof(T).FullName);
 		}
 
+		/// <summary>
+		/// Initializes the default log source configuration
+		/// (ini-style configuration file located beside the entry assembly ending with the extension '.logconf').
+		/// </summary>
+		internal static void InitDefaultConfiguration()
+		{
+			// global logging lock is hold here...
+			if (sLogSourceConfiguration == null)
+			{
+				Assembly assembly = Assembly.GetEntryAssembly();
+				string path = Path.Combine(Path.GetDirectoryName(assembly.Location), Path.GetFileNameWithoutExtension(assembly.Location) + ".logconf");
+				DefaultLogSourceConfiguration configuration = new DefaultLogSourceConfiguration(path);
+
+				// save the configuration file, if it does not exist, yet
+				try
+				{
+					if (!File.Exists(path))
+					{
+						configuration.Save();
+					}
+				}
+				catch (Exception ex)
+				{
+					// can easily occur, if the application does not have the permission to write to its own folder
+					Debug.WriteLine("Saving log source configuration failed: {0}", ex.ToString());
+				}
+
+				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
+				sLogSourceConfiguration = configuration;
+
+				// update log writers appropriately
+				UpdateLogWriters();
+			}
+		}
+
+		/// <summary>
+		/// Updates the active log level mask of all log writers.
+		/// </summary>
+		private static void UpdateLogWriters()
+		{
+			// global logging lock is hold here...
+
+			foreach (var kvp in sLogWritersByName)
+			{
+				kvp.Value.ActiveLogLevelMask = sLogSourceConfiguration.GetActiveLogLevelMask(kvp.Value);
+			}
+		}
 	}
 }
+
