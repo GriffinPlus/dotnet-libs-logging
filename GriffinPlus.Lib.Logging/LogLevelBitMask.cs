@@ -44,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				for (int i = 0; i < mBitField.Length; i++)
 				{
-					mBitField[i] = 0xffffffff;
+					mBitField[i] = ~0u;
 				}
 			}
 		}
@@ -284,6 +284,67 @@ namespace GriffinPlus.Lib.Logging
 			int bitIndex = bit - arrayIndex * 32;
 			if (arrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The specified bit is out of bounds.", nameof(bit));
 			mBitField[arrayIndex] &= ~(1u << bitIndex);
+		}
+
+		/// <summary>
+		/// Sets a number of bits starting at the specified bit.
+		/// </summary>
+		/// <param name="bit">Bit to start at.</param>
+		/// <param name="count">Number of bits to set.</param>
+		public void SetBits(int bit, int count)
+		{
+			if (bit < 0) throw new ArgumentOutOfRangeException("The bit index must be positive.");
+			if (count < 0) throw new ArgumentOutOfRangeException("The number of bits must be positive.");
+			if (count == 0) return;
+			int startArrayIndex = bit / 32;
+			int startBitIndex = bit - startArrayIndex * 32;
+			int endArrayIndex = (bit + count) / 32;
+			int endBitIndex = bit + count - endArrayIndex * 32;
+			if (startArrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The start bit is out of bounds.", nameof(bit));
+			if (endArrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The end bit is out of bounds.", nameof(count));
+
+			if (endBitIndex == 0) endArrayIndex--;
+			uint mask = ~0u << startBitIndex;
+			for (int i = startArrayIndex; i <= endArrayIndex; i++)
+			{
+				if (i == endArrayIndex) {
+					mask &= ~(0u) >> (32 - endBitIndex);
+				}
+
+				mBitField[i] |= mask;
+				mask = ~0u;
+			}
+		}
+
+		/// <summary>
+		/// Clears a number of bits starting at the specified bit.
+		/// </summary>
+		/// <param name="bit">Bit to start at.</param>
+		/// <param name="count">Number of bits to clear.</param>
+		public void ClearBits(int bit, int count)
+		{
+			if (bit < 0) throw new ArgumentOutOfRangeException("The bit index must be positive.");
+			if (count < 0) throw new ArgumentOutOfRangeException("The number of bits must be positive.");
+			if (count == 0) return;
+			int startArrayIndex = bit / 32;
+			int startBitIndex = bit - startArrayIndex * 32;
+			int endArrayIndex = (bit + count) / 32;
+			int endBitIndex = bit + count - endArrayIndex * 32;
+			if (startArrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The start bit is out of bounds.", nameof(bit));
+			if (endArrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The end bit is out of bounds.", nameof(count));
+
+			if (endBitIndex == 0) endArrayIndex--;
+			uint mask = ~0u << startBitIndex;
+			for (int i = startArrayIndex; i <= endArrayIndex; i++)
+			{
+				if (i == endArrayIndex)
+				{
+					mask &= ~(0u) >> (32 - endBitIndex);
+				}
+
+				mBitField[i] &= ~mask;
+				mask = ~0u;
+			}
 		}
 
 		/// <summary>
