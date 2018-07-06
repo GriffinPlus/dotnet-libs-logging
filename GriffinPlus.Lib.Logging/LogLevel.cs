@@ -22,179 +22,191 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogLevel
 	{
+		private static Dictionary<string, LogLevel> sLogLevelsByName;
+		private static LogLevel[] sLogLevelsById;
+		private static int sNextId = 1;
+
 		/// <summary>
 		/// Failure:
 		/// The log message is about a severe error condition that threatens the system's stability.
 		/// </summary>
-		static public readonly LogLevel Failure = new LogLevel("Failure");
+		public static readonly LogLevel Failure = new LogLevel("Failure");
 
 		/// <summary>
 		/// Error:
 		/// The log message is about a "normal" error condition.
 		/// </summary>
-		static public readonly LogLevel Error = new LogLevel("Error");
+		public static readonly LogLevel Error = new LogLevel("Error");
 
 		/// <summary>
 		/// Warning:
 		/// The log message is not an error condition, but something a user should keep an eye on.
 		/// </summary>
-		static public readonly LogLevel Warning = new LogLevel("Warning");
+		public static readonly LogLevel Warning = new LogLevel("Warning");
 
 		/// <summary>
 		/// Note:
 		/// The log message is a note a regular user should see.
 		/// </summary>
-		static public readonly LogLevel Note = new LogLevel("Note");
+		public static readonly LogLevel Note = new LogLevel("Note");
 
 		/// <summary>
 		/// Developer:
 		/// A log message only developers should see.
 		/// </summary>
-		static public readonly LogLevel Developer = new LogLevel("Developer");
+		public static readonly LogLevel Developer = new LogLevel("Developer");
 
 		/// <summary>
 		/// Trace0:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace0 = new LogLevel("Trace0");
+		public static readonly LogLevel Trace0 = new LogLevel("Trace0");
 
 		/// <summary>
 		/// Trace1:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace1 = new LogLevel("Trace1");
+		public static readonly LogLevel Trace1 = new LogLevel("Trace1");
 
 		/// <summary>
 		/// Trace2:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace2 = new LogLevel("Trace2");
+		public static readonly LogLevel Trace2 = new LogLevel("Trace2");
 
 		/// <summary>
 		/// Trace3:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace3 = new LogLevel("Trace3");
+		public static readonly LogLevel Trace3 = new LogLevel("Trace3");
 		
 		/// <summary>
 		/// Trace4:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace4 = new LogLevel("Trace4");
+		public static readonly LogLevel Trace4 = new LogLevel("Trace4");
 
 		/// <summary>
 		/// Trace5:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace5 = new LogLevel("Trace5");
+		public static readonly LogLevel Trace5 = new LogLevel("Trace5");
 
 		/// <summary>
 		/// Trace6:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace6  = new LogLevel("Trace6");
+		public static readonly LogLevel Trace6  = new LogLevel("Trace6");
 
 		/// <summary>
 		/// Trace7:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace7 = new LogLevel("Trace7");
+		public static readonly LogLevel Trace7 = new LogLevel("Trace7");
 
 		/// <summary>
 		/// Trace8:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace8 = new LogLevel("Trace8");
+		public static readonly LogLevel Trace8 = new LogLevel("Trace8");
 
 		/// <summary>
 		/// Trace9:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace9 = new LogLevel("Trace9");
+		public static readonly LogLevel Trace9 = new LogLevel("Trace9");
 
 		/// <summary>
 		/// Trace10:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace10 = new LogLevel("Trace10");
+		public static readonly LogLevel Trace10 = new LogLevel("Trace10");
 
 		/// <summary>
 		/// Trace11:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace11 = new LogLevel("Trace11");
+		public static readonly LogLevel Trace11 = new LogLevel("Trace11");
 
 		/// <summary>
 		/// Trace12:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace12 = new LogLevel("Trace12");
+		public static readonly LogLevel Trace12 = new LogLevel("Trace12");
 
 		/// <summary>
 		/// Trace13:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace13 = new LogLevel("Trace13");
+		public static readonly LogLevel Trace13 = new LogLevel("Trace13");
 
 		/// <summary>
 		/// Trace14:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace14 = new LogLevel("Trace14");
+		public static readonly LogLevel Trace14 = new LogLevel("Trace14");
 
 		/// <summary>
 		/// Trace15:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace15 = new LogLevel("Trace15");
+		public static readonly LogLevel Trace15 = new LogLevel("Trace15");
 
 		/// <summary>
 		/// Trace16:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace16 = new LogLevel("Trace16");
+		public static readonly LogLevel Trace16 = new LogLevel("Trace16");
 
 		/// <summary>
 		/// Trace17:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace17 = new LogLevel("Trace17");
+		public static readonly LogLevel Trace17 = new LogLevel("Trace17");
 
 		/// <summary>
 		/// Trace18:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace18 = new LogLevel("Trace18");
+		public static readonly LogLevel Trace18 = new LogLevel("Trace18");
 
 		/// <summary>
 		/// Trace19:
 		/// A log message the implementer of the code might be interested in.
 		/// </summary>
-		static public readonly LogLevel Trace19 = new LogLevel("Trace19");
+		public static readonly LogLevel Trace19 = new LogLevel("Trace19");
 
 		/// <summary>
 		/// Timing:
 		/// An aspect that is used when timing is concerned.
 		/// </summary>
-		static public readonly LogLevel Timing = new LogLevel("Timing");
+		public static readonly LogLevel Timing = new LogLevel("Timing");
 
 		/// <summary>
-		/// All:
-		/// Special log level expressing the highest possible threshold for filtering purposes (all log levels pass the filter).
+		/// None: Special log level expressing the lowest possible threshold for filtering purposes
+		/// (no log level passes the filter).
 		/// </summary>
-		static public readonly LogLevel All = new LogLevel("All", int.MaxValue);
+		public static readonly LogLevel None = new LogLevel("None", 0);
+
+		/// <summary>
+		/// All: Special log level expressing the highest possible threshold for filtering purposes
+		/// (all log levels pass the filter).
+		/// </summary>
+		public static readonly LogLevel All = new LogLevel("All", int.MaxValue);
+
+		/// <summary>
+		/// Gets the maximum id assigned to a log level.
+		/// </summary>
+		public static int MaxId { get => sNextId - 1; }
 
 		/// <summary>
 		/// All predefined log levels (the index corresponds to the id of the log level).
 		/// </summary>
 		private static LogLevel[] sPredefinedLogLevels = new LogLevel[] {
+			None,
 			Failure, Error, Warning, Note, Developer,
 			Trace0, Trace1, Trace2, Trace3, Trace4, Trace5, Trace6, Trace7, Trace8, Trace9, Trace10, Trace11, Trace12, Trace13, Trace14, Trace15, Trace16, Trace17, Trace18, Trace19
 		};
-
-		private static Dictionary<string,LogLevel> sLogLevelsByName;
-		private static LogLevel[] sLogLevelsById;
-		private static int sNextId = 0;
 
 		internal readonly int mId;
 		internal readonly string mName;
