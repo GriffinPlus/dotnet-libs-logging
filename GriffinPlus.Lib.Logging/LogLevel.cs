@@ -24,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private static Dictionary<string, LogLevel> sLogLevelsByName;
 		private static LogLevel[] sLogLevelsById;
-		private static int sNextId = 1;
+		private static int sNextId = 0;
 
 		/// <summary>
 		/// Failure:
@@ -186,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 		/// None: Special log level expressing the lowest possible threshold for filtering purposes
 		/// (no log level passes the filter).
 		/// </summary>
-		public static readonly LogLevel None = new LogLevel("None", 0);
+		public static readonly LogLevel None = new LogLevel("None", -1);
 
 		/// <summary>
 		/// All: Special log level expressing the highest possible threshold for filtering purposes
@@ -203,7 +203,6 @@ namespace GriffinPlus.Lib.Logging
 		/// All predefined log levels (the index corresponds to the id of the log level).
 		/// </summary>
 		private static LogLevel[] sPredefinedLogLevels = new LogLevel[] {
-			None,
 			Failure, Error, Warning, Note, Developer,
 			Trace0, Trace1, Trace2, Trace3, Trace4, Trace5, Trace6, Trace7, Trace8, Trace9, Trace10, Trace11, Trace12, Trace13, Trace14, Trace15, Trace16, Trace17, Trace18, Trace19
 		};
@@ -218,6 +217,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// populate log level collections with predefined log levels
 			sLogLevelsByName = new Dictionary<string,LogLevel>();
+			sLogLevelsByName.Add(None.Name, None);
 			sLogLevelsByName.Add(All.Name, All);
 			foreach (LogLevel level in sPredefinedLogLevels) {
 				sLogLevelsByName.Add(level.Name, level);
@@ -276,7 +276,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets all log levels that are currently known (except log level 'All').
+		/// Gets all log levels that are currently known (except log level 'None' and 'All').
 		/// </summary>
 		public static IReadOnlyList<LogLevel> KnownLevels
 		{
