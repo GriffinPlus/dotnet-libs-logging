@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 
@@ -72,6 +73,22 @@ namespace GriffinPlus.Lib.Logging
 					if (value != null)
 					{
 						sLogSourceConfiguration = value;
+
+						// add default settings to configuration file, if necessary
+						if (SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline))
+						{
+							try
+							{
+								Configuration.Save();
+							}
+							catch (Exception ex)
+							{
+								// can easily occur, if the application does not have the permission to write to its own folder
+								Debug.WriteLine("Saving log source configuration failed: {0}", ex.ToString());
+							}
+						}
+
+						// update log writers to comply with the new configuration
 						UpdateLogWriters();
 					}
 					else
@@ -94,41 +111,30 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
-				if (value != null)
+				lock (Sync)
 				{
-					lock (Sync)
+					// abort, if the processing pipeline has not changed
+					if (sLogMessageProcessingPipeline == value) return;
+
+					if (value != null)
 					{
-						// get all stages of the processing pipeline recursively
-						HashSet<ILogMessageProcessingPipelineStage> stages = new HashSet<ILogMessageProcessingPipelineStage>();
-						value.GetAllStages(stages);
-
-						bool modified = false;
-						foreach (var stage in stages)
+						if (SetDefaultProcessingPipelineSettings(value))
 						{
-							Dictionary<string, string> defaultSettings = new Dictionary<string, string>();
-							stage.InitializeDefaultSettings(defaultSettings);
-							/*
-							IDictionary<string,string> persistentSettings = sLogSourceConfiguration.GetProcessingPipelineStageSettings(stage.GetType().Name);
-							foreach (var kvp in defaultSettings)
+							try
 							{
-								if (persistentSettings.ContainsKey(kvp.Key)) {
-									continue;
-								}
-
-								persistentSettings.Add(kvp.Key, kvp.Value);
-								modified = true;
+								Configuration.Save();
 							}
-							*/
-						}
-
-						if (modified)
-						{
-							//Configuration.Save();
+							catch (Exception ex)
+							{
+								// can easily occur, if the application does not have the permission to write to its own folder
+								Debug.WriteLine("Saving log source configuration failed: {0}", ex.ToString());
+							}
 						}
 					}
-				}
 
-				sLogMessageProcessingPipeline = value;
+					Thread.MemoryBarrier();
+					sLogMessageProcessingPipeline = value;
+				}
 			}
 		}
 
@@ -142,26 +148,6 @@ namespace GriffinPlus.Lib.Logging
 				if (value == null) throw new ArgumentNullException(nameof(value));
 				if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("The application name must not consist of whitespaces only.", nameof(value));
 				sApplicationName = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets a bit mask indicating which log levels are active for the specified log writer.
-		/// </summary>
-		/// <param name="writer">Log writer to get the active log level mask for.</param>
-		/// <returns>The active log level bit mask.</returns>
-		internal static LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
-		{
-			ILogSourceConfiguration configuration = sLogSourceConfiguration;
-			if (configuration != null)
-			{
-
-				return new LogLevelBitMask(0, false, false);
-			}
-			else
-			{
-				// configuration is not initialized, yet...
-				return new LogLevelBitMask(0, false, false);
 			}
 		}
 
@@ -258,19 +244,21 @@ namespace GriffinPlus.Lib.Logging
 		internal static void InitDefaultConfiguration()
 		{
 			// global logging lock is hold here...
+			Debug.Assert(Monitor.IsEntered(Sync));
+
 			if (sLogSourceConfiguration == null)
 			{
 				Assembly assembly = Assembly.GetEntryAssembly();
 				string path = Path.Combine(Path.GetDirectoryName(assembly.Location), Path.GetFileNameWithoutExtension(assembly.Location) + ".logconf");
 				DefaultLogSourceConfiguration configuration = new DefaultLogSourceConfiguration(path);
 
+				// add default settings to configuration file, if necessary
+				SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline);
+
 				// save the configuration file, if it does not exist, yet
 				try
 				{
-					if (!File.Exists(path))
-					{
-						configuration.Save();
-					}
+					configuration.Save();
 				}
 				catch (Exception ex)
 				{
@@ -292,12 +280,64 @@ namespace GriffinPlus.Lib.Logging
 		private static void UpdateLogWriters()
 		{
 			// global logging lock is hold here...
+			Debug.Assert(Monitor.IsEntered(Sync));
 
 			foreach (var kvp in sLogWritersByName)
 			{
 				kvp.Value.ActiveLogLevelMask = sLogSourceConfiguration.GetActiveLogLevelMask(kvp.Value);
 			}
 		}
+
+		/// <summary>
+		/// Gets the default settings of the specified processing pipeline stage and all following stages and
+		/// updates the current log source configuration with default processing stage settings, if the corresponding
+		/// processing stage settings are not defined, yet.
+		/// </summary>
+		/// <param name="firstStage">First stage of the processing pipeline.</param>
+		/// <returns>true, if configuration was modified; otherwise false.</returns>
+		private static bool SetDefaultProcessingPipelineSettings(ILogMessageProcessingPipelineStage firstStage)
+		{
+			// global logging lock is hold here...
+			Debug.Assert(Monitor.IsEntered(Sync));
+
+			// abort, if the first stage is not defined...
+			if (firstStage == null) {
+				return false;
+			}
+
+			// get all stages of the processing pipeline recursively
+			HashSet<ILogMessageProcessingPipelineStage> allStages = new HashSet<ILogMessageProcessingPipelineStage>();
+			firstStage.GetAllStages(allStages);
+
+			// retrieve default settings from all stages and populate the configuration accordingly
+			bool modified = false;
+			foreach (var stage in allStages)
+			{
+				// get default settings
+				IDictionary<string, string> defaultSettings = stage.GetDefaultSettings();
+
+				// update missing settings in configuration
+				bool stageSettingsModified = false;
+				var ps = Configuration.GetProcessingPipelineStageSettings(stage.GetType().Name);
+				Dictionary<string, string> persistentSettings = new Dictionary<string, string>(ps);
+				foreach (var kvp in defaultSettings.Where(x => persistentSettings.ContainsKey(x.Key)))
+				{
+					// add default setting to configuration
+					persistentSettings.Add(kvp.Key, kvp.Value);
+					stageSettingsModified = true;
+					modified = true;
+				}
+
+				// update settings in configuration
+				if (stageSettingsModified)
+				{
+					Configuration.SetProcessingPipelineStageSettings(stage.GetType().Name, persistentSettings);
+				}
+			}
+
+			return modified;
+		}
+
 	}
 }
 

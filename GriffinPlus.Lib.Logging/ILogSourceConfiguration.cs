@@ -11,6 +11,8 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System.Collections.Generic;
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -25,6 +27,25 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
 		LogLevelBitMask GetActiveLogLevelMask(LogWriter writer);
+
+		/// <summary>
+		/// Gets the settings for the pipeline stage with the specified name.
+		/// </summary>
+		/// <param name="name">Name of the pipeline stage to get the settings for.</param>
+		/// <returns>The requested settings.</returns>
+		IDictionary<string, string> GetProcessingPipelineStageSettings(string name);
+
+		/// <summary>
+		/// Sets the settings for the pipeline stage with the specified name.
+		/// </summary>
+		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
+		/// <param name="settings">Settings to set.</param>
+		void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings);
+
+		/// <summary>
+		/// Saves the configuration.
+		/// </summary>
+		void Save();
 	}
 
 }

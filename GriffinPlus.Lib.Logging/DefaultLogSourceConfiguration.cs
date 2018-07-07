@@ -12,6 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -206,6 +207,26 @@ namespace GriffinPlus.Lib.Logging
 				// => disable all log levels...
 				return new LogLevelBitMask(0, false, false);
 			}
+		}
+
+		/// <summary>
+		/// Gets the settings for the pipeline stage with the specified name.
+		/// </summary>
+		/// <param name="name">Name of the pipeline stage to get the settings for.</param>
+		/// <returns>The requested settings.</returns>
+		public IDictionary<string, string> GetProcessingPipelineStageSettings(string name)
+		{
+			return mFile.GetProcessingPipelineStageSettings(name); // returns a copy of the internal settings
+		}
+
+		/// <summary>
+		/// Sets the settings for the pipeline stage with the specified name.
+		/// </summary>
+		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
+		/// <param name="settings">Settings to set.</param>
+		public void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings)
+		{
+			mFile.SetProcessingPipelineStageSettings(name, settings);
 		}
 
 		/// <summary>

@@ -27,10 +27,10 @@ namespace GriffinPlus.Lib.Logging
 		void GetAllStages(HashSet<ILogMessageProcessingPipelineStage> stages);
 
 		/// <summary>
-		/// Initializes the specified dictionary with default settings the pipeline stage operates with.
+		/// Populates the specified dictionary with default settings the pipeline stage operates with.
 		/// </summary>
-		/// <param name="settings">Dictionary to populate with default settings.</param>
-		void InitializeDefaultSettings(IDictionary<string, string> settings);
+		/// <returns>Dictionary with default settings.</returns>
+		IDictionary<string, string> GetDefaultSettings();
 
 		/// <summary>
 		/// Processes the specified log message.

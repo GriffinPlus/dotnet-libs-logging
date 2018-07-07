@@ -76,13 +76,13 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// When overridden in a derived class, initializes the specified dictionary with default settings the
+		/// When overridden in a derived class, returns a dictionary containing the default settings the
 		/// pipeline stage operates with.
 		/// </summary>
-		/// <param name="settings">Dictionary to populate with default settings.</param>
-		public virtual void InitializeDefaultSettings(IDictionary<string, string> settings)
+		/// <returns>Dictionary with default settings</returns>
+		public virtual IDictionary<string,string> GetDefaultSettings()
 		{
-
+			return new Dictionary<string, string>();
 		}
 
 		/// <summary>

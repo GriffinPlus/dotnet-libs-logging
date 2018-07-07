@@ -131,21 +131,28 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the settings dictionary for the processing pipeline stage with the specified name.
 		/// </summary>
 		/// <param name="name">Name of the processing pipeline stage to get the settings for.</param>
-		/// <param name="create">
-		/// true to create the settings dictionary, if it does not exist;
-		/// otherwise false.
-		/// </param>
-		/// <returns>The requested settings dictionary.</returns>
-		public Dictionary<string, string> GetProcessingPipelineStageSettings(string name, bool create = true)
+		/// <returns>
+		/// The requested settings dictionary;
+		/// null, if the settings dictionary does not exist, yet.
+		/// </returns>
+		public IDictionary<string, string> GetProcessingPipelineStageSettings(string name)
 		{
 			Dictionary<string, string> settings;
-			if (!mProcessingPipelineStageSettings.TryGetValue(name, out settings))
-			{
-				settings = new Dictionary<string, string>();
-				mProcessingPipelineStageSettings.Add(name, settings);
+			if (mProcessingPipelineStageSettings.TryGetValue(name, out settings)) {
+				return new Dictionary<string, string>(settings);
 			}
 
-			return settings;
+			return null;
+		}
+
+		/// <summary>
+		/// Sets the settings dictionary for the processing pipeline stage with the specified name.
+		/// </summary>
+		/// <param name="name">Name of the processing pipeline stage to set the settings for.</param>
+		/// <param name="settings">Processing pipeline settings to set.</param>
+		public void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings)
+		{
+			mProcessingPipelineStageSettings[name] = new Dictionary<string, string>(settings);
 		}
 
 		/// <summary>
