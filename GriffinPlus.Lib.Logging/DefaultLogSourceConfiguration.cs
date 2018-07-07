@@ -13,6 +13,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -62,8 +63,9 @@ namespace GriffinPlus.Lib.Logging
 			mFileSystemWatcher = new FileSystemWatcher();
 			mFileSystemWatcher.Path = Path.GetDirectoryName(path);
 			mFileSystemWatcher.Filter = "*" + Path.GetExtension(mFileName);
+			mFileSystemWatcher.Changed += EH_FileSystemWatcher_Changed;
+			mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Removed;
 			mFileSystemWatcher.Renamed += EH_FileSystemWatcher_Renamed;
-			mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Deleted;
 			mFileSystemWatcher.EnableRaisingEvents = true;
 		}
 
@@ -88,6 +90,44 @@ namespace GriffinPlus.Lib.Logging
 			{
 				mFileSystemWatcher.Dispose();
 				mFileSystemWatcher = null;
+			}
+		}
+
+		/// <summary>
+		/// Is called by the file system watcher when a file changes in the watched directory.
+		/// </summary>
+		/// <param name="sender">The file system watcher.</param>
+		/// <param name="e">Event arguments.</param>
+		private void EH_FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+		{
+			// called by worker thread...
+			if (IsConfigurationFile(e.Name))
+			{
+				try
+				{
+					mFile = LogSourceConfigurationFile.LoadFrom(e.FullPath);
+				}
+				catch (Exception ex)
+				{
+					sLog.ForceWrite(LogLevel.Error, "Reloading configuration file failed. Exception: {0}", ex);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Is called by the file system watcher when a file is deleted in the watched directory.
+		/// </summary>
+		/// <param name="sender">The file system watcher.</param>
+		/// <param name="e">Event arguments.</param>
+		private void EH_FileSystemWatcher_Removed(object sender, FileSystemEventArgs e)
+		{
+			// called by worker thread...
+			if (IsConfigurationFile(e.Name))
+			{
+				// configuration file was removed
+				// => create a default configuration...
+				LogSourceConfigurationFile file = new LogSourceConfigurationFile();
+				mFile = file;
 			}
 		}
 
@@ -124,23 +164,6 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Is called by the file system watcher when a file is deleted in the watched directory.
-		/// </summary>
-		/// <param name="sender">The file system watcher.</param>
-		/// <param name="e">Event arguments.</param>
-		private void EH_FileSystemWatcher_Deleted(object sender, FileSystemEventArgs e)
-		{
-			// called by worker thread...
-			if (IsConfigurationFile(e.Name))
-			{
-				// configuration file was removed
-				// => create a default configuration...
-				LogSourceConfigurationFile file = new LogSourceConfigurationFile();
-				mFile = file;
-			}
-		}
-
-		/// <summary>
 		/// Gets a bit mask in which each bit is associated with a log level with the same id
 		/// and expresses whether the corresponding log level is active for the specified writer.
 		/// </summary>
@@ -148,8 +171,41 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested active log level mask.</returns>
 		public LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
 		{
-			// TODO
-			return new LogLevelBitMask(0, true, true);
+			LogLevelBitMask mask = new LogLevelBitMask(LogLevel.MaxId + 1, false, false); // id starts at 0
+
+			// get the first matching log writer settings
+			var settings = mFile.LogWriterSettings
+				.Where(x => x.Pattern.Regex.IsMatch(writer.Name))
+				.FirstOrDefault();
+
+			if (settings != null)
+			{
+				// enable all log levels that are covered by the base level
+				LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
+				mask.SetBits(0, level.Id + 1);
+
+				// add log levels explicitly included
+				foreach (var include in settings.Includes)
+				{
+					level = LogLevel.GetAspect(include);
+					mask.SetBit(level.Id);
+				}
+
+				// disable log levels explicitly excluded
+				foreach (var exclude in settings.Excludes)
+				{
+					level = LogLevel.GetAspect(exclude);
+					mask.ClearBit(level.Id);
+				}
+
+				return mask;
+			}
+			else
+			{
+				// no matching settings found
+				// => disable all log levels...
+				return new LogLevelBitMask(0, false, false);
+			}
 		}
 
 		/// <summary>
