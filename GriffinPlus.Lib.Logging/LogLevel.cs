@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -219,10 +220,16 @@ namespace GriffinPlus.Lib.Logging
 			sLogLevelsByName = new Dictionary<string,LogLevel>();
 			sLogLevelsByName.Add(None.Name, None);
 			sLogLevelsByName.Add(All.Name, All);
+			sLogLevelsByName.Add(Timing.Name, Timing);
 			foreach (LogLevel level in sPredefinedLogLevels) {
 				sLogLevelsByName.Add(level.Name, level);
 			}
-			sLogLevelsById = sPredefinedLogLevels;
+
+			sLogLevelsById = sLogLevelsByName
+				.Where(x => x.Value.Id >= 0 && x.Value.Id < sNextId)
+				.OrderBy(x => x.Value.Id)
+				.Select(x => x.Value)
+				.ToArray();
 		}
 
 		/// <summary>
