@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -25,6 +26,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private LogWriter sLog = LogSource.GetWriter("Logging");
 		private FileSystemWatcher mFileSystemWatcher;
+		private Timer mReloadingTimer;
 		private LogSourceConfigurationFile mFile;
 		private string mFilePath;
 		private string mFileName;
@@ -68,6 +70,9 @@ namespace GriffinPlus.Lib.Logging
 			mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Removed;
 			mFileSystemWatcher.Renamed += EH_FileSystemWatcher_Renamed;
 			mFileSystemWatcher.EnableRaisingEvents = true;
+
+			// set up timer that will handle reloading the configuration file
+			mReloadingTimer = new Timer(TimerProc, null, -1, -1); // do not start immediately
 		}
 
 		/// <summary>
@@ -87,6 +92,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		protected virtual void Dispose(bool disposing)
 		{
+			if (mReloadingTimer != null)
+			{
+				mReloadingTimer.Dispose();
+				mReloadingTimer = null;
+			}
+
 			if (mFileSystemWatcher != null)
 			{
 				mFileSystemWatcher.Dispose();
@@ -104,14 +115,9 @@ namespace GriffinPlus.Lib.Logging
 			// called by worker thread...
 			if (IsConfigurationFile(e.Name))
 			{
-				try
-				{
-					mFile = LogSourceConfigurationFile.LoadFrom(e.FullPath);
-				}
-				catch (Exception ex)
-				{
-					sLog.ForceWrite(LogLevel.Error, "Reloading configuration file failed. Exception: {0}", ex);
-				}
+				// configuration file is present now
+				// => schedule loading the file...
+				mReloadingTimer.Change(500, -1);
 			}
 		}
 
@@ -145,15 +151,8 @@ namespace GriffinPlus.Lib.Logging
 			if (IsConfigurationFile(e.Name))
 			{
 				// configuration file is present now
-				// => load it...
-				try
-				{
-					mFile = LogSourceConfigurationFile.LoadFrom(e.FullPath);
-				}
-				catch (Exception ex)
-				{
-					sLog.ForceWrite(LogLevel.Error, "Reloading configuration file failed. Exception: {0}", ex);
-				}
+				// => schedule loading the file...
+				mReloadingTimer.Change(500, -1);
 			}
 			else if (vanished)
 			{
@@ -161,6 +160,28 @@ namespace GriffinPlus.Lib.Logging
 				// => create a default configuration...
 				LogSourceConfigurationFile file = new LogSourceConfigurationFile();
 				mFile = file;
+			}
+		}
+
+		/// <summary>
+		/// Entrypoint for the timer reloading the configuration file.
+		/// </summary>
+		/// <param name="state">Some state object (not used).</param>
+		private void TimerProc(object state)
+		{
+			try
+			{
+				mFile = LogSourceConfigurationFile.LoadFrom(mFilePath);
+			}
+			catch (FileNotFoundException)
+			{
+				// file does not exist, should be handled using file system notifications
+				// => don't do anything here...
+			}
+			catch (Exception ex)
+			{
+				sLog.ForceWrite(LogLevel.Error, "Reloading configuration file failed. Exception: {0}", ex);
+				mReloadingTimer.Change(500, -1); // try again later...
 			}
 		}
 

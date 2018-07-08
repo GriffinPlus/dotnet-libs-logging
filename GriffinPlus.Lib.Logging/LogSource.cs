@@ -204,6 +204,14 @@ namespace GriffinPlus.Lib.Logging
 					if (!sLogWritersByName.TryGetValue(name, out writer))
 					{
 						writer = new LogWriter(name);
+
+						// set active log level mask, if the configuration is already initialized
+						if (sLogSourceConfiguration != null)
+						{
+							writer.ActiveLogLevelMask = sLogSourceConfiguration.GetActiveLogLevelMask(writer);
+						}
+
+						// replace log writer collection
 						Dictionary<string, LogWriter> copy = new Dictionary<string, LogWriter>(sLogWritersByName);
 						copy.Add(writer.Name, writer);
 						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
@@ -258,7 +266,10 @@ namespace GriffinPlus.Lib.Logging
 				// save the configuration file, if it does not exist, yet
 				try
 				{
-					configuration.Save();
+					if (!File.Exists(path))
+					{
+						configuration.Save();
+					}
 				}
 				catch (Exception ex)
 				{
@@ -319,7 +330,7 @@ namespace GriffinPlus.Lib.Logging
 				// update missing settings in configuration
 				bool stageSettingsModified = false;
 				var ps = Configuration.GetProcessingPipelineStageSettings(stage.GetType().Name);
-				Dictionary<string, string> persistentSettings = new Dictionary<string, string>(ps);
+				Dictionary<string, string> persistentSettings = ps != null ? new Dictionary<string, string>(ps) : new Dictionary<string, string>();
 				foreach (var kvp in defaultSettings.Where(x => persistentSettings.ContainsKey(x.Key)))
 				{
 					// add default setting to configuration

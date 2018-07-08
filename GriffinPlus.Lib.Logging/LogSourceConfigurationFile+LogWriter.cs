@@ -49,7 +49,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (pattern == null) throw new ArgumentNullException(nameof(pattern));
 				if (string.IsNullOrWhiteSpace(baseLevel)) throw new ArgumentException("The base level must not be null or whitespace only.", nameof(baseLevel));
-				
+
 				mPattern = pattern;
 				BaseLevel = baseLevel;
 
