@@ -106,6 +106,14 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the full path of the configuration file.
+		/// </summary>
+		public string FullPath
+		{
+			get { return mFilePath; }
+		}
+
+		/// <summary>
 		/// Is called by the file system watcher when a file changes in the watched directory.
 		/// </summary>
 		/// <param name="sender">The file system watcher.</param>
@@ -193,8 +201,6 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested active log level mask.</returns>
 		public LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
 		{
-			LogLevelBitMask mask = new LogLevelBitMask(LogLevel.MaxId + 1, false, false); // id starts at 0
-
 			// get the first matching log writer settings
 			var settings = mFile.LogWriterSettings
 				.Where(x => x.Pattern.Regex.IsMatch(writer.Name))
@@ -202,9 +208,16 @@ namespace GriffinPlus.Lib.Logging
 
 			if (settings != null)
 			{
+				LogLevelBitMask mask;
+
 				// enable all log levels that are covered by the base level
 				LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
-				mask.SetBits(0, level.Id + 1);
+				if (level == LogLevel.All) {
+					mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
+				} else {
+					mask = new LogLevelBitMask(LogLevel.MaxId + 1, false, false);
+					mask.SetBits(0, level.Id + 1);
+				}
 
 				// add log levels explicitly included
 				foreach (var include in settings.Includes)
