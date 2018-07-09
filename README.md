@@ -7,11 +7,11 @@
 
 ## Overview
 
-The *Griffin+* logging subsystem is a simple, but modular extensible logging facility that focusses on applications built on the .NET framework. It addresses many issues that have arised during multiple years of developing .NET libraries and applications. The logging subsystem is part of the *Griffin+* library suite and used in other *Griffin+* projects to channelize and process log message streams. Nevertheless the logging subsystem can be used in other projects as well as it does not have any dependencies that would clutter other projects.
+*Griffin+ Logging* is a simple, but modular extensible logging facility that focusses on applications built on the .NET framework. It addresses many issues that have arised during multiple years of developing .NET libraries and applications. *Griffin+ Logging* is part of the *Griffin+* library suite and used in other *Griffin+* projects to channelize and process log message streams. Nevertheless *Griffin+ Logging* can be used in other projects as well as it does not have any dependencies that would clutter other projects.
 
 ## Supported Platforms
 
-The logging subsystem is entirely written in .NET Standard 2.0.
+The logging subsystem is entirely written in C# using .NET Standard 2.0.
 
 Therefore it should work on the following platforms (or higher):
 - .NET Framework 4.6.1
@@ -24,4 +24,236 @@ Therefore it should work on the following platforms (or higher):
 
 ## Using
 
-TBD
+### Configuring the Log Source
+
+By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Failure`, `Error`, `Warning` and `Note`. Messages associated with other log levels are blocked. There is no restriction for log writers. When *Griffin+ Logging* starts up, it drops a configuration file containing the default settings into the same directory just beside the entry assembly. The name of the file is the name of the entry assembly plus file extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
+
+The configuration file configures everything that concerns the part producing log messages, i.e. the *log source*. The counterpart is a *log sink* that resides outside the logging process consuming written log messages. This feature might get added in the future.
+
+The default configuration file contains a detailed description of the settings and looks like the following:
+
+```
+; ------------------------------------------------------------------------------
+; Configuration of the Logging Subsystem
+; ------------------------------------------------------------------------------
+; This file configures the logging subsystem that is encorporated in the
+; application concerned. Each and every executable that makes use of the logging
+; subsystem has its own configuration file (extension: .logconf) that is located
+; beside the application's executable. The configuration is structured like an
+; ini-file, i.e. it consists of sections and properties. A section defines a
+; configuration scope while properties contain the actual settings within a
+; section.
+; ------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------
+; Global Settings
+; ------------------------------------------------------------------------------
+
+[Settings]
+ApplicationName = MyApp
+
+; ------------------------------------------------------------------------------
+; Log Writer Settings
+; ------------------------------------------------------------------------------
+; The log writer configuration may consist of multiple [LogWriter] sections
+; defining active log levels for log writers with a name matching the specified
+; pattern. The pattern can be expressed as a wildcard pattern ('WildcardPattern'
+; property) or as a regular expression ('RegexPattern' property). Multiple
+; [LogWriter] sections are evaluated top-down. The first matching section
+; defines the behavior of the log writer. Therefore a default settings section
+; matching all log writers should be specified last.
+;
+; The logging module comes with a couple of predefined log levels expressing a
+; wide range of severities:
+; - Failure          (most severe)
+; - Error                  .
+; - Warning                .
+; - Note                   .
+; - Developer              .
+; - Trace0                 .
+; - Trace[1..18]           .
+; - Trace19          (least severe)
+;
+; Furthermore aspect log levels can be used to keep log messages belonging to
+; a certain subject together. This is especially useful when multiple log
+; writers contribute log messages to the subject. Aspect log levels enlarge the
+; list of log levels shown above and can be used just as the predefined log
+; levels.
+;
+; The 'Level' property defines a base log level for matching log writers, i.e.
+; setting 'Level' to 'Note' tells the log writer to write log messages with
+; at least log level 'Note', e.g. 'Note', 'Warning', 'Error' and 'Failure'.
+; Do not use aspect log levels here, since the order of aspect log levels is
+; not deterministic, especially in multi-threaded environments.
+;
+; The 'Include' property allows including certain log levels that are not
+; covered by the 'Level' property. Multiple log levels can be separated by
+; commas. Alternatively multiple 'Include' properties can be used.
+;
+; The 'Exclude' property has the opposite effect. It tells the log writer to
+; keep log messages with a certain log level out of the log. Multiple log
+; levels can be separated by commas. Alternatively multiple 'Exclude' properties
+; can be used.
+; ------------------------------------------------------------------------------
+
+[LogWriter]
+WildcardPattern = *
+Level = Note
+```
+
+### Requesting a Log Writer
+
+If you want to write a message to the log, you first have to request a `LogWriter` at the `LogSource`. A log writer provides various ways of formatting log messages. It is perfectly fine to keep a single `LogWriter` instance in a static member variable as log writers are thread-safe, so you only need one instance for multiple threads. A log writer has a unique name usually identifying the piece of code that emits log messages. This is often the name of the class, although the name can be chosen freely. In this case you can simply pass the type of the corresponding class when requesting a log writer. The name will automatically be set to the full name of the specified type. A positive side effect of using a type is that the name of the log writer changes, if the name of the type changes or even the namespace the type is defined in. It is refactoring-safe.
+
+You can obtain a `LogWriter` by calling one of the following `LogSource` methods:
+
+```csharp
+public static LogWriter GetWriter<T>();
+public static LogWriter GetWriter(Type type);
+public static LogWriter GetWriter(string name);
+```
+
+### Choosing a Log Level
+
+Each message written to the log is associated with a certain log level, represented by the `LogLevel` class. The log level indicates the severity of the log message. *Griffin+ Logging* comes with the following predefined log levels:
+
+| Id  | Log Level            | Description
+|:---:|:---------------------|:----------------------------------------------------------------------------------------------
+|   0 | `LogLevel.Failure`   | The log message is about a severe error condition that threatens the system's stability.
+|   1 | `LogLevel.Error`     | The log message is about a "normal" error condition.
+|   2 | `LogLevel.Warning`   | The log message is not about an error condition, but something a user should keep an eye on.
+|   3 | `LogLevel.Note`      | The log message is a note a regular user should see.
+|   4 | `LogLevel.Developer` | A log message only developers should see.
+|   5 | `LogLevel.Trace0`    | A log message the implementer of the code might be interested in (least detailed)
+| ... |                      | ...
+|  24 | `LogLevel.Trace19`   | A log message the implementer of the code might be interested in (most detailed)
+
+In addition to the predefined log levels an aspect log level can be used. Aspect log levels are primarily useful when tracking an issue that effects multiple classes. The id of aspect log levels directly follow the predefined log levels. The following `LogLevel` method creates an aspect log level. It can then be used the same way as a predefined log level.
+
+```csharp
+public GetAspect(string name);
+```
+
+### Writing a Message
+
+Once you've a `LogWriter` and a `LogLevel` you can use one of the following `LogWriter` methods to write a message:
+
+```csharp
+// without formatting
+public void Write(LogLevel level, string message);
+
+// formatting with default format provider (invariant culture), bypasses filters applied by log source configuration
+public void ForceWrite(LogLevel level, string format, params object[] args);
+
+// formatting with default format provider (invariant culture), up to 15 parameters
+public void Write<T>(LogLevel level, string format, T arg);
+public void Write<T0,T1>(LogLevel level, string format, T0 arg0, T1 arg1);
+public void Write<T0,T1,T2>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2);
+public void Write<T0,T1,T2,T3>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3);
+public void Write<T0,T1,T2,T3,T4>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4);
+public void Write<T0,T1,T2,T3,T4,T5>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
+public void Write<T0,T1,T2,T3,T4,T5,T6>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14);
+
+// formatting with default format provider (invariant culture), for more than 15 parameters
+public void Write(LogLevel level, string format, params object[] args);
+
+// formatting with custom format provider, bypasses filters applied by log source configuration
+public void ForceWrite(IFormatProvider provider, LogLevel level, string format, params object[] args);
+
+// formatting with custom format provider, up to 15 parameters
+public void Write<T>(IFormatProvider provider, LogLevel level, string format, T arg);
+public void Write<T0,T1>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1);
+public void Write<T0,T1,T2>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2);
+public void Write<T0,T1,T2,T3>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3);
+public void Write<T0,T1,T2,T3,T4>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4);
+public void Write<T0,T1,T2,T3,T4,T5>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
+public void Write<T0,T1,T2,T3,T4,T5,T6>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13);
+public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14);
+
+// formatting with custom format provider (invariant culture), for more than 15 parameters
+public void Write(IFormatProvider provider, LogLevel level, string format, params object[] args);
+```
+
+
+### Customizing the Log Source
+
+*Griffin+ Logging* can be used as shipped, if you need a logging facility that is configurable as described above and that prints messages to *stdout* and *stderr*. If this is not what you need, you can replace the *log source configuration* and the *log message processing pipeline*.
+
+The main purpose of the *log source configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. If you feel that is something you want to customize, simply implement the `ILogSourceConfiguration` interface and tell the `LogSource` class to use your implementation via its `Configuration` property.
+
+Probably customization of the *log message processing pipeline* is a more interesting issue. The pipeline is fed with log messages that pass the filter defined by the *log source configuration*. A pipeline stage class must implement the `ILogMessageProcessingPipelineStage` interface. For the sake of simplicity, `LogMessageProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. This class provides a `FollowedBy()` method that allows you to chain multiple pipeline stages in a fluent API fashion.
+
+### Complete Example
+
+The following example shows how *Griffin+ Logging* can be used. The source code is available in the demo project contained in the repository as well:
+
+```csharp
+using System;
+using System.IO;
+
+namespace GriffinPlus.Lib.Logging.Demo
+{
+	class Program
+	{
+		// register a log writer using a type
+		// (the actual log writer name becomes: GriffinPlus.Lib.Logging.Demo.Program)
+		private static LogWriter sLog1 = LogSource.GetWriter<Program>();
+		private static LogWriter sLog2 = LogSource.GetWriter(typeof(Program));
+
+		// register a log writer using a custom name
+		private static LogWriter sLog3 = LogSource.GetWriter("My Fancy Writer");
+
+		static void Main(string[] args)
+		{
+			// By default the logging subsystem is set up to use the default ini-style log source configuration file
+			// located beside the running application (<application>.logconf) and a console logger printing written
+			// messages to the console. The following example shows a simple, but complete setup of the logging subsystem.
+			// The default log source configuration is used, but its file is placed at a custom location. After that the
+			// log message processing pipeline is initialized using a customized console logger.
+			
+			// initialize the log source configuration
+			var config = new DefaultLogSourceConfiguration("./my-custom-config.logconf");
+			LogSource.Configuration = config;
+			if (!File.Exists(config.FullPath)) config.Save();
+
+			// configure the log message processing pipeline (only one stage here)
+			LogSource.LogMessageProcessingPipeline = new ConsoleLogger()
+				.WithTimestampFormat("yyyy-mm-dd"); // use custom timestamp format
+
+			// create an aspect log level
+			LogLevel aspect = LogLevel.GetAspect("Demo Aspect");
+
+			// write messages to all known log levels (predefined log levels + aspects)
+			foreach (LogLevel level in LogLevel.KnownLevels)
+			{
+				sLog1.Write(level, "This is sLog1 writing using level '{0}'.", level.Name);
+				sLog2.Write(level, "This is sLog2 writing using level '{0}'.", level.Name);
+				sLog3.Write(level, "This is sLog3 writing using level '{0}'.", level.Name);
+			}
+
+			// now modify the configuration file 'my-custom-config.logconf' in the output directory and run
+			// the demo application again to see what happens!
+
+			Console.WriteLine();
+			Console.WriteLine("Press any key to continue...");
+			Console.ReadKey();
+		}
+	}
+}
+```
+
