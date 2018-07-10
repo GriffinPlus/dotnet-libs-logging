@@ -28,7 +28,7 @@ namespace GriffinPlus.Lib.Logging
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static readonly LogMessagePool sLogMessagePool = new LogMessagePool();
 		private static ILogConfiguration sLogConfiguration;
-		private static ILogMessageProcessingPipelineStage sLogMessageProcessingPipeline;
+		private static IProcessingPipelineStage sLogMessageProcessingPipeline;
 		private static LogWriter sLog = GetWriter<Log>();
 
 		/// <summary>
@@ -97,7 +97,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the log message processing pipeline that receives any log messages written to the logging subsystem.
 		/// </summary>
-		public static ILogMessageProcessingPipelineStage LogMessageProcessingPipeline
+		public static IProcessingPipelineStage LogMessageProcessingPipeline
 		{
 			get
 			{
@@ -144,7 +144,7 @@ namespace GriffinPlus.Lib.Logging
 			// remove preceding and trailing line breaks
 			text = text.Trim('\r', '\n');
 
-			ILogMessageProcessingPipelineStage pipeline = LogMessageProcessingPipeline;
+			IProcessingPipelineStage pipeline = LogMessageProcessingPipeline;
 			if (pipeline != null)
 			{
 				LogMessage message = null;
@@ -269,7 +269,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="firstStage">First stage of the processing pipeline.</param>
 		/// <returns>true, if configuration was modified; otherwise false.</returns>
-		private static bool SetDefaultProcessingPipelineSettings(ILogMessageProcessingPipelineStage firstStage)
+		private static bool SetDefaultProcessingPipelineSettings(IProcessingPipelineStage firstStage)
 		{
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
@@ -280,7 +280,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// get all stages of the processing pipeline recursively
-			HashSet<ILogMessageProcessingPipelineStage> allStages = new HashSet<ILogMessageProcessingPipelineStage>();
+			HashSet<IProcessingPipelineStage> allStages = new HashSet<IProcessingPipelineStage>();
 			firstStage.GetAllStages(allStages);
 
 			// retrieve default settings from all stages and populate the configuration accordingly

@@ -20,13 +20,13 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Base class for stages in the log message processing pipeline.
 	/// </summary>
-	public abstract class LogMessageProcessingPipelineStage<T> : ILogMessageProcessingPipelineStage
-		where T: LogMessageProcessingPipelineStage<T>, new()
+	public abstract class ProcessingPipelineStage<T> : IProcessingPipelineStage
+		where T: ProcessingPipelineStage<T>, new()
 	{
 		/// <summary>
 		/// Log message processing pipeline stages to call after the current stage has completed processing.
 		/// </summary>
-		protected ILogMessageProcessingPipelineStage[] mNextStages;
+		protected IProcessingPipelineStage[] mNextStages;
 
 		/// <summary>
 		/// Object to use for monitor synchronization (protects changes to the stage).
@@ -34,27 +34,27 @@ namespace GriffinPlus.Lib.Logging
 		protected readonly object mSync = new object();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessageProcessingPipelineStage{T}"/> class.
+		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.
 		/// </summary>
-		public LogMessageProcessingPipelineStage()
+		public ProcessingPipelineStage()
 		{
-			mNextStages = new ILogMessageProcessingPipelineStage[0];
+			mNextStages = new IProcessingPipelineStage[0];
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessageProcessingPipelineStage{T}"/> class by copying another instance.
+		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class by copying another instance.
 		/// </summary>
 		/// <param name="other">Instance to copy.</param>
-		protected LogMessageProcessingPipelineStage(T other)
+		protected ProcessingPipelineStage(T other)
 		{
-			mNextStages = new ILogMessageProcessingPipelineStage[0];
+			mNextStages = new IProcessingPipelineStage[0];
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessageProcessingPipelineStage{T}"/> class (for internal use only).
+		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class (for internal use only).
 		/// </summary>
 		/// <param name="nextStages">The next processing pipeline stages.</param>
-		private LogMessageProcessingPipelineStage(ILogMessageProcessingPipelineStage[] nextStages)
+		private ProcessingPipelineStage(IProcessingPipelineStage[] nextStages)
 		{
 			mNextStages = nextStages;
 		}
@@ -63,7 +63,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets all pipeline stages following the current stage (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
-		public void GetAllStages(HashSet<ILogMessageProcessingPipelineStage> stages)
+		public void GetAllStages(HashSet<IProcessingPipelineStage> stages)
 		{
 			stages.Add(this);
 			var nextStages = Volatile.Read(ref mNextStages);
@@ -105,12 +105,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="nextStages">Pipeline stages to pass log messages to, when the current stage has completed.</param>
 		/// <returns>A new pipeline stage of the same type containing the update.</returns>
-		public T FollowedBy(params ILogMessageProcessingPipelineStage[] nextStages)
+		public T FollowedBy(params IProcessingPipelineStage[] nextStages)
 		{
 			lock (mSync)
 			{
 				int count = mNextStages.Length + nextStages.Length;
-				ILogMessageProcessingPipelineStage[] newNextStages = new ILogMessageProcessingPipelineStage[count];
+				IProcessingPipelineStage[] newNextStages = new IProcessingPipelineStage[count];
 				Array.Copy(mNextStages, newNextStages, mNextStages.Length);
 				Array.Copy(nextStages, 0, newNextStages, mNextStages.Length, nextStages.Length);
 				Volatile.Write(ref mNextStages, newNextStages);

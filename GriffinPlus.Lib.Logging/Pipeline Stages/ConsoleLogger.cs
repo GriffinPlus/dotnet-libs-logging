@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log message processing pipeline stage that logs messages to stdout/stderr (thread-safe).
 	/// </summary>
-	public class ConsoleLogger : LogMessageProcessingPipelineStage<ConsoleLogger>
+	public class ConsoleLogger : ProcessingPipelineStage<ConsoleLogger>
 	{
 		private string mTimestampFormat = "u"; // conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ.
 		private string mFormatWithoutMessage;  // combined format string fot the log message without the message text
@@ -82,13 +82,20 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (i == 0)
 					{
-						mLineBuilder.AppendFormat(mCultureInfo, mLineFormat, message.Timestamp, message.LogWriter.Name, message.LogLevel.Name, messageLines[i]);
+						mLineBuilder.AppendFormat(
+							mCultureInfo,
+							mLineFormat,
+							message.Timestamp, message.LogWriter.Name, message.LogLevel.Name, messageLines[i]);
 						mLineBuilder.AppendLine();
 					}
 					else
 					{
-						if (indent < 0) {
-							indent = string.Format(mCultureInfo, mFormatWithoutMessage, message.Timestamp, message.LogWriter.Name, message.LogLevel.Name).Length;
+						if (indent < 0)
+						{
+							indent = string.Format(
+								mCultureInfo,
+								mFormatWithoutMessage,
+								message.Timestamp, message.LogWriter.Name, message.LogLevel.Name).Length;
 						}
 						mLineBuilder.Append(' ', indent);
 						mLineBuilder.AppendLine(messageLines[i]);
@@ -119,7 +126,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="format">
 		/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx" for details).
 		/// </param>
-		/// <returns>A new pipeline stage of the same type containing the update.</returns>
+		/// <returns>The pipeline stage with the specified timestamp format.</returns>
 		public ConsoleLogger WithTimestampFormat(string format)
 		{
 			if (format == null) throw new ArgumentNullException(nameof(format));
@@ -139,8 +146,13 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private void UpdateFormat()
 		{
-			mFormatWithoutMessage = string.Format("{{0,-{0}:{1}}} | {{1,-{2}}} | {{2,-{3}}} | ", mTimestampMaxLength, mTimestampFormat, mLogWriterMaxLength, mLogLevelMaxLength);
-			mLineFormat           = string.Format("{{0,-{0}:{1}}} | {{1,-{2}}} | {{2,-{3}}} | {{3}}", mTimestampMaxLength, mTimestampFormat, mLogWriterMaxLength, mLogLevelMaxLength);
+			mFormatWithoutMessage = string.Format(
+				"{{0,-{0}:{1}}} | {{1,-{2}}} | {{2,-{3}}} | ",
+				mTimestampMaxLength, mTimestampFormat, mLogWriterMaxLength, mLogLevelMaxLength);
+
+			mLineFormat = string.Format(
+				"{{0,-{0}:{1}}} | {{1,-{2}}} | {{2,-{3}}} | {{3}}",
+				mTimestampMaxLength, mTimestampFormat, mLogWriterMaxLength, mLogLevelMaxLength);
 		}
 	}
 }

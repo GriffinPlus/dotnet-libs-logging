@@ -18,13 +18,13 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Interface for stages in the log message processing pipeline.
 	/// </summary>
-	public interface ILogMessageProcessingPipelineStage
+	public interface IProcessingPipelineStage
 	{
 		/// <summary>
 		/// Gets all pipeline stages following the current stage (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
-		void GetAllStages(HashSet<ILogMessageProcessingPipelineStage> stages);
+		void GetAllStages(HashSet<IProcessingPipelineStage> stages);
 
 		/// <summary>
 		/// Populates the specified dictionary with default settings the pipeline stage operates with.

@@ -200,7 +200,7 @@ public void Write(IFormatProvider provider, LogLevel level, string format, param
 
 The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. If you feel that is something you want to customize, simply implement the `ILogConfiguration` interface and tell the `Log` class to use your implementation via its `Configuration` property.
 
-Probably customization of the *log message processing pipeline* is a more interesting issue. The pipeline is fed with log messages that pass the filter defined by the *log configuration*. A pipeline stage class must implement the `ILogMessageProcessingPipelineStage` interface. For the sake of simplicity, `LogMessageProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. This class provides a `FollowedBy()` method that allows you to chain multiple pipeline stages in a fluent API fashion.
+Probably customization of the *log message processing pipeline* is a more interesting issue. The pipeline is fed with log messages that pass the filter defined by the *log configuration*. A pipeline stage class must implement the `IProcessingPipelineStage` interface. For the sake of simplicity, `ProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. This class provides a `FollowedBy()` method that allows you to chain multiple pipeline stages in a fluent API fashion.
 
 ### Complete Example
 
