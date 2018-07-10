@@ -30,7 +30,6 @@ namespace GriffinPlus.Lib.Logging
 		private int mTimestampMaxLength;
 		private int mLogWriterMaxLength;
 		private int mLogLevelMaxLength;
-		private object mSync = new object();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConsoleLogger"/> class.
@@ -47,19 +46,6 @@ namespace GriffinPlus.Lib.Logging
 		{
 			this.mTimestampFormat = other.mTimestampFormat;
 			UpdateFormat();
-		}
-
-		/// <summary>
-		/// Creates a copy of the current pipeline stage.
-		/// </summary>
-		/// <returns>A copy of the current pipeline stage.</returns>
-		/// <remarks>
-		/// This method must be overridden by each and every derived class to ensure that the correct type is created.
-		/// The implementation should use the copy constructor to init base class members.
-		/// </remarks>
-		public override ConsoleLogger Dupe()
-		{
-			return new ConsoleLogger(this);
 		}
 
 		/// <summary>
@@ -138,10 +124,14 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (format == null) throw new ArgumentNullException(nameof(format));
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
-			ConsoleLogger copy = Dupe();
-			copy.mTimestampFormat = format;
-			copy.UpdateFormat();
-			return copy;
+
+			lock (mSync)
+			{
+				mTimestampFormat = format;
+				UpdateFormat();
+			}
+
+			return this;
 		}
 
 		/// <summary>

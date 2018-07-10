@@ -15,16 +15,27 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// The default log configuration (an ini-file like configuration file).
+	/// A log configuration with file backing (ini-style configuration file).
 	/// </summary>
-	public class DefaultLogConfiguration : ILogConfiguration, IDisposable
+	/// <remarks>
+	/// This class is thread-safe as working data is always replaced atomically.
+	/// </remarks>
+	public class FileBackedLogConfiguration : ILogConfiguration, IDisposable
 	{
-		private LogWriter sLog = Log.GetWriter("Logging");
+		/// <summary>
+		/// The default path of the log configuration file.
+		/// </summary>
+		private static readonly string sDefaultConfigFilePath = Path.Combine(
+			Path.GetDirectoryName(Assembly.GetEntryAssembly().Location),
+			Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + ".logconf");
+
+		private static readonly Logging.LogWriter sLog = Log.GetWriter("Logging");
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
 		private LogConfigurationFile mFile;
@@ -32,10 +43,19 @@ namespace GriffinPlus.Lib.Logging
 		private string mFileName;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="DefaultLogConfiguration"/> class.
+		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class
+		/// (the configuration file is located beside the entry assembly named as the entry assembly plus extension '.logconf').
+		/// </summary>
+		public FileBackedLogConfiguration() : this(sDefaultConfigFilePath)
+		{
+			
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class.
 		/// </summary>
 		/// <param name="path">Path of the configuration file to use.</param>
-		public DefaultLogConfiguration(string path)
+		public FileBackedLogConfiguration(string path)
 		{
 			mFilePath = Path.GetFullPath(path);
 			mFileName = Path.GetFileName(path);
@@ -114,6 +134,15 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets or sets the name of the application.
+		/// </summary>
+		public string ApplicationName
+		{
+			get { return mFile.ApplicationName; }
+			set { mFile.ApplicationName = value; }
+		}
+
+		/// <summary>
 		/// Is called by the file system watcher when a file changes in the watched directory.
 		/// </summary>
 		/// <param name="sender">The file system watcher.</param>
@@ -179,6 +208,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			try
 			{
+				// load file (always replace mFile, do not modify existing instance for threading reasons)
 				mFile = LogConfigurationFile.LoadFrom(mFilePath);
 			}
 			catch (FileNotFoundException)

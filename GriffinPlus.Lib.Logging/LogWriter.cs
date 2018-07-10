@@ -94,12 +94,12 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Writes a formatted message with a variable number of placeholders to the log
-		/// (bypasses filters induced by the log configuration, for internal use only).
+		/// (bypasses filters induced by the log configuration).
 		/// </summary>
 		/// <param name="level">Log level to write the message to.</param>
 		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
 		/// <param name="args">Arguments to put into the placeholders.</param>
-		internal void ForceWrite(LogLevel level, string format, params object[] args)
+		public void ForceWrite(LogLevel level, string format, params object[] args)
 		{
 			ForceWrite(sDefaultFormatProvider, level, format, args);
 		}
@@ -526,13 +526,13 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Writes a formatted message with a variable number of placeholders to the log
-		/// (bypasses filters induced by the log configuration, for internal use only).
+		/// (bypasses filters induced by the log configuration).
 		/// </summary>
 		/// <param name="provider">Format provider to use when formatting the message.</param>
 		/// <param name="level">Log level to write the message to.</param>
 		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
 		/// <param name="args">Arguments to put into the placeholders.</param>
-		internal void ForceWrite(IFormatProvider provider, LogLevel level, string format, params object[] args)
+		public void ForceWrite(IFormatProvider provider, LogLevel level, string format, params object[] args)
 		{
 			// unwrap exceptions to ensure inner exceptions are logged as well
 			object[] modifiedArgs = args;

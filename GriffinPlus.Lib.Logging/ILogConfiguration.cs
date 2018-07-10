@@ -21,6 +21,11 @@ namespace GriffinPlus.Lib.Logging
 	public interface ILogConfiguration
 	{
 		/// <summary>
+		/// Gets or sets the name of the application.
+		/// </summary>
+		string ApplicationName { get; set; }
+
+		/// <summary>
 		/// Gets a bit mask in which each bit is associated with a log level with the same id
 		/// and expresses whether the corresponding log level is active for the specified writer.
 		/// </summary>

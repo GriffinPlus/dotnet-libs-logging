@@ -16,7 +16,7 @@ using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
-	public partial class LogConfigurationFile
+	public partial class LogConfiguration
 	{
 		/// <summary>
 		/// Configuration of a group of log writers matching a certain pattern.

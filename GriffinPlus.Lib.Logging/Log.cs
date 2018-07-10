@@ -14,9 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -26,24 +24,31 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class Log
 	{
+		private static readonly object sSync = new object();
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static readonly LogMessagePool sLogMessagePool = new LogMessagePool();
 		private static ILogConfiguration sLogConfiguration;
 		private static ILogMessageProcessingPipelineStage sLogMessageProcessingPipeline;
-		private static string sApplicationName;
+		private static LogWriter sLog = GetWriter<Log>();
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
 		/// </summary>
 		static Log()
 		{
-			sApplicationName = AppDomain.CurrentDomain.FriendlyName;
+			lock (sSync) // just to prevent assertions from firing...
+			{
+				InitDefaultConfiguration();
+			}
 		}
 
 		/// <summary>
 		/// Gets the object that is used to synchronize access to shared resources in the logging subsystem.
 		/// </summary>
-		internal static object Sync { get; } = new object();
+		internal static object Sync
+		{
+			get { return sSync; }
+		}
 
 		/// <summary>
 		/// Gets or sets the log configuration that determines the behavior of the log
@@ -53,22 +58,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				// handle lazy initialization to avoid that the default .logconf file is created,
-				// if a custom log configuration is to be used instead
-				if (sLogConfiguration == null)
-				{
-					lock (Sync)
-					{
-						InitDefaultConfiguration();
-					}
-				}
-
 				return sLogConfiguration;
 			}
 
 			set
 			{
-				lock (Sync)
+				lock (sSync)
 				{
 					if (value != null)
 					{
@@ -84,7 +79,7 @@ namespace GriffinPlus.Lib.Logging
 							catch (Exception ex)
 							{
 								// can easily occur, if the application does not have the permission to write to its own folder
-								Debug.WriteLine("Saving log configuration failed: {0}", ex.ToString());
+								sLog.ForceWrite(LogLevel.Developer, "Saving log configuration failed. Exception: {0}", ex);
 							}
 						}
 
@@ -111,7 +106,7 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
-				lock (Sync)
+				lock (sSync)
 				{
 					// abort, if the processing pipeline has not changed
 					if (sLogMessageProcessingPipeline == value) return;
@@ -127,7 +122,7 @@ namespace GriffinPlus.Lib.Logging
 							catch (Exception ex)
 							{
 								// can easily occur, if the application does not have the permission to write to its own folder
-								Debug.WriteLine("Saving log configuration failed: {0}", ex.ToString());
+								sLog.ForceWrite(LogLevel.Developer, "Saving log configuration failed. Exception: {0}", ex);
 							}
 						}
 					}
@@ -135,19 +130,6 @@ namespace GriffinPlus.Lib.Logging
 					Thread.MemoryBarrier();
 					sLogMessageProcessingPipeline = value;
 				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the name of the application.
-		/// </summary>
-		public static string ApplicationName
-		{
-			get { return sApplicationName; }
-			set {
-				if (value == null) throw new ArgumentNullException(nameof(value));
-				if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("The application name must not consist of whitespaces only.", nameof(value));
-				sApplicationName = value;
 			}
 		}
 
@@ -199,7 +181,7 @@ namespace GriffinPlus.Lib.Logging
 			sLogWritersByName.TryGetValue(name, out writer);
 			if (writer == null)
 			{
-				lock (Sync)
+				lock (sSync)
 				{
 					if (!sLogWritersByName.TryGetValue(name, out writer))
 					{
@@ -246,37 +228,18 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes the default log configuration
-		/// (ini-style configuration file located beside the entry assembly ending with the extension '.logconf').
+		/// Initializes the default log configuration.
 		/// </summary>
 		internal static void InitDefaultConfiguration()
 		{
 			// global logging lock is hold here...
-			Debug.Assert(Monitor.IsEntered(Sync));
+			Debug.Assert(Monitor.IsEntered(sSync));
 
 			if (sLogConfiguration == null)
 			{
-				Assembly assembly = Assembly.GetEntryAssembly();
-				string path = Path.Combine(Path.GetDirectoryName(assembly.Location), Path.GetFileNameWithoutExtension(assembly.Location) + ".logconf");
-				DefaultLogConfiguration configuration = new DefaultLogConfiguration(path);
-
-				// add default settings to configuration file, if necessary
+				// create and init default configuration
+				LogConfiguration configuration = new LogConfiguration();
 				SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline);
-
-				// save the configuration file, if it does not exist, yet
-				try
-				{
-					if (!File.Exists(path))
-					{
-						configuration.Save();
-					}
-				}
-				catch (Exception ex)
-				{
-					// can easily occur, if the application does not have the permission to write to its own folder
-					Debug.WriteLine("Saving log configuration failed: {0}", ex.ToString());
-				}
-
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 				sLogConfiguration = configuration;
 
@@ -291,7 +254,7 @@ namespace GriffinPlus.Lib.Logging
 		private static void UpdateLogWriters()
 		{
 			// global logging lock is hold here...
-			Debug.Assert(Monitor.IsEntered(Sync));
+			Debug.Assert(Monitor.IsEntered(sSync));
 
 			foreach (var kvp in sLogWritersByName)
 			{

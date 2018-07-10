@@ -28,14 +28,15 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 		static void Main(string[] args)
 		{
-			// By default the logging subsystem is set up to use the default ini-style log configuration file
-			// located beside the running application (<application>.logconf) and a console logger printing written
-			// messages to the console. The following example shows a simple, but complete setup of the logging subsystem.
-			// The default log configuration is used, but its file is placed at a custom location. After that the
-			// log message processing pipeline is initialized using a customized console logger.
+			// By default the logging subsystem is set up to use a pure in-memory configuration and a console logger printing
+			// written messages to the console (stdout/stderr). In many cases you probably want to configure what gets logged
+			// using a configuration file. The following example shows a simple, but complete setup of the logging subsystem.
+			// A file-backed log configuration is used and it's file is placed beside the applications executable. After
+			// that the log message processing pipeline is initialized using a customized console logger.
 			
 			// initialize the log configuration
-			var config = new DefaultLogConfiguration("./my-custom-config.logconf");
+			var config = new FileBackedLogConfiguration(); // default location (beside executable/entry assembly + entension '.logconf')
+			// var config = new FileBackedLogConfiguration("./my-custom-log-configuration.logconf"); // custom location
 			Log.Configuration = config;
 			if (!File.Exists(config.FullPath)) config.Save();
 

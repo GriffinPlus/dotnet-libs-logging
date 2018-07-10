@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
-	public partial class LogConfigurationFile
+	public partial class LogConfiguration
 	{
 		/// <summary>
 		/// A .NET regular expression pattern (immutable).

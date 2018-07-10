@@ -13,19 +13,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Base class for stages in the log message processing pipeline (thread-safe, since immutable).
+	/// Base class for stages in the log message processing pipeline.
 	/// </summary>
 	public abstract class LogMessageProcessingPipelineStage<T> : ILogMessageProcessingPipelineStage
 		where T: LogMessageProcessingPipelineStage<T>, new()
 	{
 		/// <summary>
-		/// Log message processing pipeline stages to call after the current stage has completed processing (immutable).
+		/// Log message processing pipeline stages to call after the current stage has completed processing.
 		/// </summary>
 		protected ILogMessageProcessingPipelineStage[] mNextStages;
+
+		/// <summary>
+		/// Object to use for monitor synchronization (protects changes to the stage).
+		/// </summary>
+		protected readonly object mSync = new object();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessageProcessingPipelineStage{T}"/> class.
@@ -54,24 +60,15 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Creates a copy of the current pipeline stage.
-		/// </summary>
-		/// <returns>A copy of the current pipeline stage.</returns>
-		/// <remarks>
-		/// This method must be overridden by each and every derived class to ensure that the correct type is created.
-		/// The implementation should use the copy constructor to init base class members.
-		/// </remarks>
-		public abstract T Dupe();
-
-		/// <summary>
 		/// Gets all pipeline stages following the current stage (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
 		public void GetAllStages(HashSet<ILogMessageProcessingPipelineStage> stages)
 		{
 			stages.Add(this);
-			for (int i = 0; i < mNextStages.Length; i++) {
-				mNextStages[i].GetAllStages(stages);
+			var nextStages = Volatile.Read(ref mNextStages);
+			for (int i = 0; i < nextStages.Length; i++) {
+				nextStages[i].GetAllStages(stages);
 			}
 		}
 
@@ -97,8 +94,9 @@ namespace GriffinPlus.Lib.Logging
 		public virtual void Process(LogMessage message)
 		{
 			// pass log message to the next pipeline stages
-			for (int i = 0; i < mNextStages.Length; i++) {
-				mNextStages[i].Process(message);
+			var stages = Volatile.Read(ref mNextStages);
+			for (int i = 0; i < stages.Length; i++) {
+				stages[i].Process(message);
 			}
 		}
 
@@ -109,13 +107,16 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>A new pipeline stage of the same type containing the update.</returns>
 		public T FollowedBy(params ILogMessageProcessingPipelineStage[] nextStages)
 		{
-			int count = mNextStages.Length + nextStages.Length;
-			ILogMessageProcessingPipelineStage[] newNextStages = new ILogMessageProcessingPipelineStage[count];
-			Array.Copy(mNextStages, newNextStages, mNextStages.Length);
-			Array.Copy(nextStages, 0, newNextStages, mNextStages.Length, nextStages.Length);
-			T copy = Dupe();
-			copy.mNextStages = newNextStages;
-			return copy;
+			lock (mSync)
+			{
+				int count = mNextStages.Length + nextStages.Length;
+				ILogMessageProcessingPipelineStage[] newNextStages = new ILogMessageProcessingPipelineStage[count];
+				Array.Copy(mNextStages, newNextStages, mNextStages.Length);
+				Array.Copy(nextStages, 0, newNextStages, mNextStages.Length, nextStages.Length);
+				Volatile.Write(ref mNextStages, newNextStages);
+			}
+
+			return this as T;
 		}
 	}
 
