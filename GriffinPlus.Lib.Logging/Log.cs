@@ -22,20 +22,20 @@ using System.Threading;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// The access point to the logging subsystem.
+	/// The access point to the logging subsystem in the current application domain.
 	/// </summary>
-	public class LogSource
+	public class Log
 	{
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static readonly LogMessagePool sLogMessagePool = new LogMessagePool();
-		private static ILogSourceConfiguration sLogSourceConfiguration;
+		private static ILogConfiguration sLogConfiguration;
 		private static ILogMessageProcessingPipelineStage sLogMessageProcessingPipeline;
 		private static string sApplicationName;
 
 		/// <summary>
-		/// Initializes the <see cref="LogSource"/> class.
+		/// Initializes the <see cref="Log"/> class.
 		/// </summary>
-		static LogSource()
+		static Log()
 		{
 			sApplicationName = AppDomain.CurrentDomain.FriendlyName;
 		}
@@ -46,16 +46,16 @@ namespace GriffinPlus.Lib.Logging
 		internal static object Sync { get; } = new object();
 
 		/// <summary>
-		/// Gets or sets the log source configuration that determines the behavior of the log source
-		/// (if set to <c>null</c> the default log source configuration with its ini-style configuration file is used).
+		/// Gets or sets the log configuration that determines the behavior of the log
+		/// (if set to <c>null</c> the default log configuration with its ini-style configuration file is used).
 		/// </summary>
-		public static ILogSourceConfiguration Configuration
+		public static ILogConfiguration Configuration
 		{
 			get
 			{
 				// handle lazy initialization to avoid that the default .logconf file is created,
-				// if a custom log source configuration is to be used instead
-				if (sLogSourceConfiguration == null)
+				// if a custom log configuration is to be used instead
+				if (sLogConfiguration == null)
 				{
 					lock (Sync)
 					{
@@ -63,7 +63,7 @@ namespace GriffinPlus.Lib.Logging
 					}
 				}
 
-				return sLogSourceConfiguration;
+				return sLogConfiguration;
 			}
 
 			set
@@ -72,7 +72,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (value != null)
 					{
-						sLogSourceConfiguration = value;
+						sLogConfiguration = value;
 
 						// add default settings to configuration file, if necessary
 						if (SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline))
@@ -84,7 +84,7 @@ namespace GriffinPlus.Lib.Logging
 							catch (Exception ex)
 							{
 								// can easily occur, if the application does not have the permission to write to its own folder
-								Debug.WriteLine("Saving log source configuration failed: {0}", ex.ToString());
+								Debug.WriteLine("Saving log configuration failed: {0}", ex.ToString());
 							}
 						}
 
@@ -127,7 +127,7 @@ namespace GriffinPlus.Lib.Logging
 							catch (Exception ex)
 							{
 								// can easily occur, if the application does not have the permission to write to its own folder
-								Debug.WriteLine("Saving log source configuration failed: {0}", ex.ToString());
+								Debug.WriteLine("Saving log configuration failed: {0}", ex.ToString());
 							}
 						}
 					}
@@ -206,9 +206,9 @@ namespace GriffinPlus.Lib.Logging
 						writer = new LogWriter(name);
 
 						// set active log level mask, if the configuration is already initialized
-						if (sLogSourceConfiguration != null)
+						if (sLogConfiguration != null)
 						{
-							writer.ActiveLogLevelMask = sLogSourceConfiguration.GetActiveLogLevelMask(writer);
+							writer.ActiveLogLevelMask = sLogConfiguration.GetActiveLogLevelMask(writer);
 						}
 
 						// replace log writer collection
@@ -246,7 +246,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes the default log source configuration
+		/// Initializes the default log configuration
 		/// (ini-style configuration file located beside the entry assembly ending with the extension '.logconf').
 		/// </summary>
 		internal static void InitDefaultConfiguration()
@@ -254,11 +254,11 @@ namespace GriffinPlus.Lib.Logging
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
 
-			if (sLogSourceConfiguration == null)
+			if (sLogConfiguration == null)
 			{
 				Assembly assembly = Assembly.GetEntryAssembly();
 				string path = Path.Combine(Path.GetDirectoryName(assembly.Location), Path.GetFileNameWithoutExtension(assembly.Location) + ".logconf");
-				DefaultLogSourceConfiguration configuration = new DefaultLogSourceConfiguration(path);
+				DefaultLogConfiguration configuration = new DefaultLogConfiguration(path);
 
 				// add default settings to configuration file, if necessary
 				SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline);
@@ -274,11 +274,11 @@ namespace GriffinPlus.Lib.Logging
 				catch (Exception ex)
 				{
 					// can easily occur, if the application does not have the permission to write to its own folder
-					Debug.WriteLine("Saving log source configuration failed: {0}", ex.ToString());
+					Debug.WriteLine("Saving log configuration failed: {0}", ex.ToString());
 				}
 
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
-				sLogSourceConfiguration = configuration;
+				sLogConfiguration = configuration;
 
 				// update log writers appropriately
 				UpdateLogWriters();
@@ -295,13 +295,13 @@ namespace GriffinPlus.Lib.Logging
 
 			foreach (var kvp in sLogWritersByName)
 			{
-				kvp.Value.ActiveLogLevelMask = sLogSourceConfiguration.GetActiveLogLevelMask(kvp.Value);
+				kvp.Value.ActiveLogLevelMask = sLogConfiguration.GetActiveLogLevelMask(kvp.Value);
 			}
 		}
 
 		/// <summary>
 		/// Gets the default settings of the specified processing pipeline stage and all following stages and
-		/// updates the current log source configuration with default processing stage settings, if the corresponding
+		/// updates the current log configuration with default processing stage settings, if the corresponding
 		/// processing stage settings are not defined, yet.
 		/// </summary>
 		/// <param name="firstStage">First stage of the processing pipeline.</param>

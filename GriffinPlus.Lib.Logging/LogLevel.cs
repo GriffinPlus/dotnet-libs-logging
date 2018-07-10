@@ -310,7 +310,7 @@ namespace GriffinPlus.Lib.Logging
 			sLogLevelsByName.TryGetValue(name, out level);
 			if (level == null)
 			{
-				lock (LogSource.Sync)
+				lock (Log.Sync)
 				{
 					if (!sLogLevelsByName.TryGetValue(name, out level))
 					{

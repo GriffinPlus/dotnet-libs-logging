@@ -16,9 +16,9 @@ using System.Collections.Generic;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Interface of a log source configuration.
+	/// Interface of a log configuration.
 	/// </summary>
-	public interface ILogSourceConfiguration
+	public interface ILogConfiguration
 	{
 		/// <summary>
 		/// Gets a bit mask in which each bit is associated with a log level with the same id

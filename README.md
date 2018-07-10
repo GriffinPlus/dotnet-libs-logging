@@ -24,11 +24,9 @@ Therefore it should work on the following platforms (or higher):
 
 ## Using
 
-### Configuring the Log Source
+### Configuration
 
 By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Failure`, `Error`, `Warning` and `Note`. Messages associated with other log levels are blocked. There is no restriction for log writers. When *Griffin+ Logging* starts up, it drops a configuration file containing the default settings into the same directory just beside the entry assembly. The name of the file is the name of the entry assembly plus file extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
-
-The configuration file configures everything that concerns the part producing log messages, i.e. the *log source*. The counterpart is a *log sink* that resides outside the logging process consuming written log messages. This feature might get added in the future.
 
 The default configuration file contains a detailed description of the settings and looks like the following:
 
@@ -103,9 +101,9 @@ Level = Note
 
 ### Requesting a Log Writer
 
-If you want to write a message to the log, you first have to request a `LogWriter` at the `LogSource`. A log writer provides various ways of formatting log messages. It is perfectly fine to keep a single `LogWriter` instance in a static member variable as log writers are thread-safe, so you only need one instance for multiple threads. A log writer has a unique name usually identifying the piece of code that emits log messages. This is often the name of the class, although the name can be chosen freely. In this case you can simply pass the type of the corresponding class when requesting a log writer. The name will automatically be set to the full name of the specified type. A positive side effect of using a type is that the name of the log writer changes, if the name of the type changes or even the namespace the type is defined in. It is refactoring-safe.
+If you want to write a message to the log, you first have to request a `LogWriter` at the `Log` class. A log writer provides various ways of formatting log messages. It is perfectly fine to keep a single `LogWriter` instance in a static member variable as log writers are thread-safe, so you only need one instance for multiple threads. A log writer has a unique name usually identifying the piece of code that emits log messages. This is often the name of the class, although the name can be chosen freely. In this case you can simply pass the type of the corresponding class when requesting a log writer. The name will automatically be set to the full name of the specified type. A positive side effect of using a type is that the name of the log writer changes, if the name of the type changes or even the namespace the type is defined in. It is refactoring-safe.
 
-You can obtain a `LogWriter` by calling one of the following `LogSource` methods:
+You can obtain a `LogWriter` by calling one of the following `Log` methods:
 
 ```csharp
 public static LogWriter GetWriter<T>();
@@ -142,7 +140,7 @@ Once you've a `LogWriter` and a `LogLevel` you can use one of the following `Log
 // without formatting
 public void Write(LogLevel level, string message);
 
-// formatting with default format provider (invariant culture), bypasses filters applied by log source configuration
+// formatting with default format provider (invariant culture), bypasses filters applied by the log configuration
 public void ForceWrite(LogLevel level, string format, params object[] args);
 
 // formatting with default format provider (invariant culture), up to 15 parameters
@@ -165,7 +163,7 @@ public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>(LogLevel le
 // formatting with default format provider (invariant culture), for more than 15 parameters
 public void Write(LogLevel level, string format, params object[] args);
 
-// formatting with custom format provider, bypasses filters applied by log source configuration
+// formatting with custom format provider, bypasses filters applied by the log configuration
 public void ForceWrite(IFormatProvider provider, LogLevel level, string format, params object[] args);
 
 // formatting with custom format provider, up to 15 parameters
@@ -190,13 +188,13 @@ public void Write(IFormatProvider provider, LogLevel level, string format, param
 ```
 
 
-### Customizing the Log Source
+### Customization
 
-*Griffin+ Logging* can be used as shipped, if you need a logging facility that is configurable as described above and that prints messages to *stdout* and *stderr*. If this is not what you need, you can replace the *log source configuration* and the *log message processing pipeline*.
+*Griffin+ Logging* can be used as shipped, if you need a logging facility that is configurable as described above and that prints messages to *stdout* and *stderr*. If this is not what you need, you can replace the *log configuration* and the *log message processing pipeline*.
 
-The main purpose of the *log source configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. If you feel that is something you want to customize, simply implement the `ILogSourceConfiguration` interface and tell the `LogSource` class to use your implementation via its `Configuration` property.
+The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. If you feel that is something you want to customize, simply implement the `ILogConfiguration` interface and tell the `Log` class to use your implementation via its `Configuration` property.
 
-Probably customization of the *log message processing pipeline* is a more interesting issue. The pipeline is fed with log messages that pass the filter defined by the *log source configuration*. A pipeline stage class must implement the `ILogMessageProcessingPipelineStage` interface. For the sake of simplicity, `LogMessageProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. This class provides a `FollowedBy()` method that allows you to chain multiple pipeline stages in a fluent API fashion.
+Probably customization of the *log message processing pipeline* is a more interesting issue. The pipeline is fed with log messages that pass the filter defined by the *log configuration*. A pipeline stage class must implement the `ILogMessageProcessingPipelineStage` interface. For the sake of simplicity, `LogMessageProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. This class provides a `FollowedBy()` method that allows you to chain multiple pipeline stages in a fluent API fashion.
 
 ### Complete Example
 
@@ -212,27 +210,27 @@ namespace GriffinPlus.Lib.Logging.Demo
 	{
 		// register a log writer using a type
 		// (the actual log writer name becomes: GriffinPlus.Lib.Logging.Demo.Program)
-		private static LogWriter sLog1 = LogSource.GetWriter<Program>();
-		private static LogWriter sLog2 = LogSource.GetWriter(typeof(Program));
+		private static LogWriter sLog1 = Log.GetWriter<Program>();
+		private static LogWriter sLog2 = Log.GetWriter(typeof(Program));
 
 		// register a log writer using a custom name
-		private static LogWriter sLog3 = LogSource.GetWriter("My Fancy Writer");
+		private static LogWriter sLog3 = Log.GetWriter("My Fancy Writer");
 
 		static void Main(string[] args)
 		{
-			// By default the logging subsystem is set up to use the default ini-style log source configuration file
+			// By default the logging subsystem is set up to use the default ini-style log configuration file
 			// located beside the running application (<application>.logconf) and a console logger printing written
 			// messages to the console. The following example shows a simple, but complete setup of the logging subsystem.
-			// The default log source configuration is used, but its file is placed at a custom location. After that the
+			// The default log configuration is used, but its file is placed at a custom location. After that the
 			// log message processing pipeline is initialized using a customized console logger.
 			
-			// initialize the log source configuration
-			var config = new DefaultLogSourceConfiguration("./my-custom-config.logconf");
-			LogSource.Configuration = config;
+			// initialize the log configuration
+			var config = new DefaultLogConfiguration("./my-custom-config.logconf");
+			Log.Configuration = config;
 			if (!File.Exists(config.FullPath)) config.Save();
 
 			// configure the log message processing pipeline (only one stage here)
-			LogSource.LogMessageProcessingPipeline = new ConsoleLogger()
+			Log.LogMessageProcessingPipeline = new ConsoleLogger()
 				.WithTimestampFormat("yyyy-mm-dd"); // use custom timestamp format
 
 			// create an aspect log level

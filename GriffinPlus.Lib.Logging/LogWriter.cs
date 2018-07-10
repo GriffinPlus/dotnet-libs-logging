@@ -58,11 +58,11 @@ namespace GriffinPlus.Lib.Logging
 			if (ActiveLogLevelMask.Size == 0)
 			{
 				// active log level mask is empty
-				// => the log source configuration is not initialized, yet
+				// => the log configuration is not initialized, yet
 				// => create default configuration...
-				lock (LogSource.Sync)
+				lock (Log.Sync)
 				{
-					LogSource.InitDefaultConfiguration();
+					Log.InitDefaultConfiguration();
 				}
 			}
 
@@ -77,7 +77,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Write(LogLevel level, string message)
 		{
 			if (IsLogLevelActive(level)) {
-				LogSource.WriteMessage(this, level, message);
+				Log.WriteMessage(this, level, message);
 			}
 		}
 
@@ -94,7 +94,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Writes a formatted message with a variable number of placeholders to the log
-		/// (bypasses filters induced by the log source configuration, for internal use only).
+		/// (bypasses filters induced by the log configuration, for internal use only).
 		/// </summary>
 		/// <param name="level">Log level to write the message to.</param>
 		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
@@ -520,13 +520,13 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, args);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
 		/// <summary>
 		/// Writes a formatted message with a variable number of placeholders to the log
-		/// (bypasses filters induced by the log source configuration, for internal use only).
+		/// (bypasses filters induced by the log configuration, for internal use only).
 		/// </summary>
 		/// <param name="provider">Format provider to use when formatting the message.</param>
 		/// <param name="level">Log level to write the message to.</param>
@@ -551,7 +551,7 @@ namespace GriffinPlus.Lib.Logging
 			StringBuilder builder = sBuilder.Value;
 			builder.Clear();
 			builder.AppendFormat(provider, format, args);
-			LogSource.WriteMessage(this, level, builder.ToString());
+			Log.WriteMessage(this, level, builder.ToString());
 		}
 
 		/// <summary>
@@ -573,7 +573,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -599,7 +599,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -628,7 +628,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -660,7 +660,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -695,7 +695,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -733,7 +733,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -774,7 +774,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -818,7 +818,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -865,7 +865,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -915,7 +915,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -968,7 +968,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -1024,7 +1024,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -1083,7 +1083,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -1145,7 +1145,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 
@@ -1210,7 +1210,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13, carg14);
-				LogSource.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, builder.ToString());
 			}
 		}
 

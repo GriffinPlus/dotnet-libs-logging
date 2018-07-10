@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public struct TimingLogger : IDisposable
 	{
-		private static LogWriter sDefaultLogWriter = LogSource.GetWriter("Timing");
+		private static LogWriter sDefaultLogWriter = Log.GetWriter("Timing");
 		private static LogLevel sDefaultLogLevel = LogLevel.Timing;
 		private long mTimestamp;
 		private LogWriter mLogWriter;

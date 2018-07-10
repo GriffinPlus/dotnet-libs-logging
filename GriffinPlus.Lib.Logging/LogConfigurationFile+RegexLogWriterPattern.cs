@@ -15,21 +15,21 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
-	public partial class LogSourceConfigurationFile
+	public partial class LogConfigurationFile
 	{
 		/// <summary>
-		/// A log writer pattern taking a wildcard pattern string (immutable).
+		/// A .NET regular expression pattern (immutable).
 		/// </summary>
-		public class WildcardLogWriterPattern : ILogWriterPattern
+		public class RegexLogWriterPattern : ILogWriterPattern
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="WildcardLogWriterPattern"/> class.
+			/// Initializes a new instance of the <see cref="RegexLogWriterPattern"/> class.
 			/// </summary>
-			/// <param name="pattern">The wildcard pattern to use.</param>
-			public WildcardLogWriterPattern(string pattern)
+			/// <param name="pattern">The regular expression to use.</param>
+			public RegexLogWriterPattern(string pattern)
 			{
 				Pattern = pattern;
-				Regex = RegexHelpers.FromWildcardExpression(pattern);
+				Regex = new Regex(pattern);
 			}
 
 			/// <summary>
@@ -48,7 +48,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>The string representation of the pattern.</returns>
 			public override string ToString()
 			{
-				return "Wildcard: " + Pattern;
+				return "Regex: " + Pattern;
 			}
 		}
 	}

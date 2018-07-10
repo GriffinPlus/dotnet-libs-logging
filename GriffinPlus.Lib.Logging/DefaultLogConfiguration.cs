@@ -20,22 +20,22 @@ using System.Threading;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// The default log source configuration (an ini-file like configuration file).
+	/// The default log configuration (an ini-file like configuration file).
 	/// </summary>
-	public class DefaultLogSourceConfiguration : ILogSourceConfiguration, IDisposable
+	public class DefaultLogConfiguration : ILogConfiguration, IDisposable
 	{
-		private LogWriter sLog = LogSource.GetWriter("Logging");
+		private LogWriter sLog = Log.GetWriter("Logging");
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
-		private LogSourceConfigurationFile mFile;
+		private LogConfigurationFile mFile;
 		private string mFilePath;
 		private string mFileName;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="DefaultLogSourceConfiguration"/> class.
+		/// Initializes a new instance of the <see cref="DefaultLogConfiguration"/> class.
 		/// </summary>
 		/// <param name="path">Path of the configuration file to use.</param>
-		public DefaultLogSourceConfiguration(string path)
+		public DefaultLogConfiguration(string path)
 		{
 			mFilePath = Path.GetFullPath(path);
 			mFileName = Path.GetFileName(path);
@@ -43,20 +43,20 @@ namespace GriffinPlus.Lib.Logging
 			// load configuration file
 			try
 			{
-				mFile = LogSourceConfigurationFile.LoadFrom(mFilePath);
+				mFile = LogConfigurationFile.LoadFrom(mFilePath);
 			}
 			catch (FileNotFoundException)
 			{
 				// file does not exist
 				// => that's ok, use a default configuration file...
-				mFile = new LogSourceConfigurationFile();
+				mFile = new LogConfigurationFile();
 			}
 			catch (Exception ex)
 			{
 				// loading file failed
 				sLog.ForceWrite(
 					LogLevel.Failure,
-					"Loading log source configuration file ({0}) failed. Exception: {1}",
+					"Loading log configuration file ({0}) failed. Exception: {1}",
 					mFilePath, ex);
 			}
 
@@ -141,7 +141,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// configuration file was removed
 				// => create a default configuration...
-				LogSourceConfigurationFile file = new LogSourceConfigurationFile();
+				LogConfigurationFile file = new LogConfigurationFile();
 				mFile = file;
 			}
 		}
@@ -166,7 +166,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// configuration file was removed
 				// => create a default configuration...
-				LogSourceConfigurationFile file = new LogSourceConfigurationFile();
+				LogConfigurationFile file = new LogConfigurationFile();
 				mFile = file;
 			}
 		}
@@ -179,7 +179,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			try
 			{
-				mFile = LogSourceConfigurationFile.LoadFrom(mFilePath);
+				mFile = LogConfigurationFile.LoadFrom(mFilePath);
 			}
 			catch (FileNotFoundException)
 			{
@@ -272,7 +272,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Checks whether the specified file name is the name of the configuration file of the log source
+		/// Checks whether the specified file name is the name of the configuration file of the log
 		/// (the comparison is case insensitive).
 		/// </summary>
 		/// <param name="fileName">File name to check.</param>

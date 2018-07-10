@@ -37,7 +37,7 @@ namespace UnitTests
 		public void CreateNewByName()
 		{
 			string name = Guid.NewGuid().ToString("D");
-			LogWriter writer = LogSource.GetWriter(name);
+			LogWriter writer = Log.GetWriter(name);
 			Assert.Equal(name, writer.Name);
 		}
 
@@ -47,7 +47,7 @@ namespace UnitTests
 		[Fact]
 		public void CreateNewByTypeParameter()
 		{
-			LogWriter writer = LogSource.GetWriter(typeof(LogWriterTests));
+			LogWriter writer = Log.GetWriter(typeof(LogWriterTests));
 			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
 		}
 
@@ -57,7 +57,7 @@ namespace UnitTests
 		[Fact]
 		public void CreateNewByGenericTypeParameter()
 		{
-			LogWriter writer = LogSource.GetWriter<LogWriterTests>();
+			LogWriter writer = Log.GetWriter<LogWriterTests>();
 			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
 		}
 
@@ -68,8 +68,8 @@ namespace UnitTests
 		public void EnsureSingletonInstances()
 		{
 			string name = Guid.NewGuid().ToString("D");
-			LogWriter writer1 = LogSource.GetWriter(name);
-			LogWriter writer2 = LogSource.GetWriter(name);
+			LogWriter writer1 = Log.GetWriter(name);
+			LogWriter writer2 = Log.GetWriter(name);
 			Assert.Same(writer1, writer2);
 		}
 
@@ -79,7 +79,7 @@ namespace UnitTests
 		[Fact]
 		public void Write()
 		{
-			LogWriter writer = LogSource.GetWriter(LogWriterName);
+			LogWriter writer = Log.GetWriter(LogWriterName);
 			writer.Write(LogLevel.Note, TestMessage);
 		}
 

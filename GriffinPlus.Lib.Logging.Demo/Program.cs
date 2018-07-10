@@ -20,27 +20,27 @@ namespace GriffinPlus.Lib.Logging.Demo
 	{
 		// register a log writer using a type
 		// (the actual log writer name becomes: GriffinPlus.Lib.Logging.Demo.Program)
-		private static LogWriter sLog1 = LogSource.GetWriter<Program>();
-		private static LogWriter sLog2 = LogSource.GetWriter(typeof(Program));
+		private static LogWriter sLog1 = Log.GetWriter<Program>();
+		private static LogWriter sLog2 = Log.GetWriter(typeof(Program));
 
 		// register a log writer using a custom name
-		private static LogWriter sLog3 = LogSource.GetWriter("My Fancy Writer");
+		private static LogWriter sLog3 = Log.GetWriter("My Fancy Writer");
 
 		static void Main(string[] args)
 		{
-			// By default the logging subsystem is set up to use the default ini-style log source configuration file
+			// By default the logging subsystem is set up to use the default ini-style log configuration file
 			// located beside the running application (<application>.logconf) and a console logger printing written
 			// messages to the console. The following example shows a simple, but complete setup of the logging subsystem.
-			// The default log source configuration is used, but its file is placed at a custom location. After that the
+			// The default log configuration is used, but its file is placed at a custom location. After that the
 			// log message processing pipeline is initialized using a customized console logger.
 			
-			// initialize the log source configuration
-			var config = new DefaultLogSourceConfiguration("./my-custom-config.logconf");
-			LogSource.Configuration = config;
+			// initialize the log configuration
+			var config = new DefaultLogConfiguration("./my-custom-config.logconf");
+			Log.Configuration = config;
 			if (!File.Exists(config.FullPath)) config.Save();
 
 			// configure the log message processing pipeline (only one stage here)
-			LogSource.LogMessageProcessingPipeline = new ConsoleLogger()
+			Log.LogMessageProcessingPipeline = new ConsoleLogger()
 				.WithTimestampFormat("yyyy-mm-dd"); // use custom timestamp format
 
 			// create an aspect log level

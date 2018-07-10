@@ -21,9 +21,9 @@ using System.Text.RegularExpressions;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// An ini-style configuration file that keeps the log source configuration.
+	/// An ini-style configuration file that keeps the log configuration.
 	/// </summary>
-	public partial class LogSourceConfigurationFile
+	public partial class LogConfigurationFile
 	{
 		private const string SECTION_NAME_SETTINGS = "Settings";
 		private const string SECTION_NAME_PROCESSING_PIPELINE_STAGE = "ProcessingPipelineStage";
@@ -131,9 +131,9 @@ namespace GriffinPlus.Lib.Logging
 		private Dictionary<string, Dictionary<string, string>> mProcessingPipelineStageSettings;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogSourceConfigurationFile"/> class.
+		/// Initializes a new instance of the <see cref="LogConfigurationFile"/> class.
 		/// </summary>
-		public LogSourceConfigurationFile()
+		public LogConfigurationFile()
 		{
 			mGlobalSettings = new Dictionary<string, string>();
 			mProcessingPipelineStageSettings = new Dictionary<string, Dictionary<string, string>>();
@@ -206,9 +206,9 @@ namespace GriffinPlus.Lib.Logging
 		/// Loads the configuration file at the specified path.
 		/// </summary>
 		/// <param name="path">Path of the configuration file to load.</param>
-		public static LogSourceConfigurationFile LoadFrom(string path)
+		public static LogConfigurationFile LoadFrom(string path)
 		{
-			LogSourceConfigurationFile file = new LogSourceConfigurationFile();
+			LogConfigurationFile file = new LogConfigurationFile();
 			file.Clear();
 
 			using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))

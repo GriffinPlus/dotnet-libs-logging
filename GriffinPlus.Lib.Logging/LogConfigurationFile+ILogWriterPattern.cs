@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
-	public partial class LogSourceConfigurationFile
+	public partial class LogConfigurationFile
 	{
 		/// <summary>
 		/// Interface of log writer pattern classes.
