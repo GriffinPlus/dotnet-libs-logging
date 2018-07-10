@@ -26,7 +26,13 @@ Therefore it should work on the following platforms (or higher):
 
 ### Configuration
 
-By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Failure`, `Error`, `Warning` and `Note`. Messages associated with other log levels are blocked. There is no restriction for log writers. When *Griffin+ Logging* starts up, it drops a configuration file containing the default settings into the same directory just beside the entry assembly. The name of the file is the name of the entry assembly plus file extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
+By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Failure`, `Error`, `Warning` and `Note`. Messages associated with other log levels are blocked. There is no restriction for log writers. The default log configuration is purely in-memory, but you can quickly tell *Griffin+ Logging* to retrieve settings from a file just by adding the following line:
+
+```csharp
+Log.Configuration = new FileBackedLogConfiguration();
+```
+
+This will drop a configuration file containing the default settings into the same directory just beside the entry assembly. The name of the file is the name of the entry assembly plus file extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
 
 The default configuration file contains a detailed description of the settings and looks like the following:
 
@@ -126,7 +132,7 @@ Each message written to the log is associated with a certain log level, represen
 | ... |                      | ...
 |  24 | `LogLevel.Trace19`   | A log message the implementer of the code might be interested in (most detailed)
 
-In addition to the predefined log levels an aspect log level can be used. Aspect log levels are primarily useful when tracking an issue that effects multiple classes. The id of aspect log levels directly follow the predefined log levels. The following `LogLevel` method creates an aspect log level. It can then be used the same way as a predefined log level.
+In addition to the predefined log levels an aspect log level can be used. Aspect log levels are primarily useful when tracking an issue that effects multiple classes. The ids of aspect log levels directly follow the predefined log levels. The following `LogLevel` method creates an aspect log level. It can then be used the same way as a predefined log level.
 
 ```csharp
 public GetAspect(string name);
@@ -218,14 +224,16 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 		static void Main(string[] args)
 		{
-			// By default the logging subsystem is set up to use the default ini-style log configuration file
-			// located beside the running application (<application>.logconf) and a console logger printing written
-			// messages to the console. The following example shows a simple, but complete setup of the logging subsystem.
-			// The default log configuration is used, but its file is placed at a custom location. After that the
-			// log message processing pipeline is initialized using a customized console logger.
+			// By default the logging subsystem is set up to use a pure in-memory configuration and a console logger
+			// printing written messages to the console (stdout/stderr). In many cases you probably want to configure
+			// what gets logged using a configuration file. The following example shows a simple, but complete setup
+			// of the logging subsystem. A file-backed log configuration is used and it's file is placed beside the
+			// applications executable. After that the log message processing pipeline is initialized using a customized
+			// console logger.
 			
 			// initialize the log configuration
-			var config = new DefaultLogConfiguration("./my-custom-config.logconf");
+			var config = new FileBackedLogConfiguration(); // default location (beside executable/entry assembly + entension '.logconf')
+			// var config = new FileBackedLogConfiguration("./my-custom-log-configuration.logconf"); // custom location
 			Log.Configuration = config;
 			if (!File.Exists(config.FullPath)) config.Save();
 
@@ -244,8 +252,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 				sLog3.Write(level, "This is sLog3 writing using level '{0}'.", level.Name);
 			}
 
-			// now modify the configuration file 'my-custom-config.logconf' in the output directory and run
-			// the demo application again to see what happens!
+			// now modify the configuration file in the output directory and run the demo application
+			// again to see what happens!
 
 			Console.WriteLine();
 			Console.WriteLine("Press any key to continue...");
