@@ -28,11 +28,12 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 		static void Main(string[] args)
 		{
-			// By default the logging subsystem is set up to use a pure in-memory configuration and a console logger printing
-			// written messages to the console (stdout/stderr). In many cases you probably want to configure what gets logged
-			// using a configuration file. The following example shows a simple, but complete setup of the logging subsystem.
-			// A file-backed log configuration is used and it's file is placed beside the applications executable. After
-			// that the log message processing pipeline is initialized using a customized console logger.
+			// By default the logging subsystem is set up to use a pure in-memory configuration and a console logger
+			// printing written messages to the console (stdout/stderr). In many cases you probably want to configure
+			// what gets logged using a configuration file. The following example shows a simple, but complete setup
+			// of the logging subsystem. A file-backed log configuration is used and it's file is placed beside the
+			// applications executable. After that the log message processing pipeline is initialized using a customized
+			// console logger.
 			
 			// initialize the log configuration
 			var config = new FileBackedLogConfiguration(); // default location (beside executable/entry assembly + entension '.logconf')
@@ -55,8 +56,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 				sLog3.Write(level, "This is sLog3 writing using level '{0}'.", level.Name);
 			}
 
-			// now modify the configuration file 'my-custom-config.logconf' in the output directory and run
-			// the demo application again to see what happens!
+			// now modify the configuration file in the output directory and run the demo application
+			// again to see what happens!
 
 			Console.WriteLine();
 			Console.WriteLine("Press any key to continue...");
