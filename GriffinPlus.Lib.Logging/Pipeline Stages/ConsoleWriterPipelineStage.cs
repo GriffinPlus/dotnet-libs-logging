@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log message processing pipeline stage that logs messages to stdout/stderr (thread-safe).
 	/// </summary>
-	public class ConsoleLogger : ProcessingPipelineStage<ConsoleLogger>
+	public class ConsoleWriterPipelineStage : ProcessingPipelineStage<ConsoleWriterPipelineStage>
 	{
 		private string mTimestampFormat = "u"; // conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ.
 		private string mFormatWithoutMessage;  // combined format string fot the log message without the message text
@@ -32,19 +32,10 @@ namespace GriffinPlus.Lib.Logging
 		private int mLogLevelMaxLength;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ConsoleLogger"/> class.
+		/// Initializes a new instance of the <see cref="ConsoleWriterPipelineStage"/> class.
 		/// </summary>
-		public ConsoleLogger()
+		public ConsoleWriterPipelineStage()
 		{
-			UpdateFormat();
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ConsoleLogger"/> class by copying an existing instance.
-		/// </summary>
-		public ConsoleLogger(ConsoleLogger other) : base(other)
-		{
-			this.mTimestampFormat = other.mTimestampFormat;
 			UpdateFormat();
 		}
 
@@ -127,7 +118,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx" for details).
 		/// </param>
 		/// <returns>The pipeline stage with the specified timestamp format.</returns>
-		public ConsoleLogger WithTimestampFormat(string format)
+		public ConsoleWriterPipelineStage WithTimestampFormat(string format)
 		{
 			if (format == null) throw new ArgumentNullException(nameof(format));
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid

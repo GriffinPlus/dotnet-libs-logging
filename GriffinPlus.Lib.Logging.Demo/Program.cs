@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			if (!File.Exists(config.FullPath)) config.Save();
 
 			// configure the log message processing pipeline (only one stage here)
-			Log.LogMessageProcessingPipeline = new ConsoleLogger()
+			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
 				.WithTimestampFormat("yyyy-mm-dd"); // use custom timestamp format
 
 			// create an aspect log level

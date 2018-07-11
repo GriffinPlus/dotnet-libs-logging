@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Base class for stages in the log message processing pipeline.
 	/// </summary>
 	public abstract class ProcessingPipelineStage<T> : IProcessingPipelineStage
-		where T: ProcessingPipelineStage<T>, new()
+		where T: ProcessingPipelineStage<T>
 	{
 		/// <summary>
 		/// Log message processing pipeline stages to call after the current stage has completed processing.
