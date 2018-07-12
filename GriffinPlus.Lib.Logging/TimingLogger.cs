@@ -12,6 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 
@@ -19,12 +20,10 @@ namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
 	/// A timing logger that can be used to measure the time that elapses between its construction and its disposal.
-	/// It is recommended to use it in a using statement to ensure it is really disposed at its end.
-	/// The timing logger is built to be very efficient, so it should not influence the measurement that much.
-	/// NOTE: Do not use the struct's parameterless default constructor, it will not do anything.
 	/// </summary>
-	public struct TimingLogger : IDisposable
+	public class TimingLogger : IDisposable
 	{
+		private static ConcurrentBag<TimingLogger> mPool = new ConcurrentBag<TimingLogger>();
 		private static LogWriter sDefaultLogWriter = Log.GetWriter("Timing");
 		private static LogLevel sDefaultLogLevel = LogLevel.Timing;
 		private static int sNextTimingLoggerId = 0;
@@ -38,71 +37,11 @@ namespace GriffinPlus.Lib.Logging
 		private bool mActive;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TimingLogger"/> struct using the specified log writer and log level
-		/// to emit timing related log messages.
+		/// Initializes a new instance of the <see cref="TimingLogger"/> class.
 		/// </summary>
-		/// <param name="writer">Log writer to use.</param>
-		/// <param name="level">Log level to use.</param>
-		/// <param name="operation">Name of the operation that is being measured.</param>
-		public TimingLogger(LogWriter writer, LogLevel level, string operation = null)
+		private TimingLogger()
 		{
-			mLogWriter = writer;
-			mLogLevel = level;
-			mOperation = operation;
-			mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
-			mThreadName = Thread.CurrentThread.Name;
-			mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
-			mActive = true;
-			mTimestamp = 0;
-			WriteStartMessage();
 
-			// init timestamp at last to ensure most accurate measurements
-			mTimestamp = Stopwatch.GetTimestamp();
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TimingLogger"/> struct using the specified log writer and the default
-		/// aspect log level 'Timing' to emit timing related log messages.
-		/// </summary>
-		/// <param name="writer">Log writer to use.</param>
-		/// <param name="operation">Name of the operation that is being measured.</param>
-		public TimingLogger(LogWriter writer, string operation = null)
-		{
-			mLogWriter = writer;
-			mLogLevel = sDefaultLogLevel;
-			mOperation = operation;
-			mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
-			mThreadName = Thread.CurrentThread.Name;
-			mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
-			mActive = true;
-			mTimestamp = 0;
-			WriteStartMessage();
-
-			// init timestamp at last to ensure most accurate measurements
-			mTimestamp = Stopwatch.GetTimestamp();
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TimingLogger"/> struct using the specified log level and the default
-		/// log writer 'Timing' to emit timing related log messages.
-		/// </summary>
-		/// <param name="level">Log level to use.</param>
-		/// <param name="operation">Name of the operation that is being measured.</param>
-		public TimingLogger(LogLevel level, string operation = null)
-		{
-			mLogWriter = sDefaultLogWriter;
-			mLogLevel = level;
-			mOperation = operation;
-			mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
-			mThreadName = Thread.CurrentThread.Name;
-			if (mThreadName.Length == 0) mThreadName = null;
-			mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
-			mActive = true;
-			mTimestamp = 0;
-			WriteStartMessage();
-
-			// init timestamp at last to ensure most accurate measurements
-			mTimestamp = Stopwatch.GetTimestamp();
 		}
 
 		/// <summary>
@@ -114,7 +53,92 @@ namespace GriffinPlus.Lib.Logging
 				double elapsed = (double)(Stopwatch.GetTimestamp() - mTimestamp) / Stopwatch.Frequency;
 				WriteEndMessage(elapsed);
 				mActive = false;
+				mPool.Add(this);
 			}
+		}
+
+		/// <summary>
+		/// Gets a timing logger using the default log writer 'Timing' and the default log level 'Timing'.
+		/// </summary>
+		/// <param name="operation">Name of the operation that is being measured.</param>
+		public static TimingLogger Measure(string operation = null)
+		{
+			TimingLogger logger;
+			if (!mPool.TryTake(out logger)) logger = new TimingLogger();
+			logger.mLogWriter = sDefaultLogWriter;
+			logger.mLogLevel = sDefaultLogLevel;
+			logger.mOperation = operation;
+			logger.mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
+			logger.mThreadName = Thread.CurrentThread.Name;
+			logger.mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
+			logger.mActive = true;
+			logger.WriteStartMessage();
+			logger.mTimestamp = Stopwatch.GetTimestamp();
+			return logger;
+		}
+
+		/// <summary>
+		/// Gets a timing logger using the specified log level and the default log writer 'Timing' to emit timing related log messages.
+		/// </summary>
+		/// <param name="level">Log level to use.</param>
+		/// <param name="operation">Name of the operation that is being measured.</param>
+		public static TimingLogger Measure(LogLevel level, string operation = null)
+		{
+			TimingLogger logger;
+			if (!mPool.TryTake(out logger)) logger = new TimingLogger();
+			logger.mLogWriter = sDefaultLogWriter;
+			logger.mLogLevel = level;
+			logger.mOperation = operation;
+			logger.mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
+			logger.mThreadName = Thread.CurrentThread.Name;
+			logger.mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
+			logger.mActive = true;
+			logger.WriteStartMessage();
+			logger.mTimestamp = Stopwatch.GetTimestamp();
+			return logger;
+		}
+
+		/// <summary>
+		/// Gets a timing logger using the specified log writer and the default aspect log level 'Timing' to emit timing related log messages.
+		/// </summary>
+		/// <param name="writer">Log writer to use.</param>
+		/// <param name="operation">Name of the operation that is being measured.</param>
+		public static TimingLogger Measure(LogWriter writer, string operation = null)
+		{
+			TimingLogger logger;
+			if (!mPool.TryTake(out logger)) logger = new TimingLogger();
+			logger.mLogWriter = writer;
+			logger.mLogLevel = sDefaultLogLevel;
+			logger.mOperation = operation;
+			logger.mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
+			logger.mThreadName = Thread.CurrentThread.Name;
+			logger.mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
+			logger.mActive = true;
+			logger.WriteStartMessage();
+			logger.mTimestamp = Stopwatch.GetTimestamp();
+			return logger;
+		}
+
+		/// <summary>
+		/// Gets a timing logger using the specified log writer and log level to emit timing related log messages.
+		/// </summary>
+		/// <param name="writer">Log writer to use.</param>
+		/// <param name="level">Log level to use.</param>
+		/// <param name="operation">Name of the operation that is being measured.</param>
+		public static TimingLogger Measure(LogWriter writer, LogLevel level, string operation = null)
+		{
+			TimingLogger logger;
+			if (!mPool.TryTake(out logger)) logger = new TimingLogger();
+			logger.mLogWriter = writer;
+			logger.mLogLevel = level;
+			logger.mOperation = operation;
+			logger.mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
+			logger.mThreadName = Thread.CurrentThread.Name;
+			logger.mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
+			logger.mActive = true;
+			logger.WriteStartMessage();
+			logger.mTimestamp = Stopwatch.GetTimestamp();
+			return logger;
 		}
 
 		/// <summary>
@@ -124,7 +148,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (mOperation != null)
 			{
-				if (mThreadName != null)
+				if (!string.IsNullOrWhiteSpace(mThreadName))
 				{
 					mLogWriter.Write(
 						mLogLevel,
@@ -141,7 +165,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 			else
 			{
-				if (mThreadName != null)
+				if (!string.IsNullOrWhiteSpace(mThreadName))
 				{
 					mLogWriter.Write(
 						mLogLevel,
@@ -168,12 +192,12 @@ namespace GriffinPlus.Lib.Logging
 
 			if (mOperation != null)
 			{
-				if (mThreadName != null)
+				if (!string.IsNullOrWhiteSpace(mThreadName))
 				{
-				mLogWriter.Write(
-					mLogLevel,
-					"Timing ({0}|{1}|{2}): Operation ({3}) completed [{4:0.0000} ms].",
-					mTimingLoggerId, mManagedThreadId, mThreadName, mOperation, elapsed);
+					mLogWriter.Write(
+						mLogLevel,
+						"Timing ({0}|{1}|{2}): Operation ({3}) completed [{4:0.0000} ms].",
+						mTimingLoggerId, mManagedThreadId, mThreadName, mOperation, elapsed);
 				}
 				else
 				{
@@ -185,7 +209,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 			else
 			{
-				if (mThreadName != null)
+				if (!string.IsNullOrWhiteSpace(mThreadName))
 				{
 					mLogWriter.Write(
 						mLogLevel,

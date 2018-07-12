@@ -63,16 +63,16 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// use a timing logger to determine how long an operation takes
 			// (is uses log level 'Timing' and log writer 'Timing' by default, so you need
-			// to ensure that the configuration lets  these messages pass).
+			// to ensure that the configuration lets these messages pass).
 			sLog1.Write(LogLevel.Note, "Presenting a timing logger with default settings...");
-			using (TimingLogger logger = new TimingLogger()) {
+			using (TimingLogger logger = TimingLogger.Measure()) {
 				Thread.Sleep(500);
 			}
 
 			// use a timing logger and customize the log writer/level it uses + associate an operation name
 			// with the measurement that is printed to the log as well
 			sLog1.Write(LogLevel.Note, "A timing logger with custom log level/writer and operation name...");
-			using (TimingLogger logger = new TimingLogger(sLog1, LogLevel.Note, "Waiting for 500ms")) {
+			using (TimingLogger logger = TimingLogger.Measure(sLog1, LogLevel.Note, "Waiting for 500ms")) {
 				Thread.Sleep(500);
 			}
 
