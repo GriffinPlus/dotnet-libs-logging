@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 			public WildcardLogWriterPattern(string pattern)
 			{
 				Pattern = pattern;
-				Regex = RegexHelpers.FromWildcardExpression(pattern);
+				Regex = RegexHelpers.FromWildcardExpression(pattern, RegexOptions.Singleline);
 			}
 
 			/// <summary>

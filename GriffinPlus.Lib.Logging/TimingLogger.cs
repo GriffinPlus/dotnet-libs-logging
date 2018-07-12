@@ -27,11 +27,13 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private static LogWriter sDefaultLogWriter = Log.GetWriter("Timing");
 		private static LogLevel sDefaultLogLevel = LogLevel.Timing;
+		private static int sNextTimingLoggerId = 0;
 		private long mTimestamp;
 		private LogWriter mLogWriter;
 		private LogLevel mLogLevel;
 		private string mOperation;
 		private string mThreadName;
+		private int mTimingLoggerId;
 		private int mManagedThreadId;
 		private bool mActive;
 
@@ -47,6 +49,7 @@ namespace GriffinPlus.Lib.Logging
 			mLogWriter = writer;
 			mLogLevel = level;
 			mOperation = operation;
+			mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
 			mThreadName = Thread.CurrentThread.Name;
 			mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
 			mActive = true;
@@ -68,6 +71,7 @@ namespace GriffinPlus.Lib.Logging
 			mLogWriter = writer;
 			mLogLevel = sDefaultLogLevel;
 			mOperation = operation;
+			mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
 			mThreadName = Thread.CurrentThread.Name;
 			mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
 			mActive = true;
@@ -89,6 +93,7 @@ namespace GriffinPlus.Lib.Logging
 			mLogWriter = sDefaultLogWriter;
 			mLogLevel = level;
 			mOperation = operation;
+			mTimingLoggerId = Interlocked.Increment(ref sNextTimingLoggerId);
 			mThreadName = Thread.CurrentThread.Name;
 			if (mThreadName.Length == 0) mThreadName = null;
 			mManagedThreadId = Thread.CurrentThread.ManagedThreadId;
@@ -123,15 +128,15 @@ namespace GriffinPlus.Lib.Logging
 				{
 					mLogWriter.Write(
 						mLogLevel,
-						"Timing: Starting operation ({0})\n- Thread Name: {1}\n- Managed Thread Id: {2}.",
-						mOperation, mThreadName, mManagedThreadId);
+						"Timing ({0}|{1}|{2}): Starting operation ({3}).",
+						mTimingLoggerId, mManagedThreadId, mThreadName, mOperation);
 				}
 				else
 				{
 					mLogWriter.Write(
 						mLogLevel,
-						"Timing: Starting operation ({0})\n- Managed Thread Id: {1}.",
-						mOperation, mManagedThreadId);
+						"Timing ({0}|{1}): Starting operation ({2}).",
+						mTimingLoggerId, mManagedThreadId, mOperation);
 				}
 			}
 			else
@@ -140,15 +145,15 @@ namespace GriffinPlus.Lib.Logging
 				{
 					mLogWriter.Write(
 						mLogLevel,
-						"Timing: Starting operation\n- Thread Name: {0}\n- Managed Thread Id: {1}.",
-						mThreadName, mManagedThreadId);
+						"Timing ({0}|{1}|{2}): Starting operation.",
+						mTimingLoggerId, mManagedThreadId, mThreadName);
 				}
 				else
 				{
 					mLogWriter.Write(
 						mLogLevel,
-						"Timing: Starting operation\n- Managed Thread Id: {0}.",
-						mManagedThreadId);
+						"Timing ({0}|{1}): Starting operation.",
+						mTimingLoggerId, mManagedThreadId);
 				}
 			}
 		}
@@ -167,15 +172,15 @@ namespace GriffinPlus.Lib.Logging
 				{
 				mLogWriter.Write(
 					mLogLevel,
-					"Timing: Operation ({0}) completed [{1:0.0000} ms]\n- Thread Name: {2}\n- Managed Thread Id: {3}.",
-					mOperation, elapsed, mThreadName, mManagedThreadId);
+					"Timing ({0}|{1}|{2}): Operation ({3}) completed [{4:0.0000} ms].",
+					mTimingLoggerId, mManagedThreadId, mThreadName, mOperation, elapsed);
 				}
 				else
 				{
 					mLogWriter.Write(
 						mLogLevel,
-						"Timing: Operation ({0}) completed [{1:0.0000} ms]\n- Managed Thread Id: {2}.",
-						mOperation, elapsed, mManagedThreadId);
+						"Timing ({0}|{1}): Operation ({2}) completed [{3:0.0000} ms].",
+						mTimingLoggerId, mManagedThreadId, mOperation, elapsed);
 				}
 			}
 			else
@@ -184,15 +189,15 @@ namespace GriffinPlus.Lib.Logging
 				{
 					mLogWriter.Write(
 						mLogLevel,
-						"Timing: Operation completed [{0:0.0000} ms]\n- Thread Name: {1}\n- Managed Thread Id: {2}.",
-						elapsed, mThreadName, mManagedThreadId);
+						"Timing ({0}|{1}|{2}): Operation completed [{3:0.0000} ms].",
+						mTimingLoggerId, mManagedThreadId, mThreadName, elapsed);
 				}
 				else
 				{
 					mLogWriter.Write(
 						mLogLevel,
-						"Timing: Operation completed [{0:0.0000} ms]\n- Managed Thread Id: {1}.",
-						elapsed, mManagedThreadId);
+						"Timing ({0}|{1}): Operation completed [{2:0.0000} ms].",
+						mTimingLoggerId, mManagedThreadId, elapsed);
 				}
 			}
 		}

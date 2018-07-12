@@ -67,6 +67,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (value != null)
 					{
+						Thread.MemoryBarrier();
 						sLogConfiguration = value;
 
 						// add default settings to configuration file, if necessary

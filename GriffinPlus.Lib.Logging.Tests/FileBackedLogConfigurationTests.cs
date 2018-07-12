@@ -11,26 +11,25 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System.Text.RegularExpressions;
+using System;
+using System.IO;
+using System.Reflection;
+using Xunit;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging.Tests
 {
-	public partial class LogConfiguration
+	/// <summary>
+	/// Unit tests targetting the <see cref="FileBackedLogConfiguration"/> class.
+	/// </summary>
+	public class FileBackedLogConfigurationTests : LogConfigurationTests_Base<FileBackedLogConfiguration>
 	{
-		/// <summary>
-		/// Interface of log writer pattern classes (must be implemented immutable).
-		/// </summary>
-		public interface ILogWriterPattern
+		[Fact]
+		public override void Saving_Default_Configuration()
 		{
-			/// <summary>
-			/// Gets the original pattern.
-			/// </summary>
-			string Pattern { get; }
-
-			/// <summary>
-			/// Gets the regular expression matching the specified pattern.
-			/// </summary>
-			Regex Regex { get; }
+			FileBackedLogConfiguration configuration = new FileBackedLogConfiguration();
+			Assert.Equal(AppDomain.CurrentDomain.FriendlyName, configuration.ApplicationName);
+			configuration.Save();
+			Assert.True(File.Exists(configuration.FullPath));
 		}
 	}
 }

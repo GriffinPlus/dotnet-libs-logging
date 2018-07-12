@@ -16,7 +16,7 @@ using System.Collections.Generic;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Interface for stages in the log message processing pipeline.
+	/// Interface for stages in the log message processing pipeline (must be implemented thread-safe).
 	/// </summary>
 	public interface IProcessingPipelineStage
 	{
@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 		void GetAllStages(HashSet<IProcessingPipelineStage> stages);
 
 		/// <summary>
-		/// Populates the specified dictionary with default settings the pipeline stage operates with.
+		/// Gets the default settings the pipeline stage operates with.
 		/// </summary>
 		/// <returns>Dictionary with default settings.</returns>
 		IDictionary<string, string> GetDefaultSettings();

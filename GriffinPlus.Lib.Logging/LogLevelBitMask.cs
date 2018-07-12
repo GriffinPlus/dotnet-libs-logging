@@ -22,7 +22,6 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private static uint[] sEmptyBitField = new uint[0];
 		private uint[] mBitField;
-		private bool mPaddingValue;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogLevelBitMask"/> class.
@@ -38,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 			if (size < 0) throw new ArgumentException("The size of the bit field must be positive.", nameof(size));
 			int count = (size + 31) / 32;
 			mBitField = count > 0 ? new uint[count] : sEmptyBitField;
-			mPaddingValue = paddingValue;
+			PaddingValue = paddingValue;
 
 			if (set)
 			{
@@ -76,6 +75,11 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the padding value that is used, when accessing a bit outside the defined mask.
+		/// </summary>
+		public bool PaddingValue { get; private set; }
+
+		/// <summary>
 		/// Inverts the specified bit mask.
 		/// </summary>
 		/// <param name="mask">Bit mask to invert.</param>
@@ -85,7 +89,7 @@ namespace GriffinPlus.Lib.Logging
 			LogLevelBitMask result = new LogLevelBitMask();
 			int count = mask.mBitField.Length;
 			result.mBitField = count > 0 ? new uint[count] : sEmptyBitField;
-			result.mPaddingValue = !mask.mPaddingValue;
+			result.PaddingValue = !mask.PaddingValue;
 			for (int i = 0; i < count; i++) result.mBitField[i] = ~mask.mBitField[i];
 			return result;
 		}
@@ -111,7 +115,7 @@ namespace GriffinPlus.Lib.Logging
 					}
 				}
 
-				uint padding = mask1.mPaddingValue ? uint.MaxValue : 0;
+				uint padding = mask1.PaddingValue ? uint.MaxValue : 0;
 				for (int i = count1; i < count2; i++)
 				{
 					if (mask2.mBitField[i] != padding) return false;
@@ -127,7 +131,7 @@ namespace GriffinPlus.Lib.Logging
 					}
 				}
 
-				uint padding = mask2.mPaddingValue ? uint.MaxValue : 0;
+				uint padding = mask2.PaddingValue ? uint.MaxValue : 0;
 				for (int i = count2; i < count1; i++)
 				{
 					if (mask1.mBitField[i] != padding) return false;
@@ -163,13 +167,13 @@ namespace GriffinPlus.Lib.Logging
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
 			result.mBitField = count > 0 ? new uint[count] : sEmptyBitField;
-			result.mPaddingValue = mask1.mPaddingValue;
+			result.PaddingValue = mask1.PaddingValue;
 
-			uint padding1 = mask1.mPaddingValue ? uint.MaxValue : 0;
+			uint padding1 = mask1.PaddingValue ? uint.MaxValue : 0;
 			for (int i = 0; i < count1; i++) result.mBitField[i] = mask1.mBitField[i];
 			for (int i = count1; i < count; i++) result.mBitField[i] = padding1;
 
-			uint padding2 = mask2.mPaddingValue ? uint.MaxValue : 0;
+			uint padding2 = mask2.PaddingValue ? uint.MaxValue : 0;
 			for (int i = 0; i < count2; i++) result.mBitField[i] |= mask2.mBitField[i];
 			for (int i = count2; i < count; i++) result.mBitField[i] |= padding2;
 
@@ -191,13 +195,13 @@ namespace GriffinPlus.Lib.Logging
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
 			result.mBitField = count > 0 ? new uint[count] : sEmptyBitField;
-			result.mPaddingValue = mask1.mPaddingValue;
+			result.PaddingValue = mask1.PaddingValue;
 
-			uint padding1 = mask1.mPaddingValue ? uint.MaxValue : 0;
+			uint padding1 = mask1.PaddingValue ? uint.MaxValue : 0;
 			for (int i = 0; i < count1; i++) result.mBitField[i] = mask1.mBitField[i];
 			for (int i = count1; i < count; i++) result.mBitField[i] = padding1;
 
-			uint padding2 = mask2.mPaddingValue ? uint.MaxValue : 0;
+			uint padding2 = mask2.PaddingValue ? uint.MaxValue : 0;
 			for (int i = 0; i < count2; i++) result.mBitField[i] &= mask2.mBitField[i];
 			for (int i = count2; i < count; i++) result.mBitField[i] &= padding2;
 
@@ -219,13 +223,13 @@ namespace GriffinPlus.Lib.Logging
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
 			result.mBitField = count > 0 ? new uint[count] : sEmptyBitField;
-			result.mPaddingValue = mask1.mPaddingValue;
+			result.PaddingValue = mask1.PaddingValue;
 
-			uint padding1 = mask1.mPaddingValue ? uint.MaxValue : 0;
+			uint padding1 = mask1.PaddingValue ? uint.MaxValue : 0;
 			for (int i = 0; i < count1; i++) result.mBitField[i] = mask1.mBitField[i];
 			for (int i = count1; i < count; i++) result.mBitField[i] = padding1;
 
-			uint padding2 = mask2.mPaddingValue ? uint.MaxValue : 0;
+			uint padding2 = mask2.PaddingValue ? uint.MaxValue : 0;
 			for (int i = 0; i < count2; i++) result.mBitField[i] ^= mask2.mBitField[i];
 			for (int i = count2; i < count; i++) result.mBitField[i] ^= padding2;
 
@@ -242,7 +246,7 @@ namespace GriffinPlus.Lib.Logging
 			if (bit < 0) throw new ArgumentException("The bit index must be positive.");
 			int arrayIndex = bit / 32;
 			int bitIndex = bit - arrayIndex * 32;
-			return arrayIndex < mBitField.Length ? (mBitField[arrayIndex] & (1u << bitIndex)) != 0 : mPaddingValue;
+			return arrayIndex < mBitField.Length ? (mBitField[arrayIndex] & (1u << bitIndex)) != 0 : PaddingValue;
 		}
 
 		/// <summary>
@@ -255,7 +259,7 @@ namespace GriffinPlus.Lib.Logging
 			if (bit < 0) throw new ArgumentException("The bit index must be positive.");
 			int arrayIndex = bit / 32;
 			int bitIndex = bit - arrayIndex * 32;
-			return arrayIndex < mBitField.Length ? (mBitField[arrayIndex] & (1u << bitIndex)) == 0 : !mPaddingValue;
+			return arrayIndex < mBitField.Length ? (mBitField[arrayIndex] & (1u << bitIndex)) == 0 : !PaddingValue;
 		}
 
 		/// <summary>
@@ -301,9 +305,9 @@ namespace GriffinPlus.Lib.Logging
 			int endArrayIndex = (bit + count) / 32;
 			int endBitIndex = bit + count - endArrayIndex * 32;
 			if (startArrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The start bit is out of bounds.", nameof(bit));
+			if (endBitIndex == 0) endArrayIndex--;
 			if (endArrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The end bit is out of bounds.", nameof(count));
 
-			if (endBitIndex == 0) endArrayIndex--;
 			uint mask = ~0u << startBitIndex;
 			for (int i = startArrayIndex; i <= endArrayIndex; i++)
 			{
@@ -331,9 +335,9 @@ namespace GriffinPlus.Lib.Logging
 			int endArrayIndex = (bit + count) / 32;
 			int endBitIndex = bit + count - endArrayIndex * 32;
 			if (startArrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The start bit is out of bounds.", nameof(bit));
+			if (endBitIndex == 0) endArrayIndex--;
 			if (endArrayIndex >= mBitField.Length) throw new ArgumentOutOfRangeException("The end bit is out of bounds.", nameof(count));
 
-			if (endBitIndex == 0) endArrayIndex--;
 			uint mask = ~0u << startBitIndex;
 			for (int i = startArrayIndex; i <= endArrayIndex; i++)
 			{
@@ -345,6 +349,20 @@ namespace GriffinPlus.Lib.Logging
 				mBitField[i] &= ~mask;
 				mask = ~0u;
 			}
+		}
+
+		/// <summary>
+		/// Gets the mask as an array of <see cref="System.UInt32"/>.
+		/// The value at index 0 contains the bits 0-31, the value at index 1 the bits 32-63 and so on.
+		/// </summary>
+		/// <returns>
+		/// The bit mask as an array of <see cref="System.UInt32"/>.
+		/// </returns>
+		public uint[] AsArray()
+		{
+			uint[] copy = new uint[mBitField.Length];
+			Array.Copy(mBitField, copy, mBitField.Length);
+			return copy;
 		}
 
 		/// <summary>

@@ -13,6 +13,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
@@ -31,15 +32,19 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// By default the logging subsystem is set up to use a pure in-memory configuration and a console logger
 			// printing written messages to the console (stdout/stderr). In many cases you probably want to configure
 			// what gets logged using a configuration file. The following example shows a simple, but complete setup
-			// of the logging subsystem. A file-backed log configuration is used and it's file is placed beside the
-			// applications executable. After that the log message processing pipeline is initialized using a customized
-			// console logger.
-			
-			// initialize the log configuration
-			var config = new FileBackedLogConfiguration(); // default location (beside executable/entry assembly + entension '.logconf')
-			// var config = new FileBackedLogConfiguration("./my-custom-log-configuration.logconf"); // custom location
+			// of the logging subsystem. A file-backed log configuration is used and it's file is placed in the
+			// application's base directory named as the application plus extension '.logconf'. After that the log
+			// message processing pipeline is initialized using a customized console logger.
+
+			// set configuration
+			var config = new FileBackedLogConfiguration(); // default location
+			// var config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
 			Log.Configuration = config;
-			if (!File.Exists(config.FullPath)) config.Save();
+			
+			// save configuration to disk, if it does not exist, yet
+			if (!File.Exists(config.FullPath)) {
+				config.Save();
+			}
 
 			// configure the log message processing pipeline (only one stage here)
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
@@ -54,6 +59,21 @@ namespace GriffinPlus.Lib.Logging.Demo
 				sLog1.Write(level, "This is sLog1 writing using level '{0}'.", level.Name);
 				sLog2.Write(level, "This is sLog2 writing using level '{0}'.", level.Name);
 				sLog3.Write(level, "This is sLog3 writing using level '{0}'.", level.Name);
+			}
+
+			// use a timing logger to determine how long an operation takes
+			// (is uses log level 'Timing' and log writer 'Timing' by default, so you need
+			// to ensure that the configuration lets  these messages pass).
+			sLog1.Write(LogLevel.Note, "Presenting a timing logger with default settings...");
+			using (TimingLogger logger = new TimingLogger()) {
+				Thread.Sleep(500);
+			}
+
+			// use a timing logger and customize the log writer/level it uses + associate an operation name
+			// with the measurement that is printed to the log as well
+			sLog1.Write(LogLevel.Note, "A timing logger with custom log level/writer and operation name...");
+			using (TimingLogger logger = new TimingLogger(sLog1, LogLevel.Note, "Waiting for 500ms")) {
+				Thread.Sleep(500);
 			}
 
 			// now modify the configuration file in the output directory and run the demo application

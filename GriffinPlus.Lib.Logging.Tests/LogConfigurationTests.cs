@@ -11,26 +11,20 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System.Text.RegularExpressions;
+using Xunit;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging.Tests
 {
-	public partial class LogConfiguration
+	/// <summary>
+	/// Unit tests targetting the <see cref="LogConfiguration"/> class.
+	/// </summary>
+	public class LogConfigurationTests : LogConfigurationTests_Base<LogConfiguration>
 	{
-		/// <summary>
-		/// Interface of log writer pattern classes (must be implemented immutable).
-		/// </summary>
-		public interface ILogWriterPattern
+		[Fact]
+		public override void Saving_Default_Configuration()
 		{
-			/// <summary>
-			/// Gets the original pattern.
-			/// </summary>
-			string Pattern { get; }
-
-			/// <summary>
-			/// Gets the regular expression matching the specified pattern.
-			/// </summary>
-			Regex Regex { get; }
+			// saving is a no-operation in the LogConfiguration class (no persistence).
+			// nevertheless, it should not throw any exception
 		}
 	}
 }

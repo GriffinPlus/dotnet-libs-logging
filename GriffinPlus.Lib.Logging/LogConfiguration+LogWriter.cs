@@ -35,6 +35,18 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
+			/// Initializes a new instance of the <see cref="LogWriter"/> class by copying another instance.
+			/// </summary>
+			/// <param name="other">Instance to copy.</param>
+			public LogWriter(LogWriter other)
+			{
+				this.mPattern = other.mPattern;          // immutable
+				this.BaseLevel = other.BaseLevel;        // immutable
+				this.Includes.AddRange(other.Includes);
+				this.Excludes.AddRange(other.Excludes);
+			}
+
+			/// <summary>
 			/// Initializes a new instance of the <see cref="LogWriter"/> class.
 			/// </summary>
 			/// <param name="pattern">Pattern that determines for which log writers the settings apply.</param>

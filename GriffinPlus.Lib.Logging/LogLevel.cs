@@ -19,7 +19,7 @@ using System.Threading;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// A log level (or aspect) that indicates the severity of a log message.
+	/// A log level (or aspect) that indicates the severity of a log message (immutable).
 	/// </summary>
 	public class LogLevel
 	{

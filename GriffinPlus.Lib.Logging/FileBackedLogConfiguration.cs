@@ -21,21 +21,19 @@ using System.Threading;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// A log configuration with file backing (ini-style configuration file).
+	/// A log configuration with ini-style file backing (thread-safe).
 	/// </summary>
-	/// <remarks>
-	/// This class is thread-safe as working data is always replaced atomically.
-	/// </remarks>
 	public class FileBackedLogConfiguration : ILogConfiguration, IDisposable
 	{
 		/// <summary>
 		/// The default path of the log configuration file.
 		/// </summary>
 		private static readonly string sDefaultConfigFilePath = Path.Combine(
-			Path.GetDirectoryName(Assembly.GetEntryAssembly().Location),
+			AppDomain.CurrentDomain.BaseDirectory,
 			Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + ".logconf");
 
 		private static readonly Logging.LogWriter sLog = Log.GetWriter("Logging");
+		private readonly object mSync = new object();
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
 		private LogConfigurationFile mFile;
@@ -43,12 +41,12 @@ namespace GriffinPlus.Lib.Logging
 		private string mFileName;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class
-		/// (the configuration file is located beside the entry assembly named as the entry assembly plus extension '.logconf').
+		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class (the configuration file is
+		/// located in the application's base directory and named as the entry assembly plus extension '.logconf').
 		/// </summary>
 		public FileBackedLogConfiguration() : this(sDefaultConfigFilePath)
 		{
-			
+
 		}
 
 		/// <summary>
@@ -112,16 +110,19 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		protected virtual void Dispose(bool disposing)
 		{
-			if (mReloadingTimer != null)
+			lock (mSync)
 			{
-				mReloadingTimer.Dispose();
-				mReloadingTimer = null;
-			}
+				if (mReloadingTimer != null)
+				{
+					mReloadingTimer.Dispose();
+					mReloadingTimer = null;
+				}
 
-			if (mFileSystemWatcher != null)
-			{
-				mFileSystemWatcher.Dispose();
-				mFileSystemWatcher = null;
+				if (mFileSystemWatcher != null)
+				{
+					mFileSystemWatcher.Dispose();
+					mFileSystemWatcher = null;
+				}
 			}
 		}
 
@@ -138,88 +139,58 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ApplicationName
 		{
-			get { return mFile.ApplicationName; }
-			set { mFile.ApplicationName = value; }
-		}
-
-		/// <summary>
-		/// Is called by the file system watcher when a file changes in the watched directory.
-		/// </summary>
-		/// <param name="sender">The file system watcher.</param>
-		/// <param name="e">Event arguments.</param>
-		private void EH_FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
-		{
-			// called by worker thread...
-			if (IsConfigurationFile(e.Name))
+			get
 			{
-				// configuration file is present now
-				// => schedule loading the file...
-				mReloadingTimer.Change(500, -1);
+				lock (mSync)
+				{
+					return mFile.ApplicationName;
+				}
+			}
+			
+			set
+			{
+				lock (mSync)
+				{
+					mFile.ApplicationName = value;
+				}
 			}
 		}
 
 		/// <summary>
-		/// Is called by the file system watcher when a file is deleted in the watched directory.
+		/// Gets the current log writer settings.
 		/// </summary>
-		/// <param name="sender">The file system watcher.</param>
-		/// <param name="e">Event arguments.</param>
-		private void EH_FileSystemWatcher_Removed(object sender, FileSystemEventArgs e)
+		/// <returns>A copy of the internal log writer settings.</returns>
+		public IList<LogConfiguration.LogWriter> GetLogWriterSettings()
 		{
-			// called by worker thread...
-			if (IsConfigurationFile(e.Name))
+			lock (mSync)
 			{
-				// configuration file was removed
-				// => create a default configuration...
-				LogConfigurationFile file = new LogConfigurationFile();
-				mFile = file;
+				return new List<LogConfiguration.LogWriter>(mFile.LogWriterSettings);
 			}
 		}
 
 		/// <summary>
-		/// Is called by the file system watcher when a file is renamed in the watched directory.
+		/// Sets the log writer settings to use.
 		/// </summary>
-		/// <param name="sender">The file system watcher.</param>
-		/// <param name="e">Event arguments.</param>
-		private void EH_FileSystemWatcher_Renamed(object sender, RenamedEventArgs e)
+		/// <param name="settings">Settings to use.</param>
+		public void SetLogWriterSettings(IEnumerable<LogConfiguration.LogWriter> settings)
 		{
-			// called by worker thread...
-			bool vanished = IsConfigurationFile(e.OldName);
-
-			if (IsConfigurationFile(e.Name))
+			lock (mSync)
 			{
-				// configuration file is present now
-				// => schedule loading the file...
-				mReloadingTimer.Change(500, -1);
-			}
-			else if (vanished)
-			{
-				// configuration file was removed
-				// => create a default configuration...
-				LogConfigurationFile file = new LogConfigurationFile();
-				mFile = file;
+				mFile.LogWriterSettings.Clear();
+				mFile.LogWriterSettings.AddRange(settings);
 			}
 		}
 
 		/// <summary>
-		/// Entrypoint for the timer reloading the configuration file.
+		/// Sets the log writer settings to use.
 		/// </summary>
-		/// <param name="state">Some state object (not used).</param>
-		private void TimerProc(object state)
+		/// <param name="settings">Settings to use.</param>
+		public void SetLogWriterSettings(params LogConfiguration.LogWriter[] settings)
 		{
-			try
+			lock (mSync)
 			{
-				// load file (always replace mFile, do not modify existing instance for threading reasons)
-				mFile = LogConfigurationFile.LoadFrom(mFilePath);
-			}
-			catch (FileNotFoundException)
-			{
-				// file does not exist, should be handled using file system notifications
-				// => don't do anything here...
-			}
-			catch (Exception ex)
-			{
-				sLog.ForceWrite(LogLevel.Error, "Reloading configuration file failed. Exception: {0}", ex);
-				mReloadingTimer.Change(500, -1); // try again later...
+				mFile.LogWriterSettings.Clear();
+				mFile.LogWriterSettings.AddRange(settings);
 			}
 		}
 
@@ -274,13 +245,42 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the settings for pipeline stages by their name.
+		/// </summary>
+		/// <returns>The requested settings.</returns>
+		public IDictionary<string, IDictionary<string, string>> GetProcessingPipelineStageSettings()
+		{
+			lock (mSync)
+			{
+				// return a copy of the settings to avoid uncontrolled modifications
+				IDictionary<string, IDictionary<string, string>> copy = new Dictionary<string, IDictionary<string, string>>();
+				foreach (var kvp in mFile.ProcessingPipelineStageSettings) {
+					copy.Add(kvp.Key, new Dictionary<string, string>(kvp.Value));
+				}
+
+				return copy;
+			}
+		}
+
+		/// <summary>
 		/// Gets the settings for the pipeline stage with the specified name.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage to get the settings for.</param>
-		/// <returns>The requested settings.</returns>
+		/// <returns>
+		/// The requested settings;
+		/// null, if the settings do not exist.</returns>
 		public IDictionary<string, string> GetProcessingPipelineStageSettings(string name)
 		{
-			return mFile.GetProcessingPipelineStageSettings(name); // returns a copy of the internal settings
+			lock (mSync)
+			{
+				// return a copy of the settings to avoid uncontrolled modifications
+				IDictionary<string, string> settings;
+				if (mFile.ProcessingPipelineStageSettings.TryGetValue(name, out settings)) {
+					return new Dictionary<string, string>(settings);
+				}
+
+				return null;
+			}
 		}
 
 		/// <summary>
@@ -290,7 +290,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="settings">Settings to set.</param>
 		public void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings)
 		{
-			mFile.SetProcessingPipelineStageSettings(name, settings);
+			lock (mSync)
+			{
+				mFile.ProcessingPipelineStageSettings[name] = new Dictionary<string, string>(settings);
+			}
 		}
 
 		/// <summary>
@@ -298,7 +301,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void Save()
 		{
-			mFile.Save(mFilePath);
+			lock (mSync)
+			{
+				mFile.Save(mFilePath);
+			}
 		}
 
 		/// <summary>
@@ -313,6 +319,107 @@ namespace GriffinPlus.Lib.Logging
 		private bool IsConfigurationFile(string fileName)
 		{
 			return StringComparer.InvariantCultureIgnoreCase.Compare(fileName, mFileName) == 0;
+		}
+
+		/// <summary>
+		/// Is called by the file system watcher when a file changes in the watched directory.
+		/// </summary>
+		/// <param name="sender">The file system watcher.</param>
+		/// <param name="e">Event arguments.</param>
+		private void EH_FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+		{
+			// called by worker thread...
+			lock (mSync)
+			{
+				if (mReloadingTimer == null) return; // object has been disposed
+
+				if (IsConfigurationFile(e.Name))
+				{
+					// configuration file is present now
+					// => schedule loading the file...
+					mReloadingTimer.Change(500, -1);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Is called by the file system watcher when a file is deleted in the watched directory.
+		/// </summary>
+		/// <param name="sender">The file system watcher.</param>
+		/// <param name="e">Event arguments.</param>
+		private void EH_FileSystemWatcher_Removed(object sender, FileSystemEventArgs e)
+		{
+			// called by worker thread...
+			lock (mSync)
+			{
+				if (mReloadingTimer == null) return; // object has been disposed
+
+				if (IsConfigurationFile(e.Name))
+				{
+					// configuration file was removed
+					// => create a default configuration...
+					LogConfigurationFile file = new LogConfigurationFile();
+					mFile = file;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Is called by the file system watcher when a file is renamed in the watched directory.
+		/// </summary>
+		/// <param name="sender">The file system watcher.</param>
+		/// <param name="e">Event arguments.</param>
+		private void EH_FileSystemWatcher_Renamed(object sender, RenamedEventArgs e)
+		{
+			// called by worker thread...
+			lock (mSync)
+			{
+				if (mReloadingTimer == null) return; // object has been disposed
+
+				bool vanished = IsConfigurationFile(e.OldName);
+
+				if (IsConfigurationFile(e.Name))
+				{
+					// configuration file is present now
+					// => schedule loading the file...
+					mReloadingTimer.Change(500, -1);
+				}
+				else if (vanished)
+				{
+					// configuration file was removed
+					// => create a default configuration...
+					LogConfigurationFile file = new LogConfigurationFile();
+					mFile = file;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Entrypoint for the timer reloading the configuration file.
+		/// </summary>
+		/// <param name="state">Some state object (not used).</param>
+		private void TimerProc(object state)
+		{
+			lock (mSync)
+			{
+				if (mReloadingTimer == null) return; // object has been disposed
+
+				try
+				{
+					// load file (always replace mFile, do not modify existing instance for threading reasons)
+					mFile = LogConfigurationFile.LoadFrom(mFilePath);
+				}
+				catch (FileNotFoundException)
+				{
+					// file does not exist, should be handled using file system notifications
+					// => don't do anything here...
+				}
+				catch (Exception ex)
+				{
+					sLog.ForceWrite(LogLevel.Error, "Reloading configuration file failed. Exception: {0}", ex);
+					mReloadingTimer.Change(500, -1); // try again later...
+				}
+			}
 		}
 
 	}

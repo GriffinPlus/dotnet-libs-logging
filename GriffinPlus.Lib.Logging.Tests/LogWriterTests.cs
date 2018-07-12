@@ -14,73 +14,46 @@
 using System.Linq;
 using System;
 using Xunit;
-using GriffinPlus.Lib.Logging;
 
-namespace UnitTests
+namespace GriffinPlus.Lib.Logging.Tests
 {
 	/// <summary>
-	/// Tests around the <see cref="LogWriter"/> class.
+	/// Unit tests targetting the <see cref="LogWriter"/> class.
 	/// </summary>
 	public class LogWriterTests
 	{
-		#region Test Data
-
 		private static readonly string LogWriterName = typeof(LogWriterTests).FullName;
 		private const string TestMessage = "the quick brown fox jumps over the lazy dog";
 
-		#endregion
-
-		/// <summary>
-		/// Checks whether the name of a log writer instance matches the name specified when retrieving it.
-		/// </summary>
 		[Fact]
-		public void CreateNewByName()
+		public void Creating_New_LogWriter_By_Name()
 		{
 			string name = Guid.NewGuid().ToString("D");
 			LogWriter writer = Log.GetWriter(name);
 			Assert.Equal(name, writer.Name);
 		}
 
-		/// <summary>
-		/// Checks whether the name of a log writer instance matches the type's full name when retrieving it.
-		/// </summary>
 		[Fact]
-		public void CreateNewByTypeParameter()
+		public void Creating_New_LogWriter_By_Type_Parameter()
 		{
 			LogWriter writer = Log.GetWriter(typeof(LogWriterTests));
 			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
 		}
 
-		/// <summary>
-		/// Checks whether the name of a log writer instance matches the type's full name when retrieving it.
-		/// </summary>
 		[Fact]
-		public void CreateNewByGenericTypeParameter()
+		public void Creating_New_LogWriter_By_Generic_Type_Parameter()
 		{
 			LogWriter writer = Log.GetWriter<LogWriterTests>();
 			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
 		}
 
-		/// <summary>
-		/// Checks whether getting a log writer with the same name twice returns the same instance.
-		/// </summary>
 		[Fact]
-		public void EnsureSingletonInstances()
+		public void LogWriters_Should_be_Singleton_Instances()
 		{
 			string name = Guid.NewGuid().ToString("D");
 			LogWriter writer1 = Log.GetWriter(name);
 			LogWriter writer2 = Log.GetWriter(name);
 			Assert.Same(writer1, writer2);
-		}
-
-		/// <summary>
-		/// Checks whether writing messages without arguments works as expected.
-		/// </summary>
-		[Fact]
-		public void Write()
-		{
-			LogWriter writer = Log.GetWriter(LogWriterName);
-			writer.Write(LogLevel.Note, TestMessage);
 		}
 
 	}

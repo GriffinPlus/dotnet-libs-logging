@@ -11,14 +11,13 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using GriffinPlus.Lib.Logging;
 using System.Linq;
 using Xunit;
 
-namespace UnitTests
+namespace GriffinPlus.Lib.Logging.Tests
 {
 	/// <summary>
-	/// Tests around the <see cref="LogLevel"/> class.
+	/// Unit tests targetting the <see cref="LogLevel"/> class.
 	/// </summary>
 	public class LogLevelTests
 	{
@@ -71,7 +70,7 @@ namespace UnitTests
 		/// Checks whether the special log level 'None' has the expected name and id.
 		/// </summary>
 		[Fact]
-		public void CheckSpecialLogLevel_None()
+		public void Check_Special_LogLevel_None()
 		{
 			Assert.Equal(-1, LogLevel.None.Id);
 			Assert.Equal("None", LogLevel.None.Name);
@@ -81,7 +80,7 @@ namespace UnitTests
 		/// Checks whether the special log level 'All' has the expected name and id.
 		/// </summary>
 		[Fact]
-		public void CheckSpecialLogLevel_All()
+		public void Check_Special_LogLevel_All()
 		{
 			Assert.Equal(int.MaxValue, LogLevel.All.Id);
 			Assert.Equal("All", LogLevel.All.Name);
@@ -91,7 +90,7 @@ namespace UnitTests
 		/// Checks whether the static properties providing access to predefined log levels return a log level with the expected name and id.
 		/// </summary>
 		[Fact]
-		public void CheckPredefinedLogLevels()
+		public void Check_Predefined_LogLevel_Fields()
 		{
 			// ensure that the log level id is as expected
 			Assert.Equal(sExpectedPredefinedLogLevels[ 0].Id, LogLevel.Failure.Id);
@@ -152,7 +151,7 @@ namespace UnitTests
 		/// Checks that the predefined log level enumeration returns all predefined log levels in the proper order.
 		/// </summary>
 		[Fact]
-		public void CheckPredefinedLogLevelEnumeration()
+		public void Check_Predefined_Log_Level_Enumeration()
 		{
 			LogLevel[] levels = LogLevel.PredefinedLogLevels.ToArray();
 			Assert.Equal(sExpectedPredefinedLogLevels.Length, levels.Length);

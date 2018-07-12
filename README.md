@@ -230,12 +230,16 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// of the logging subsystem. A file-backed log configuration is used and it's file is placed beside the
 			// applications executable. After that the log message processing pipeline is initialized using a customized
 			// console logger.
-			
-			// initialize the log configuration
-			var config = new FileBackedLogConfiguration(); // default location (beside executable/entry assembly + entension '.logconf')
-			// var config = new FileBackedLogConfiguration("./my-custom-log-configuration.logconf"); // custom location
+
+			// set configuration
+			var config = new FileBackedLogConfiguration(); // default location
+			// var config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
 			Log.Configuration = config;
-			if (!File.Exists(config.FullPath)) config.Save();
+			
+			// save configuration to disk, if it does not exist, yet
+			if (!File.Exists(config.FullPath)) {
+				config.Save();
+			}
 
 			// configure the log message processing pipeline (only one stage here)
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()

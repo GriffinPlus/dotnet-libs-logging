@@ -128,7 +128,6 @@ namespace GriffinPlus.Lib.Logging
 			RegexOptions.Compiled);
 
 		private Dictionary<string, string> mGlobalSettings;
-		private Dictionary<string, Dictionary<string, string>> mProcessingPipelineStageSettings;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogConfigurationFile"/> class.
@@ -136,9 +135,6 @@ namespace GriffinPlus.Lib.Logging
 		public LogConfigurationFile()
 		{
 			mGlobalSettings = new Dictionary<string, string>();
-			mProcessingPipelineStageSettings = new Dictionary<string, Dictionary<string, string>>();
-
-			// init default settings
 			ApplicationName = AppDomain.CurrentDomain.FriendlyName;
 			LogWriterSettings.Add(new LogConfiguration.LogWriter()); // LogWriter comes with defaults...
 		}
@@ -166,32 +162,9 @@ namespace GriffinPlus.Lib.Logging
 		public List<LogConfiguration.LogWriter> LogWriterSettings { get; } = new List<LogConfiguration.LogWriter>();
 
 		/// <summary>
-		/// Gets the settings dictionary for the processing pipeline stage with the specified name.
+		/// Gets processing pipeline stage settings by their name.
 		/// </summary>
-		/// <param name="name">Name of the processing pipeline stage to get the settings for.</param>
-		/// <returns>
-		/// The requested settings dictionary;
-		/// null, if the settings dictionary does not exist, yet.
-		/// </returns>
-		public IDictionary<string, string> GetProcessingPipelineStageSettings(string name)
-		{
-			Dictionary<string, string> settings;
-			if (mProcessingPipelineStageSettings.TryGetValue(name, out settings)) {
-				return new Dictionary<string, string>(settings);
-			}
-
-			return null;
-		}
-
-		/// <summary>
-		/// Sets the settings dictionary for the processing pipeline stage with the specified name.
-		/// </summary>
-		/// <param name="name">Name of the processing pipeline stage to set the settings for.</param>
-		/// <param name="settings">Processing pipeline settings to set.</param>
-		public void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings)
-		{
-			mProcessingPipelineStageSettings[name] = new Dictionary<string, string>(settings);
-		}
+		public IDictionary<string, IDictionary<string, string>> ProcessingPipelineStageSettings { get; } = new Dictionary<string, IDictionary<string, string>>();
 
 		/// <summary>
 		/// Clears the configuration file.
@@ -199,7 +172,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Clear()
 		{
 			LogWriterSettings.Clear();
-			mProcessingPipelineStageSettings.Clear();
+			ProcessingPipelineStageSettings.Clear();
 		}
 
 		/// <summary>
@@ -279,7 +252,7 @@ namespace GriffinPlus.Lib.Logging
 					{
 						string stageName = match.Groups[1].Value;
 						currentSettings = new Dictionary<string, string>();
-						mProcessingPipelineStageSettings[stageName] = currentSettings;
+						ProcessingPipelineStageSettings[stageName] = currentSettings;
 						continue;
 					}
 
@@ -395,12 +368,12 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// processing pipeline stage settings
-			if (mProcessingPipelineStageSettings.Count > 0)
+			if (ProcessingPipelineStageSettings.Count > 0)
 			{
 				writer.WriteLine();
 				foreach (string line in sProcessingPipelineStageSettingsComment) writer.WriteLine(line);
 				writer.WriteLine();
-				foreach (var stage in mProcessingPipelineStageSettings)
+				foreach (var stage in ProcessingPipelineStageSettings)
 				{
 					if (stage.Value.Count > 0)
 					{

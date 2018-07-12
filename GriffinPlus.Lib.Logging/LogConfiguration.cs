@@ -13,14 +13,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// The log configuration without persistence (purely in memory).
+	/// The log configuration without persistence (purely in memory, thread-safe).
 	/// </summary>
 	public partial class LogConfiguration : ILogConfiguration
 	{
@@ -28,6 +30,7 @@ namespace GriffinPlus.Lib.Logging
 		private Dictionary<string, string> mGlobalSettings;
 		private Dictionary<string, Dictionary<string, string>> mProcessingPipelineStageSettings;
 		private List<LogWriter> mLogWriterSettings;
+		private object mSync = new object();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogConfiguration"/> class.
@@ -109,6 +112,51 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the current log writer settings.
+		/// </summary>
+		/// <returns>A copy of the internal log writer settings.</returns>
+		public IList<LogWriter> GetLogWriterSettings()
+		{
+			// return copy to avoid uncontrolled modifications of the collection
+			return new List<LogWriter>(mLogWriterSettings);
+		}
+
+		/// <summary>
+		/// Sets the log writer settings to use.
+		/// </summary>
+		/// <param name="settings">Settings to use.</param>
+		public void SetLogWriterSettings(IEnumerable<LogWriter> settings)
+		{
+			// copy mutable log writer settings and replace entire collection atomically to avoid threading issues
+			mLogWriterSettings = new List<LogWriter>(settings.Select(x => new LogWriter(x)));
+		}
+
+		/// <summary>
+		/// Sets the log writer settings to use.
+		/// </summary>
+		/// <param name="settings">Settings to use.</param>
+		public void SetLogWriterSettings(params LogWriter[] settings)
+		{
+			// copy mutable log writer settings and replace entire collection atomically to avoid threading issues
+			mLogWriterSettings = new List<LogWriter>(settings.Select(x => new LogWriter(x)));
+		}
+
+		/// <summary>
+		/// Gets the settings for pipeline stages by their name.
+		/// </summary>
+		/// <returns>The requested settings.</returns>
+		public IDictionary<string, IDictionary<string, string>> GetProcessingPipelineStageSettings()
+		{
+			// return copy to avoid uncontrolled modifications of the collection
+			IDictionary<string, IDictionary<string, string>> settingsByName = new Dictionary<string, IDictionary<string, string>>();
+			foreach (var kvp in mProcessingPipelineStageSettings) {
+				settingsByName.Add(kvp.Key, new Dictionary<string, string>(kvp.Value));
+			}
+
+			return settingsByName;
+		}
+
+		/// <summary>
 		/// Gets the settings for the pipeline stage with the specified name.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage to get the settings for.</param>
@@ -118,6 +166,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		public IDictionary<string, string> GetProcessingPipelineStageSettings(string name)
 		{
+			// return copy to avoid uncontrolled modifications of the collection
 			Dictionary<string, string> settings;
 			if (mProcessingPipelineStageSettings.TryGetValue(name, out settings)) {
 				return new Dictionary<string, string>(settings);
@@ -134,7 +183,14 @@ namespace GriffinPlus.Lib.Logging
 		public void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings)
 		{
 			if (settings == null) throw new ArgumentNullException(nameof(settings));
-			mProcessingPipelineStageSettings[name] = new Dictionary<string, string>(settings);
+
+			// replace atomically to avoid threading issues
+			lock (mSync)
+			{
+				var copy = new Dictionary<string, Dictionary<string, string>>(mProcessingPipelineStageSettings);
+				copy[name] = new Dictionary<string, string>(settings);
+				mProcessingPipelineStageSettings = copy;
+			}
 		}
 
 		/// <summary>

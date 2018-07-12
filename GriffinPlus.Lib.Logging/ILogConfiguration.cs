@@ -11,12 +11,14 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Interface of a log configuration.
+	/// Interface of a log configuration (must be implemented thread-safe).
 	/// </summary>
 	public interface ILogConfiguration
 	{
@@ -32,6 +34,30 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
 		LogLevelBitMask GetActiveLogLevelMask(LogWriter writer);
+
+		/// <summary>
+		/// Gets the current log writer settings.
+		/// </summary>
+		/// <returns>A copy of the internal log writer settings.</returns>
+		IList<LogConfiguration.LogWriter> GetLogWriterSettings();
+
+		/// <summary>
+		/// Sets the log writer settings to use.
+		/// </summary>
+		/// <param name="settings">Settings to use.</param>
+		void SetLogWriterSettings(IEnumerable<LogConfiguration.LogWriter> settings);
+
+		/// <summary>
+		/// Sets the log writer settings to use.
+		/// </summary>
+		/// <param name="settings">Settings to use.</param>
+		void SetLogWriterSettings(params LogConfiguration.LogWriter[] settings);
+
+		/// <summary>
+		/// Gets the settings for pipeline stages by their name.
+		/// </summary>
+		/// <returns>The requested settings.</returns>
+		IDictionary<string, IDictionary<string, string>> GetProcessingPipelineStageSettings();
 
 		/// <summary>
 		/// Gets the settings for the pipeline stage with the specified name.

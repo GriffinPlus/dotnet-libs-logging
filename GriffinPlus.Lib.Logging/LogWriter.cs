@@ -20,7 +20,7 @@ using System.Threading;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// A log writer.
+	/// A log writer (thread-safe).
 	/// </summary>
 	public class LogWriter
 	{

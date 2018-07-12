@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 			public RegexLogWriterPattern(string pattern)
 			{
 				Pattern = pattern;
-				Regex = new Regex(pattern);
+				Regex = new Regex(pattern, RegexOptions.Singleline);
 			}
 
 			/// <summary>
