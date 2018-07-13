@@ -22,6 +22,33 @@ Therefore it should work on the following platforms (or higher):
 - Xamarin Android 8.0
 - Universal Windows Platform (UWP) 10.0.16299
 
+## Coarse Overview and Terminology
+
+*Griffin+ Logging* consists of a couple of classes defined in the `GriffinPlus.Lib.Logging` namespace. The main pillars are the following classes:
+
+- `Log`
+- `LogWriter`
+- `LogLevel`
+
+The `Log` class is the crucial point of the logging subsystem. It provides access to the configuration of the logging subsystem that determines which messages get logged. If the code is heavily instrumented, the configuration is a good means of specifically reducing the number of messages that arise. Even if *Griffin+ Logging* is very lightweight, a large number of messages is always accompanied by a certain loss in performance. Log messages are filtered right at the beginning, even before the messages are formatted eliminating unnecessary overhead.
+
+Furthermore the `Log` class creates log writers. A log writer - represented by the `LogWriter` class - corresponds to a certain piece of code emitting log messages. Log writers are identified by their name. Usually this is the full name of a class, but it can be an arbitrary name as well. The `LogWriter` class offers a large set of overloads for writing simple and formatted messages. Generic overloads avoid boxing of value types when passing arguments to the `Write(...)` methods, thus reducing the load on the garbage collection.
+
+Each and every log message is associated with a log level represented by the `LogLevel` class. A log level indicates how severe the issue is the message is about. A log level has an integer id that expresses the severity: the lower the log level id the more severe the issue. The log level id is crucial when it comes to filtering by applying a log level threshold (see configuration section below). The `LogLevel` class contains a few commonly used predefined log levels and a recommendation when these log levels should be used:
+
+| Id  | Log Level   | Description
+|:---:|:------------|:----------------------------------------------------------------------------------------------
+|   0 | `Failure`   | The log message is about a severe error condition that threatens the system's stability.
+|   1 | `Error`     | The log message is about a "normal" error condition.
+|   2 | `Warning`   | The log message is not about an error condition, but something a user should keep an eye on.
+|   3 | `Note`      | The log message is a note a regular user should see.
+|   4 | `Developer` | A log message only developers should see.
+|   5 | `Trace0`    | A log message the implementer of the code might be interested in (least detailed)
+| ... |             | ...
+|  24 | `Trace19`   | A log message the implementer of the code might be interested in (most detailed)
+
+In addition to the predefined log levels an aspect log level can be defined. Aspect log levels are primarily useful when tracking an issue that effects multiple classes. The ids of aspect log levels directly follow the predefined log levels.
+
 ## Using
 
 ### Configuration
@@ -32,7 +59,7 @@ By default *Griffin+ Logging* comes with a configuration that allows all message
 Log.Configuration = new FileBackedLogConfiguration();
 ```
 
-This will drop a configuration file containing the default settings into the same directory just beside the entry assembly. The name of the file is the name of the entry assembly plus file extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
+This will drop a configuration file containing the default settings into the applications's base directory. The configuration file is named as the application plus extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
 
 The default configuration file contains a detailed description of the settings and looks like the following:
 
@@ -119,20 +146,7 @@ public static LogWriter GetWriter(string name);
 
 ### Choosing a Log Level
 
-Each message written to the log is associated with a certain log level, represented by the `LogLevel` class. The log level indicates the severity of the log message. *Griffin+ Logging* comes with the following predefined log levels:
-
-| Id  | Log Level            | Description
-|:---:|:---------------------|:----------------------------------------------------------------------------------------------
-|   0 | `LogLevel.Failure`   | The log message is about a severe error condition that threatens the system's stability.
-|   1 | `LogLevel.Error`     | The log message is about a "normal" error condition.
-|   2 | `LogLevel.Warning`   | The log message is not about an error condition, but something a user should keep an eye on.
-|   3 | `LogLevel.Note`      | The log message is a note a regular user should see.
-|   4 | `LogLevel.Developer` | A log message only developers should see.
-|   5 | `LogLevel.Trace0`    | A log message the implementer of the code might be interested in (least detailed)
-| ... |                      | ...
-|  24 | `LogLevel.Trace19`   | A log message the implementer of the code might be interested in (most detailed)
-
-In addition to the predefined log levels an aspect log level can be used. Aspect log levels are primarily useful when tracking an issue that effects multiple classes. The ids of aspect log levels directly follow the predefined log levels. The following `LogLevel` method creates an aspect log level. It can then be used the same way as a predefined log level.
+Each message written to the log is associated with a certain log level, represented by the `LogLevel` class. The log level indicates the severity of the log message. *Griffin+ Logging* comes with a set of predefined log levels as described above. In addition to the predefined log levels an aspect log level can be used. Aspect log levels are primarily useful when tracking an issue that effects multiple classes. The following `LogLevel` method creates an aspect log level:
 
 ```csharp
 public GetAspect(string name);
@@ -192,7 +206,6 @@ public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>(IFormatProv
 // formatting with custom format provider (invariant culture), for more than 15 parameters
 public void Write(IFormatProvider provider, LogLevel level, string format, params object[] args);
 ```
-
 
 ### Customization
 
