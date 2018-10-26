@@ -258,8 +258,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// set application name (optional)
 			Log.ApplicationName = "Logging Demo";
 
-			// configure the log message processing pipeline (only one stage here)
-			// and arrage the columns to print
+			// configure the log message processing pipeline and arrange the columns to print
+			// (only one stage here, you can use FollowedBy() to append another stage to this one)
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
 				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff") // use custom timestamp format
 				.WithProcessId()
