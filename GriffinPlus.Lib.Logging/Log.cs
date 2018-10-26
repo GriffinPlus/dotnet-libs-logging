@@ -25,8 +25,11 @@ namespace GriffinPlus.Lib.Logging
 	public class Log
 	{
 		private static readonly object sSync = new object();
-		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
+		private static readonly int sProcessId = Process.GetCurrentProcess().Id;
+		private static readonly string sProcessName = Process.GetCurrentProcess().ProcessName;
 		private static readonly LogMessagePool sLogMessagePool = new LogMessagePool();
+		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
+		private static string sApplicationName = sProcessName;
 		private static ILogConfiguration sLogConfiguration;
 		private static IProcessingPipelineStage sLogMessageProcessingPipeline;
 		private static LogWriter sLog = GetWriter<Log>();
@@ -48,6 +51,25 @@ namespace GriffinPlus.Lib.Logging
 		internal static object Sync
 		{
 			get { return sSync; }
+		}
+
+		/// <summary>
+		/// Gets or sets the name of the application.
+		/// </summary>
+		public static string ApplicationName
+		{
+			get
+			{
+				return sApplicationName;
+			}
+
+			set
+			{
+				lock (sSync)
+				{
+					sApplicationName = value;
+				}
+			}
 		}
 
 		/// <summary>
@@ -154,6 +176,9 @@ namespace GriffinPlus.Lib.Logging
 					message = sLogMessagePool.GetMessage(
 						DateTimeOffset.Now,
 						Stopwatch.GetTimestamp(),
+						sProcessId,
+						sProcessName,
+						sApplicationName,
 						writer,
 						level,
 						text);

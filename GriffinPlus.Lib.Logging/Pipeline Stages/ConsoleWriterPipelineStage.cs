@@ -12,6 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
@@ -20,23 +21,18 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log message processing pipeline stage that logs messages to stdout/stderr (thread-safe).
 	/// </summary>
-	public class ConsoleWriterPipelineStage : ProcessingPipelineStage<ConsoleWriterPipelineStage>
+	public partial class ConsoleWriterPipelineStage : ProcessingPipelineStage<ConsoleWriterPipelineStage>
 	{
-		private string mTimestampFormat = "u"; // conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ.
-		private string mFormatWithoutMessage;  // combined format string fot the log message without the message text
-		private string mLineFormat;            // combined format string for the entire log message
+		private List<ColumnBase> mColumns = new List<ColumnBase>();
 		private CultureInfo mCultureInfo = CultureInfo.InvariantCulture;
-		private StringBuilder mLineBuilder = new StringBuilder();
-		private int mTimestampMaxLength;
-		private int mLogWriterMaxLength;
-		private int mLogLevelMaxLength;
+		private StringBuilder mOutputBuilder = new StringBuilder();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConsoleWriterPipelineStage"/> class.
 		/// </summary>
 		public ConsoleWriterPipelineStage()
 		{
-			UpdateFormat();
+			mColumns.Add(new TextColumn(this));
 		}
 
 		/// <summary>
@@ -49,61 +45,39 @@ namespace GriffinPlus.Lib.Logging
 		/// </remarks>
 		public override void Process(LogMessage message)
 		{
-			string text;
-
 			lock (mSync)
 			{
-				// update paddings
-				int timestampLength = message.Timestamp.ToString(mTimestampFormat, mCultureInfo).Length;
-				int logWriterLength = message.LogWriter.Name.Length;
-				int logLevelLength = message.LogLevel.Name.Length;
-				if (timestampLength > mTimestampMaxLength || logWriterLength > mLogWriterMaxLength || logLevelLength > mLogLevelMaxLength)
+				// update the width of the column needed to print the message
+				foreach (var column in mColumns)
 				{
-					mTimestampMaxLength = Math.Max(mTimestampMaxLength, timestampLength);
-					mLogWriterMaxLength = Math.Max(mLogWriterMaxLength, logWriterLength);
-					mLogLevelMaxLength = Math.Max(mLogLevelMaxLength, logLevelLength);
-					UpdateFormat();
+					column.UpdateWidth(message);
 				}
 
-				// build line to write to the console
-				int indent = -1;
-				mLineBuilder.Clear();
-				var messageLines = message.Text.Replace("\r", "").Split('\n');
-				for (int i = 0; i < messageLines.Length; i++)
+				// prepare output
+				mOutputBuilder.Clear();
+				bool more = true;
+				for (int line = 0; more; line++)
 				{
-					if (i == 0)
+					more = false;
+					for (int i = 0; i < mColumns.Count; i++)
 					{
-						mLineBuilder.AppendFormat(
-							mCultureInfo,
-							mLineFormat,
-							message.Timestamp, message.LogWriter.Name, message.LogLevel.Name, messageLines[i]);
-						mLineBuilder.AppendLine();
+						var column = mColumns[i];
+						if (i > 0) mOutputBuilder.Append(" | ");
+						more |= column.Write(message, mOutputBuilder, line);
 					}
-					else
-					{
-						if (indent < 0)
-						{
-							indent = string.Format(
-								mCultureInfo,
-								mFormatWithoutMessage,
-								message.Timestamp, message.LogWriter.Name, message.LogLevel.Name).Length;
-						}
-						mLineBuilder.Append(' ', indent);
-						mLineBuilder.AppendLine(messageLines[i]);
-					}
+
+					mOutputBuilder.Append(Environment.NewLine);
 				}
 
-				text = mLineBuilder.ToString();
-			}
-
-			// write message to the console
-			if (message.LogLevel == LogLevel.Failure || message.LogLevel == LogLevel.Error)
-			{
-				Console.Error.Write(text);
-			}
-			else
-			{
-				Console.Out.Write(text);
+				// write message to the console
+				if (message.LogLevel == LogLevel.Failure || message.LogLevel == LogLevel.Error)
+				{
+					Console.Error.Write(mOutputBuilder.ToString());
+				}
+				else
+				{
+					Console.Out.Write(mOutputBuilder.ToString());
+				}
 			}
 
 			// pass message to the next pipeline stages
@@ -111,39 +85,222 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Sets the format of the timestamps written to the console
+		/// Enables the timestamp column and sets the format of the timestamps written to the console
 		/// (default: "u", conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ)
 		/// </summary>
 		/// <param name="format">
 		/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx" for details).
 		/// </param>
-		/// <returns>The pipeline stage with the specified timestamp format.</returns>
-		public ConsoleWriterPipelineStage WithTimestampFormat(string format)
+		/// <returns>The modified pipeline stage.</returns>
+		public ConsoleWriterPipelineStage WithTimestamp(string format = "u")
 		{
 			if (format == null) throw new ArgumentNullException(nameof(format));
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
 
 			lock (mSync)
 			{
-				mTimestampFormat = format;
-				UpdateFormat();
+				int index = mColumns.FindIndex(x => x is TimestampColumn);
+				if (index < 0)
+				{
+					// column does not exist, yet
+					TimestampColumn column = new TimestampColumn(this, format);
+					mColumns.Add(column);
+				}
+				else
+				{
+					// column exists already => update and push to the end.
+					TimestampColumn column = mColumns[index] as TimestampColumn;
+					column.TimestampFormat = format;
+					if (index + 1 != mColumns.Count)
+					{
+						mColumns.RemoveAt(index);
+						mColumns.Add(column);
+					}
+				}
 			}
 
 			return this;
 		}
 
 		/// <summary>
-		/// Updates the format string that is used when printing to the console.
+		/// Enables the 'process id' column.
 		/// </summary>
-		private void UpdateFormat()
+		/// <returns>The modified pipeline stage.</returns>
+		public ConsoleWriterPipelineStage WithProcessId()
 		{
-			mFormatWithoutMessage = string.Format(
-				"{{0,-{0}:{1}}} | {{1,-{2}}} | {{2,-{3}}} | ",
-				mTimestampMaxLength, mTimestampFormat, mLogWriterMaxLength, mLogLevelMaxLength);
+			lock (mSync)
+			{
+				int index = mColumns.FindIndex(x => x is ProcessIdColumn);
+				if (index < 0)
+				{
+					// column does not exist, yet
+					ProcessIdColumn column = new ProcessIdColumn(this);
+					mColumns.Add(column);
+				}
+				else
+				{
+					// column exists already => update and push to the end.
+					ProcessIdColumn column = mColumns[index] as ProcessIdColumn;
+					if (index + 1 != mColumns.Count)
+					{
+						mColumns.RemoveAt(index);
+						mColumns.Add(column);
+					}
+				}
+			}
 
-			mLineFormat = string.Format(
-				"{{0,-{0}:{1}}} | {{1,-{2}}} | {{2,-{3}}} | {{3}}",
-				mTimestampMaxLength, mTimestampFormat, mLogWriterMaxLength, mLogLevelMaxLength);
+			return this;
 		}
+
+		/// <summary>
+		/// Enables the 'process name' column.
+		/// </summary>
+		/// <returns>The modified pipeline stage.</returns>
+		public ConsoleWriterPipelineStage WithProcessName()
+		{
+			lock (mSync)
+			{
+				int index = mColumns.FindIndex(x => x is ProcessNameColumn);
+				if (index < 0)
+				{
+					// column does not exist, yet
+					ProcessNameColumn column = new ProcessNameColumn(this);
+					mColumns.Add(column);
+				}
+				else
+				{
+					// column exists already => update and push to the end.
+					ProcessNameColumn column = mColumns[index] as ProcessNameColumn;
+					if (index + 1 != mColumns.Count)
+					{
+						mColumns.RemoveAt(index);
+						mColumns.Add(column);
+					}
+				}
+			}
+
+			return this;
+		}
+
+		/// <summary>
+		/// Enables the 'application name' column.
+		/// </summary>
+		/// <returns>The modified pipeline stage.</returns>
+		public ConsoleWriterPipelineStage WithApplicationName()
+		{
+			lock (mSync)
+			{
+				int index = mColumns.FindIndex(x => x is ApplicationNameColumn);
+				if (index < 0)
+				{
+					// column does not exist, yet
+					ApplicationNameColumn column = new ApplicationNameColumn(this);
+					mColumns.Add(column);
+				}
+				else
+				{
+					// column exists already => update and push to the end.
+					ApplicationNameColumn column = mColumns[index] as ApplicationNameColumn;
+					if (index + 1 != mColumns.Count)
+					{
+						mColumns.RemoveAt(index);
+						mColumns.Add(column);
+					}
+				}
+			}
+
+			return this;
+		}
+
+		/// <summary>
+		/// Enables the 'log writer' column.
+		/// </summary>
+		/// <returns>The modified pipeline stage.</returns>
+		public ConsoleWriterPipelineStage WithLogWriterName()
+		{
+			lock (mSync)
+			{
+				int index = mColumns.FindIndex(x => x is LogWriterColumn);
+				if (index < 0)
+				{
+					// column does not exist, yet
+					LogWriterColumn column = new LogWriterColumn(this);
+					mColumns.Add(column);
+				}
+				else
+				{
+					// column exists already => update and push to the end.
+					LogWriterColumn column = mColumns[index] as LogWriterColumn;
+					if (index + 1 != mColumns.Count)
+					{
+						mColumns.RemoveAt(index);
+						mColumns.Add(column);
+					}
+				}
+			}
+
+			return this;
+		}
+
+		/// <summary>
+		/// Enables the 'log level' column.
+		/// </summary>
+		/// <returns>The modified pipeline stage.</returns>
+		public ConsoleWriterPipelineStage WithLogLevel()
+		{
+			lock (mSync)
+			{
+				int index = mColumns.FindIndex(x => x is LogLevelColumn);
+				if (index < 0)
+				{
+					// column does not exist, yet
+					LogLevelColumn column = new LogLevelColumn(this);
+					mColumns.Add(column);
+				}
+				else
+				{
+					// column exists already => update and push to the end.
+					LogLevelColumn column = mColumns[index] as LogLevelColumn;
+					if (index + 1 != mColumns.Count)
+					{
+						mColumns.RemoveAt(index);
+						mColumns.Add(column);
+					}
+				}
+			}
+
+			return this;
+		}
+
+		/// <summary>
+		/// Enables the 'message text' column.
+		/// </summary>
+		/// <returns>The modified pipeline stage.</returns>
+		public ConsoleWriterPipelineStage WithText()
+		{
+			lock (mSync)
+			{
+				int index = mColumns.FindIndex(x => x is TextColumn);
+				if (index < 0)
+				{
+					// column does not exist, yet
+					TextColumn column = new TextColumn(this);
+					mColumns.Add(column);
+				}
+				else
+				{
+					// column exists already => update and push to the end.
+					TextColumn column = mColumns[index] as TextColumn;
+					if (index + 1 != mColumns.Count)
+					{
+						mColumns.RemoveAt(index);
+						mColumns.Add(column);
+					}
+				}
+			}
+
+			return this;
+		}
+
 	}
 }

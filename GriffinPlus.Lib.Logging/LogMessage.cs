@@ -35,6 +35,9 @@ namespace GriffinPlus.Lib.Logging
 		internal void Reset()
 		{
 			Context.Clear();
+			ProcessId = 0;
+			ProcessName = null;
+			ApplicationName = null;
 			LogWriter = null;
 			LogLevel = null;
 			Text = null;
@@ -48,18 +51,30 @@ namespace GriffinPlus.Lib.Logging
 		/// Timestamp for relative time measurements with high accuracy
 		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
+		/// <param name="processId">Id of the process emitting the log message.</param>
+		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="applicationName">
+		/// Name of the application emitting the log message
+		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// </param>
 		/// <param name="logWriter">Log writer that was used to emit the message.</param>
 		/// <param name="logLevel">Log level that is associated with the message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
 		internal void Init(
 			DateTimeOffset timestamp,
 			long highAccuracyTimestamp,
+			int processId,
+			string processName,
+			string applicationName,
 			LogWriter logWriter,
 			LogLevel logLevel,
 			string text)
 		{
 			Timestamp = timestamp;
 			HighAccuracyTimestamp = highAccuracyTimestamp;
+			ProcessId = processId;
+			ProcessName = processName;
+			ApplicationName = applicationName;
 			LogWriter = logWriter;
 			LogLevel = logLevel;
 			Text = text;
@@ -91,6 +106,22 @@ namespace GriffinPlus.Lib.Logging
 		/// The log writer that was used to emit the log message.
 		/// </summary>
 		public LogWriter LogWriter { get; private set; }
+
+		/// <summary>
+		/// The id of the process emitting the log message.
+		/// </summary>
+		public int ProcessId { get; private set; }
+
+		/// <summary>
+		/// The name of the process emitting the log message.
+		/// </summary>
+		public string ProcessName { get; private set; }
+
+		/// <summary>
+		/// The name of the application emitting the log message
+		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// </summary>
+		public string ApplicationName { get; private set; }
 
 		/// <summary>
 		/// The actual text the log message is about.

@@ -255,9 +255,19 @@ namespace GriffinPlus.Lib.Logging.Demo
 				config.Save();
 			}
 
+			// set application name (optional)
+			Log.ApplicationName = "Logging Demo";
+
 			// configure the log message processing pipeline (only one stage here)
+			// and arrage the columns to print
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
-				.WithTimestampFormat("yyyy-mm-dd"); // use custom timestamp format
+				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff") // use custom timestamp format
+				.WithProcessId()
+				.WithProcessName()
+				.WithApplicationName()
+				.WithLogWriterName()
+				.WithLogLevel()
+				.WithText();
 
 			// create an aspect log level
 			LogLevel aspect = LogLevel.GetAspect("Demo Aspect");

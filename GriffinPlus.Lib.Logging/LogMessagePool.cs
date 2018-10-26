@@ -39,6 +39,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Timestamp for relative time measurements with high accuracy
 		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
+		/// <param name="processId">Id of the process emitting the log message.</param>
+		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="applicationName">
+		/// Name of the application emitting the log message
+		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// </param>
 		/// <param name="logWriter">Log writer that was used to emit the message.</param>
 		/// <param name="logLevel">Log level that is associated with the message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
@@ -46,20 +52,23 @@ namespace GriffinPlus.Lib.Logging
 		public LogMessage GetMessage(
 			DateTimeOffset timestamp,
 			long highAccuracyTimestamp,
+			int processId,
+			string processName,
+			string applicationName,
 			LogWriter logWriter,
 			LogLevel logLevel,
 			string text)
 		{
 			LogMessage message;
 			if (!mMessages.TryTake(out message)) message = new LogMessage();
-			message.Init(timestamp, highAccuracyTimestamp, logWriter, logLevel, text);
+			message.Init(timestamp, highAccuracyTimestamp, processId, processName, applicationName, logWriter, logLevel, text);
 			return message;
 		}
 
 		/// <summary>
 		/// Returns a log message to the pool, so it can be re-used.
 		/// </summary>
-		/// <param name="message"></param>
+		/// <param name="message">Message to return to the pool.</param>
 		public void ReturnMessage(LogMessage message)
 		{
 			message.Reset();
