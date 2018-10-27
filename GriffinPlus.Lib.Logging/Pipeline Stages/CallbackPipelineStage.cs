@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		/// true to call the following pipeline stages;
 		/// false to stop processing.
 		/// </returns>
-		public delegate bool ProcessingCallback(LogMessage message);
+		public delegate bool ProcessingCallback(LocalLogMessage message);
 
 		/// <summary>
 		/// The message processing callback (always initialized).
@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Processes the specified log message and passes the log message to the next processing stages.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
-		public override void Process(LogMessage message)
+		public override void Process(LocalLogMessage message)
 		{
 			if (mProcessingCallback(message)) {
 				base.Process(message);

@@ -50,7 +50,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Measures the field of the message to present in the column and Updates the <see cref="Width"/> property.
 			/// </summary>
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
-			public abstract void UpdateWidth(LogMessage message);
+			public abstract void UpdateWidth(LocalLogMessage message);
 
 			/// <summary>
 			/// Appends output of the current column for the specified line.
@@ -59,7 +59,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="builder">Stringbuilder to append the output of the current column to.</param>
 			/// <param name="line">Line number to append (zero-based).</param>
 			/// <returns>true, if there are more lines to process; otherwise false.</returns>
-			public abstract bool Write(LogMessage message, StringBuilder builder, int line);
+			public abstract bool Write(LocalLogMessage message, StringBuilder builder, int line);
 		}
 	}
 }

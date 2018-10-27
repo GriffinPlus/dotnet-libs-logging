@@ -12,27 +12,36 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Concurrent;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// A pool of log messages allowing log messages to be re-used to reduce garbage collection pressure (thread-safe).
+	/// A log message that was written by the current process (it therefore contains additional information
+	/// about the <see cref="LogWriter"/> object and the <see cref="LogLevel"/> object involved).
 	/// </summary>
-	internal class LogMessagePool
+	public class LocalLogMessage : LogMessage
 	{
-		private ConcurrentBag<LocalLogMessage> mMessages;
-
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessagePool"/> class.
+		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class.
 		/// </summary>
-		public LogMessagePool()
+		public LocalLogMessage()
 		{
-			mMessages = new ConcurrentBag<LocalLogMessage>();
+
 		}
 
 		/// <summary>
-		/// Gets a log message from the pool, creates a new one, if the pool is empty.
+		/// Resets the log message to defaults (for internal use only).
+		/// </summary>
+		internal protected override void Reset()
+		{
+			base.Reset();
+
+			LogWriter = null;
+			LogLevel = null;
+		}
+
+		/// <summary>
+		/// Initializes the log message.
 		/// </summary>
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highAccuracyTimestamp">
@@ -48,8 +57,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="logWriter">Log writer that was used to emit the message.</param>
 		/// <param name="logLevel">Log level that is associated with the message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
-		/// <returns>The requested log message.</returns>
-		public LocalLogMessage GetMessage(
+		internal void Init(
 			DateTimeOffset timestamp,
 			long highAccuracyTimestamp,
 			int processId,
@@ -59,21 +67,29 @@ namespace GriffinPlus.Lib.Logging
 			LogLevel logLevel,
 			string text)
 		{
-			LocalLogMessage message;
-			if (!mMessages.TryTake(out message)) message = new LocalLogMessage();
-			message.Init(timestamp, highAccuracyTimestamp, processId, processName, applicationName, logWriter, logLevel, text);
-			return message;
+			base.Init(
+				timestamp,
+				highAccuracyTimestamp,
+				processId,
+				processName,
+				applicationName,
+				logWriter.Name,
+				logLevel.Name,
+				text);
+
+			LogWriter = logWriter;
+			LogLevel = logLevel;
 		}
 
 		/// <summary>
-		/// Returns a log message to the pool, so it can be re-used.
+		/// The log writer that was used to emit the log message.
 		/// </summary>
-		/// <param name="message">Message to return to the pool.</param>
-		public void ReturnMessage(LocalLogMessage message)
-		{
-			message.Reset();
-			mMessages.Add(message);
-		}
-	}
+		public LogWriter LogWriter { get; private set; }
 
+		/// <summary>
+		/// Log level associated with the current log message.
+		/// </summary>
+		public LogLevel LogLevel { get; private set; }
+
+	}
 }

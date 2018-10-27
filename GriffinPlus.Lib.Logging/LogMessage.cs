@@ -17,9 +17,9 @@ using System.Collections.Generic;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// A log message.
+	/// A log message for general purpose use.
 	/// </summary>
-	public class LogMessage
+	public class LogMessage : ILogMessage
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessage"/> class.
@@ -32,15 +32,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Resets the log message to defaults (for internal use only).
 		/// </summary>
-		internal void Reset()
+		protected internal virtual void Reset()
 		{
 			Context.Clear();
 			ProcessId = 0;
 			ProcessName = null;
 			ApplicationName = null;
-			LogWriter = null;
 			LogWriterName = null;
-			LogLevel = null;
 			LogLevelName = null;
 			Text = null;
 		}
@@ -59,17 +57,17 @@ namespace GriffinPlus.Lib.Logging
 		/// Name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </param>
-		/// <param name="logWriter">Log writer that was used to emit the message.</param>
-		/// <param name="logLevel">Log level that is associated with the message.</param>
+		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
+		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
-		internal void Init(
+		internal protected void Init(
 			DateTimeOffset timestamp,
 			long highAccuracyTimestamp,
 			int processId,
 			string processName,
 			string applicationName,
-			LogWriter logWriter,
-			LogLevel logLevel,
+			string logWriterName,
+			string logLevelName,
 			string text)
 		{
 			Timestamp = timestamp;
@@ -77,10 +75,8 @@ namespace GriffinPlus.Lib.Logging
 			ProcessId = processId;
 			ProcessName = processName;
 			ApplicationName = applicationName;
-			LogWriter = logWriter;
-			LogWriterName = logWriter.Name;
-			LogLevel = logLevel;
-			LogLevelName = logLevel.Name;
+			LogWriterName = logWriterName;
+			LogLevelName = logLevelName;
 			Text = text;
 		}
 
@@ -102,21 +98,9 @@ namespace GriffinPlus.Lib.Logging
 		public long HighAccuracyTimestamp { get; private set; }
 
 		/// <summary>
-		/// Log level associated with the current log message
-		/// (only set for messages that were written by the current process).
-		/// </summary>
-		public LogLevel LogLevel { get; private set; }
-
-		/// <summary>
 		/// Name of the log level associated with the current log message.
 		/// </summary>
 		public string LogLevelName { get; private set; }
-
-		/// <summary>
-		/// The log writer that was used to emit the log message
-		/// (only set for messages that were written by the current process).
-		/// </summary>
-		public LogWriter LogWriter { get; private set; }
 
 		/// <summary>
 		/// Name of the log writer associated with the current log message.

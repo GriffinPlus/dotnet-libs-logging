@@ -91,7 +91,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Do not keep a reference to the passed log message object as it returns to a pool.
 		/// Log message objects are re-used to reduce garbage collection pressure.
 		/// </remarks>
-		public virtual void Process(LogMessage message)
+		public virtual void Process(LocalLogMessage message)
 		{
 			// pass log message to the next pipeline stages
 			var stages = Volatile.Read(ref mNextStages);

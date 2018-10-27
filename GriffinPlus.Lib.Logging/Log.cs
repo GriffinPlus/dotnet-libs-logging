@@ -170,7 +170,7 @@ namespace GriffinPlus.Lib.Logging
 			IProcessingPipelineStage pipeline = LogMessageProcessingPipeline;
 			if (pipeline != null)
 			{
-				LogMessage message = null;
+				LocalLogMessage message = null;
 				try
 				{
 					message = sLogMessagePool.GetMessage(
