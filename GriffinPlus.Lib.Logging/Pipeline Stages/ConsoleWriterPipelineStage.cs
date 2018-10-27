@@ -33,6 +33,7 @@ namespace GriffinPlus.Lib.Logging
 		public ConsoleWriterPipelineStage()
 		{
 			mColumns.Add(new TextColumn(this));
+			mColumns[mColumns.Count - 1].IsLastColumn = true;
 		}
 
 		/// <summary>
@@ -103,19 +104,17 @@ namespace GriffinPlus.Lib.Logging
 				if (index < 0)
 				{
 					// column does not exist, yet
+					// => append it...
 					TimestampColumn column = new TimestampColumn(this, format);
-					mColumns.Add(column);
+					AppendColumn(column);
 				}
 				else
 				{
-					// column exists already => update and push to the end.
+					// column exists already
+					// => update and push to the end...
 					TimestampColumn column = mColumns[index] as TimestampColumn;
 					column.TimestampFormat = format;
-					if (index + 1 != mColumns.Count)
-					{
-						mColumns.RemoveAt(index);
-						mColumns.Add(column);
-					}
+					MoveColumnToEnd(index);
 				}
 			}
 
@@ -134,18 +133,15 @@ namespace GriffinPlus.Lib.Logging
 				if (index < 0)
 				{
 					// column does not exist, yet
+					// => append it...
 					ProcessIdColumn column = new ProcessIdColumn(this);
-					mColumns.Add(column);
+					AppendColumn(column);
 				}
 				else
 				{
-					// column exists already => update and push to the end.
-					ProcessIdColumn column = mColumns[index] as ProcessIdColumn;
-					if (index + 1 != mColumns.Count)
-					{
-						mColumns.RemoveAt(index);
-						mColumns.Add(column);
-					}
+					// column exists already
+					// => update and push to the end...
+					MoveColumnToEnd(index);
 				}
 			}
 
@@ -164,18 +160,15 @@ namespace GriffinPlus.Lib.Logging
 				if (index < 0)
 				{
 					// column does not exist, yet
+					// => append it...
 					ProcessNameColumn column = new ProcessNameColumn(this);
-					mColumns.Add(column);
+					AppendColumn(column);
 				}
 				else
 				{
-					// column exists already => update and push to the end.
-					ProcessNameColumn column = mColumns[index] as ProcessNameColumn;
-					if (index + 1 != mColumns.Count)
-					{
-						mColumns.RemoveAt(index);
-						mColumns.Add(column);
-					}
+					// column exists already
+					// => update and push to the end...
+					MoveColumnToEnd(index);
 				}
 			}
 
@@ -194,18 +187,15 @@ namespace GriffinPlus.Lib.Logging
 				if (index < 0)
 				{
 					// column does not exist, yet
+					// => append it...
 					ApplicationNameColumn column = new ApplicationNameColumn(this);
-					mColumns.Add(column);
+					AppendColumn(column);
 				}
 				else
 				{
-					// column exists already => update and push to the end.
-					ApplicationNameColumn column = mColumns[index] as ApplicationNameColumn;
-					if (index + 1 != mColumns.Count)
-					{
-						mColumns.RemoveAt(index);
-						mColumns.Add(column);
-					}
+					// column exists already
+					// => update and push to the end...
+					MoveColumnToEnd(index);
 				}
 			}
 
@@ -224,18 +214,15 @@ namespace GriffinPlus.Lib.Logging
 				if (index < 0)
 				{
 					// column does not exist, yet
+					// => append it...
 					LogWriterColumn column = new LogWriterColumn(this);
-					mColumns.Add(column);
+					AppendColumn(column);
 				}
 				else
 				{
-					// column exists already => update and push to the end.
-					LogWriterColumn column = mColumns[index] as LogWriterColumn;
-					if (index + 1 != mColumns.Count)
-					{
-						mColumns.RemoveAt(index);
-						mColumns.Add(column);
-					}
+					// column exists already
+					// => update and push to the end...
+					MoveColumnToEnd(index);
 				}
 			}
 
@@ -254,18 +241,15 @@ namespace GriffinPlus.Lib.Logging
 				if (index < 0)
 				{
 					// column does not exist, yet
+					// => append it...
 					LogLevelColumn column = new LogLevelColumn(this);
-					mColumns.Add(column);
+					AppendColumn(column);
 				}
 				else
 				{
-					// column exists already => update and push to the end.
-					LogLevelColumn column = mColumns[index] as LogLevelColumn;
-					if (index + 1 != mColumns.Count)
-					{
-						mColumns.RemoveAt(index);
-						mColumns.Add(column);
-					}
+					// column exists already
+					// => update and push to the end...
+					MoveColumnToEnd(index);
 				}
 			}
 
@@ -284,22 +268,49 @@ namespace GriffinPlus.Lib.Logging
 				if (index < 0)
 				{
 					// column does not exist, yet
+					// => append it...
 					TextColumn column = new TextColumn(this);
-					mColumns.Add(column);
+					AppendColumn(column);
 				}
 				else
 				{
-					// column exists already => update and push to the end.
-					TextColumn column = mColumns[index] as TextColumn;
-					if (index + 1 != mColumns.Count)
-					{
-						mColumns.RemoveAt(index);
-						mColumns.Add(column);
-					}
+					// column exists already
+					// => update and push to the end...
+					MoveColumnToEnd(index);
 				}
 			}
 
 			return this;
+		}
+
+		/// <summary>
+		/// Adds the specified column to the end of the column collection.
+		/// </summary>
+		/// <param name="column">Column to add.</param>
+		private void AppendColumn(ColumnBase column)
+		{
+			mColumns[mColumns.Count - 1].IsLastColumn = false;
+			mColumns.Add(column);
+			column.IsLastColumn = true;
+		}
+
+		/// <summary>
+		/// Moves the column at the specified index to the end of the column collection.
+		/// </summary>
+		/// <param name="index">Index of the column to move.</param>
+		private void MoveColumnToEnd(int index)
+		{
+			ColumnBase column = mColumns[index];
+
+			// abort, if the column is already the last column
+			if (index + 1 == mColumns.Count) {
+				return;
+			}
+
+			mColumns[mColumns.Count - 1].IsLastColumn = false;
+			mColumns.RemoveAt(index);
+			mColumns.Add(column);
+			column.IsLastColumn = true;
 		}
 
 	}
