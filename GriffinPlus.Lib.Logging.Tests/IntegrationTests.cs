@@ -127,6 +127,7 @@ namespace GriffinPlus.Lib.Logging.Tests
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
 				Assert.Equal(TestMessage, msg.Text);
 				Assert.Equal(levelToInclude, msg.LogLevel.Name);
+				Assert.Equal(levelToInclude, msg.LogLevelName);
 				callbackInvokedCount++;
 				return true;
 			});
@@ -183,6 +184,7 @@ namespace GriffinPlus.Lib.Logging.Tests
 			int callbackInvokedCount = 0;
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
 				Assert.NotEqual(levelToExclude, msg.LogLevel.Name);
+				Assert.NotEqual(levelToExclude, msg.LogLevelName);
 				callbackInvokedCount++;
 				return true;
 			});

@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public override void UpdateWidth(LogMessage message)
 			{
-				int length = message.LogLevel.Name.Length;
+				int length = message.LogLevelName.Length;
 				Width = Math.Max(Width, length);
 			}
 
@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (line == 0)
 				{
-					string s = message.LogLevel.Name;
+					string s = message.LogLevelName;
 					builder.Append(s);
 					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
 				}

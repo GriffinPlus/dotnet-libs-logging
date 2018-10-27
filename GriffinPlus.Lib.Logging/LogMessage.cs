@@ -39,7 +39,9 @@ namespace GriffinPlus.Lib.Logging
 			ProcessName = null;
 			ApplicationName = null;
 			LogWriter = null;
+			LogWriterName = null;
 			LogLevel = null;
+			LogLevelName = null;
 			Text = null;
 		}
 
@@ -76,7 +78,9 @@ namespace GriffinPlus.Lib.Logging
 			ProcessName = processName;
 			ApplicationName = applicationName;
 			LogWriter = logWriter;
+			LogWriterName = logWriter.Name;
 			LogLevel = logLevel;
+			LogLevelName = logLevel.Name;
 			Text = text;
 		}
 
@@ -98,14 +102,26 @@ namespace GriffinPlus.Lib.Logging
 		public long HighAccuracyTimestamp { get; private set; }
 
 		/// <summary>
-		/// Log level associated with the current log message.
+		/// Log level associated with the current log message
+		/// (only set for messages that were written by the current process).
 		/// </summary>
 		public LogLevel LogLevel { get; private set; }
 
 		/// <summary>
-		/// The log writer that was used to emit the log message.
+		/// Name of the log level associated with the current log message.
+		/// </summary>
+		public string LogLevelName { get; private set; }
+
+		/// <summary>
+		/// The log writer that was used to emit the log message
+		/// (only set for messages that were written by the current process).
 		/// </summary>
 		public LogWriter LogWriter { get; private set; }
+
+		/// <summary>
+		/// Name of the log writer associated with the current log message.
+		/// </summary>
+		public string LogWriterName { get; private set; }
 
 		/// <summary>
 		/// The id of the process emitting the log message.
