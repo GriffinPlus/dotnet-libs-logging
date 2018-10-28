@@ -30,6 +30,16 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class copying the specified one.
+		/// </summary>
+		/// <param name="other">Message to copy.</param>
+		public LocalLogMessage(LocalLogMessage other) : base(other)
+		{
+			LogWriter = other.LogWriter;
+			LogLevel = other.LogLevel;
+		}
+
+		/// <summary>
 		/// Resets the log message to defaults (for internal use only).
 		/// </summary>
 		internal protected override void Reset()

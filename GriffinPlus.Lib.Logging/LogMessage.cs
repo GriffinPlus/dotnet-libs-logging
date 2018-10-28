@@ -30,6 +30,23 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="LogMessage"/> class copying the specified one.
+		/// </summary>
+		/// <param name="other">Message to copy.</param>
+		public LogMessage(ILogMessage other)
+		{
+			Context = new Dictionary<string, object>(other.Context);
+			Timestamp = other.Timestamp;
+			HighAccuracyTimestamp = other.HighAccuracyTimestamp;
+			ProcessId = other.ProcessId;
+			ProcessName = other.ProcessName;
+			ApplicationName = other.ApplicationName;
+			LogWriterName = other.LogWriterName;
+			LogLevelName = other.LogLevelName;
+			Text = other.Text;
+		}
+
+		/// <summary>
 		/// Resets the log message to defaults (for internal use only).
 		/// </summary>
 		protected internal virtual void Reset()
