@@ -15,7 +15,7 @@ using GriffinPlus.Lib.Logging;
 using System;
 using Xunit;
 
-namespace Tests.Unit
+namespace UnitTests
 {
 	/// <summary>
 	/// Unit tests targetting the <see cref="LogWriter"/> class.

@@ -15,7 +15,7 @@ using GriffinPlus.Lib.Logging;
 using System.Linq;
 using Xunit;
 
-namespace Tests.Unit
+namespace UnitTests
 {
 	/// <summary>
 	/// Unit tests targetting the <see cref="LogLevel"/> class.

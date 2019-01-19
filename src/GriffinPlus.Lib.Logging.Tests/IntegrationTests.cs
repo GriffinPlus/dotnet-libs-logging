@@ -14,7 +14,7 @@
 using GriffinPlus.Lib.Logging;
 using Xunit;
 
-namespace Tests.Integration
+namespace IntegrationTests
 {
 	/// <summary>
 	/// Tests targetting the interaction of multiple classes.

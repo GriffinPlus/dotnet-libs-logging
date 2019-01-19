@@ -15,7 +15,7 @@ using GriffinPlus.Lib.Logging;
 using System;
 using Xunit;
 
-namespace Tests.Unit
+namespace UnitTests
 {
 	/// <summary>
 	/// Common unit tests targetting the <see cref="LogConfiguration"/> and the <see cref="FileBackedLogConfiguration"/> class.

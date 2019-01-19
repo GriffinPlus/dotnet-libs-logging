@@ -4,7 +4,7 @@
     <id>GriffinPlus.Lib.Logging</id>
     <version>$version$</version>
     <authors>Sascha Falk</authors>
-    <copyright>© 2018 - Sascha Falk</copyright>
+    <copyright>Copyright (c) 2018 Sascha Falk</copyright>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>A simple, but modular extensible logging facility that focusses on applications built on the .NET framework.
 Part of the Griffin+ Common Library Suite.</description>
