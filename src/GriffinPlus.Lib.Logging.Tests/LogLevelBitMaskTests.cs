@@ -11,11 +11,11 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System.Linq;
-using System;
+using GriffinPlus.Lib.Logging;
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging.Tests
+
+namespace Tests.Unit
 {
 	/// <summary>
 	/// Unit tests targetting the <see cref="LogLevelBitMask"/> class.

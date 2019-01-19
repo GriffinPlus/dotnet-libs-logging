@@ -11,11 +11,11 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using GriffinPlus.Lib.Logging;
 using System;
-using System.Linq;
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging.Tests
+namespace Tests.Unit
 {
 	/// <summary>
 	/// Common unit tests targetting the <see cref="LogConfiguration"/> and the <see cref="FileBackedLogConfiguration"/> class.

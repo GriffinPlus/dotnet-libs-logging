@@ -11,18 +11,17 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System.Linq;
-using System;
+using GriffinPlus.Lib.Logging;
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging.Tests
+namespace Tests.Integration
 {
 	/// <summary>
 	/// Tests targetting the interaction of multiple classes.
 	/// </summary>
 	public class IntegrationTests
 	{
-		private static readonly string LogWriterName = typeof(LogWriterTests).FullName;
+		private static readonly string LogWriterName = typeof(IntegrationTests).FullName;
 		private const string TestMessage = "the quick brown fox jumps over the lazy dog";
 
 		[Theory]
@@ -201,5 +200,3 @@ namespace GriffinPlus.Lib.Logging.Tests
 
 	}
 }
-
-
