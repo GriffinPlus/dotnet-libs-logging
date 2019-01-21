@@ -11,6 +11,7 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using GriffinPlus.Lib;
 using GriffinPlus.Lib.Logging;
 using System;
 using Xunit;
@@ -110,7 +111,7 @@ namespace UnitTests
 				null));
 
 			LogWriter writer = Log.GetWriter("UnitTest");
-			LogLevelBitMask mask = configuration.GetActiveLogLevelMask(writer);
+			BitMask mask = configuration.GetActiveLogLevelMask(writer);
 			uint[] bitArray = mask.AsArray();
 			Assert.Single(bitArray);
 			Assert.Equal(expectedMask, bitArray[0]);
@@ -145,7 +146,7 @@ namespace UnitTests
 				excludes));
 
 			LogWriter writer = Log.GetWriter("UnitTest");
-			LogLevelBitMask mask = configuration.GetActiveLogLevelMask(writer);
+			BitMask mask = configuration.GetActiveLogLevelMask(writer);
 			uint[] bitArray = mask.AsArray();
 			Assert.Single(bitArray);
 			Assert.Equal(expectedMask, bitArray[0]);
