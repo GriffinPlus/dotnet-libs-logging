@@ -22,14 +22,14 @@ image:
 
 build_script:
   - powershell -file Build.ps1 -buildserver
-  # - ps: Update-AppveyorBuild -Version $GitVersion_FullSemVer
+  - ps: Update-AppveyorBuild -Version $GitVersion_FullSemVer
 
 #---------------------------------#
 #       tests configuration       #
 #---------------------------------#
 
 test_script:
-  - vstest.console "_build\Logging.AnyCPU.Release\netcoreapp2.0\GriffinPlus.Lib.Logging.Tests.dll"
+  - vstest.console "%APPVEYOR_BUILD_FOLDER%\_build\Logging.AnyCPU.Release\netcoreapp2.0\GriffinPlus.Lib.Logging.Tests.dll"
 
 #---------------------------------#
 #      packaging artifacts        #
