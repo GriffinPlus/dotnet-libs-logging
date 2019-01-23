@@ -59,7 +59,7 @@ By default *Griffin+ Logging* comes with a configuration that allows all message
 Log.Configuration = new FileBackedLogConfiguration();
 ```
 
-This will drop a configuration file containing the default settings into the applications's base directory. The configuration file is named as the application plus extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
+This will drop a configuration file containing the default settings into the application's base directory. The configuration file is named as the application plus extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
 
 The default configuration file contains a detailed description of the settings and looks like the following:
 
