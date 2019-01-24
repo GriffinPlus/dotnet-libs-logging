@@ -1,13 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net461; netcoreapp2.0; netstandard2.0</TargetFrameworks>
     <AssemblyName>GriffinPlus.Lib.Logging</AssemblyName>
     <RootNamespace>GriffinPlus.Lib</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GriffinPlus.Lib.Common" Version="0.1.0" />
+    <PackageReference Include="GriffinPlus.Lib.Common" Version="0.2.1" />
   </ItemGroup>
 
 </Project>
