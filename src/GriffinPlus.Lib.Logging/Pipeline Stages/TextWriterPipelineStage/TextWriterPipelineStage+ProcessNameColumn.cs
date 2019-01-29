@@ -16,18 +16,18 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class ConsoleWriterPipelineStage
+	partial class TextWriterPipelineStage<STAGE>
 	{
 		/// <summary>
-		/// The process id column.
+		/// The process name column.
 		/// </summary>
-		class ProcessIdColumn : ColumnBase
+		class ProcessNameColumn : ColumnBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="ProcessIdColumn"/> class.
+			/// Initializes a new instance of the <see cref="ProcessNameColumn"/> class.
 			/// </summary>
 			/// <param name="stage">The pipeline stage.</param>
-			public ProcessIdColumn(ConsoleWriterPipelineStage stage) : base(stage)
+			public ProcessNameColumn(STAGE stage) : base(stage)
 			{
 
 			}
@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public override void UpdateWidth(LocalLogMessage message)
 			{
-				int length = message.ProcessId.ToString().Length;
+				int length = message.ProcessName.Length;
 				Width = Math.Max(Width, length);
 			}
 
@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (line == 0)
 				{
-					string s = message.ProcessId.ToString();
+					string s = message.ProcessName;
 					builder.Append(s);
 					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
 				}
@@ -61,7 +61,6 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (!IsLastColumn) builder.Append(' ', Width);
 				}
-
 
 				return false; // last line
 			}

@@ -12,22 +12,25 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Linq;
 using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class ConsoleWriterPipelineStage
+	partial class TextWriterPipelineStage<STAGE>
 	{
 		/// <summary>
-		/// The application name column.
+		/// The message text column.
 		/// </summary>
-		class ApplicationNameColumn : ColumnBase
+		class TextColumn : ColumnBase
 		{
+			private string[] mBuffer;
+
 			/// <summary>
-			/// Initializes a new instance of the <see cref="ApplicationNameColumn"/> class.
+			/// Initializes a new instance of the <see cref="TextColumn"/> class.
 			/// </summary>
 			/// <param name="stage">The pipeline stage.</param>
-			public ApplicationNameColumn(ConsoleWriterPipelineStage stage) : base(stage)
+			public TextColumn(STAGE stage) : base(stage)
 			{
 
 			}
@@ -38,7 +41,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public override void UpdateWidth(LocalLogMessage message)
 			{
-				int length = message.ApplicationName.Length;
+				mBuffer = message.Text.Replace("\r", "").Split('\n');
+				int length = mBuffer.Max(x => x.Length);
 				Width = Math.Max(Width, length);
 			}
 
@@ -53,7 +57,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (line == 0)
 				{
-					string s = message.ApplicationName;
+					string s = mBuffer[line];
 					builder.Append(s);
 					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
 				}
@@ -62,8 +66,7 @@ namespace GriffinPlus.Lib.Logging
 					if (!IsLastColumn) builder.Append(' ', Width);
 				}
 
-
-				return false; // last line
+				return line + 1 < mBuffer.Length;
 			}
 		}
 	}

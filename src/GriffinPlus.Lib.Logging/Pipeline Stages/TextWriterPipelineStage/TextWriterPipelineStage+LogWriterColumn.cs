@@ -16,7 +16,7 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class ConsoleWriterPipelineStage
+	partial class TextWriterPipelineStage<STAGE>
 	{
 		/// <summary>
 		/// The log writer column.
@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="LogWriterColumn"/> class.
 			/// </summary>
 			/// <param name="stage">The pipeline stage.</param>
-			public LogWriterColumn(ConsoleWriterPipelineStage stage) : base(stage)
+			public LogWriterColumn(STAGE stage) : base(stage)
 			{
 
 			}

@@ -16,28 +16,21 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class ConsoleWriterPipelineStage
+	partial class TextWriterPipelineStage<STAGE>
 	{
 		/// <summary>
-		/// The timestamp column.
+		/// The application name column.
 		/// </summary>
-		class TimestampColumn : ColumnBase
+		class ApplicationNameColumn : ColumnBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="TimestampColumn"/> class.
+			/// Initializes a new instance of the <see cref="ApplicationNameColumn"/> class.
 			/// </summary>
 			/// <param name="stage">The pipeline stage.</param>
-			/// <param name="format">Timestamp format to use.</param>
-			public TimestampColumn(ConsoleWriterPipelineStage stage, string format = "u") : base(stage)
+			public ApplicationNameColumn(STAGE stage) : base(stage)
 			{
-				TimestampFormat = format;
-			}
 
-			/// <summary>
-			/// Gets or sets the timestamp format
-			/// (See https://docs.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings for details)
-			/// </summary>
-			public string TimestampFormat { get; set; }
+			}
 
 			/// <summary>
 			/// Measures the field of the message to present in the column and Updates the <see cref="ColumnBase.Width"/> property.
@@ -45,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public override void UpdateWidth(LocalLogMessage message)
 			{
-				int length = message.Timestamp.ToString(TimestampFormat, Stage.mCultureInfo).Length;
+				int length = message.ApplicationName.Length;
 				Width = Math.Max(Width, length);
 			}
 
@@ -60,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (line == 0)
 				{
-					string s = message.Timestamp.ToString(TimestampFormat, Stage.mCultureInfo);
+					string s = message.ApplicationName;
 					builder.Append(s);
 					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
 				}
@@ -68,6 +61,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (!IsLastColumn) builder.Append(' ', Width);
 				}
+
 
 				return false; // last line
 			}
