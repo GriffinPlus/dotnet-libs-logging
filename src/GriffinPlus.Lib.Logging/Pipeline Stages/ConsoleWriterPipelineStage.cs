@@ -52,7 +52,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Emits the formatted log message.
-		/// This method is called from within a locked block.
+		/// This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineStage{T}.mSync"/>).
 		/// </summary>
 		/// <param name="message">The current log message.</param>
 		/// <param name="output">The formatted output of the current log message.</param>
