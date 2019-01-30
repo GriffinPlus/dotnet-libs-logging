@@ -28,10 +28,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The default path of the log configuration file.
 		/// </summary>
-		private static readonly string sDefaultConfigFilePath = Path.Combine(
-			AppDomain.CurrentDomain.BaseDirectory,
-			Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + ".logconf");
-
+		private static readonly string sDefaultConfigFilePath;
 		private static readonly Logging.LogWriter sLog = Log.GetWriter("Logging");
 		private readonly object mSync = new object();
 		private FileSystemWatcher mFileSystemWatcher;
@@ -39,6 +36,29 @@ namespace GriffinPlus.Lib.Logging
 		private LogConfigurationFile mFile;
 		private string mFilePath;
 		private string mFileName;
+
+		/// <summary>
+		/// Initializes the <see cref="FileBackedLogConfiguration"/> class.
+		/// </summary>
+		static FileBackedLogConfiguration()
+		{
+			// initialize the path of the configuration file
+			Assembly assembly = Assembly.GetEntryAssembly();
+			if (assembly != null)
+			{
+				// regular case
+				// => use name of the entry assembly (application)
+				string fileName = Path.GetFileNameWithoutExtension(assembly.Location) + ".logconf";
+				sDefaultConfigFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+			}
+			else
+			{
+				// no entry assembly (most probably a unit test runner)
+				// => use friendly name of the application domain
+				string fileName = AppDomain.CurrentDomain.FriendlyName + ".logconf";
+				sDefaultConfigFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+			}
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class (the configuration file is
