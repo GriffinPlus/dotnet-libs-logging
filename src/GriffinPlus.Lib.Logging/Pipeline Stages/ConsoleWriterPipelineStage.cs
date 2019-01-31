@@ -52,7 +52,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Emits the formatted log message.
-		/// This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineStage{T}.mSync"/>).
+		/// This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineStage{T}.Sync"/>).
 		/// </summary>
 		/// <param name="message">The current log message.</param>
 		/// <param name="output">The formatted output of the current log message.</param>
@@ -76,7 +76,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public ConsoleWriterPipelineStage UseDefaultStream(ConsoleOutputStream stream)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				mDefaultStream = stream;
 			}
@@ -91,7 +91,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public ConsoleWriterPipelineStage WithLogLevelToStdout(LogLevel level)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				mStreamByLevel[level] = ConsoleOutputStream.Stdout;
 			}
@@ -106,7 +106,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public ConsoleWriterPipelineStage WithLogLevelToStderr(LogLevel level)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				mStreamByLevel[level] = ConsoleOutputStream.Stderr;
 			}
@@ -122,7 +122,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public ConsoleWriterPipelineStage WithLogLevelToStream(LogLevel level, ConsoleOutputStream stream)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				mStreamByLevel[level] = stream;
 			}

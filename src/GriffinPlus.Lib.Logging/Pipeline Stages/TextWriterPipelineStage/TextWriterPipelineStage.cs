@@ -47,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </remarks>
 		public override void Process(LocalLogMessage message)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				mOutputBuilder.Clear();
 				FormatOutput(message, mOutputBuilder);
@@ -90,7 +90,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Emits the formatted log message.
-		/// This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineStage{T}.mSync"/>).
+		/// This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineStage{T}.Sync"/>).
 		/// </summary>
 		/// <param name="message">The current log message.</param>
 		/// <param name="output">The formatted output of the current log message.</param>
@@ -102,8 +102,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public IFormatProvider FormatProvider
 		{
-			get { lock (mSync) return mFormatProvider;  }
-			set { lock (mSync) mFormatProvider = value; }
+			get { lock (Sync) return mFormatProvider;  }
+			set { lock (Sync) mFormatProvider = value; }
 		}
 
 		/// <summary>
@@ -119,7 +119,7 @@ namespace GriffinPlus.Lib.Logging
 			if (format == null) throw new ArgumentNullException(nameof(format));
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
 
-			lock (mSync)
+			lock (Sync)
 			{
 				int index = mColumns.FindIndex(x => x is TimestampColumn);
 				if (index < 0)
@@ -148,7 +148,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public STAGE WithProcessId()
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				int index = mColumns.FindIndex(x => x is ProcessIdColumn);
 				if (index < 0)
@@ -175,7 +175,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public STAGE WithProcessName()
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				int index = mColumns.FindIndex(x => x is ProcessNameColumn);
 				if (index < 0)
@@ -202,7 +202,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public STAGE WithApplicationName()
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				int index = mColumns.FindIndex(x => x is ApplicationNameColumn);
 				if (index < 0)
@@ -229,7 +229,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public STAGE WithLogWriterName()
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				int index = mColumns.FindIndex(x => x is LogWriterColumn);
 				if (index < 0)
@@ -256,7 +256,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public STAGE WithLogLevel()
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				int index = mColumns.FindIndex(x => x is LogLevelColumn);
 				if (index < 0)
@@ -283,7 +283,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The modified pipeline stage.</returns>
 		public STAGE WithText()
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				int index = mColumns.FindIndex(x => x is TextColumn);
 				if (index < 0)

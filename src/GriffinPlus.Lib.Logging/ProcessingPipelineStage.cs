@@ -29,11 +29,6 @@ namespace GriffinPlus.Lib.Logging
 		protected IProcessingPipelineStage[] mNextStages;
 
 		/// <summary>
-		/// Object to use for monitor synchronization (protects changes to the stage).
-		/// </summary>
-		protected readonly object mSync = new object();
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.
 		/// </summary>
 		public ProcessingPipelineStage()
@@ -58,6 +53,11 @@ namespace GriffinPlus.Lib.Logging
 		{
 			mNextStages = nextStages;
 		}
+
+		/// <summary>
+		/// Gets the object to use for synchronization of changes to the pipeline stage using a monitor.
+		/// </summary>
+		protected object Sync { get; } = new object();
 
 		/// <summary>
 		/// Gets all pipeline stages following the current stage (including the current one).
@@ -107,7 +107,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>A new pipeline stage of the same type containing the update.</returns>
 		public T FollowedBy(params IProcessingPipelineStage[] nextStages)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				int count = mNextStages.Length + nextStages.Length;
 				IProcessingPipelineStage[] newNextStages = new IProcessingPipelineStage[count];
