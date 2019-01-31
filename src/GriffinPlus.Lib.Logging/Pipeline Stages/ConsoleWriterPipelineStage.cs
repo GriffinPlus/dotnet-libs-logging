@@ -63,9 +63,9 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			if (stream == ConsoleOutputStream.Stdout) {
-				Console.Error.Write(output);
-			} else {
 				Console.Out.Write(output);
+			} else {
+				Console.Error.Write(output);
 			}
 		}
 
