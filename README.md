@@ -209,11 +209,20 @@ public void Write(IFormatProvider provider, LogLevel level, string format, param
 
 ### Customization
 
-*Griffin+ Logging* can be used as shipped, if you need a logging facility that is configurable as described above and that prints messages to *stdout* and *stderr*. If this is not what you need, you can replace the *log configuration* and the *log message processing pipeline*.
+*Griffin+ Logging* can be used as shipped, if you need a logging facility that is configurable as described above and that prints messages to *stdout*. If this is not what you need, you can replace the *log configuration* and the *log message processing pipeline*.
 
 The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. If you feel that is something you want to customize, simply implement the `ILogConfiguration` interface and tell the `Log` class to use your implementation via its `Configuration` property.
 
 Probably customization of the *log message processing pipeline* is a more interesting issue. The pipeline is fed with log messages that pass the filter defined by the *log configuration*. A pipeline stage class must implement the `IProcessingPipelineStage` interface. For the sake of simplicity, `ProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. This class provides a `FollowedBy()` method that allows you to chain multiple pipeline stages in a fluent API fashion.
+
+*Griffin+ Logging* ships with a set of *log message processing pipeline stages* that cover common use cases:
+
+- [File](https://github.com/GriffinPlus/dotnet-libs-logging/wiki/Pipeline-Stage:-File):
+  Log messages are written to an ordinary text log file.
+- [Console](https://github.com/GriffinPlus/dotnet-libs-logging/wiki/Pipeline-Stage:-Console):
+  Log messages are emitted to the stdout/stderr stream of the console.
+- [Elasticsearch](https://github.com/GriffinPlus/dotnet-libs-logging/wiki/Pipeline-Stage:-Elasticsearch):
+  Log messages are sent to an [*Elasticsearch*](https://www.elastic.co/products/elasticsearch) or [*Logstash*](https://www.elastic.co/products/logstash) server.
 
 ### Complete Example
 
