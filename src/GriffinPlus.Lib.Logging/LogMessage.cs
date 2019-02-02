@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -12,30 +12,38 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
+using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
 	/// A log message for general purpose use.
 	/// </summary>
-	public class LogMessage : ILogMessage
+	public sealed class LogMessage : ILogMessage
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessage"/> class.
 		/// </summary>
 		public LogMessage()
 		{
-			Context = new Dictionary<string, object>();
+
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LogMessage"/> class.
+		/// </summary>
+		/// <param name="pool">The pool the message belongs to.</param>
+		internal LogMessage(LogMessagePool pool)
+		{
+			Pool = pool;
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessage"/> class copying the specified one.
 		/// </summary>
 		/// <param name="other">Message to copy.</param>
-		public LogMessage(ILogMessage other)
+		public LogMessage(LogMessage other)
 		{
-			Context = new Dictionary<string, object>(other.Context);
 			Timestamp = other.Timestamp;
 			HighAccuracyTimestamp = other.HighAccuracyTimestamp;
 			ProcessId = other.ProcessId;
@@ -46,19 +54,99 @@ namespace GriffinPlus.Lib.Logging
 			Text = other.Text;
 		}
 
+		#region Message Properties
+
 		/// <summary>
-		/// Resets the log message to defaults (for internal use only).
+		/// Gets the time the message was written to the log.
 		/// </summary>
-		protected internal virtual void Reset()
+		public DateTimeOffset Timestamp { get; private set; }
+
+		/// <summary>
+		/// Gets the timestamp for relative time measurements with high accuracy
+		/// (see <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/>).
+		/// </summary>
+		public long HighAccuracyTimestamp { get; private set; }
+
+		/// <summary>
+		/// Gets the name of the log level associated with the log message.
+		/// </summary>
+		public string LogLevelName { get; private set; }
+
+		/// <summary>
+		/// Gets the name of the log writer associated with the log message.
+		/// </summary>
+		public string LogWriterName { get; private set; }
+
+		/// <summary>
+		/// Gets the id of the process emitting the log message.
+		/// </summary>
+		public int ProcessId { get; private set; }
+
+		/// <summary>
+		/// Gets the name of the process emitting the log message.
+		/// </summary>
+		public string ProcessName { get; private set; }
+
+		/// <summary>
+		/// Gets the name of the application emitting the log message
+		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// </summary>
+		public string ApplicationName { get; private set; }
+
+		/// <summary>
+		/// Gets the actual text the log message is about.
+		/// </summary>
+		public string Text { get; private set; }
+
+		#endregion
+
+		#region Pooling Support
+
+		private int mRefCount = 1;
+
+		/// <summary>
+		/// Increments the reference counter of the log message (needed for pool messages only).
+		/// Call it to indicate that the message is still in use and avoid that it returns to the pool.
+		/// </summary>
+		/// <returns>The reference counter after incrementing.</returns>
+		public int AddRef()
 		{
-			Context.Clear();
-			ProcessId = 0;
-			ProcessName = null;
-			ApplicationName = null;
-			LogWriterName = null;
-			LogLevelName = null;
-			Text = null;
+			return Interlocked.Increment(ref mRefCount);
 		}
+
+		/// <summary>
+		/// Decrements the reference counter of the log message (needed for pool messages only).
+		/// The message returns to the pool, if the counter gets 0.
+		/// </summary>
+		/// <returns>The reference counter after decrementing.</returns>
+		public int Release()
+		{
+			int refCount = Interlocked.Decrement(ref mRefCount);
+
+			if (refCount < 0) {
+				Interlocked.Increment(ref mRefCount);
+				throw new InvalidOperationException("The reference count is already 0.");
+			}
+
+			if (refCount == 0) {
+				Pool?.ReturnMessage(this);
+			}
+
+			return refCount;
+		}
+
+		/// <summary>
+		/// Gets the current value of the reference counter of the log message.
+		/// </summary>
+		public int RefCount
+		{
+			get { return Volatile.Read(ref mRefCount); }
+		}
+
+		/// <summary>
+		/// Gets the pool the log message belongs to.
+		/// </summary>
+		internal LogMessagePool Pool { get; private set; }
 
 		/// <summary>
 		/// Initializes the log message.
@@ -77,7 +165,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
 		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
-		internal protected void Init(
+		public void Init(
 			DateTimeOffset timestamp,
 			long highAccuracyTimestamp,
 			int processId,
@@ -98,52 +186,18 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the context of the log message
-		/// (transports custom information as the log message travels through the processing pipeline)
+		/// Resets the log message to defaults.
 		/// </summary>
-		public IDictionary<string,object> Context { get; private set; }
+		internal void Reset()
+		{
+			ProcessId = 0;
+			ProcessName = null;
+			ApplicationName = null;
+			LogWriterName = null;
+			LogLevelName = null;
+			Text = null;
+		}
 
-		/// <summary>
-		/// Time the message was written to the log.
-		/// </summary>
-		public DateTimeOffset Timestamp { get; private set; }
-
-		/// <summary>
-		/// Timestamp for relative time measurements with high accuracy
-		/// (see <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/>).
-		/// </summary>
-		public long HighAccuracyTimestamp { get; private set; }
-
-		/// <summary>
-		/// Name of the log level associated with the current log message.
-		/// </summary>
-		public string LogLevelName { get; private set; }
-
-		/// <summary>
-		/// Name of the log writer associated with the current log message.
-		/// </summary>
-		public string LogWriterName { get; private set; }
-
-		/// <summary>
-		/// The id of the process emitting the log message.
-		/// </summary>
-		public int ProcessId { get; private set; }
-
-		/// <summary>
-		/// The name of the process emitting the log message.
-		/// </summary>
-		public string ProcessName { get; private set; }
-
-		/// <summary>
-		/// The name of the application emitting the log message
-		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
-		/// </summary>
-		public string ApplicationName { get; private set; }
-
-		/// <summary>
-		/// The actual text the log message is about.
-		/// </summary>
-		public string Text { get; private set; }
-
+		#endregion
 	}
 }

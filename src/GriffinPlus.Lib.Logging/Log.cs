@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -27,12 +27,12 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly object sSync = new object();
 		private static readonly int sProcessId = Process.GetCurrentProcess().Id;
 		private static readonly string sProcessName = Process.GetCurrentProcess().ProcessName;
-		private static readonly LogMessagePool sLogMessagePool = new LogMessagePool();
+		private static readonly LocalLogMessagePool sLogMessagePool = new LocalLogMessagePool();
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static string sApplicationName = sProcessName;
 		private static ILogConfiguration sLogConfiguration;
-		private static IProcessingPipelineStage sLogMessageProcessingPipeline;
-		private static LogWriter sLog = GetWriter<Log>();
+		private static volatile IProcessingPipelineStage sLogMessageProcessingPipeline;
+		private static LogWriter sLog = GetWriter("Logging");
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
@@ -59,18 +59,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public static string ApplicationName
 		{
-			get
-			{
-				return sApplicationName;
-			}
-
-			set
-			{
-				lock (sSync)
-				{
-					sApplicationName = value;
-				}
-			}
+			get { return sApplicationName; }
+			set { lock (sSync) sApplicationName = value; }
 		}
 
 		/// <summary>
@@ -137,6 +127,10 @@ namespace GriffinPlus.Lib.Logging
 
 					if (value != null)
 					{
+						// initialize the new processing pipeline
+						value.Initialize(); // can throw...
+
+						// let pipeline stages set their default configuration
 						if (SetDefaultProcessingPipelineSettings(value))
 						{
 							try
@@ -151,8 +145,38 @@ namespace GriffinPlus.Lib.Logging
 						}
 					}
 
+					// make new processing pipeline the current one
+					var oldPipeline = sLogMessageProcessingPipeline;
 					Thread.MemoryBarrier();
 					sLogMessageProcessingPipeline = value;
+
+					// shutdown old processing pipeline, if any
+					if (oldPipeline != null)
+					{
+						try
+						{
+							oldPipeline.Shutdown();
+						}
+						catch (Exception ex)
+						{
+							Debug.Fail("Shutting down the old processing pipeline failed unexpectedly.", ex.ToString());
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Shuts the logging subsystem down gracefully.
+		/// </summary>
+		public static void Shutdown()
+		{
+			lock (sSync)
+			{
+				// pipeline stages might have buffered messages
+				// => shut them down gracefully to allow them to complete processing before exiting
+				if (sLogMessageProcessingPipeline != null) {
+					sLogMessageProcessingPipeline.Shutdown();
 				}
 			}
 		}
@@ -188,10 +212,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 				finally
 				{
-					if (message != null)
-					{
-						sLogMessagePool.ReturnMessage(message);
-					}
+					message.Release();
 				}
 			}
 		}

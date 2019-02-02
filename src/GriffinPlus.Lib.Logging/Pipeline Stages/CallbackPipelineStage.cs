@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		/// true to call the following pipeline stages;
 		/// false to stop processing.
 		/// </returns>
-		public delegate bool ProcessingCallback(LocalLogMessage message);
+		public delegate bool ProcessingCallback(LocalLogMessage[] message);
 
 		/// <summary>
 		/// The message processing callback (always initialized).
@@ -50,14 +50,20 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Processes the specified log message and passes the log message to the next processing stages.
+		/// Processes the specified log messages.
 		/// </summary>
-		/// <param name="message">Message to process.</param>
-		public override void Process(LocalLogMessage message)
+		/// <param name="messages">Messages to process.</param>
+		/// <returns>
+		/// true to call following processing stages;
+		/// false to stop processing.
+		/// </returns>
+		/// <remarks>
+		/// Do not keep a reference to the passed log message objecst as they return to a pool.
+		/// Log message objects are re-used to reduce garbage collection pressure.
+		/// </remarks>
+		protected override bool ProcessCore(LocalLogMessage[] messages)
 		{
-			if (mProcessingCallback(message)) {
-				base.Process(message);
-			}
+			return mProcessingCallback(messages);
 		}
 	}
 }

@@ -52,6 +52,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// configure the log message processing pipeline and arrange the columns to print
 			// (only one stage here, you can use FollowedBy() to append another stage to this one)
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
+				.UseAsynchronousProcessing(500, false)    // process messages asynchronously (queue up to 500 messages, block on overflow (lossless mode))
 				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff") // use custom timestamp format
 				.WithProcessId()
 				.WithProcessName()
@@ -59,7 +60,6 @@ namespace GriffinPlus.Lib.Logging.Demo
 				.WithLogWriterName()
 				.WithLogLevel()
 				.WithText();
-
 
 			// create an aspect log level
 			LogLevel aspect = LogLevel.GetAspect("Demo Aspect");
@@ -90,9 +90,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// now modify the configuration file in the output directory and run the demo application
 			// again to see what happens!
 
+			// shut the logging subsystem down
+			Log.Shutdown();
+
 			Console.WriteLine();
 			Console.WriteLine("Press any key to continue...");
 			Console.ReadKey();
+
 		}
 	}
 }

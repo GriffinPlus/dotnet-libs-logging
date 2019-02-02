@@ -20,16 +20,16 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A pool of log messages allowing log messages to be re-used to reduce garbage collection pressure (thread-safe).
 	/// </summary>
-	public class LogMessagePool
+	internal class LocalLogMessagePool
 	{
-		private ConcurrentBag<LogMessage> mMessages;
+		private ConcurrentBag<LocalLogMessage> mMessages;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessagePool"/> class.
+		/// Initializes a new instance of the <see cref="LocalLogMessagePool"/> class.
 		/// </summary>
-		public LogMessagePool()
+		public LocalLogMessagePool()
 		{
-			mMessages = new ConcurrentBag<LogMessage>();
+			mMessages = new ConcurrentBag<LocalLogMessage>();
 		}
 
 		/// <summary>
@@ -46,21 +46,21 @@ namespace GriffinPlus.Lib.Logging
 		/// Name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </param>
-		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
-		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
+		/// <param name="logWriter">Log writer that was used to emit the message.</param>
+		/// <param name="logLevel">Log level that is associated with the message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
 		/// <returns>The requested log message.</returns>
-		public LogMessage GetMessage(
+		public LocalLogMessage GetMessage(
 			DateTimeOffset timestamp,
 			long highAccuracyTimestamp,
 			int processId,
 			string processName,
 			string applicationName,
-			string logWriterName,
-			string logLevelName,
+			LogWriter logWriter,
+			LogLevel logLevel,
 			string text)
 		{
-			LogMessage message;
+			LocalLogMessage message;
 
 			if (mMessages.TryTake(out message))
 			{
@@ -69,10 +69,10 @@ namespace GriffinPlus.Lib.Logging
 			}
 			else
 			{
-				message = new LogMessage(this);
+				message = new LocalLogMessage(this);
 			}
 
-			message.Init(timestamp, highAccuracyTimestamp, processId, processName, applicationName, logWriterName, logLevelName, text);
+			message.Init(timestamp, highAccuracyTimestamp, processId, processName, applicationName, logWriter, logLevel, text);
 			return message;
 		}
 
@@ -81,7 +81,7 @@ namespace GriffinPlus.Lib.Logging
 		/// This message is called by the messages, if their reference counter gets 0.
 		/// </summary>
 		/// <param name="message">Message to return to the pool.</param>
-		internal void ReturnMessage(LogMessage message)
+		public void ReturnMessage(LocalLogMessage message)
 		{
 			message.Reset();
 			mMessages.Add(message);

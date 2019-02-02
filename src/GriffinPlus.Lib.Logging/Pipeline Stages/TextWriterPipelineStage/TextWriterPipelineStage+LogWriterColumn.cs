@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The log writer column.
 		/// </summary>
-		class LogWriterColumn : ColumnBase
+		sealed class LogWriterColumn : ColumnBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="LogWriterColumn"/> class.
