@@ -239,8 +239,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 		static void Main(string[] args)
 		{
 			// By default the logging subsystem is set up to use a pure in-memory configuration and a console logger
-			// printing written messages to the console (stdout/stderr). In many cases you probably want to configure
-			// what gets logged using a configuration file. The following example shows a simple, but complete setup
+			// printing written messages to the console (stdout). In many cases you probably want to configure what
+			// gets logged using a configuration file. The following example shows a simple, but complete setup
 			// of the logging subsystem. A file-backed log configuration is used and it's file is placed in the
 			// application's base directory named as the application plus extension '.logconf'. After that the log
 			// message processing pipeline is initialized using a customized console logger.
@@ -261,7 +261,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// configure the log message processing pipeline and arrange the columns to print
 			// (only one stage here, you can use FollowedBy() to append another stage to this one)
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
-				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff") // use custom timestamp format
+				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff")      // use custom timestamp format
 				.WithProcessId()
 				.WithProcessName()
 				.WithApplicationName()
@@ -297,6 +297,9 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// now modify the configuration file in the output directory and run the demo application
 			// again to see what happens!
+
+			// shut the logging subsystem down
+			Log.Shutdown();
 
 			Console.WriteLine();
 			Console.WriteLine("Press any key to continue...");

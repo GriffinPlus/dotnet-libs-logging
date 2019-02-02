@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The log level column.
 		/// </summary>
-		class LogLevelColumn : ColumnBase
+		sealed class LogLevelColumn : ColumnBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="LogLevelColumn"/> class.

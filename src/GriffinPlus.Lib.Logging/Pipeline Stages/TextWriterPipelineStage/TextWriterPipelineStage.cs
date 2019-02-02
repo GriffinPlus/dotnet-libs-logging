@@ -38,24 +38,29 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Processes the specified log message and passes the log message to the next processing stages.
+		/// Processes the specified log messages.
 		/// </summary>
-		/// <param name="message">Message to process.</param>
+		/// <param name="messages">Messages to process.</param>
+		/// <returns>
+		/// true to call following processing stages;
+		/// false to stop processing.
+		/// </returns>
 		/// <remarks>
-		/// Do not keep a reference to the passed log message object as it returns to a pool.
+		/// Do not keep a reference to the passed log message objects as they return to a pool.
 		/// Log message objects are re-used to reduce garbage collection pressure.
 		/// </remarks>
-		public override void Process(LocalLogMessage message)
+		protected override bool ProcessCore(LocalLogMessage[] messages)
 		{
 			lock (Sync)
 			{
-				mOutputBuilder.Clear();
-				FormatOutput(message, mOutputBuilder);
-				EmitOutput(message, mOutputBuilder);
+				for (int i = 0; i < messages.Length; i++) {
+					mOutputBuilder.Clear();
+					FormatOutput(messages[i], mOutputBuilder);
+					EmitOutput(messages[i], mOutputBuilder);
+				}
 			}
 
-			// pass message to the next pipeline stages
-			base.Process(message);
+			return true; // pass the messages to the next stages
 		}
 
 		/// <summary>

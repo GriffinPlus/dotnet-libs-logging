@@ -67,7 +67,7 @@ namespace IntegrationTests
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
-				Assert.True(msg.LogLevel.Id <= baselevel.Id);
+				Assert.True(msg[0].LogLevel.Id <= baselevel.Id);
 				callbackInvokedCount++;
 				return true;
 			});
@@ -124,9 +124,9 @@ namespace IntegrationTests
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
-				Assert.Equal(TestMessage, msg.Text);
-				Assert.Equal(levelToInclude, msg.LogLevel.Name);
-				Assert.Equal(levelToInclude, msg.LogLevelName);
+				Assert.Equal(TestMessage, msg[0].Text);
+				Assert.Equal(levelToInclude, msg[0].LogLevel.Name);
+				Assert.Equal(levelToInclude, msg[0].LogLevelName);
 				callbackInvokedCount++;
 				return true;
 			});
@@ -182,8 +182,8 @@ namespace IntegrationTests
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
-				Assert.NotEqual(levelToExclude, msg.LogLevel.Name);
-				Assert.NotEqual(levelToExclude, msg.LogLevelName);
+				Assert.NotEqual(levelToExclude, msg[0].LogLevel.Name);
+				Assert.NotEqual(levelToExclude, msg[0].LogLevelName);
 				callbackInvokedCount++;
 				return true;
 			});

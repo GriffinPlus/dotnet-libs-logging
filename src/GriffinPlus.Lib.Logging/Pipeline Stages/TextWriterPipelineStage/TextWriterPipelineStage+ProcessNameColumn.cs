@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The process name column.
 		/// </summary>
-		class ProcessNameColumn : ColumnBase
+		sealed class ProcessNameColumn : ColumnBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ProcessNameColumn"/> class.

@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -20,6 +20,19 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public interface IProcessingPipelineStage
 	{
+		/// <summary>
+		/// Initializes the processing pipeline stage and all following stages.
+		/// This method is called by the logging subsystem and should not be called explicitly.
+		/// </summary>
+		void Initialize();
+
+		/// <summary>
+		/// Shuts the processing pipeline stage and all following stages down gracefully.
+		/// This method is called by the logging subsystem and should not be called explicitly.
+		/// This method must not throw exceptions.
+		/// </summary>
+		void Shutdown();
+
 		/// <summary>
 		/// Gets all pipeline stages following the current stage (including the current one).
 		/// </summary>

@@ -12,60 +12,52 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Interface log messages must implement.
+	/// Interface all log messages implement.
 	/// </summary>
 	public interface ILogMessage
 	{
 		/// <summary>
-		/// Gets the context of the log message
-		/// (transports custom information as the log message travels through the processing pipeline)
-		/// </summary>
-		IDictionary<string,object> Context { get; }
-
-		/// <summary>
-		/// Time the message was written to the log.
+		/// Gets the date/time the message was written to the log.
 		/// </summary>
 		DateTimeOffset Timestamp { get; }
 
 		/// <summary>
-		/// Timestamp for relative time measurements with high accuracy
-		/// (see <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/>).
+		/// Gets the timestamp for relative time measurements with high accuracy (see <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/>).
 		/// </summary>
 		long HighAccuracyTimestamp { get; }
 
 		/// <summary>
-		/// Name of the log level associated with the current log message.
+		/// Gets the name of the log level associated with the current log message.
 		/// </summary>
 		string LogLevelName { get; }
 
 		/// <summary>
-		/// Name of the log writer associated with the current log message.
+		/// Gets the name of the log writer associated with the current log message.
 		/// </summary>
 		string LogWriterName { get; }
 
 		/// <summary>
-		/// The id of the process emitting the log message.
+		/// Gets the id of the process emitting the log message.
 		/// </summary>
 		int ProcessId { get; }
 
 		/// <summary>
-		/// The name of the process emitting the log message.
+		/// Gets the name of the process emitting the log message.
 		/// </summary>
 		string ProcessName { get; }
 
 		/// <summary>
-		/// The name of the application emitting the log message
+		/// Gets the name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </summary>
 		string ApplicationName { get; }
 
 		/// <summary>
-		/// The actual text the log message is about.
+		/// Get the actual text the log message is about.
 		/// </summary>
 		string Text { get; }
 
