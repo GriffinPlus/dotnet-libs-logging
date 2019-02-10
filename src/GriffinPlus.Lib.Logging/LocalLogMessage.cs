@@ -66,7 +66,7 @@ namespace GriffinPlus.Lib.Logging
 		public IDictionary<string,object> Context { get; } = new Dictionary<string, object>();
 
 		/// <summary>
-		/// Gets the time the message was written to the log.
+		/// Gets the date/time the message was written to the log.
 		/// </summary>
 		public DateTimeOffset Timestamp { get; private set; }
 

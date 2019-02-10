@@ -57,7 +57,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Message Properties
 
 		/// <summary>
-		/// Gets the time the message was written to the log.
+		/// Gets the date/time the message was written to the log.
 		/// </summary>
 		public DateTimeOffset Timestamp { get; private set; }
 
