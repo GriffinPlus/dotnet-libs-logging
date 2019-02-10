@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -40,7 +40,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			var config = new FileBackedLogConfiguration(); // default location
 			// var config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
 			Log.Configuration = config;
-			
+
 			// save configuration to disk, if it does not exist, yet
 			if (!File.Exists(config.FullPath)) {
 				config.Save();
@@ -52,7 +52,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// configure the log message processing pipeline and arrange the columns to print
 			// (only one stage here, you can use FollowedBy() to append another stage to this one)
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
-				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff")      // use custom timestamp format
+				.WithQueue(500, true)                     // buffer up to 500 messages and discard messages, if the queue is full
+				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff") // use custom timestamp format
 				.WithProcessId()
 				.WithProcessName()
 				.WithApplicationName()

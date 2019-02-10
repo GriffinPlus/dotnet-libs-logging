@@ -11,17 +11,20 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using GriffinPlus.Lib.Threading;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
 	/// A log message processing pipeline stage that logs messages in a tabular format (thread-safe).
 	/// </summary>
-	public abstract partial class TextWriterPipelineStage<STAGE> : ProcessingPipelineStage<STAGE>
+	public abstract partial class TextWriterPipelineStage<STAGE> : AsyncProcessingPipelineStage<STAGE>
 		where STAGE: TextWriterPipelineStage<STAGE>
 	{
 		private List<ColumnBase> mColumns = new List<ColumnBase>();
@@ -38,29 +41,22 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Processes the specified log messages.
+		/// Processes the specified log messages asynchronously (in the context of the asynchronous process thread of the pipeline stage).
 		/// </summary>
 		/// <param name="messages">Messages to process.</param>
-		/// <returns>
-		/// true to call following processing stages;
-		/// false to stop processing.
-		/// </returns>
+		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		/// <remarks>
-		/// Do not keep a reference to the passed log message objects as they return to a pool.
-		/// Log message objects are re-used to reduce garbage collection pressure.
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
+		/// need the message any more.
 		/// </remarks>
-		protected override bool ProcessCore(LocalLogMessage[] messages)
+		protected override async Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)
 		{
-			lock (Sync)
-			{
-				for (int i = 0; i < messages.Length; i++) {
-					mOutputBuilder.Clear();
-					FormatOutput(messages[i], mOutputBuilder);
-					EmitOutput(messages[i], mOutputBuilder);
-				}
+			for (int i = 0; i < messages.Length; i++) {
+				mOutputBuilder.Clear();
+				FormatOutput(messages[i], mOutputBuilder);
+				await EmitOutputAsync(messages[i], mOutputBuilder, cancellationToken);
 			}
-
-			return true; // pass the messages to the next stages
 		}
 
 		/// <summary>
@@ -95,11 +91,12 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Emits the formatted log message.
-		/// This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineStage{T}.Sync"/>).
+		/// This method is called from within the pipeline stage lock (<see cref="AsyncProcessingPipelineStage{T}.Sync"/>).
 		/// </summary>
 		/// <param name="message">The current log message.</param>
 		/// <param name="output">The formatted output of the current log message.</param>
-		protected abstract void EmitOutput(LocalLogMessage message, StringBuilder output);
+		/// <param name="cancellationToken">Cancellation token that is signalled when the pipeline stage is shutting down.</param>
+		protected abstract Task EmitOutputAsync(LocalLogMessage message, StringBuilder output, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Gets or sets the format provider to use when formatting log messages.

@@ -13,11 +13,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -49,13 +45,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ApplicationName
 		{
-			get
-			{
-				return mApplicationName;
-			}
-
-			set
-			{
+			get { return mApplicationName; }
+			set {
 				if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Invalid application name.");
 				mApplicationName = value;
 			}

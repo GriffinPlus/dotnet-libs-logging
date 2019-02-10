@@ -5,7 +5,7 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <OmitDocumentationFile>true</OmitDocumentationFile>
-    <RootNamespace>Tests</RootNamespace>
+    <RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

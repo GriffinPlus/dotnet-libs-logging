@@ -11,7 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using GriffinPlus.Lib.Threading;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,23 +20,14 @@ namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
 	/// Base class for stages in the log message processing pipeline.
+	/// Messages are always processed in the context of the thread writing the message.
+	/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
 	/// </summary>
 	public abstract class ProcessingPipelineStage<T> : IProcessingPipelineStage
 		where T: ProcessingPipelineStage<T>
 	{
-		// generic
-		private bool mIsInitialized = false;
+		private bool mInitialized = false;
 		private IProcessingPipelineStage[] mNextStages;
-		private ThreadLocal<LocalLogMessage[]> mLogMessagesBeingProcessed = new ThreadLocal<LocalLogMessage[]>(() => new LocalLogMessage[1]);
-
-		// asynchronous processing stuff
-		private Thread mAsyncProcessingThread;
-		private ManualResetEventSlim mTriggerAsyncProcessingEvent;
-		private LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
-		private bool mDiscardIfAsyncProcessingQueueFull = false;
-		private bool mAsyncProcessingEnabled = false;
-		private int mAsyncProcessingQueueSize = 1;
-		private bool mTerminateProcessingThread = false;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.
@@ -45,24 +35,6 @@ namespace GriffinPlus.Lib.Logging
 		public ProcessingPipelineStage()
 		{
 			mNextStages = new IProcessingPipelineStage[0];
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class by copying another instance.
-		/// </summary>
-		/// <param name="other">Instance to copy.</param>
-		protected ProcessingPipelineStage(T other)
-		{
-			mNextStages = new IProcessingPipelineStage[0];
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class (for internal use only).
-		/// </summary>
-		/// <param name="nextStages">The next processing pipeline stages.</param>
-		private ProcessingPipelineStage(IProcessingPipelineStage[] nextStages)
-		{
-			mNextStages = nextStages;
 		}
 
 		/// <summary>
@@ -77,7 +49,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public bool IsInitialized
 		{
-			get { lock (Sync) return mIsInitialized; }
+			get { lock (Sync) return mInitialized; }
 		}
 
 		/// <summary>
@@ -88,37 +60,24 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (Sync)
 			{
-				if (mIsInitialized) {
+				if (mInitialized) {
 					throw new InvalidOperationException("The pipeline stage is already initialized.");
 				}
 
 				try
 				{
-					// set up asynchronous processing, if configured
-					if (mAsyncProcessingEnabled)
-					{
-						mAsyncProcessingMessageStack = new LocklessStack<LocalLogMessage>(mAsyncProcessingQueueSize, false);
-						mTriggerAsyncProcessingEvent = new ManualResetEventSlim(false);
-
-						// start processing thread as foreground thread to force the user to explicitly
-						// shut the logging subsystem down and allow pipeline stages to flush their pipelines
-						mAsyncProcessingThread = new Thread(ProcessingThreadProc);
-						mAsyncProcessingThread.Name = $"Log Message Processing Thread ({GetType().FullName})";
-						mAsyncProcessingThread.Start();
-					}
-
 					// perform pipeline stage specific initializations
-					InitializeCore();
+					OnInitialize();
 
-					// Initialize the following pipeline stages as well. This must be done within the pipeline lock of the current
-					// stage to ensure that all pipeline stages or none at all are initialized.
+					// initialize the following pipeline stages as well (must be done within the pipeline lock of the
+					// current stage to ensure that all pipeline stages or none at all are initialized)
 					var nextStages = Volatile.Read(ref mNextStages);
 					for (int i = 0; i < nextStages.Length; i++) {
 						nextStages[i].Initialize();
 					}
 
 					// the pipeline stage is initialized now
-					mIsInitialized = true;
+					mInitialized = true;
 				}
 				catch (Exception)
 				{
@@ -130,9 +89,10 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// When overridden in a derived class, performs pipeline stage specific initialization tasks that must run when
-		/// the pipeline stage is attached to the logging subsystem. This method is called from within the pipeline stage lock.
+		/// the pipeline stage is attached to the logging subsystem. This method is called from within the pipeline stage
+		/// lock (<see cref="Sync"/>).
 		/// </summary>
-		protected virtual void InitializeCore()
+		protected virtual void OnInitialize()
 		{
 
 		}
@@ -152,39 +112,24 @@ namespace GriffinPlus.Lib.Logging
 					nextStages[i].Shutdown();
 				}
 
-				// tell the processing thread to terminate
-				// (it will try to process the last messages and exit)
-				mTerminateProcessingThread = true;
-				mTriggerAsyncProcessingEvent?.Set();
-				mAsyncProcessingThread?.Join();
-
-				// the stack should be empty now...
-				Debug.Assert(mAsyncProcessingMessageStack == null || mAsyncProcessingMessageStack.UsedItemCount == 0);
-
-				// clean up processing thread related stuff
-				mTriggerAsyncProcessingEvent?.Dispose();
-				mTriggerAsyncProcessingEvent = null;
-				mAsyncProcessingThread = null;
-				mAsyncProcessingMessageStack = null;
-
 				// perform pipeline stage specific cleanup
 				try {
-					ShutdownCore();
+					OnShutdown();
 				} catch (Exception ex) {
-					Debug.Fail("ShutdownCore() failed.", ex.ToString());
+					Debug.Fail("OnShutdown() failed.", ex.ToString());
 				}
 
 				// shutting down completed
-				mIsInitialized = false;
+				mInitialized = false;
 			}
 		}
 
 		/// <summary>
 		/// When overridden in a derived class, performs pipeline stage specific cleanup tasks that must run when the
 		/// pipeline stage is about to be detached from the logging subsystem. This method is called from within the
-		/// pipeline stage lock.
+		/// pipeline stage lock (<see cref="Sync"/>).
 		/// </summary>
-		protected internal virtual void ShutdownCore()
+		protected internal virtual void OnShutdown()
 		{
 
 		}
@@ -247,48 +192,18 @@ namespace GriffinPlus.Lib.Logging
 			return new Dictionary<string, string>();
 		}
 
-		#endregion
-
-		#region Processing Log Messages
-
 		/// <summary>
-		/// Processes the specified log message calling the <see cref="ProcessCore(LocalLogMessage[])"/> method
-		/// and passes the log message to the next processing stages, if <see cref="ProcessCore(LocalLogMessage[])"/>
-		/// returns with <c>true</c>.
+		/// Processes the specified log message synchronously and passes the log message to the next processing stages,
+		/// if <see cref="ProcessSync(LocalLogMessage)"/> returns <c>true</c>.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		public void Process(LocalLogMessage message)
 		{
-			if (!mIsInitialized) {
+			if (!mInitialized) {
 				throw new InvalidOperationException("The pipeline stage is not initialized. Ensure it is attached to the logging subsystem.");
 			}
 
-			bool proceed = true;
-
-			if (mAsyncProcessingThread != null)
-			{
-				// asynchronous processing
-				message.AddRef();
-				if (mDiscardIfAsyncProcessingQueueFull)
-				{
-					bool pushed = mAsyncProcessingMessageStack.Push(message);
-					if (pushed) mTriggerAsyncProcessingEvent.Set();
-				}
-				else
-				{
-					while (!mAsyncProcessingMessageStack.Push(message)) Thread.Sleep(10);
-					mTriggerAsyncProcessingEvent.Set();
-				}
-			}
-			else
-			{
-				// synchronous processing
-				var messages = mLogMessagesBeingProcessed.Value; // thread-local to reduce gc pressure
-				messages[0] = message;
-				proceed = ProcessCore(messages);
-			}
-
-			if (proceed)
+			if (ProcessSync(message))
 			{
 				// pass log message to the next pipeline stages
 				var stages = Volatile.Read(ref mNextStages);
@@ -299,89 +214,22 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// When overridden in a derived class, processes the specified log messages.
+		/// When overridden in a derived class, processes the specified log message synchronously
+		/// (is executed in the context of the thread writing the message).
 		/// </summary>
-		/// <param name="messages">Messages to process.</param>
+		/// <param name="message">Message to process.</param>
 		/// <returns>
-		/// true to call the following processing stages;
-		/// false to stop processing.
+		/// true to pass the message to the following pipeline stages;
+		/// otherwise false.
 		/// </returns>
 		/// <remarks>
-		/// Call <see cref="LogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LogMessage.Release"/> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
-		protected abstract bool ProcessCore(LocalLogMessage[] messages);
-
-		/// <summary>
-		/// Enables processing log messages asynchronously.
-		/// The following stages are always called, independent of the return value of <see cref="ProcessCore(LocalLogMessage[])"/>.
-		/// </summary>
-		/// <param name="queueSize">Maximum number of messages that should be queued for asynchronous processing.</param>
-		/// <param name="discardIfQueueFull">
-		/// true to discard messages, if the queue is full (recommended);
-		/// false to block until the message is processed (lossless-mode, not recommended).
-		/// </param>
-		/// <returns>The updated pipeline stage.</returns>
-		public T UseAsynchronousProcessing(int queueSize = 500, bool discardIfQueueFull = true)
+		protected virtual bool ProcessSync(LocalLogMessage message)
 		{
-			if (queueSize < 1) throw new ArgumentException("The queue size must be positive.", nameof(queueSize));
-
-			lock (Sync)
-			{
-				if (mIsInitialized) {
-					throw new InvalidOperationException("The pipeline stage is already attached to the logging subsystem. Please configure it before attaching it.");
-				}
-
-				mAsyncProcessingEnabled = true;
-				mAsyncProcessingQueueSize = queueSize;
-				mDiscardIfAsyncProcessingQueueFull = discardIfQueueFull;
-			}
-
-			return this as T;
-		}
-
-		/// <summary>
-		/// The entry point of the thread processing the log messages asynchronously.
-		/// </summary>
-		private void ProcessingThreadProc()
-		{
-			while (true)
-			{
-				mTriggerAsyncProcessingEvent.Wait();
-				mTriggerAsyncProcessingEvent.Reset();
-				ProcessQueuedMessages();
-
-				// abort, if requested
-				if (mTerminateProcessingThread) {
-					ProcessQueuedMessages(); // some messages might have arrived between last processing and requesting shutdown...
-					break;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Processes log messages that have been buffered in the <see cref="mAsyncProcessingMessageStack"/> (for asynchronous processing only).
-		/// </summary>
-		private void ProcessQueuedMessages()
-		{
-			LocalLogMessage[] messages = mAsyncProcessingMessageStack.FlushAndReverse();
-			if (messages != null)
-			{
-				try
-				{
-					ProcessCore(messages);
-				}
-				catch (Exception ex)
-				{
-					Debug.Fail("ProcessCore() threw an unhandled exception.", ex.ToString());
-				}
-
-				// release message to let them return to the pool
-				for (int i = 0; i < messages.Length; i++) {
-					messages[i].Release();
-				}
-			}
+			return true;
 		}
 
 		#endregion

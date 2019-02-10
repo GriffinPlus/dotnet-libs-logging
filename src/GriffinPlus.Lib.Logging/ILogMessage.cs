@@ -16,48 +16,49 @@ using System;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Interface all log messages implement.
+	/// Interface log messages must implement.
 	/// </summary>
 	public interface ILogMessage
 	{
 		/// <summary>
-		/// Gets the date/time the message was written to the log.
+		/// Time the message was written to the log.
 		/// </summary>
 		DateTimeOffset Timestamp { get; }
 
 		/// <summary>
-		/// Gets the timestamp for relative time measurements with high accuracy (see <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/>).
+		/// Timestamp for relative time measurements with high accuracy
+		/// (see <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/>).
 		/// </summary>
 		long HighAccuracyTimestamp { get; }
 
 		/// <summary>
-		/// Gets the name of the log level associated with the current log message.
+		/// Name of the log level associated with the current log message.
 		/// </summary>
 		string LogLevelName { get; }
 
 		/// <summary>
-		/// Gets the name of the log writer associated with the current log message.
+		/// Name of the log writer associated with the current log message.
 		/// </summary>
 		string LogWriterName { get; }
 
 		/// <summary>
-		/// Gets the id of the process emitting the log message.
+		/// The id of the process emitting the log message.
 		/// </summary>
 		int ProcessId { get; }
 
 		/// <summary>
-		/// Gets the name of the process emitting the log message.
+		/// The name of the process emitting the log message.
 		/// </summary>
 		string ProcessName { get; }
 
 		/// <summary>
-		/// Gets the name of the application emitting the log message
+		/// The name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </summary>
 		string ApplicationName { get; }
 
 		/// <summary>
-		/// Get the actual text the log message is about.
+		/// The actual text the log message is about.
 		/// </summary>
 		string Text { get; }
 

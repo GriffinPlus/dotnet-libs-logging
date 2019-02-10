@@ -14,6 +14,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -52,20 +54,21 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Emits the formatted log message.
-		/// This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineStage{T}.Sync"/>).
+		/// This method is called from within the pipeline stage lock (<see cref="AsyncProcessingPipelineStage{T}.Sync"/>).
 		/// </summary>
 		/// <param name="message">The current log message.</param>
 		/// <param name="output">The formatted output of the current log message.</param>
-		protected override void EmitOutput(LocalLogMessage message, StringBuilder output)
+		/// <param name="cancellationToken">Cancellation token that is signalled when the pipeline stage is shutting down.</param>
+		protected override async Task EmitOutputAsync(LocalLogMessage message, StringBuilder output, CancellationToken cancellationToken)
 		{
 			if (!mStreamByLevel.TryGetValue(message.LogLevel, out ConsoleOutputStream stream)) {
 				stream = mDefaultStream;
 			}
 
 			if (stream == ConsoleOutputStream.Stdout) {
-				Console.Out.Write(output);
+				await Console.Out.WriteAsync(output.ToString());
 			} else {
-				Console.Error.Write(output);
+				await Console.Error.WriteAsync(output.ToString());
 			}
 		}
 

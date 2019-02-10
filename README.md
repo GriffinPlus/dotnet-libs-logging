@@ -270,7 +270,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// configure the log message processing pipeline and arrange the columns to print
 			// (only one stage here, you can use FollowedBy() to append another stage to this one)
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
-				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff")      // use custom timestamp format
+				.WithQueue(500, true)                       // buffer up to 500 messages and discard message, if the queue is full
+				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff")   // use custom timestamp format
 				.WithProcessId()
 				.WithProcessName()
 				.WithApplicationName()

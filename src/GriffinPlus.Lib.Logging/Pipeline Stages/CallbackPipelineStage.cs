@@ -12,6 +12,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -29,41 +31,44 @@ namespace GriffinPlus.Lib.Logging
 		/// true to call the following pipeline stages;
 		/// false to stop processing.
 		/// </returns>
-		public delegate bool ProcessingCallback(LocalLogMessage[] message);
+		public delegate bool ProcessingCallback(LocalLogMessage message);
 
 		/// <summary>
-		/// The message processing callback (always initialized).
+		/// The message processing callback.
 		/// </summary>
-		private ProcessingCallback mProcessingCallback;
+		private readonly ProcessingCallback mProcessingCallback;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="CallbackProcessingPipelineStage"/> class.
+		/// Initializes a new instance of the <see cref="AsyncCallbackProcessingPipelineStage"/> class.
 		/// </summary>
-		/// <param name="callback">Callback processing a log message traveling through the pipeline.</param>
+		/// <param name="processCallback">
+		/// Callback processing a log message traveling through the pipeline (may be null).
+		/// The callback is executed in the context of the thread writing the message.
+		/// </param>
 		/// <remarks>
-		/// Do not keep a reference to the passed log message object as it returns to a pool.
-		/// Log message objects are re-used to reduce garbage collection pressure.
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
+		/// need the message any more.
 		/// </remarks>
-		public CallbackProcessingPipelineStage(ProcessingCallback callback)
+		public CallbackProcessingPipelineStage(ProcessingCallback processCallback)
 		{
-			mProcessingCallback = callback ?? throw new ArgumentNullException(nameof(callback));
+			mProcessingCallback = processCallback;
 		}
 
 		/// <summary>
-		/// Processes the specified log messages.
+		/// Processes the specified log message synchronously (is executed in the context of the thread writing the message).
 		/// </summary>
-		/// <param name="messages">Messages to process.</param>
-		/// <returns>
-		/// true to call following processing stages;
-		/// false to stop processing.
-		/// </returns>
+		/// <param name="message">Message to process.</param>
 		/// <remarks>
-		/// Do not keep a reference to the passed log message objecst as they return to a pool.
-		/// Log message objects are re-used to reduce garbage collection pressure.
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
+		/// need the message any more.
 		/// </remarks>
-		protected override bool ProcessCore(LocalLogMessage[] messages)
+		protected override bool ProcessSync(LocalLogMessage message)
 		{
-			return mProcessingCallback(messages);
+			if (mProcessingCallback != null) return mProcessingCallback(message);
+			else                             return base.ProcessSync(message);
 		}
+
 	}
 }

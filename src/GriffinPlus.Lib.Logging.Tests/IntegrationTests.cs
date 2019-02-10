@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,10 +11,9 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using GriffinPlus.Lib.Logging;
 using Xunit;
 
-namespace IntegrationTests
+namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
 	/// Tests targetting the interaction of multiple classes.
@@ -67,7 +66,7 @@ namespace IntegrationTests
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
-				Assert.True(msg[0].LogLevel.Id <= baselevel.Id);
+				Assert.True(msg.LogLevel.Id <= baselevel.Id);
 				callbackInvokedCount++;
 				return true;
 			});
@@ -124,13 +123,12 @@ namespace IntegrationTests
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
-				Assert.Equal(TestMessage, msg[0].Text);
-				Assert.Equal(levelToInclude, msg[0].LogLevel.Name);
-				Assert.Equal(levelToInclude, msg[0].LogLevelName);
+				Assert.Equal(TestMessage, msg.Text);
+				Assert.Equal(levelToInclude, msg.LogLevel.Name);
+				Assert.Equal(levelToInclude, msg.LogLevelName);
 				callbackInvokedCount++;
 				return true;
 			});
-
 
 			// write a message using all log messages
 			LogWriter writer = Log.GetWriter(LogWriterName);
@@ -182,8 +180,8 @@ namespace IntegrationTests
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
-				Assert.NotEqual(levelToExclude, msg[0].LogLevel.Name);
-				Assert.NotEqual(levelToExclude, msg[0].LogLevelName);
+				Assert.NotEqual(levelToExclude, msg.LogLevel.Name);
+				Assert.NotEqual(levelToExclude, msg.LogLevelName);
 				callbackInvokedCount++;
 				return true;
 			});

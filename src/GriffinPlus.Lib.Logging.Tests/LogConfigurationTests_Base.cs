@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,12 +11,10 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using GriffinPlus.Lib;
-using GriffinPlus.Lib.Logging;
 using System;
 using Xunit;
 
-namespace UnitTests
+namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
 	/// Common unit tests targetting the <see cref="LogConfiguration"/> and the <see cref="FileBackedLogConfiguration"/> class.

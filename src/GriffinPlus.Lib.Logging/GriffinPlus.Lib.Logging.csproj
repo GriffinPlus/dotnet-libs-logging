@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GriffinPlus.Lib.Common" Version="[0.3.0, 1.0)" />
+    <PackageReference Include="GriffinPlus.Lib.Common" Version="[0.4.0, 1.0)" />
   </ItemGroup>
 
 </Project>
