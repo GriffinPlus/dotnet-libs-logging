@@ -71,9 +71,8 @@ namespace GriffinPlus.Lib.Logging
 
 					// initialize the following pipeline stages as well (must be done within the pipeline lock of the
 					// current stage to ensure that all pipeline stages or none at all are initialized)
-					var nextStages = Volatile.Read(ref mNextStages);
-					for (int i = 0; i < nextStages.Length; i++) {
-						nextStages[i].Initialize();
+					for (int i = 0; i < mNextStages.Length; i++) {
+						mNextStages[i].Initialize();
 					}
 
 					// the pipeline stage is initialized now
@@ -107,9 +106,8 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync)
 			{
 				// shut down the following pipeline stages first
-				var nextStages = Volatile.Read(ref mNextStages);
-				for (int i = 0; i < nextStages.Length; i++) {
-					nextStages[i].Shutdown();
+				for (int i = 0; i < mNextStages.Length; i++) {
+					mNextStages[i].Shutdown();
 				}
 
 				// perform pipeline stage specific cleanup
@@ -139,11 +137,25 @@ namespace GriffinPlus.Lib.Logging
 		#region Next Pipeline Stages
 
 		/// <summary>
-		/// Gets processing pipeline stages to call after the current stage has completed processing.
+		/// Gets or sets processing pipeline stages to called after the current stage has completed processing.
 		/// </summary>
-		protected IProcessingPipelineStage[] NextStages
+		public IProcessingPipelineStage[] NextStages
 		{
-			get { return Volatile.Read(ref mNextStages); }
+			get
+			{
+				return mNextStages;
+			}
+
+			set
+			{
+				if (value == null) throw new ArgumentNullException();
+
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mNextStages = value;
+				}
+			}
 		}
 
 		/// <summary>
@@ -152,30 +164,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="stages">Set to add the pipeline stages to.</param>
 		public void GetAllStages(HashSet<IProcessingPipelineStage> stages)
 		{
-			stages.Add(this);
-			var nextStages = Volatile.Read(ref mNextStages);
-			for (int i = 0; i < nextStages.Length; i++) {
-				nextStages[i].GetAllStages(stages);
-			}
-		}
-
-		/// <summary>
-		/// Links the specified pipeline stages to the current stage.
-		/// </summary>
-		/// <param name="nextStages">Pipeline stages to pass log messages to, when the current stage has completed.</param>
-		/// <returns>The updated pipeline stage.</returns>
-		public T FollowedBy(params IProcessingPipelineStage[] nextStages)
-		{
 			lock (Sync)
 			{
-				int count = NextStages.Length + nextStages.Length;
-				IProcessingPipelineStage[] newNextStages = new IProcessingPipelineStage[count];
-				Array.Copy(NextStages, newNextStages, NextStages.Length);
-				Array.Copy(nextStages, 0, newNextStages, NextStages.Length, nextStages.Length);
-				Volatile.Write(ref mNextStages, newNextStages);
+				stages.Add(this);
+				for (int i = 0; i < mNextStages.Length; i++) {
+					mNextStages[i].GetAllStages(stages);
+				}
 			}
-
-			return this as T;
 		}
 
 		#endregion
@@ -206,9 +201,8 @@ namespace GriffinPlus.Lib.Logging
 			if (ProcessSync(message))
 			{
 				// pass log message to the next pipeline stages
-				var stages = Volatile.Read(ref mNextStages);
-				for (int i = 0; i < stages.Length; i++) {
-					stages[i].Process(message);
+				for (int i = 0; i < mNextStages.Length; i++) {
+					mNextStages[i].Process(message);
 				}
 			}
 		}
@@ -230,6 +224,20 @@ namespace GriffinPlus.Lib.Logging
 		protected virtual bool ProcessSync(LocalLogMessage message)
 		{
 			return true;
+		}
+
+		#endregion
+
+		#region Helpers
+
+		/// <summary>
+		/// Throws an <see cref="InvalidOperationException"/>, if the pipeline stage is already initialized (attached to the logging subsystem).
+		/// </summary>
+		protected void EnsureNotAttachedToLoggingSubsystem()
+		{
+			if (mInitialized) {
+				throw new InvalidOperationException("The pipeline stage is already initialized. Configure the stage before attaching it to the logging subsystem.");
+			}
 		}
 
 		#endregion

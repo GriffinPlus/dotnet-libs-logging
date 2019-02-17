@@ -11,10 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>

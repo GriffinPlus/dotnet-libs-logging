@@ -11,7 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using GriffinPlus.Lib.Threading;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -30,9 +29,10 @@ namespace GriffinPlus.Lib.Logging
 		private List<ColumnBase> mColumns = new List<ColumnBase>();
 		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
 		private StringBuilder mOutputBuilder = new StringBuilder();
+		private bool mDefaultColumnConfiguration = true;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TextWriterPipelineStage{T}"/> class.
+		/// Initializes a new instance of the <see cref="TextWriterPipelineStage{STAGE}"/> class.
 		/// </summary>
 		public TextWriterPipelineStage()
 		{
@@ -104,206 +104,159 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public IFormatProvider FormatProvider
 		{
-			get { lock (Sync) return mFormatProvider;  }
-			set { lock (Sync) mFormatProvider = value; }
+			get
+			{
+				lock (Sync) return mFormatProvider;
+			}
+
+			set
+			{
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mFormatProvider = value;
+				}
+			}
 		}
 
 		/// <summary>
-		/// Enables the timestamp column and sets the format of the timestamps written to the console
+		/// Adds a timestamp column and sets the format of the timestamps written to the console
 		/// (default: "u", conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ)
 		/// </summary>
 		/// <param name="format">
 		/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx" for details).
 		/// </param>
-		/// <returns>The modified pipeline stage.</returns>
-		public STAGE WithTimestamp(string format = "u")
+		public void AddTimestampColumn(string format = "u")
 		{
 			if (format == null) throw new ArgumentNullException(nameof(format));
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
 
 			lock (Sync)
 			{
-				int index = mColumns.FindIndex(x => x is TimestampColumn);
-				if (index < 0)
-				{
-					// column does not exist, yet
-					// => append it...
-					TimestampColumn column = new TimestampColumn(this as STAGE, format);
-					AppendColumn(column);
-				}
-				else
-				{
-					// column exists already
-					// => update and push to the end...
-					TimestampColumn column = mColumns[index] as TimestampColumn;
-					column.TimestampFormat = format;
-					MoveColumnToEnd(index);
-				}
-			}
+				EnsureNotAttachedToLoggingSubsystem();
 
-			return this as STAGE;
+				if (mDefaultColumnConfiguration) {
+					mColumns.Clear();
+					mDefaultColumnConfiguration = false;
+				}
+
+				TimestampColumn column = new TimestampColumn(this as STAGE, format);
+				AppendColumn(column);
+			}
 		}
 
 		/// <summary>
-		/// Enables the 'process id' column.
+		/// Adds a column showing the id of the process that has written a log message.
 		/// </summary>
-		/// <returns>The modified pipeline stage.</returns>
-		public STAGE WithProcessId()
+		public void AddProcessIdColumn()
 		{
 			lock (Sync)
 			{
-				int index = mColumns.FindIndex(x => x is ProcessIdColumn);
-				if (index < 0)
-				{
-					// column does not exist, yet
-					// => append it...
-					ProcessIdColumn column = new ProcessIdColumn(this as STAGE);
-					AppendColumn(column);
-				}
-				else
-				{
-					// column exists already
-					// => update and push to the end...
-					MoveColumnToEnd(index);
-				}
-			}
+				EnsureNotAttachedToLoggingSubsystem();
 
-			return this as STAGE;
+				if (mDefaultColumnConfiguration) {
+					mColumns.Clear();
+					mDefaultColumnConfiguration = false;
+				}
+
+				ProcessIdColumn column = new ProcessIdColumn(this as STAGE);
+				AppendColumn(column);
+			}
 		}
 
 		/// <summary>
-		/// Enables the 'process name' column.
+		/// Adds a column showing the name of the process that has written a log message.
 		/// </summary>
-		/// <returns>The modified pipeline stage.</returns>
-		public STAGE WithProcessName()
+		public void AddProcessNameColumn()
 		{
 			lock (Sync)
 			{
-				int index = mColumns.FindIndex(x => x is ProcessNameColumn);
-				if (index < 0)
-				{
-					// column does not exist, yet
-					// => append it...
-					ProcessNameColumn column = new ProcessNameColumn(this as STAGE);
-					AppendColumn(column);
-				}
-				else
-				{
-					// column exists already
-					// => update and push to the end...
-					MoveColumnToEnd(index);
-				}
-			}
+				EnsureNotAttachedToLoggingSubsystem();
 
-			return this as STAGE;
+				if (mDefaultColumnConfiguration) {
+					mColumns.Clear();
+					mDefaultColumnConfiguration = false;
+				}
+
+				ProcessNameColumn column = new ProcessNameColumn(this as STAGE);
+				AppendColumn(column);
+			}
 		}
 
 		/// <summary>
-		/// Enables the 'application name' column.
+		/// Adds a column showing the name of the application that has written a log message.
 		/// </summary>
-		/// <returns>The modified pipeline stage.</returns>
-		public STAGE WithApplicationName()
+		public void AddApplicationNameColumn()
 		{
 			lock (Sync)
 			{
-				int index = mColumns.FindIndex(x => x is ApplicationNameColumn);
-				if (index < 0)
-				{
-					// column does not exist, yet
-					// => append it...
-					ApplicationNameColumn column = new ApplicationNameColumn(this as STAGE);
-					AppendColumn(column);
-				}
-				else
-				{
-					// column exists already
-					// => update and push to the end...
-					MoveColumnToEnd(index);
-				}
-			}
+				EnsureNotAttachedToLoggingSubsystem();
 
-			return this as STAGE;
+				if (mDefaultColumnConfiguration) {
+					mColumns.Clear();
+					mDefaultColumnConfiguration = false;
+				}
+
+				ApplicationNameColumn column = new ApplicationNameColumn(this as STAGE);
+				AppendColumn(column);
+			}
 		}
 
 		/// <summary>
-		/// Enables the 'log writer' column.
+		/// Adds a column showing the name of the log writer that was used to write a log message.
 		/// </summary>
-		/// <returns>The modified pipeline stage.</returns>
-		public STAGE WithLogWriterName()
+		public void AddLogWriterColumn()
 		{
 			lock (Sync)
 			{
-				int index = mColumns.FindIndex(x => x is LogWriterColumn);
-				if (index < 0)
-				{
-					// column does not exist, yet
-					// => append it...
-					LogWriterColumn column = new LogWriterColumn(this as STAGE);
-					AppendColumn(column);
-				}
-				else
-				{
-					// column exists already
-					// => update and push to the end...
-					MoveColumnToEnd(index);
-				}
-			}
+				EnsureNotAttachedToLoggingSubsystem();
 
-			return this as STAGE;
+				if (mDefaultColumnConfiguration) {
+					mColumns.Clear();
+					mDefaultColumnConfiguration = false;
+				}
+
+				LogWriterColumn column = new LogWriterColumn(this as STAGE);
+				AppendColumn(column);
+			}
 		}
 
 		/// <summary>
-		/// Enables the 'log level' column.
+		/// Adds a column showing the name of the log level that was used to write a log message.
 		/// </summary>
-		/// <returns>The modified pipeline stage.</returns>
-		public STAGE WithLogLevel()
+		public void AddLogLevelColumn()
 		{
 			lock (Sync)
 			{
-				int index = mColumns.FindIndex(x => x is LogLevelColumn);
-				if (index < 0)
-				{
-					// column does not exist, yet
-					// => append it...
-					LogLevelColumn column = new LogLevelColumn(this as STAGE);
-					AppendColumn(column);
-				}
-				else
-				{
-					// column exists already
-					// => update and push to the end...
-					MoveColumnToEnd(index);
-				}
-			}
+				EnsureNotAttachedToLoggingSubsystem();
 
-			return this as STAGE;
+				if (mDefaultColumnConfiguration) {
+					mColumns.Clear();
+					mDefaultColumnConfiguration = false;
+				}
+
+				LogLevelColumn column = new LogLevelColumn(this as STAGE);
+				AppendColumn(column);
+			}
 		}
 
 		/// <summary>
-		/// Enables the 'message text' column.
+		/// Adds a column showing the message text.
 		/// </summary>
-		/// <returns>The modified pipeline stage.</returns>
-		public STAGE WithText()
+		public void AddTextColumn()
 		{
 			lock (Sync)
 			{
-				int index = mColumns.FindIndex(x => x is TextColumn);
-				if (index < 0)
-				{
-					// column does not exist, yet
-					// => append it...
-					TextColumn column = new TextColumn(this as STAGE);
-					AppendColumn(column);
-				}
-				else
-				{
-					// column exists already
-					// => update and push to the end...
-					MoveColumnToEnd(index);
-				}
-			}
+				EnsureNotAttachedToLoggingSubsystem();
 
-			return this as STAGE;
+				if (mDefaultColumnConfiguration) {
+					mColumns.Clear();
+					mDefaultColumnConfiguration = false;
+				}
+
+				TextColumn column = new TextColumn(this as STAGE);
+				AppendColumn(column);
+			}
 		}
 
 		/// <summary>
@@ -312,7 +265,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="column">Column to add.</param>
 		private void AppendColumn(ColumnBase column)
 		{
-			mColumns[mColumns.Count - 1].IsLastColumn = false;
+			if (mColumns.Count > 0) mColumns[mColumns.Count - 1].IsLastColumn = false;
 			mColumns.Add(column);
 			column.IsLastColumn = true;
 		}

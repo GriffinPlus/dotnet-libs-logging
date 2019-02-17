@@ -216,6 +216,8 @@ namespace GriffinPlus.Lib.Logging
 				}
 				finally
 				{
+					// let the message return to the pool
+					// (pipeline stages may have incremented the reference counter to delay this)
 					message.Release();
 				}
 			}

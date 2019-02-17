@@ -26,8 +26,8 @@ namespace GriffinPlus.Lib.Logging
 	/// that might block should be done asynchronously only to ensure that the thread writing a message is
 	/// not blocked.
 	/// </summary>
-	public abstract class AsyncProcessingPipelineStage<T> : IProcessingPipelineStage
-		where T: AsyncProcessingPipelineStage<T>
+	public abstract class AsyncProcessingPipelineStage<STAGE> : IProcessingPipelineStage
+		where STAGE: AsyncProcessingPipelineStage<STAGE>
 	{
 		private bool mInitialized = false;
 		private IProcessingPipelineStage[] mNextStages = new IProcessingPipelineStage[0];
@@ -90,9 +90,8 @@ namespace GriffinPlus.Lib.Logging
 
 					// Initialize the following pipeline stages as well. This must be done within the pipeline lock of the current
 					// stage to ensure that all pipeline stages or none at all are initialized.
-					var nextStages = Volatile.Read(ref mNextStages);
-					for (int i = 0; i < nextStages.Length; i++) {
-						nextStages[i].Initialize();
+					for (int i = 0; i < mNextStages.Length; i++) {
+						mNextStages[i].Initialize();
 					}
 
 					// The pipeline stage is initialized now.
@@ -126,9 +125,8 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync)
 			{
 				// shut down the following pipeline stages first
-				var nextStages = Volatile.Read(ref mNextStages);
-				for (int i = 0; i < nextStages.Length; i++) {
-					nextStages[i].Shutdown();
+				for (int i = 0; i < mNextStages.Length; i++) {
+					mNextStages[i].Shutdown();
 				}
 
 				// tell the processing thread to terminate
@@ -181,7 +179,21 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		protected IProcessingPipelineStage[] NextStages
 		{
-			get { return Volatile.Read(ref mNextStages); }
+			get
+			{
+				return mNextStages;
+			}
+
+			set
+			{
+				if (value == null) throw new ArgumentNullException();
+
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mNextStages = value;
+				}
+			}
 		}
 
 		/// <summary>
@@ -190,30 +202,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="stages">Set to add the pipeline stages to.</param>
 		public void GetAllStages(HashSet<IProcessingPipelineStage> stages)
 		{
-			stages.Add(this);
-			var nextStages = Volatile.Read(ref mNextStages);
-			for (int i = 0; i < nextStages.Length; i++) {
-				nextStages[i].GetAllStages(stages);
-			}
-		}
-
-		/// <summary>
-		/// Links the specified pipeline stages to the current stage.
-		/// </summary>
-		/// <param name="nextStages">Pipeline stages to pass log messages to, when the current stage has completed.</param>
-		/// <returns>The updated pipeline stage.</returns>
-		public T FollowedBy(params IProcessingPipelineStage[] nextStages)
-		{
 			lock (Sync)
 			{
-				int count = NextStages.Length + nextStages.Length;
-				IProcessingPipelineStage[] newNextStages = new IProcessingPipelineStage[count];
-				Array.Copy(NextStages, newNextStages, NextStages.Length);
-				Array.Copy(nextStages, 0, newNextStages, NextStages.Length, nextStages.Length);
-				Volatile.Write(ref mNextStages, newNextStages);
+				stages.Add(this);
+				for (int i = 0; i < mNextStages.Length; i++) {
+					mNextStages[i].GetAllStages(stages);
+				}
 			}
-
-			return this as T;
 		}
 
 		#endregion
@@ -237,7 +232,7 @@ namespace GriffinPlus.Lib.Logging
 		public bool DiscardMessagesIfQueueFull
 		{
 			get { lock (Sync) return mDiscardMessagesIfQueueFull; }
-			set { lock (Sync) WithQueue(mMessageQueueSize, value); }
+			set { lock (Sync) ConfigureQueue(mMessageQueueSize, value); }
 		}
 
 		/// <summary>
@@ -247,7 +242,7 @@ namespace GriffinPlus.Lib.Logging
 		public int MessageQueueSize
 		{
 			get { lock (Sync) return mMessageQueueSize; }
-			set { lock (Sync) WithQueue(value, mDiscardMessagesIfQueueFull); }
+			set { lock (Sync) ConfigureQueue(value, mDiscardMessagesIfQueueFull); }
 		}
 
 		/// <summary>
@@ -257,7 +252,10 @@ namespace GriffinPlus.Lib.Logging
 		public int ShutdownTimeout
 		{
 			get { lock (Sync) return mShutdownTimeout; }
-			set { WithShutdownTimeout(value); }
+			set { 
+				if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), "The shutdown timeout must be >= 0.");
+				lock (Sync) mShutdownTimeout = value;
+			}
 		}
 
 		/// <summary>
@@ -269,7 +267,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <c>false</c> to block the thread writing a message until the message is in the queue.
 		/// </param>
 		/// <returns>The pipeline stage itself.</returns>
-		public T WithQueue(int queueSize, bool discardMessageIfQueueFull)
+		public void ConfigureQueue(int queueSize, bool discardMessageIfQueueFull)
 		{
 			if (queueSize < 1) {
 				throw new ArgumentOutOfRangeException(nameof(MessageQueueSize), "The shutdown timeout must be >= 1.");
@@ -287,20 +285,6 @@ namespace GriffinPlus.Lib.Logging
 				mMessageQueueSize = queueSize;
 				mDiscardMessagesIfQueueFull = discardMessageIfQueueFull;
 			}
-
-			return this as T;
-		}
-
-		/// <summary>
-		/// Sets the shutdown timeout of the asynchronous processing thread (in ms).
-		/// </summary>
-		/// <param name="timeout">Timeout (in ms).</param>
-		/// <returns>The pipeline stage itself.</returns>
-		public T WithShutdownTimeout(int timeout)
-		{
-			if (timeout < 0) throw new ArgumentOutOfRangeException(nameof(timeout), "The shutdown timeout must be >= 0.");
-			lock (Sync) mShutdownTimeout = timeout;
-			return this as T;
 		}
 
 		#endregion
@@ -344,9 +328,8 @@ namespace GriffinPlus.Lib.Logging
 			if (proceed)
 			{
 				// pass log message to the next pipeline stages
-				var stages = Volatile.Read(ref mNextStages);
-				for (int i = 0; i < stages.Length; i++) {
-					stages[i].Process(message);
+				for (int i = 0; i < mNextStages.Length; i++) {
+					mNextStages[i].Process(message);
 				}
 			}
 		}
@@ -437,6 +420,20 @@ namespace GriffinPlus.Lib.Logging
 				for (int i = 0; i < messages.Length; i++) {
 					messages[i].Release();
 				}
+			}
+		}
+
+		#endregion
+
+		#region Helpers
+
+		/// <summary>
+		/// Throws an <see cref="InvalidOperationException"/>, if the pipeline stage is already initialized (attached to the logging subsystem).
+		/// </summary>
+		protected void EnsureNotAttachedToLoggingSubsystem()
+		{
+			if (mInitialized) {
+				throw new InvalidOperationException("The pipeline stage is already initialized. Configure the stage before attaching it to the logging subsystem.");
 			}
 		}
 

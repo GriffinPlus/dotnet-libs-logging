@@ -53,6 +53,41 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets or sets the default stream log messages are emitted to by default.
+		/// </summary>
+		public ConsoleOutputStream DefaultStream
+		{
+			get
+			{
+				lock (Sync) return mDefaultStream;
+			}
+
+			set
+			{
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mDefaultStream = value;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Configures the console writer to emit log messages written using the specified log level to the specified stream.
+		/// Only necessary, if the stream is different from the default stream (<see cref="DefaultStream"/>).
+		/// </summary>
+		/// <param name="level">Log level of messages to emit to the specified stream.</param>
+		/// <param name="stream">Output stream to emit log messages written using the specified log level to.</param>
+		public void MapLogLevelToStream(LogLevel level, ConsoleOutputStream stream)
+		{
+			lock (Sync)
+			{
+				EnsureNotAttachedToLoggingSubsystem();
+				mStreamByLevel[level] = stream;
+			}
+		}
+
+		/// <summary>
 		/// Emits the formatted log message.
 		/// This method is called from within the pipeline stage lock (<see cref="AsyncProcessingPipelineStage{T}.Sync"/>).
 		/// </summary>
@@ -70,67 +105,6 @@ namespace GriffinPlus.Lib.Logging
 			} else {
 				await Console.Error.WriteAsync(output.ToString());
 			}
-		}
-
-		/// <summary>
-		/// Configures the console writer to emit log messages to the specified stream by default.
-		/// Messages are emitted to stdout by default.
-		/// </summary>
-		/// <returns>The modified pipeline stage.</returns>
-		public ConsoleWriterPipelineStage UseDefaultStream(ConsoleOutputStream stream)
-		{
-			lock (Sync)
-			{
-				mDefaultStream = stream;
-			}
-
-			return this;
-		}
-
-		/// <summary>
-		/// Configures the console writer to emit log messages written using the specified log level to stdout.
-		/// </summary>
-		/// <param name="level">Log level of messages to emit to stdout.</param>
-		/// <returns>The modified pipeline stage.</returns>
-		public ConsoleWriterPipelineStage WithLogLevelToStdout(LogLevel level)
-		{
-			lock (Sync)
-			{
-				mStreamByLevel[level] = ConsoleOutputStream.Stdout;
-			}
-
-			return this;
-		}
-
-		/// <summary>
-		/// Configures the console writer to emit log messages written using the specified log level to stderr.
-		/// </summary>
-		/// <param name="level">Log level of messages to emit to stderr.</param>
-		/// <returns>The modified pipeline stage.</returns>
-		public ConsoleWriterPipelineStage WithLogLevelToStderr(LogLevel level)
-		{
-			lock (Sync)
-			{
-				mStreamByLevel[level] = ConsoleOutputStream.Stderr;
-			}
-
-			return this;
-		}
-
-		/// <summary>
-		/// Configures the console writer to emit log messages written using the specified log level to the specified stream.
-		/// </summary>
-		/// <param name="level">Log level of messages to emit to the specified stream.</param>
-		/// <param name="stream">Output stream to emit log messages written using the specified log level to.</param>
-		/// <returns>The modified pipeline stage.</returns>
-		public ConsoleWriterPipelineStage WithLogLevelToStream(LogLevel level, ConsoleOutputStream stream)
-		{
-			lock (Sync)
-			{
-				mStreamByLevel[level] = stream;
-			}
-
-			return this;
 		}
 
 	}

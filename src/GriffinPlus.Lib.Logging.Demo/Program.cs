@@ -57,7 +57,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 				.WithProcessId()
 				.WithProcessName()
 				.WithApplicationName()
-				.WithLogWriterName()
+				.WithLogWriter()
 				.WithLogLevel()
 				.WithText();
 

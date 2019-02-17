@@ -27,6 +27,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly bool mAppend;
 		private FileStream mFile;
 		private StreamWriter mWriter;
+		private bool mAutoFlush;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileWriterPipelineStage"/> class.
@@ -39,7 +40,24 @@ namespace GriffinPlus.Lib.Logging
 		public FileWriterPipelineStage(string path, bool append)
 		{
 			mPath = path;
-			mAppend = append; 
+			mAppend = append;
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the file is flushed every time after a message is written.
+		/// </summary>
+		public bool AutoFlush
+		{
+			get { lock (Sync) return mAutoFlush; }
+
+			set
+			{
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mAutoFlush = value;
+				}
+			}
 		}
 
 		/// <summary>
@@ -77,7 +95,7 @@ namespace GriffinPlus.Lib.Logging
 		protected override async Task EmitOutputAsync(LocalLogMessage message, StringBuilder output, CancellationToken cancellationToken)
 		{
 			await mWriter.WriteLineAsync(output.ToString());
-			await mWriter.FlushAsync();
+			if (mAutoFlush) await mWriter.FlushAsync();
 		}
 
 	}
