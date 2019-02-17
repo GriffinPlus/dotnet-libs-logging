@@ -33,6 +33,28 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
+		/// Call <see cref="LocalLogMessage.Init(DateTimeOffset, long, int, string, string, LogWriter, LogLevel, string)"/> to initialize it.
+		/// </summary>
+		/// <returns>The requested log message.</returns>
+		public LocalLogMessage GetUninitializedMessage()
+		{
+			LocalLogMessage message;
+
+			if (mMessages.TryTake(out message))
+			{
+				int refCount = message.AddRef();
+			}
+			else
+			{
+				message = new LocalLogMessage(this);
+			}
+
+			Debug.Assert(message.RefCount == 1);
+			return message;
+		}
+
+		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty.
 		/// </summary>
 		/// <param name="timestamp">Time the message was written to the log.</param>
@@ -60,18 +82,7 @@ namespace GriffinPlus.Lib.Logging
 			LogLevel logLevel,
 			string text)
 		{
-			LocalLogMessage message;
-
-			if (mMessages.TryTake(out message))
-			{
-				int refCount = message.AddRef();
-				Debug.Assert(refCount == 1);
-			}
-			else
-			{
-				message = new LocalLogMessage(this);
-			}
-
+			LocalLogMessage message = GetUninitializedMessage();
 			message.Init(timestamp, highAccuracyTimestamp, processId, processName, applicationName, logWriter, logLevel, text);
 			return message;
 		}
@@ -83,6 +94,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="message">Message to return to the pool.</param>
 		public void ReturnMessage(LocalLogMessage message)
 		{
+			Debug.Assert(message.RefCount == 0);
 			message.Reset();
 			mMessages.Add(message);
 		}

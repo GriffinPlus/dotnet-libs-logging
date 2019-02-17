@@ -29,7 +29,6 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly string sProcessName = Process.GetCurrentProcess().ProcessName;
 		private static readonly LocalLogMessagePool sLogMessagePool = new LocalLogMessagePool();
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
-		private static string sApplicationName = sProcessName;
 		private static ILogConfiguration sLogConfiguration;
 		private static volatile IProcessingPipelineStage sLogMessageProcessingPipeline;
 		private static LogWriter sLog = GetWriter("Logging");
@@ -59,8 +58,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public static string ApplicationName
 		{
-			get { return sApplicationName; }
-			set { lock (sSync) sApplicationName = value; }
+			get { return sLogConfiguration.ApplicationName; }
+			set { sLogConfiguration.ApplicationName = value; }
 		}
 
 		/// <summary>
@@ -198,17 +197,22 @@ namespace GriffinPlus.Lib.Logging
 				LocalLogMessage message = null;
 				try
 				{
-					message = sLogMessagePool.GetMessage(
-						DateTimeOffset.Now,
-						Stopwatch.GetTimestamp(),
-						sProcessId,
-						sProcessName,
-						sApplicationName,
-						writer,
-						level,
-						text);
+					message = sLogMessagePool.GetUninitializedMessage();
 
-					pipeline.Process(message);
+					lock (sSync) // needed to avoid race conditions causing timestamps getting mixed up
+					{
+						message.Init(
+							DateTimeOffset.Now,
+							Stopwatch.GetTimestamp(),
+							sProcessId,
+							sProcessName,
+							ApplicationName,
+							writer,
+							level,
+							text);
+
+						pipeline.Process(message);
+					}
 				}
 				finally
 				{
