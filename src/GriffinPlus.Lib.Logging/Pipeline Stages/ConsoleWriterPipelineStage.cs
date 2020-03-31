@@ -101,9 +101,9 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			if (stream == ConsoleOutputStream.Stdout) {
-				await Console.Out.WriteAsync(output.ToString());
+				await Console.Out.WriteAsync(output.ToString()).ConfigureAwait(false);
 			} else {
-				await Console.Error.WriteAsync(output.ToString());
+				await Console.Error.WriteAsync(output.ToString()).ConfigureAwait(false);
 			}
 		}
 

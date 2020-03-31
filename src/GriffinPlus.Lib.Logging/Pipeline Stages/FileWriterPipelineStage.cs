@@ -94,8 +94,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		protected override async Task EmitOutputAsync(LocalLogMessage message, StringBuilder output, CancellationToken cancellationToken)
 		{
-			await mWriter.WriteLineAsync(output.ToString());
-			if (mAutoFlush) await mWriter.FlushAsync();
+			await mWriter.WriteLineAsync(output.ToString()).ConfigureAwait(false);
+			if (mAutoFlush) await mWriter.FlushAsync().ConfigureAwait(false);
 		}
 
 	}

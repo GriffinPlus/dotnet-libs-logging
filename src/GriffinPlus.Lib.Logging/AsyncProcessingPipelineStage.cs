@@ -382,14 +382,14 @@ namespace GriffinPlus.Lib.Logging
 			{
 				mTriggerAsyncProcessingEvent.Wait();
 				mTriggerAsyncProcessingEvent.Reset();
-				await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token);
+				await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);
 
 				// abort, if requested
 				if (mTerminateProcessingThread)
 				{
 					// process the last messages, if there is time left...
 					if (!mAsyncProcessingCancellationTokenSource.IsCancellationRequested) {
-						await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token);
+						await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);
 					}
 
 					break;
