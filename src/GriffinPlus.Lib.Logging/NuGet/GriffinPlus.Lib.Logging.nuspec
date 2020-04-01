@@ -4,9 +4,9 @@
 		<id>GriffinPlus.Lib.Logging</id>
 		<version>$version$</version>
 		<authors>Sascha Falk</authors>
-		<copyright>Copyright (c) 2018 Sascha Falk</copyright>
-		<requireLicenseAcceptance>true</requireLicenseAcceptance>
-		<description>A simple, but modular extensible logging facility that focusses on applications built on the .NET framework.
+		<copyright>Copyright (c) 2020 Sascha Falk</copyright>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>A simple, but modular extensible logging facility that focuses on applications built on the .NET framework.
 	Part of the Griffin+ Common Library Suite.</description>
 		<licenseUrl>https://github.com/GriffinPlus/dotnet-libs-logging/blob/master/LICENSE</licenseUrl>
 		<projectUrl>https://github.com/GriffinPlus/dotnet-libs-logging</projectUrl>
@@ -14,17 +14,17 @@
 		<tags>logging</tags>
 		<dependencies>
 			<group targetFramework="net461">
-				<dependency id="GriffinPlus.Lib.Common" version="[0.3.0, 1.0)" />
+				<dependency id="GriffinPlus.Lib.Common" version="[0.6.2, 1.0)" />
 			</group>
 			<group targetFramework="netstandard2.0">
-				<dependency id="GriffinPlus.Lib.Common" version="[0.3.0, 1.0)" />
+				<dependency id="GriffinPlus.Lib.Common" version="[0.6.2, 1.0)" />
 			</group>
 		</dependencies>
 	</metadata>
 	<files>
-		<file src="..\..\..\_build\Logging.AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.dll" target="lib\netstandard2.0"/>
-		<file src="..\..\..\_build\Logging.AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.xml" target="lib\netstandard2.0"/>
-		<file src="..\..\..\_build\Logging.AnyCPU.Release\net461\GriffinPlus.Lib.Logging.dll" target="lib\net461"/>
-		<file src="..\..\..\_build\Logging.AnyCPU.Release\net461\GriffinPlus.Lib.Logging.xml" target="lib\net461"/>
+		<file src="..\bin\Release\netstandard2.0\GriffinPlus.Lib.Logging.dll" target="lib\netstandard2.0"/>
+		<file src="..\bin\Release\netstandard2.0\GriffinPlus.Lib.Logging.xml" target="lib\netstandard2.0"/>
+		<file src="..\bin\Release\net461\GriffinPlus.Lib.Logging.dll" target="lib\net461"/>
+		<file src="..\bin\Release\net461\GriffinPlus.Lib.Logging.xml" target="lib\net461"/>
 	</files>
 </package>
