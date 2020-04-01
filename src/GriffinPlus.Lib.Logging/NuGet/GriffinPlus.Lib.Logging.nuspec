@@ -6,8 +6,7 @@
 		<authors>Sascha Falk</authors>
 		<copyright>Copyright (c) 2020 Sascha Falk</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<description>A simple, but modular extensible logging facility that focuses on applications built on the .NET framework.
-	Part of the Griffin+ Common Library Suite.</description>
+		<description>A simple, but modular extensible logging facility that focuses on applications built on the .NET framework.</description>
 		<licenseUrl>https://github.com/GriffinPlus/dotnet-libs-logging/blob/master/LICENSE</licenseUrl>
 		<projectUrl>https://github.com/GriffinPlus/dotnet-libs-logging</projectUrl>
 		<iconUrl>https://griffin.plus/img/nuget_icon.png</iconUrl>
