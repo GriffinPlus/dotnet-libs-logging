@@ -408,7 +408,7 @@ namespace GriffinPlus.Lib.Logging
 			try
 			{
 				messages = mAsyncProcessingMessageStack.FlushAndReverse();
-				if (messages != null) await ProcessAsync(messages, cancellationToken);
+				if (messages != null) await ProcessAsync(messages, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
