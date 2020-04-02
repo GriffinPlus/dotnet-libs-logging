@@ -55,15 +55,16 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>true, if there are more lines to process; otherwise false.</returns>
 			public override bool Write(LocalLogMessage message, StringBuilder builder, int line)
 			{
-				if (line == 0)
+				string s = mBuffer[line];
+				builder.Append(s);
+
+				if (!IsLastColumn)
 				{
-					string s = mBuffer[line];
-					builder.Append(s);
-					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
-				}
-				else
-				{
-					if (!IsLastColumn) builder.Append(' ', Width);
+					if (line == 0) {
+						if (s.Length < Width) builder.Append(' ', Width - s.Length);
+					} else {
+						builder.Append(' ', Width);
+					}
 				}
 
 				return line + 1 < mBuffer.Length;
