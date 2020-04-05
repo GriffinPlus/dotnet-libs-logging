@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -13,7 +13,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,13 +35,13 @@ namespace GriffinPlus.Lib.Logging
 	};
 
 	/// <summary>
-	/// A log message processing pipeline stage that logs messages to stdout/stderr (thread-safe).
+	/// A log message processing pipeline stage that writes log messages to stdout/stderr (thread-safe).
 	/// By default all log messages are written to stdout.
 	/// </summary>
 	public class ConsoleWriterPipelineStage : TextWriterPipelineStage<ConsoleWriterPipelineStage>
 	{
 		private ConsoleOutputStream mDefaultStream = ConsoleOutputStream.Stdout;
-		private Dictionary<LogLevel, ConsoleOutputStream> mStreamByLevel = new Dictionary<LogLevel, ConsoleOutputStream>();
+		private readonly Dictionary<LogLevel, ConsoleOutputStream> mStreamByLevel = new Dictionary<LogLevel, ConsoleOutputStream>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConsoleWriterPipelineStage"/> class.
@@ -93,17 +92,18 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">The current log message.</param>
 		/// <param name="output">The formatted output of the current log message.</param>
-		/// <param name="cancellationToken">Cancellation token that is signalled when the pipeline stage is shutting down.</param>
-		protected override async Task EmitOutputAsync(LocalLogMessage message, StringBuilder output, CancellationToken cancellationToken)
+		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
+		protected override async Task EmitOutputAsync(LocalLogMessage message, string output, CancellationToken cancellationToken)
 		{
+			// NOTE: After attaching the pipeline stage to the logging subsystem, mStreamByLevel will not change.
 			if (!mStreamByLevel.TryGetValue(message.LogLevel, out ConsoleOutputStream stream)) {
 				stream = mDefaultStream;
 			}
 
 			if (stream == ConsoleOutputStream.Stdout) {
-				await Console.Out.WriteAsync(output.ToString()).ConfigureAwait(false);
+				await Console.Out.WriteAsync(output).ConfigureAwait(false);
 			} else {
-				await Console.Error.WriteAsync(output.ToString()).ConfigureAwait(false);
+				await Console.Error.WriteAsync(output).ConfigureAwait(false);
 			}
 		}
 

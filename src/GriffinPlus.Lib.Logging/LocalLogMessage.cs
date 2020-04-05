@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -84,10 +84,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the name of the log level associated with the log message.
 		/// </summary>
-		public string LogLevelName
-		{
-			get { return LogLevel?.Name; }
-		}
+		public string LogLevelName => LogLevel?.Name;
 
 		/// <summary>
 		/// Gets the log writer associated with the log message.
@@ -97,10 +94,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the name of the log writer associated with the log message.
 		/// </summary>
-		public string LogWriterName
-		{
-			get { return LogWriter?.Name; }
-		}
+		public string LogWriterName => LogWriter?.Name;
 
 		/// <summary>
 		/// Gets the id of the process emitting the log message.
@@ -163,15 +157,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the current value of the reference counter of the log message.
 		/// </summary>
-		public int RefCount
-		{
-			get { return Volatile.Read(ref mRefCount); }
-		}
+		public int RefCount => Volatile.Read(ref mRefCount);
 
 		/// <summary>
 		/// Gets the pool the log message belongs to.
 		/// </summary>
-		internal LocalLogMessagePool Pool { get; private set; }
+		internal LocalLogMessagePool Pool { get; }
 
 		/// <summary>
 		/// Initializes the log message.

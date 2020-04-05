@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,60 +11,55 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
 using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class TextWriterPipelineStage<STAGE>
+	partial class TableMessageFormatter
 	{
 		/// <summary>
-		/// The log level column.
+		/// Column definitions.
 		/// </summary>
-		sealed class LogLevelColumn : ColumnBase
+		abstract class ColumnBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="LogLevelColumn"/> class.
+			/// Initializes a new instance of the <see cref="ColumnBase"/> class.
 			/// </summary>
-			/// <param name="stage">The pipeline stage.</param>
-			public LogLevelColumn(STAGE stage) : base(stage)
+			/// <param name="formatter">The formatter the column belongs to.</param>
+			protected ColumnBase(TableMessageFormatter formatter)
 			{
-
+				Formatter = formatter;
 			}
 
 			/// <summary>
-			/// Measures the field of the message to present in the column and Updates the <see cref="ColumnBase.Width"/> property.
+			/// The formatter the column belongs to.
+			/// </summary>
+			protected TableMessageFormatter Formatter { get; }
+
+			/// <summary>
+			/// Gets or sets a value indicating whether the column is the last one.
+			/// </summary>
+			public bool IsLastColumn { get; set; }
+
+			/// <summary>
+			/// Gets the width of column.
+			/// </summary>
+			protected int Width { get; set; }
+
+			/// <summary>
+			/// Measures the field of the message to present in the column and updates the <see cref="Width"/> property.
 			/// </summary>
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
-			public override void UpdateWidth(LocalLogMessage message)
-			{
-				int length = message.LogLevelName.Length;
-				Width = Math.Max(Width, length);
-			}
+			public abstract void UpdateWidth(ILogMessage message);
 
 			/// <summary>
 			/// Appends output of the current column for the specified line.
 			/// </summary>
 			/// <param name="message">Message containing output to write.</param>
-			/// <param name="builder">Stringbuilder to append the output of the current column to.</param>
+			/// <param name="builder">Buffer to append the output of the current column to.</param>
 			/// <param name="line">Line number to append (zero-based).</param>
 			/// <returns>true, if there are more lines to process; otherwise false.</returns>
-			public override bool Write(LocalLogMessage message, StringBuilder builder, int line)
-			{
-				if (line == 0)
-				{
-					string s = message.LogLevelName;
-					builder.Append(s);
-					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
-				}
-				else
-				{
-					if (!IsLastColumn) builder.Append(' ', Width);
-				}
-
-
-				return false; // last line
-			}
+			public abstract bool Write(ILogMessage message, StringBuilder builder, int line);
 		}
 	}
 }

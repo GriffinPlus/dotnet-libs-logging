@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -23,24 +23,24 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// An ini-style configuration file that keeps the log configuration.
 	/// </summary>
-	public partial class LogConfigurationFile
+	public class LogConfigurationFile
 	{
-		private const string SECTION_NAME_SETTINGS = "Settings";
-		private const string SECTION_NAME_PROCESSING_PIPELINE_STAGE = "ProcessingPipelineStage";
-		private const string SECTION_NAME_LOGWRITER = "LogWriter";
-		private const string PROPERTY_NAME_APPLICATION_NAME = "ApplicationName";
-		private const string PROPERTY_NAME_WILDCARD_PATTERN = "WildcardPattern";
-		private const string PROPERTY_NAME_REGEX_PATTERN = "RegexPattern";
-		private const string PROPERTY_NAME_LEVEL = "Level";
-		private const string PROPERTY_NAME_INCLUDE = "Include";
-		private const string PROPERTY_NAME_EXCLUDE = "Exclude";
+		private const string Section_Name_Settings = "Settings";
+		private const string Section_Name_Processing_Pipeline_Stage = "ProcessingPipelineStage";
+		private const string Section_Name_Log_Writer = "LogWriter";
+		private const string Property_Name_Application_Name = "ApplicationName";
+		private const string Property_Name_Wildcard_Pattern = "WildcardPattern";
+		private const string Property_Name_Regex_Pattern = "RegexPattern";
+		private const string Property_Name_Level = "Level";
+		private const string Property_Name_Include = "Include";
+		private const string Property_Name_Exclude = "Exclude";
 
-		private readonly static string[] sHeaderComment =
+		private static readonly string[] sHeaderComment =
 		{
 			"; ------------------------------------------------------------------------------",
 			"; Configuration of the Logging Subsystem",
 			"; ------------------------------------------------------------------------------",
-			"; This file configures the logging subsystem that is encorporated in the",
+			"; This file configures the logging subsystem that is incorporated in the",
 			"; application concerned. Each and every executable that makes use of the logging",
 			"; subsystem has its own configuration file (extension: .logconf) that is located",
 			"; beside the application's executable. The configuration is structured like an",
@@ -50,21 +50,21 @@ namespace GriffinPlus.Lib.Logging
 			"; ------------------------------------------------------------------------------",
 		};
 
-		private readonly static string[] sGlobalSettingsComment =
+		private static readonly string[] sGlobalSettingsComment =
 		{
 			"; ------------------------------------------------------------------------------",
 			"; Global Settings",
 			"; ------------------------------------------------------------------------------"
 		};
 
-		private readonly static string[] sProcessingPipelineStageSettingsComment =
+		private static readonly string[] sProcessingPipelineStageSettingsComment =
 		{
 			"; ------------------------------------------------------------------------------",
 			"; Processing Pipeline Stage Settings",
 			"; ------------------------------------------------------------------------------"
 		};
 
-		private readonly static string[] sLogWriterConfigurationComment =
+		private static readonly string[] sLogWriterConfigurationComment =
 		{
 			"; ------------------------------------------------------------------------------",
 			"; Log Writer Settings",
@@ -111,23 +111,23 @@ namespace GriffinPlus.Lib.Logging
 			"; ------------------------------------------------------------------------------",
 		};
 
-		private static Regex sCommentRegex = new Regex(
+		private static readonly Regex sCommentRegex = new Regex(
 			@"^\s*;(.*)",
 			RegexOptions.Compiled);
 
-		private static Regex sSectionRegex = new Regex(
+		private static readonly Regex sSectionRegex = new Regex(
 			@"^\s*\[([-_:\. \w]+)\](.*)",
 			RegexOptions.Compiled);
 
-		private static Regex sKeyValueRegex = new Regex(
+		private static readonly Regex sKeyValueRegex = new Regex(
 			@"^\s*(\w[-_\. \w]+?)\s*=\s*([^;]*?)\s*(;.*)?$",
 			RegexOptions.Compiled);
 
-		private static Regex sProcessingPipelineStageSectionRegex = new Regex(
-			"^" + Regex.Escape(SECTION_NAME_PROCESSING_PIPELINE_STAGE + ":") + @"\s*([-_\. \w]+)\s*$",
+		private static readonly Regex sProcessingPipelineStageSectionRegex = new Regex(
+			"^" + Regex.Escape(Section_Name_Processing_Pipeline_Stage + ":") + @"\s*([-_\. \w]+)\s*$",
 			RegexOptions.Compiled);
 
-		private Dictionary<string, string> mGlobalSettings;
+		private readonly Dictionary<string, string> mGlobalSettings;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogConfigurationFile"/> class.
@@ -144,15 +144,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ApplicationName
 		{
-			get
-			{
-				return mGlobalSettings[PROPERTY_NAME_APPLICATION_NAME];
-			}
+			get => mGlobalSettings[Property_Name_Application_Name];
 
 			set
 			{
 				if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Invalid application name.");
-				mGlobalSettings[PROPERTY_NAME_APPLICATION_NAME] = value;
+				mGlobalSettings[Property_Name_Application_Name] = value;
 			}
 		}
 
@@ -201,7 +198,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			int lineNumber = 0;
 
-			string currentSectionName = null;
+			string section = null;
 			LogConfiguration.LogWriter logWriter = null;
 			Dictionary<string, string> currentSettings = null;
 
@@ -219,7 +216,7 @@ namespace GriffinPlus.Lib.Logging
 				var match = sSectionRegex.Match(line);
 				if (match.Success)
 				{
-					string section = match.Groups[1].Value;
+					section = match.Groups[1].Value;
 					string remaining = match.Groups[2].Value;
 
 					// only a comment may be following
@@ -232,13 +229,13 @@ namespace GriffinPlus.Lib.Logging
 					logWriter = null;
 					currentSettings = null;
 
-					if (section == SECTION_NAME_SETTINGS)
+					if (section == Section_Name_Settings)
 					{
 						// the [Settings] section
 						currentSettings = mGlobalSettings;
 						continue;
 					}
-					else if (section == SECTION_NAME_LOGWRITER)
+					else if (section == Section_Name_Log_Writer)
 					{
 						// a [LogWriter] section
 						logWriter = new LogConfiguration.LogWriter();
@@ -277,28 +274,28 @@ namespace GriffinPlus.Lib.Logging
 					{
 						// setting belongs to a log writer configuration
 						// (WildcardPattern, RegexPattern, Level, Include, Exclude)
-						if (key == PROPERTY_NAME_WILDCARD_PATTERN)
+						if (key == Property_Name_Wildcard_Pattern)
 						{
 							logWriter.Pattern = new LogConfiguration.WildcardLogWriterPattern(value);
 							continue;
 						}
-						else if (key == PROPERTY_NAME_REGEX_PATTERN)
+						else if (key == Property_Name_Regex_Pattern)
 						{
 							logWriter.Pattern = new LogConfiguration.RegexLogWriterPattern(value);
 							continue;
 						}
-						else if (key == PROPERTY_NAME_LEVEL)
+						else if (key == Property_Name_Level)
 						{
 							logWriter.BaseLevel = value;
 							continue;
 						}
-						else if (key == PROPERTY_NAME_INCLUDE)
+						else if (key == Property_Name_Include)
 						{
 							string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
 							logWriter.Includes.AddRange(levels);
 							continue;
 						}
-						else if (key == PROPERTY_NAME_EXCLUDE)
+						else if (key == Property_Name_Exclude)
 						{
 							string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
 							logWriter.Excludes.AddRange(levels);
@@ -306,7 +303,7 @@ namespace GriffinPlus.Lib.Logging
 						}
 						else
 						{
-							throw new LoggingException("Unexpected property name in section '{0}' (line: {1}).", currentSectionName, lineNumber);
+							throw new LoggingException("Unexpected property name in section '{0}' (line: {1}).", section, lineNumber);
 						}
 					}
 					else if (currentSettings != null)
@@ -360,7 +357,7 @@ namespace GriffinPlus.Lib.Logging
 				writer.WriteLine();
 				foreach (string line in sGlobalSettingsComment) writer.WriteLine(line);
 				writer.WriteLine();
-				writer.WriteLine("[{0}]", SECTION_NAME_SETTINGS);
+				writer.WriteLine("[{0}]", Section_Name_Settings);
 				foreach (var kvp in mGlobalSettings.OrderBy(x => x.Key))
 				{
 					writer.WriteLine("{0} = {1}", kvp.Key.Trim(), kvp.Value.Trim());
@@ -378,7 +375,7 @@ namespace GriffinPlus.Lib.Logging
 					if (stage.Value.Count > 0)
 					{
 						writer.WriteLine();
-						writer.WriteLine("[{0}:{1}]", SECTION_NAME_PROCESSING_PIPELINE_STAGE, stage.Key);
+						writer.WriteLine("[{0}:{1}]", Section_Name_Processing_Pipeline_Stage, stage.Key);
 
 						foreach (var kvp in stage.Value.OrderBy(x => x.Key))
 						{
@@ -396,29 +393,29 @@ namespace GriffinPlus.Lib.Logging
 				foreach (LogConfiguration.LogWriter logWriter in LogWriterSettings)
 				{
 					writer.WriteLine();
-					writer.WriteLine("[{0}]", SECTION_NAME_LOGWRITER);
+					writer.WriteLine("[{0}]", Section_Name_Log_Writer);
 
 					if (logWriter.Pattern is LogConfiguration.WildcardLogWriterPattern)
 					{
-						writer.WriteLine("{0} = {1}", PROPERTY_NAME_WILDCARD_PATTERN, logWriter.Pattern.Pattern);
+						writer.WriteLine("{0} = {1}", Property_Name_Wildcard_Pattern, logWriter.Pattern.Pattern);
 					}
 					else if (logWriter.Pattern is LogConfiguration.RegexLogWriterPattern)
 					{
-						writer.WriteLine("{0} = {1}", PROPERTY_NAME_REGEX_PATTERN, logWriter.Pattern.Pattern);
+						writer.WriteLine("{0} = {1}", Property_Name_Regex_Pattern, logWriter.Pattern.Pattern);
 					}
 
-					writer.WriteLine("{0} = {1}", PROPERTY_NAME_LEVEL, logWriter.BaseLevel);
+					writer.WriteLine("{0} = {1}", Property_Name_Level, logWriter.BaseLevel);
 
 					var includes = logWriter.Includes.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 					if (includes.Length > 0)
 					{
-						writer.WriteLine("{0} = {1}", PROPERTY_NAME_INCLUDE, string.Join(", ", includes));
+						writer.WriteLine("{0} = {1}", Property_Name_Include, string.Join(", ", includes));
 					}
 
 					var excludes = logWriter.Excludes.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 					if (excludes.Length > 0)
 					{
-						writer.WriteLine("{0} = {1}", PROPERTY_NAME_EXCLUDE, string.Join(", ", excludes));
+						writer.WriteLine("{0} = {1}", Property_Name_Exclude, string.Join(", ", excludes));
 					}
 				}
 			}

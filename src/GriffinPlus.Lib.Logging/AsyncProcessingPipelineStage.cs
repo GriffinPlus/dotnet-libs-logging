@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2019-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -31,20 +31,19 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private bool mInitialized = false;
 		private IProcessingPipelineStage[] mNextStages = new IProcessingPipelineStage[0];
-		private AsyncContextThread mAsyncProcessingThread;
 		private Task mAsyncProcessingTask;
-		private ManualResetEventSlim mTriggerAsyncProcessingEvent;
+		private AsyncManualResetEvent mTriggerAsyncProcessingEvent;
 		private LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
 		private bool mDiscardMessagesIfQueueFull = false;
 		private int mMessageQueueSize = 500;
 		private int mShutdownTimeout = 5000;
 		private CancellationTokenSource mAsyncProcessingCancellationTokenSource;
-		private bool mTerminateProcessingThread = false;
+		private bool mTerminateProcessingTask = false;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage{T}"/> class.
 		/// </summary>
-		public AsyncProcessingPipelineStage()
+		protected AsyncProcessingPipelineStage()
 		{
 		}
 
@@ -79,11 +78,10 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// set up asynchronous processing
 					mAsyncProcessingMessageStack = new LocklessStack<LocalLogMessage>(mMessageQueueSize, false);
-					mTriggerAsyncProcessingEvent = new ManualResetEventSlim(false);
+					mTriggerAsyncProcessingEvent = new AsyncManualResetEvent(false);
 					mAsyncProcessingCancellationTokenSource = new CancellationTokenSource();
-					mTerminateProcessingThread = false;
-					mAsyncProcessingThread = new AsyncContextThread();
-					mAsyncProcessingTask = mAsyncProcessingThread.Factory.Run(() => ProcessingTask());
+					mTerminateProcessingTask = false;
+					mAsyncProcessingTask = Task.Factory.StartNew(ProcessingTask).Unwrap();
 
 					// Perform pipeline stage specific initializations.
 					OnInitialize();
@@ -131,19 +129,19 @@ namespace GriffinPlus.Lib.Logging
 
 				// tell the processing thread to terminate
 				// (it will try to process the last messages and exit)
-				mTerminateProcessingThread = true;
+				mTerminateProcessingTask = true;
 				mAsyncProcessingCancellationTokenSource?.CancelAfter(mShutdownTimeout);
 				mTriggerAsyncProcessingEvent?.Set();
-				mAsyncProcessingThread?.Join();
+				mAsyncProcessingTask?.WaitWithoutException();
+
+				// the processing task should have completed its work
+				Debug.Assert(mAsyncProcessingTask == null || mAsyncProcessingTask.IsCompleted);
 
 				// the stack should be empty now...
 				Debug.Assert(mAsyncProcessingMessageStack == null || mAsyncProcessingMessageStack.UsedItemCount == 0);
 
 				// clean up processing thread related stuff
-				mTriggerAsyncProcessingEvent?.Dispose();
 				mAsyncProcessingCancellationTokenSource?.Dispose();
-				mTriggerAsyncProcessingEvent = null;
-				mAsyncProcessingThread = null;
 				mAsyncProcessingTask = null;
 				mAsyncProcessingCancellationTokenSource = null;
 				mAsyncProcessingMessageStack = null;
@@ -181,7 +179,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				return mNextStages;
+				lock (Sync)
+				{
+					IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length];
+					Array.Copy(mNextStages, copy, mNextStages.Length);
+					return copy;
+				}
 			}
 
 			set
@@ -191,7 +194,9 @@ namespace GriffinPlus.Lib.Logging
 				lock (Sync)
 				{
 					EnsureNotAttachedToLoggingSubsystem();
-					mNextStages = value;
+					IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length];
+					Array.Copy(mNextStages, copy, mNextStages.Length);
+					mNextStages = copy;
 				}
 			}
 		}
@@ -299,44 +304,48 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="message">Message to process.</param>
 		public void Process(LocalLogMessage message)
 		{
-			if (!mInitialized) {
-				throw new InvalidOperationException("The pipeline stage is not initialized. Ensure it is attached to the logging subsystem.");
-			}
-
-			// synchronous processing
-			bool queueMessageForAsynchronousProcessing;
-			bool proceed = ProcessSync(message, out queueMessageForAsynchronousProcessing);
-
-			// asynchronous processing
-			if (queueMessageForAsynchronousProcessing)
+			lock (Sync)
 			{
-				if (mDiscardMessagesIfQueueFull)
+				if (!mInitialized)
 				{
-					message.AddRef();
-					bool pushed = mAsyncProcessingMessageStack.Push(message);
-					if (pushed) mTriggerAsyncProcessingEvent.Set();
-					else        message.Release();
+					throw new InvalidOperationException("The pipeline stage is not initialized. Ensure it is attached to the logging subsystem.");
 				}
-				else
-				{
-					message.AddRef();
-					while (!mAsyncProcessingMessageStack.Push(message)) Thread.Sleep(10);
-					mTriggerAsyncProcessingEvent.Set();
-				}
-			}
 
-			if (proceed)
-			{
-				// pass log message to the next pipeline stages
-				for (int i = 0; i < mNextStages.Length; i++) {
-					mNextStages[i].Process(message);
+				// synchronous processing
+				bool proceed = ProcessSync(message, out var queueMessageForAsynchronousProcessing);
+
+				// asynchronous processing
+				if (queueMessageForAsynchronousProcessing)
+				{
+					if (mDiscardMessagesIfQueueFull)
+					{
+						message.AddRef();
+						bool pushed = mAsyncProcessingMessageStack.Push(message);
+						if (pushed) mTriggerAsyncProcessingEvent.Set();
+						else message.Release();
+					}
+					else
+					{
+						message.AddRef();
+						while (!mAsyncProcessingMessageStack.Push(message)) Thread.Sleep(10);
+						mTriggerAsyncProcessingEvent.Set();
+					}
+				}
+
+				if (proceed)
+				{
+					// pass log message to the next pipeline stages
+					for (int i = 0; i < mNextStages.Length; i++)
+					{
+						mNextStages[i].Process(message);
+					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// When overridden in a derived class, processes the specified log message synchronously
-		/// (is executed in the context of the thread writing the message).
+		/// When overridden in a derived class, processes the specified log message synchronously.
+		/// This method is called by the thread writing the message and from within the pipeline stage lock (<see cref="Sync"/>).
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		/// <param name="queueForAsyncProcessing">
@@ -380,12 +389,15 @@ namespace GriffinPlus.Lib.Logging
 		{
 			while (true)
 			{
-				mTriggerAsyncProcessingEvent.Wait();
+				// wait for messages to process
+				await mTriggerAsyncProcessingEvent.WaitAsync(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);
 				mTriggerAsyncProcessingEvent.Reset();
+
+				// process the messages
 				await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);
 
 				// abort, if requested
-				if (mTerminateProcessingThread)
+				if (mTerminateProcessingTask)
 				{
 					// process the last messages, if there is time left...
 					if (!mAsyncProcessingCancellationTokenSource.IsCancellationRequested) {
@@ -403,12 +415,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		private async Task ProcessQueuedMessages(CancellationToken cancellationToken)
 		{
-			LocalLogMessage[] messages = null;
+			LocalLogMessage[] messages = mAsyncProcessingMessageStack.FlushAndReverse();
+			if (messages == null) return;
 
 			try
 			{
-				messages = mAsyncProcessingMessageStack.FlushAndReverse();
-				if (messages != null) await ProcessAsync(messages, cancellationToken).ConfigureAwait(false);
+				await ProcessAsync(messages, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{

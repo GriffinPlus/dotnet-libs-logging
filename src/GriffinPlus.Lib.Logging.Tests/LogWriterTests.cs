@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -17,13 +17,10 @@ using Xunit;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Unit tests targetting the <see cref="LogWriter"/> class.
+	/// Unit tests targeting the <see cref="LogWriter"/> class.
 	/// </summary>
 	public class LogWriterTests
 	{
-		private static readonly string LogWriterName = typeof(LogWriterTests).FullName;
-		private const string TestMessage = "the quick brown fox jumps over the lazy dog";
-
 		[Fact]
 		public void Creating_New_LogWriter_By_Name()
 		{

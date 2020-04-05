@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -16,11 +16,11 @@ using Xunit;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Tests targetting the interaction of multiple classes.
+	/// Tests targeting the interaction of multiple classes.
 	/// </summary>
 	public class IntegrationTests
 	{
-		private static readonly string LogWriterName = typeof(IntegrationTests).FullName;
+		private static readonly string sLogWriterName = typeof(IntegrationTests).FullName;
 		private const string TestMessage = "the quick brown fox jumps over the lazy dog";
 
 		[Theory]
@@ -52,7 +52,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Log_Configuration_Should_Let_Messages_Below_BaseLevel_Pass(string baseLevel)
 		{
 			// convert log level name to LogLevel object
-			LogLevel baselevel = LogLevel.GetAspect(baseLevel);
+			LogLevel threshold = LogLevel.GetAspect(baseLevel);
 
 			// set configuration to let all log levels below the specified log level pass
 			LogConfiguration configuration = new LogConfiguration();
@@ -66,21 +66,20 @@ namespace GriffinPlus.Lib.Logging
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
 			Log.LogMessageProcessingPipeline = new CallbackProcessingPipelineStage(msg => {
-				Assert.True(msg.LogLevel.Id <= baselevel.Id);
+				Assert.True(msg.LogLevel.Id <= threshold.Id);
 				callbackInvokedCount++;
 				return true;
 			});
 
-
-			// write a message using all log messages
-			LogWriter writer = Log.GetWriter(LogWriterName);
+			// write a message using all predefined log levels
+			LogWriter writer = Log.GetWriter(sLogWriterName);
 			foreach (LogLevel level in LogLevel.PredefinedLogLevels)
 			{
 				writer.Write(level, TestMessage);
 			}
 
 			// check whether the callback has been invoked as often as expected
-			Assert.Equal(baselevel.Id + 1, callbackInvokedCount);
+			Assert.Equal(threshold.Id + 1, callbackInvokedCount);
 		}
 
 		[Theory]
@@ -131,7 +130,7 @@ namespace GriffinPlus.Lib.Logging
 			});
 
 			// write a message using all log messages
-			LogWriter writer = Log.GetWriter(LogWriterName);
+			LogWriter writer = Log.GetWriter(sLogWriterName);
 			foreach (LogLevel level in LogLevel.PredefinedLogLevels) {
 				writer.Write(level, TestMessage);
 			}
@@ -187,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 			});
 
 			// write a message using all log messages
-			LogWriter writer = Log.GetWriter(LogWriterName);
+			LogWriter writer = Log.GetWriter(sLogWriterName);
 			foreach (LogLevel level in LogLevel.PredefinedLogLevels) {
 				writer.Write(level, TestMessage);
 			}

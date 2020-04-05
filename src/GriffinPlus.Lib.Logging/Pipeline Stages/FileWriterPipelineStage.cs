@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2019-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -61,8 +61,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Performs pipeline stage specific initialization tasks that must run when the pipeline stage is attached to
-		/// the logging subsystem. This method is called from within the pipeline stage lock.
+		/// Performs pipeline stage specific initialization tasks that must run when the pipeline stage is attached to the
+		/// logging subsystem. This method is called from within the pipeline stage lock (<see cref="AsyncProcessingPipelineStage{T}.Sync"/>).
 		/// </summary>
 		protected override void OnInitialize()
 		{
@@ -74,7 +74,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Performs pipeline stage specific cleanup tasks that must run when the pipeline stage is about to be detached
-		/// from the logging subsystem. This method is called from within the pipeline stage lock.
+		/// from the logging subsystem. This method is called from within the pipeline stage lock (<see cref="AsyncProcessingPipelineStage{T}.Sync"/>).
 		/// </summary>
 		protected internal override void OnShutdown()
 		{
@@ -92,9 +92,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="message">The current log message.</param>
 		/// <param name="output">The formatted output of the current log message.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
-		protected override async Task EmitOutputAsync(LocalLogMessage message, StringBuilder output, CancellationToken cancellationToken)
+		protected override async Task EmitOutputAsync(LocalLogMessage message, string output, CancellationToken cancellationToken)
 		{
-			await mWriter.WriteLineAsync(output.ToString()).ConfigureAwait(false);
+			await mWriter.WriteLineAsync(output).ConfigureAwait(false);
+			// ReSharper disable once InconsistentlySynchronizedField
+			// (after attaching the pipeline stage to the logging subsystem, mAutoFlush will not change)
 			if (mAutoFlush) await mWriter.FlushAsync().ConfigureAwait(false);
 		}
 

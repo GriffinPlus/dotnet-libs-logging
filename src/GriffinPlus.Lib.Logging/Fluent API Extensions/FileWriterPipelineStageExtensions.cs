@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -19,7 +19,7 @@ namespace GriffinPlus.Lib.Logging
 	public static class FileWriterPipelineStageExtensions
 	{
 		/// <summary>
-		/// Enables or disables flushing the file everytime after a message is written.
+		/// Enables or disables flushing the file every time after a message is written.
 		/// </summary>
 		/// <param name="this">The pipeline stage.</param>
 		/// <param name="enable">

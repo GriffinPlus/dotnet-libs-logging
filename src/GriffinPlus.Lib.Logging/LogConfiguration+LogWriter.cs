@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -59,10 +59,9 @@ namespace GriffinPlus.Lib.Logging
 				IEnumerable<string> includes = null,
 				IEnumerable<string> excludes = null)
 			{
-				if (pattern == null) throw new ArgumentNullException(nameof(pattern));
 				if (string.IsNullOrWhiteSpace(baseLevel)) throw new ArgumentException("The base level must not be null or whitespace only.", nameof(baseLevel));
 
-				mPattern = pattern;
+				mPattern = pattern ?? throw new ArgumentNullException(nameof(pattern));
 				BaseLevel = baseLevel;
 
 				if (includes != null)
@@ -96,15 +95,11 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			public ILogWriterPattern Pattern
 			{
-				get
-				{
-					return mPattern;
-				}
+				get => mPattern;
 
 				set
 				{
-					if (value == null) throw new ArgumentNullException(nameof(value));
-					mPattern = value;
+					mPattern = value ?? throw new ArgumentNullException(nameof(value));
 				}
 			}
 

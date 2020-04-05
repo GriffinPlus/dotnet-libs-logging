@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -198,12 +198,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the maximum id assigned to a log level.
 		/// </summary>
-		public static int MaxId { get => sNextId - 1; }
+		public static int MaxId => sNextId - 1;
 
 		/// <summary>
 		/// All predefined log levels (the index corresponds to the id of the log level).
 		/// </summary>
-		private static LogLevel[] sPredefinedLogLevels = new LogLevel[] {
+		private static readonly LogLevel[] sPredefinedLogLevels = new LogLevel[] {
 			Failure, Error, Warning, Note, Developer,
 			Trace0, Trace1, Trace2, Trace3, Trace4, Trace5, Trace6, Trace7, Trace8, Trace9, Trace10, Trace11, Trace12, Trace13, Trace14, Trace15, Trace16, Trace17, Trace18, Trace19
 		};
@@ -233,7 +233,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogLevel"/> class (assigns a log level id ascendingly).
+		/// Initializes a new instance of the <see cref="LogLevel"/> class.
 		/// </summary>
 		/// <param name="name">Name of the log level.</param>
 		private LogLevel(string name) 
@@ -257,46 +257,27 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the name of the log level.
 		/// </summary>
-		public string Name
-		{
-			get {
-				return mName;
-			}
-		}
+		public string Name => mName;
 
 		/// <summary>
 		/// Gets the id of the log level.
 		/// </summary>
-		public int Id
-		{
-			get {
-				return mId;
-			}
-		}
+		public int Id => mId;
 
 		/// <summary>
 		/// Gets predefined log levels (all log levels that are not an aspect).
 		/// </summary>
-		public static IReadOnlyList<LogLevel> PredefinedLogLevels
-		{
-			get { return sPredefinedLogLevels; }
-		}
+		public static IReadOnlyList<LogLevel> PredefinedLogLevels => sPredefinedLogLevels;
 
 		/// <summary>
 		/// Gets all log levels that are currently known (except log level 'None' and 'All').
 		/// </summary>
-		public static IReadOnlyList<LogLevel> KnownLevels
-		{
-			get { return sLogLevelsById; }
-		}
+		public static IReadOnlyList<LogLevel> KnownLevels => sLogLevelsById;
 
 		/// <summary>
 		/// Gets a dictionary containing all known log levels by name.
 		/// </summary>
-		public static IReadOnlyDictionary<string,LogLevel> KnownLevelsByName
-		{
-			get { return sLogLevelsByName; }
-		}
+		public static IReadOnlyDictionary<string,LogLevel> KnownLevelsByName => sLogLevelsByName;
 
 		/// <summary>
 		/// Gets the aspect log level with the specified name (or creates a new one, if it does not exist, yet).
@@ -305,9 +286,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested aspect log level.</returns>
 		public static LogLevel GetAspect(string name)
 		{
-			LogLevel level;
-
-			sLogLevelsByName.TryGetValue(name, out level);
+			sLogLevelsByName.TryGetValue(name, out var level);
 			if (level == null)
 			{
 				lock (Log.Sync)
@@ -338,7 +317,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>String representation of the current log level.</returns>
 		public override string ToString()
 		{
-			return string.Format("{0} ({1})", mName, mId);
+			return $"{mName} ({mId})";
 		}
 
 	}

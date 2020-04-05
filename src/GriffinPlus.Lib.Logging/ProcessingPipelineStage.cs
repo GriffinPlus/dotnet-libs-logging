@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -14,7 +14,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -27,14 +26,18 @@ namespace GriffinPlus.Lib.Logging
 		where T: ProcessingPipelineStage<T>
 	{
 		private bool mInitialized = false;
-		private IProcessingPipelineStage[] mNextStages;
+
+		/// <summary>
+		/// Processing pipeline stages that are called after the current stage has completed processing.
+		/// </summary>
+		protected IProcessingPipelineStage[] mNextStages = new IProcessingPipelineStage[0];
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.
 		/// </summary>
-		public ProcessingPipelineStage()
+		protected ProcessingPipelineStage()
 		{
-			mNextStages = new IProcessingPipelineStage[0];
+
 		}
 
 		/// <summary>
@@ -137,13 +140,18 @@ namespace GriffinPlus.Lib.Logging
 		#region Next Pipeline Stages
 
 		/// <summary>
-		/// Gets or sets processing pipeline stages to called after the current stage has completed processing.
+		/// Gets processing pipeline stages that are called after the current stage has completed processing.
 		/// </summary>
 		public IProcessingPipelineStage[] NextStages
 		{
 			get
 			{
-				return mNextStages;
+				lock (Sync)
+				{
+					IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length];
+					Array.Copy(mNextStages, copy, mNextStages.Length);
+					return copy;
+				}
 			}
 
 			set
@@ -153,7 +161,9 @@ namespace GriffinPlus.Lib.Logging
 				lock (Sync)
 				{
 					EnsureNotAttachedToLoggingSubsystem();
-					mNextStages = value;
+					IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length];
+					Array.Copy(mNextStages, copy, mNextStages.Length);
+					mNextStages = copy;
 				}
 			}
 		}
@@ -194,22 +204,27 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="message">Message to process.</param>
 		public void Process(LocalLogMessage message)
 		{
-			if (!mInitialized) {
-				throw new InvalidOperationException("The pipeline stage is not initialized. Ensure it is attached to the logging subsystem.");
-			}
-
-			if (ProcessSync(message))
+			lock (Sync)
 			{
-				// pass log message to the next pipeline stages
-				for (int i = 0; i < mNextStages.Length; i++) {
-					mNextStages[i].Process(message);
+				if (!mInitialized)
+				{
+					throw new InvalidOperationException("The pipeline stage is not initialized. Ensure it is attached to the logging subsystem.");
+				}
+
+				if (ProcessSync(message))
+				{
+					// pass log message to the next pipeline stages
+					for (int i = 0; i < mNextStages.Length; i++)
+					{
+						mNextStages[i].Process(message);
+					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// When overridden in a derived class, processes the specified log message synchronously
-		/// (is executed in the context of the thread writing the message).
+		/// When overridden in a derived class, processes the specified log message synchronously.
+		/// This method is called by the thread writing the message and from within the pipeline stage lock (<see cref="Sync"/>).
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		/// <returns>

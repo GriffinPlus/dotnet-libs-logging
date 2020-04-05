@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -22,7 +22,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	internal class LocalLogMessagePool
 	{
-		private ConcurrentBag<LocalLogMessage> mMessages;
+		private readonly ConcurrentBag<LocalLogMessage> mMessages;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogMessagePool"/> class.
@@ -39,11 +39,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested log message.</returns>
 		public LocalLogMessage GetUninitializedMessage()
 		{
-			LocalLogMessage message;
-
-			if (mMessages.TryTake(out message))
+			if (mMessages.TryTake(out var message))
 			{
-				int refCount = message.AddRef();
+				message.AddRef();
 			}
 			else
 			{

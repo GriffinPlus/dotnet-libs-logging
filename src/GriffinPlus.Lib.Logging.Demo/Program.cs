@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -21,11 +21,11 @@ namespace GriffinPlus.Lib.Logging.Demo
 	{
 		// register a log writer using a type
 		// (the actual log writer name becomes: GriffinPlus.Lib.Logging.Demo.Program)
-		private static LogWriter sLog1 = Log.GetWriter<Program>();
-		private static LogWriter sLog2 = Log.GetWriter(typeof(Program));
+		private static readonly LogWriter sLog1 = Log.GetWriter<Program>();
+		private static readonly LogWriter sLog2 = Log.GetWriter(typeof(Program));
 
 		// register a log writer using a custom name
-		private static LogWriter sLog3 = Log.GetWriter("My Fancy Writer");
+		private static readonly LogWriter sLog3 = Log.GetWriter("My Fancy Writer");
 
 		static void Main(string[] args)
 		{
@@ -52,14 +52,16 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// configure the log message processing pipeline and arrange the columns to print
 			// (only one stage here, you can use FollowedBy() to append another stage to this one)
 			Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
-				.WithQueue(500, true)                     // buffer up to 500 messages and discard messages, if the queue is full
-				.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff") // use custom timestamp format
-				.WithProcessId()
-				.WithProcessName()
-				.WithApplicationName()
-				.WithLogWriter()
-				.WithLogLevel()
-				.WithText();
+				.WithQueue(500, true)                              // buffer up to 500 messages and discard messages, if the queue is full
+				.WithFormatter(new TableMessageFormatter()
+					.WithTimestamp("yyyy-MM-dd HH:mm:ss.fff")      // use custom timestamp format
+					.WithProcessId()
+					.WithProcessName()
+					.WithApplicationName()
+					.WithLogWriter()
+					.WithLogLevel()
+					.WithText()
+				);
 
 			// create an aspect log level
 			LogLevel aspect = LogLevel.GetAspect("Demo Aspect");
@@ -76,14 +78,14 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// (is uses log level 'Timing' and log writer 'Timing' by default, so you need
 			// to ensure that the configuration lets these messages pass).
 			sLog1.Write(LogLevel.Note, "Presenting a timing logger with default settings...");
-			using (TimingLogger logger = TimingLogger.Measure()) {
+			using (TimingLogger.Measure()) {
 				Thread.Sleep(500);
 			}
 
 			// use a timing logger and customize the log writer/level it uses + associate an operation name
 			// with the measurement that is printed to the log as well
 			sLog1.Write(LogLevel.Note, "A timing logger with custom log level/writer and operation name...");
-			using (TimingLogger logger = TimingLogger.Measure(sLog1, LogLevel.Note, "Waiting for 500ms")) {
+			using (TimingLogger.Measure(sLog1, LogLevel.Note, "Waiting for 500ms")) {
 				Thread.Sleep(500);
 			}
 

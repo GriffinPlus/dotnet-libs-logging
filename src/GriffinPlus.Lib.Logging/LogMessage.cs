@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -138,15 +138,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the current value of the reference counter of the log message.
 		/// </summary>
-		public int RefCount
-		{
-			get { return Volatile.Read(ref mRefCount); }
-		}
+		public int RefCount => Volatile.Read(ref mRefCount);
 
 		/// <summary>
 		/// Gets the pool the log message belongs to.
 		/// </summary>
-		internal LogMessagePool Pool { get; private set; }
+		internal LogMessagePool Pool { get; }
 
 		/// <summary>
 		/// Initializes the log message.

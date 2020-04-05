@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -29,13 +29,13 @@ namespace GriffinPlus.Lib.Logging
 		/// The default path of the log configuration file.
 		/// </summary>
 		private static readonly string sDefaultConfigFilePath;
-		private static readonly Logging.LogWriter sLog = Log.GetWriter("Logging");
+		private static readonly LogWriter sLog = Log.GetWriter("Logging");
 		private readonly object mSync = new object();
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
 		private LogConfigurationFile mFile;
-		private string mFilePath;
-		private string mFileName;
+		private readonly string mFilePath;
+		private readonly string mFileName;
 
 		/// <summary>
 		/// Initializes the <see cref="FileBackedLogConfiguration"/> class.
@@ -149,10 +149,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the full path of the configuration file.
 		/// </summary>
-		public string FullPath
-		{
-			get { return mFilePath; }
-		}
+		public string FullPath => mFilePath;
 
 		/// <summary>
 		/// Gets or sets the name of the application.
@@ -223,9 +220,7 @@ namespace GriffinPlus.Lib.Logging
 		public BitMask GetActiveLogLevelMask(LogWriter writer)
 		{
 			// get the first matching log writer settings
-			var settings = mFile.LogWriterSettings
-				.Where(x => x.Pattern.Regex.IsMatch(writer.Name))
-				.FirstOrDefault();
+			var settings = mFile.LogWriterSettings.FirstOrDefault(x => x.Pattern.Regex.IsMatch(writer.Name));
 
 			if (settings != null)
 			{
@@ -294,8 +289,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (mSync)
 			{
 				// return a copy of the settings to avoid uncontrolled modifications
-				IDictionary<string, string> settings;
-				if (mFile.ProcessingPipelineStageSettings.TryGetValue(name, out settings)) {
+				if (mFile.ProcessingPipelineStageSettings.TryGetValue(name, out var settings)) {
 					return new Dictionary<string, string>(settings);
 				}
 
@@ -415,7 +409,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Entrypoint for the timer reloading the configuration file.
+		/// Entry point for the timer reloading the configuration file.
 		/// </summary>
 		/// <param name="state">Some state object (not used).</param>
 		private void TimerProc(object state)

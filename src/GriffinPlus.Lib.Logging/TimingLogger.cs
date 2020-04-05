@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -23,9 +23,9 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class TimingLogger : IDisposable
 	{
-		private static ConcurrentBag<TimingLogger> mPool = new ConcurrentBag<TimingLogger>();
-		private static LogWriter sDefaultLogWriter = Log.GetWriter("Timing");
-		private static LogLevel sDefaultLogLevel = LogLevel.Timing;
+		private static readonly ConcurrentBag<TimingLogger> sPool = new ConcurrentBag<TimingLogger>();
+		private static readonly LogWriter sDefaultLogWriter = Log.GetWriter("Timing");
+		private static readonly LogLevel sDefaultLogLevel = LogLevel.Timing;
 		private static int sNextTimingLoggerId = 0;
 		private long mTimestamp;
 		private LogWriter mLogWriter;
@@ -45,7 +45,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Disposes the timing logger emitting a log message that notifys about the time since the timing logger was created.
+		/// Disposes the timing logger emitting a log message that notifies about the time since the timing logger was created.
 		/// </summary>
 		public void Dispose()
 		{
@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 				double elapsed = (double)(Stopwatch.GetTimestamp() - mTimestamp) / Stopwatch.Frequency;
 				WriteEndMessage(elapsed);
 				mActive = false;
-				mPool.Add(this);
+				sPool.Add(this);
 			}
 		}
 
@@ -63,8 +63,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="operation">Name of the operation that is being measured.</param>
 		public static TimingLogger Measure(string operation = null)
 		{
-			TimingLogger logger;
-			if (!mPool.TryTake(out logger)) logger = new TimingLogger();
+			if (!sPool.TryTake(out var logger)) logger = new TimingLogger();
 			logger.mLogWriter = sDefaultLogWriter;
 			logger.mLogLevel = sDefaultLogLevel;
 			logger.mOperation = operation;
@@ -84,8 +83,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="operation">Name of the operation that is being measured.</param>
 		public static TimingLogger Measure(LogLevel level, string operation = null)
 		{
-			TimingLogger logger;
-			if (!mPool.TryTake(out logger)) logger = new TimingLogger();
+			if (!sPool.TryTake(out var logger)) logger = new TimingLogger();
 			logger.mLogWriter = sDefaultLogWriter;
 			logger.mLogLevel = level;
 			logger.mOperation = operation;
@@ -105,8 +103,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="operation">Name of the operation that is being measured.</param>
 		public static TimingLogger Measure(LogWriter writer, string operation = null)
 		{
-			TimingLogger logger;
-			if (!mPool.TryTake(out logger)) logger = new TimingLogger();
+			if (!sPool.TryTake(out var logger)) logger = new TimingLogger();
 			logger.mLogWriter = writer;
 			logger.mLogLevel = sDefaultLogLevel;
 			logger.mOperation = operation;
@@ -127,8 +124,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="operation">Name of the operation that is being measured.</param>
 		public static TimingLogger Measure(LogWriter writer, LogLevel level, string operation = null)
 		{
-			TimingLogger logger;
-			if (!mPool.TryTake(out logger)) logger = new TimingLogger();
+			if (!sPool.TryTake(out var logger)) logger = new TimingLogger();
 			logger.mLogWriter = writer;
 			logger.mLogLevel = level;
 			logger.mOperation = operation;

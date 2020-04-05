@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -31,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static ILogConfiguration sLogConfiguration;
 		private static volatile IProcessingPipelineStage sLogMessageProcessingPipeline;
-		private static LogWriter sLog = GetWriter("Logging");
+		private static readonly LogWriter sLog = GetWriter("Logging");
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
@@ -48,18 +48,15 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the object that is used to synchronize access to shared resources in the logging subsystem.
 		/// </summary>
-		internal static object Sync
-		{
-			get { return sSync; }
-		}
+		internal static object Sync => sSync;
 
 		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
 		public static string ApplicationName
 		{
-			get { return sLogConfiguration.ApplicationName; }
-			set { sLogConfiguration.ApplicationName = value; }
+			get => sLogConfiguration.ApplicationName;
+			set => sLogConfiguration.ApplicationName = value;
 		}
 
 		/// <summary>
@@ -68,10 +65,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public static ILogConfiguration Configuration
 		{
-			get
-			{
-				return sLogConfiguration;
-			}
+			get => sLogConfiguration;
 
 			set
 			{
@@ -112,10 +106,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public static IProcessingPipelineStage LogMessageProcessingPipeline
 		{
-			get
-			{
-				return sLogMessageProcessingPipeline;
-			}
+			get => sLogMessageProcessingPipeline;
 
 			set
 			{
@@ -174,9 +165,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// pipeline stages might have buffered messages
 				// => shut them down gracefully to allow them to complete processing before exiting
-				if (sLogMessageProcessingPipeline != null) {
-					sLogMessageProcessingPipeline.Shutdown();
-				}
+				sLogMessageProcessingPipeline?.Shutdown();
 			}
 		}
 
@@ -218,7 +207,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// let the message return to the pool
 					// (pipeline stages may have incremented the reference counter to delay this)
-					message.Release();
+					message?.Release();
 				}
 			}
 		}
@@ -230,9 +219,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested log writer.</returns>
 		public static LogWriter GetWriter(string name)
 		{
-			LogWriter writer;
-
-			sLogWritersByName.TryGetValue(name, out writer);
+			sLogWritersByName.TryGetValue(name, out var writer);
 			if (writer == null)
 			{
 				lock (sSync)

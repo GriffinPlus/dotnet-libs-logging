@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2019 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Sets the shutdown timeout of the asynchronous processing thread (in ms).
+		/// Sets the shutdown timeout of the asynchronous processing task (in ms).
 		/// </summary>
 		/// <param name="this">The pipeline stage.</param>
 		/// <param name="timeout">Timeout (in ms).</param>

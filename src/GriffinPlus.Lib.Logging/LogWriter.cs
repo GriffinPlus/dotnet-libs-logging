@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -24,8 +24,8 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogWriter
 	{
-		private static IFormatProvider sDefaultFormatProvider = CultureInfo.InvariantCulture;
-		private static ThreadLocal<StringBuilder> sBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder());
+		private static readonly IFormatProvider sDefaultFormatProvider = CultureInfo.InvariantCulture;
+		private static readonly ThreadLocal<StringBuilder> sBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder());
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogWriter"/> class.
@@ -509,9 +509,9 @@ namespace GriffinPlus.Lib.Logging
 				object[] modifiedArgs = args;
 				for (int i = 0; i < modifiedArgs.Length; i++) {
 					object obj = modifiedArgs[i];
-					if (obj is Exception) {
+					if (obj is Exception exception) {
 						if (modifiedArgs == args) modifiedArgs = (object[])args.Clone();
-						modifiedArgs[i] = UnwrapException(obj as Exception);
+						modifiedArgs[i] = UnwrapException(exception);
 					}
 				}
 				args = modifiedArgs;
@@ -539,10 +539,10 @@ namespace GriffinPlus.Lib.Logging
 			for (int i = 0; i < modifiedArgs.Length; i++)
 			{
 				object obj = modifiedArgs[i];
-				if (obj is Exception)
+				if (obj is Exception exception)
 				{
 					if (modifiedArgs == args) modifiedArgs = (object[])args.Clone();
-					modifiedArgs[i] = UnwrapException(obj as Exception);
+					modifiedArgs[i] = UnwrapException(exception);
 				}
 			}
 			args = modifiedArgs;
@@ -1223,7 +1223,8 @@ namespace GriffinPlus.Lib.Logging
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static object PrepareArgument<T>(T arg)
 		{
-			if (arg is Exception) return UnwrapException(arg as Exception);
+			var exception = arg as Exception;
+			if (exception != null) return UnwrapException(exception);
 			return arg;
 		}
 

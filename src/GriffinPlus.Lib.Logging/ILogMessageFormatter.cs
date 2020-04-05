@@ -14,21 +14,16 @@
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Fluent API extension methods for the <see cref="TextWriterPipelineStage{STAGE}"/> class.
+	/// Interface for log message formatters that convert a log message to a string.
 	/// </summary>
-	public static class TextWriterPipelineStageExtensions
+	public interface ILogMessageFormatter
 	{
 		/// <summary>
-		/// Sets the log message formatter to use.
+		/// Formats the specified log message.
 		/// </summary>
-		/// <param name="this">The pipeline stage.</param>
-		/// <param name="formatter">The formatter to use.</param>
-		/// <returns>The modified pipeline stage.</returns>
-		public static STAGE WithFormatter<STAGE>(this STAGE @this, ILogMessageFormatter formatter) where STAGE : TextWriterPipelineStage<STAGE>
-		{
-			@this.Formatter = formatter;
-			return @this;
-		}
-
+		/// <param name="message">Message to format.</param>
+		/// <returns>The formatted log message.</returns>
+		string Format(ILogMessage message);
 	}
+
 }

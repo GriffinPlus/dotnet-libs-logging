@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -23,17 +23,15 @@ namespace GriffinPlus.Lib.Logging
 	public partial class LogConfiguration : ILogConfiguration
 	{
 		private string mApplicationName;
-		private Dictionary<string, string> mGlobalSettings;
 		private Dictionary<string, Dictionary<string, string>> mProcessingPipelineStageSettings;
 		private List<LogWriter> mLogWriterSettings;
-		private object mSync = new object();
+		private readonly object mSync = new object();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogConfiguration"/> class.
 		/// </summary>
 		public LogConfiguration()
 		{
-			mGlobalSettings = new Dictionary<string, string>();
 			mProcessingPipelineStageSettings = new Dictionary<string, Dictionary<string, string>>();
 			mLogWriterSettings = new List<LogWriter>();
 			mLogWriterSettings.Add(new LogWriter()); // LogWriter comes with defaults...
@@ -45,7 +43,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ApplicationName
 		{
-			get { return mApplicationName; }
+			get => mApplicationName;
 			set {
 				if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Invalid application name.");
 				mApplicationName = value;
@@ -61,9 +59,7 @@ namespace GriffinPlus.Lib.Logging
 		public BitMask GetActiveLogLevelMask(GriffinPlus.Lib.Logging.LogWriter writer)
 		{
 			// get the first matching log writer settings
-			var settings = mLogWriterSettings
-				.Where(x => x.Pattern.Regex.IsMatch(writer.Name))
-				.FirstOrDefault();
+			var settings = mLogWriterSettings.FirstOrDefault(x => x.Pattern.Regex.IsMatch(writer.Name));
 
 			if (settings != null)
 			{
@@ -158,8 +154,7 @@ namespace GriffinPlus.Lib.Logging
 		public IDictionary<string, string> GetProcessingPipelineStageSettings(string name)
 		{
 			// return copy to avoid uncontrolled modifications of the collection
-			Dictionary<string, string> settings;
-			if (mProcessingPipelineStageSettings.TryGetValue(name, out settings)) {
+			if (mProcessingPipelineStageSettings.TryGetValue(name, out var settings)) {
 				return new Dictionary<string, string>(settings);
 			}
 
