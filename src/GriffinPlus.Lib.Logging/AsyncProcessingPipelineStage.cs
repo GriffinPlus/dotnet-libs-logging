@@ -11,7 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using GriffinPlus.Lib.Threading;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		private bool mInitialized = false;
 		private IProcessingPipelineStage[] mNextStages = new IProcessingPipelineStage[0];
 		private Task mAsyncProcessingTask;
-		private AsyncManualResetEvent mTriggerAsyncProcessingEvent;
+		private AsyncAutoResetEvent mTriggerAsyncProcessingEvent;
 		private LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
 		private bool mDiscardMessagesIfQueueFull = false;
 		private int mMessageQueueSize = 500;
@@ -78,7 +77,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// set up asynchronous processing
 					mAsyncProcessingMessageStack = new LocklessStack<LocalLogMessage>(mMessageQueueSize, false);
-					mTriggerAsyncProcessingEvent = new AsyncManualResetEvent(false);
+					mTriggerAsyncProcessingEvent = new AsyncAutoResetEvent(false);
 					mAsyncProcessingCancellationTokenSource = new CancellationTokenSource();
 					mTerminateProcessingTask = false;
 					mAsyncProcessingTask = Task.Factory.StartNew(ProcessingTask).Unwrap();
@@ -132,7 +131,7 @@ namespace GriffinPlus.Lib.Logging
 				mTerminateProcessingTask = true;
 				mAsyncProcessingCancellationTokenSource?.CancelAfter(mShutdownTimeout);
 				mTriggerAsyncProcessingEvent?.Set();
-				mAsyncProcessingTask?.WaitWithoutException();
+				mAsyncProcessingTask?.Wait();
 
 				// the processing task should have completed its work
 				Debug.Assert(mAsyncProcessingTask == null || mAsyncProcessingTask.IsCompleted);
@@ -390,8 +389,9 @@ namespace GriffinPlus.Lib.Logging
 			while (true)
 			{
 				// wait for messages to process
-				await mTriggerAsyncProcessingEvent.WaitAsync(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);
-				mTriggerAsyncProcessingEvent.Reset();
+				await mTriggerAsyncProcessingEvent
+					.WaitAsync(Timeout.Infinite, mAsyncProcessingCancellationTokenSource.Token)
+					.ConfigureAwait(false);
 
 				// process the messages
 				await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);

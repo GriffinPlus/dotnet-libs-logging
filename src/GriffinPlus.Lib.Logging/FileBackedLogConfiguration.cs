@@ -217,21 +217,21 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
-		public BitMask GetActiveLogLevelMask(LogWriter writer)
+		public LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
 		{
 			// get the first matching log writer settings
 			var settings = mFile.LogWriterSettings.FirstOrDefault(x => x.Pattern.Regex.IsMatch(writer.Name));
 
 			if (settings != null)
 			{
-				BitMask mask;
+				LogLevelBitMask mask;
 
 				// enable all log levels that are covered by the base level
 				LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
 				if (level == LogLevel.All) {
-					mask = new BitMask(LogLevel.MaxId + 1, true, false);
+					mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
 				} else {
-					mask = new BitMask(LogLevel.MaxId + 1, false, false);
+					mask = new LogLevelBitMask(LogLevel.MaxId + 1, false, false);
 					mask.SetBits(0, level.Id + 1);
 				}
 
@@ -255,7 +255,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// no matching settings found
 				// => disable all log levels...
-				return new BitMask(0, false, false);
+				return new LogLevelBitMask(0, false, false);
 			}
 		}
 

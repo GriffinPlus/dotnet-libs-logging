@@ -8,8 +8,4 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="GriffinPlus.Lib.Common" Version="[0.6.2, 1.0)" />
-  </ItemGroup>
-
 </Project>

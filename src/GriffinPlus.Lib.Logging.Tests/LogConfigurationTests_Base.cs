@@ -109,7 +109,7 @@ namespace GriffinPlus.Lib.Logging
 				null));
 
 			LogWriter writer = Log.GetWriter("UnitTest");
-			BitMask mask = configuration.GetActiveLogLevelMask(writer);
+			LogLevelBitMask mask = configuration.GetActiveLogLevelMask(writer);
 			uint[] bitArray = mask.AsArray();
 			Assert.Single(bitArray);
 			Assert.Equal(expectedMask, bitArray[0]);
@@ -144,7 +144,7 @@ namespace GriffinPlus.Lib.Logging
 				excludes));
 
 			LogWriter writer = Log.GetWriter("UnitTest");
-			BitMask mask = configuration.GetActiveLogLevelMask(writer);
+			LogLevelBitMask mask = configuration.GetActiveLogLevelMask(writer);
 			uint[] bitArray = mask.AsArray();
 			Assert.Single(bitArray);
 			Assert.Equal(expectedMask, bitArray[0]);

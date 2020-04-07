@@ -31,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
-		BitMask GetActiveLogLevelMask(LogWriter writer);
+		LogLevelBitMask GetActiveLogLevelMask(LogWriter writer);
 
 		/// <summary>
 		/// Gets the current log writer settings.
