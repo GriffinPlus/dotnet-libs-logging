@@ -12,6 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Linq;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -19,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Common unit tests targeting the <see cref="LogConfiguration"/> and the <see cref="FileBackedLogConfiguration"/> class.
 	/// </summary>
-	public abstract class LogConfigurationTests_Base<T> where T: ILogConfiguration, new()
+	public abstract class LogConfigurationTests_Base<T> where T: LogConfiguration, new()
 	{
 		const string Aspect1Name = "Aspect1";
 		const string Aspect2Name = "Aspect2";
@@ -58,11 +59,11 @@ namespace GriffinPlus.Lib.Logging
 			// log writer settings
 			var logWriterSettings = configuration.GetLogWriterSettings();
 			Assert.Single(logWriterSettings);
-			Assert.Equal("Note", logWriterSettings[0].BaseLevel);
-			Assert.Empty(logWriterSettings[0].Includes);
-			Assert.Empty(logWriterSettings[0].Excludes);
-			Assert.IsType<LogConfiguration.WildcardLogWriterPattern>(logWriterSettings[0].Pattern);
-			Assert.Equal("*", logWriterSettings[0].Pattern.Pattern);
+			Assert.Equal("Note", logWriterSettings.First().BaseLevel);
+			Assert.Empty(logWriterSettings.First().Includes);
+			Assert.Empty(logWriterSettings.First().Excludes);
+			Assert.IsType<LogConfiguration.WildcardLogWriterPattern>(logWriterSettings.First().Pattern);
+			Assert.Equal("*", logWriterSettings.First().Pattern.Pattern);
 		}
 
 		[Fact]

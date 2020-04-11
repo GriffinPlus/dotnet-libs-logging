@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -18,18 +18,19 @@ namespace GriffinPlus.Lib.Logging
 	public partial class LogConfiguration
 	{
 		/// <summary>
-		/// A .NET regular expression pattern (immutable).
+		/// A log writer pattern matching exactly (immutable).
 		/// </summary>
-		public class RegexLogWriterPattern : ILogWriterPattern
+		public class ExactNameLogWriterPattern : ILogWriterPattern
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="RegexLogWriterPattern"/> class.
+			/// Initializes a new instance of the <see cref="ExactNameLogWriterPattern"/> class.
 			/// </summary>
-			/// <param name="pattern">The regular expression to use.</param>
-			public RegexLogWriterPattern(string pattern)
+			/// <param name="name">The name of the log writer to match.</param>
+			public ExactNameLogWriterPattern(string name)
 			{
-				Pattern = pattern;
-				Regex = new Regex(pattern, RegexOptions.Singleline); // compilation is not needed as the regex matches only once against a log writer name and is then cached
+				Pattern = name;
+				var regex = $"^{Regex.Escape(name)}$";
+				Regex = new Regex(regex, RegexOptions.Singleline); // compilation is not needed as the regex matches only once against a log writer name and is then cached
 			}
 
 			/// <summary>
@@ -48,8 +49,9 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>The string representation of the pattern.</returns>
 			public override string ToString()
 			{
-				return "Regex: " + Pattern;
+				return "Exact: " + Pattern;
 			}
 		}
 	}
 }
+

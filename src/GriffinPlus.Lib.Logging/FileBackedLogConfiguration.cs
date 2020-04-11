@@ -23,13 +23,13 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log configuration with ini-style file backing (thread-safe).
 	/// </summary>
-	public class FileBackedLogConfiguration : ILogConfiguration, IDisposable
+	public class FileBackedLogConfiguration : LogConfiguration, IDisposable
 	{
 		/// <summary>
 		/// The default path of the log configuration file.
 		/// </summary>
 		private static readonly string sDefaultConfigFilePath;
-		private static readonly LogWriter sLog = Log.GetWriter("Logging");
+		private static readonly GriffinPlus.Lib.Logging.LogWriter sLog = Log.GetWriter("Logging");
 		private readonly object mSync = new object();
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
@@ -79,23 +79,38 @@ namespace GriffinPlus.Lib.Logging
 			mFileName = Path.GetFileName(path);
 
 			// load configuration file
-			try
+			const int maxRetryCount = 5;
+			for (int retry = 0; retry < maxRetryCount; retry++)
 			{
-				mFile = LogConfigurationFile.LoadFrom(mFilePath);
-			}
-			catch (FileNotFoundException)
-			{
-				// file does not exist
-				// => that's ok, use a default configuration file...
-				mFile = new LogConfigurationFile();
-			}
-			catch (Exception ex)
-			{
-				// loading file failed
-				sLog.ForceWrite(
-					LogLevel.Failure,
-					"Loading log configuration file ({0}) failed. Exception: {1}",
-					mFilePath, ex);
+				try
+				{
+					mFile = LogConfigurationFile.LoadFrom(mFilePath);
+				}
+				catch (FileNotFoundException)
+				{
+					// file does not exist
+					// => that's ok, use a default configuration file...
+					mFile = new LogConfigurationFile();
+					break;
+				}
+				catch (IOException)
+				{
+					// there is something wrong at a lower level, most probably a sharing violation
+					// => just try again...
+					if (retry + 1 >= maxRetryCount) throw;
+					Thread.Sleep(10);
+				}
+				catch (Exception ex)
+				{
+					// a severe error that cannot be fixed here
+					// => abort
+					sLog.ForceWrite(
+						LogLevel.Failure,
+						"Loading log configuration file ({0}) failed. Exception: {1}",
+						mFilePath, ex);
+
+					throw;
+				}
 			}
 
 			// set up the file system watcher to get notified of changes to the file
@@ -154,7 +169,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
-		public string ApplicationName
+		public override string ApplicationName
 		{
 			get
 			{
@@ -177,11 +192,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the current log writer settings.
 		/// </summary>
 		/// <returns>A copy of the internal log writer settings.</returns>
-		public IList<LogConfiguration.LogWriter> GetLogWriterSettings()
+		public override IEnumerable<LogConfiguration.LogWriter> GetLogWriterSettings()
 		{
 			lock (mSync)
 			{
-				return new List<LogConfiguration.LogWriter>(mFile.LogWriterSettings);
+				return new List<LogConfiguration.LogWriter>(mFile.LogWriterSettings.Select(x => new LogWriter(x)));
 			}
 		}
 
@@ -189,7 +204,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public void SetLogWriterSettings(IEnumerable<LogConfiguration.LogWriter> settings)
+		public override void SetLogWriterSettings(IEnumerable<LogConfiguration.LogWriter> settings)
 		{
 			lock (mSync)
 			{
@@ -202,7 +217,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public void SetLogWriterSettings(params LogConfiguration.LogWriter[] settings)
+		public override void SetLogWriterSettings(params LogConfiguration.LogWriter[] settings)
 		{
 			lock (mSync)
 			{
@@ -217,45 +232,51 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
-		public LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
+		public override LogLevelBitMask GetActiveLogLevelMask(GriffinPlus.Lib.Logging.LogWriter writer)
 		{
-			// get the first matching log writer settings
-			var settings = mFile.LogWriterSettings.FirstOrDefault(x => x.Pattern.Regex.IsMatch(writer.Name));
-
-			if (settings != null)
+			lock (mSync)
 			{
-				LogLevelBitMask mask;
+				// get the first matching log writer settings
+				var settings = mFile.LogWriterSettings.FirstOrDefault(x => x.Pattern.Regex.IsMatch(writer.Name));
 
-				// enable all log levels that are covered by the base level
-				LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
-				if (level == LogLevel.All) {
-					mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
-				} else {
-					mask = new LogLevelBitMask(LogLevel.MaxId + 1, false, false);
-					mask.SetBits(0, level.Id + 1);
-				}
-
-				// add log levels explicitly included
-				foreach (var include in settings.Includes)
+				if (settings != null)
 				{
-					level = LogLevel.GetAspect(include);
-					mask.SetBit(level.Id);
-				}
+					LogLevelBitMask mask;
 
-				// disable log levels explicitly excluded
-				foreach (var exclude in settings.Excludes)
+					// enable all log levels that are covered by the base level
+					LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
+					if (level == LogLevel.All)
+					{
+						mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
+					}
+					else
+					{
+						mask = new LogLevelBitMask(LogLevel.MaxId + 1, false, false);
+						mask.SetBits(0, level.Id + 1);
+					}
+
+					// add log levels explicitly included
+					foreach (var include in settings.Includes)
+					{
+						level = LogLevel.GetAspect(include);
+						mask.SetBit(level.Id);
+					}
+
+					// disable log levels explicitly excluded
+					foreach (var exclude in settings.Excludes)
+					{
+						level = LogLevel.GetAspect(exclude);
+						mask.ClearBit(level.Id);
+					}
+
+					return mask;
+				}
+				else
 				{
-					level = LogLevel.GetAspect(exclude);
-					mask.ClearBit(level.Id);
+					// no matching settings found
+					// => disable all log levels...
+					return new LogLevelBitMask(0, false, false);
 				}
-
-				return mask;
-			}
-			else
-			{
-				// no matching settings found
-				// => disable all log levels...
-				return new LogLevelBitMask(0, false, false);
 			}
 		}
 
@@ -263,12 +284,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the settings for pipeline stages by their name.
 		/// </summary>
 		/// <returns>The requested settings.</returns>
-		public IDictionary<string, IDictionary<string, string>> GetProcessingPipelineStageSettings()
+		public override IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> GetProcessingPipelineStageSettings()
 		{
 			lock (mSync)
 			{
 				// return a copy of the settings to avoid uncontrolled modifications
-				IDictionary<string, IDictionary<string, string>> copy = new Dictionary<string, IDictionary<string, string>>();
+				Dictionary<string, IReadOnlyDictionary<string, string>> copy = new Dictionary<string, IReadOnlyDictionary<string, string>>();
 				foreach (var kvp in mFile.ProcessingPipelineStageSettings) {
 					copy.Add(kvp.Key, new Dictionary<string, string>(kvp.Value));
 				}
@@ -284,7 +305,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>
 		/// The requested settings;
 		/// null, if the settings do not exist.</returns>
-		public IDictionary<string, string> GetProcessingPipelineStageSettings(string name)
+		public override IReadOnlyDictionary<string, string> GetProcessingPipelineStageSettings(string name)
 		{
 			lock (mSync)
 			{
@@ -302,22 +323,56 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
 		/// <param name="settings">Settings to set.</param>
-		public void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings)
+		public override void SetProcessingPipelineStageSettings(string name, IReadOnlyDictionary<string, string> settings)
 		{
 			lock (mSync)
 			{
-				mFile.ProcessingPipelineStageSettings[name] = new Dictionary<string, string>(settings);
+				if (settings is IDictionary<string, string> dict)
+				{
+					mFile.ProcessingPipelineStageSettings[name] = new Dictionary<string, string>(dict);
+				}
+				else
+				{
+					var copy = new Dictionary<string, string>();
+					foreach (var kvp in settings) copy.Add(kvp.Key, kvp.Value);
+					mFile.ProcessingPipelineStageSettings[name] = copy;
+				}
 			}
 		}
 
 		/// <summary>
 		/// Saves the configuration.
 		/// </summary>
-		public void Save()
+		public override void Save()
 		{
 			lock (mSync)
 			{
-				mFile.Save(mFilePath);
+				const int maxRetryCount = 5;
+				for (int retry = 0; retry < maxRetryCount; retry++)
+				{
+					try
+					{
+						mFile.Save(mFilePath);
+					}
+					catch (IOException)
+					{
+						// there is something wrong at a lower level, most probably a sharing violation
+						// => just try again...
+						if (retry + 1 >= maxRetryCount) throw;
+						Thread.Sleep(10);
+					}
+					catch (Exception ex)
+					{
+						// a severe error that cannot be fixed here
+						// => abort
+						sLog.ForceWrite(
+							LogLevel.Failure,
+							"Loading log configuration file ({0}) failed. Exception: {1}",
+							mFilePath, ex);
+
+						throw;
+					}
+				}
 			}
 		}
 

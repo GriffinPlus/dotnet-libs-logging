@@ -73,22 +73,10 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (value != null)
 					{
-						Thread.MemoryBarrier();
 						sLogConfiguration = value;
 
-						// add default settings to configuration file, if necessary
-						if (SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline))
-						{
-							try
-							{
-								Configuration.Save();
-							}
-							catch (Exception ex)
-							{
-								// can easily occur, if the application does not have the permission to write to its own folder
-								sLog.ForceWrite(LogLevel.Developer, "Saving log configuration failed. Exception: {0}", ex);
-							}
-						}
+						// add default settings to configuration, if necessary
+						SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline);
 
 						// update log writers to comply with the new configuration
 						UpdateLogWriters();
@@ -121,23 +109,11 @@ namespace GriffinPlus.Lib.Logging
 						value.Initialize(); // can throw...
 
 						// let pipeline stages set their default configuration
-						if (SetDefaultProcessingPipelineSettings(value))
-						{
-							try
-							{
-								Configuration.Save();
-							}
-							catch (Exception ex)
-							{
-								// can easily occur, if the application does not have the permission to write to its own folder
-								sLog.ForceWrite(LogLevel.Developer, "Saving log configuration failed. Exception: {0}", ex);
-							}
-						}
+						SetDefaultProcessingPipelineSettings(value);
 					}
 
 					// make new processing pipeline the current one
 					var oldPipeline = sLogMessageProcessingPipeline;
-					Thread.MemoryBarrier();
 					sLogMessageProcessingPipeline = value;
 
 					// shutdown old processing pipeline, if any
@@ -279,7 +255,7 @@ namespace GriffinPlus.Lib.Logging
 			if (sLogConfiguration == null)
 			{
 				// create and init default configuration
-				LogConfiguration configuration = new LogConfiguration();
+				LogConfiguration configuration = new VolatileLogConfiguration();
 				SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline);
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 				sLogConfiguration = configuration;
@@ -331,10 +307,20 @@ namespace GriffinPlus.Lib.Logging
 				// get default settings
 				IDictionary<string, string> defaultSettings = stage.GetDefaultSettings();
 
-				// update missing settings in configuration
+				// add pipeline stage settings that are missing in the configuration
 				bool stageSettingsModified = false;
 				var ps = Configuration.GetProcessingPipelineStageSettings(stage.GetType().Name);
-				Dictionary<string, string> persistentSettings = ps != null ? new Dictionary<string, string>(ps) : new Dictionary<string, string>();
+				Dictionary<string, string> persistentSettings;
+				if (ps is IDictionary<string, string> dict) {
+					persistentSettings = new Dictionary<string, string>(dict);
+				} else if (ps != null) {
+					var copy = new Dictionary<string, string>();
+					foreach (var kvp in ps) copy.Add(kvp.Key, kvp.Value);
+					persistentSettings = copy;
+				} else {
+					persistentSettings = new Dictionary<string, string>();
+				}
+
 				foreach (var kvp in defaultSettings.Where(x => persistentSettings.ContainsKey(x.Key)))
 				{
 					// add default setting to configuration

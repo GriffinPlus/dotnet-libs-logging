@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -25,11 +26,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			private static readonly WildcardLogWriterPattern sDefaultPattern = new WildcardLogWriterPattern("*");
 			private ILogWriterPattern mPattern = sDefaultPattern;
+			private string mBaseLevel = LogLevel.Note.Name;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="LogWriter"/> class.
 			/// </summary>
-			internal LogWriter()
+			protected internal LogWriter()
 			{
 
 			}
@@ -38,12 +40,13 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="LogWriter"/> class by copying another instance.
 			/// </summary>
 			/// <param name="other">Instance to copy.</param>
-			public LogWriter(LogWriter other)
+			protected internal LogWriter(LogWriter other)
 			{
-				this.mPattern = other.mPattern;          // immutable
-				this.BaseLevel = other.BaseLevel;        // immutable
-				this.Includes.AddRange(other.Includes);
-				this.Excludes.AddRange(other.Excludes);
+				mPattern = other.mPattern;          // immutable
+				BaseLevel = other.BaseLevel;        // immutable
+				IsDefault = other.IsDefault;        // immutable
+				Includes.AddRange(other.Includes);
+				Excludes.AddRange(other.Excludes);
 			}
 
 			/// <summary>
@@ -53,7 +56,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="baseLevel">Name of the log level a message must be associated with at minimum to get processed.</param>
 			/// <param name="includes">Names of log levels (or aspects) that should be included in addition to the base level.</param>
 			/// <param name="excludes">Names of log levels (or aspects) that should be excluded although covered by the base level.</param>
-			public LogWriter(
+			protected internal LogWriter(
 				ILogWriterPattern pattern,
 				string baseLevel,
 				IEnumerable<string> includes = null,
@@ -93,32 +96,56 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// Gets or sets the pattern used to match log writers.
 			/// </summary>
-			public ILogWriterPattern Pattern
+			protected internal ILogWriterPattern Pattern
 			{
 				get => mPattern;
-
-				set
-				{
-					mPattern = value ?? throw new ArgumentNullException(nameof(value));
-				}
+				set => mPattern = value ?? throw new ArgumentNullException(nameof(value));
 			}
 
 			/// <summary>
 			/// Gets or sets the log level a message must be associated with at minimum to get processed.
 			/// </summary>
-			public string BaseLevel { get; set; } = "Note";
+			public string BaseLevel
+			{
+				get => mBaseLevel;
+				set => mBaseLevel = value ?? throw new ArgumentNullException(nameof(value));
+			}
 
 			/// <summary>
-			/// Get the list of names of log levels (or aspects) to include in addition to those already
-			/// enabled via <see cref="BaseLevel"/>.
+			/// Get the list of names of log levels (or aspects) to include in addition to those already enabled
+			/// via <see cref="BaseLevel"/>.
 			/// </summary>
 			public List<string> Includes { get; } = new List<string>();
 
 			/// <summary>
-			/// Get the list of names of log levels (or aspects) to exclude although enabled
-			/// via <see cref="BaseLevel"/>.
+			/// Get the list of names of log levels (or aspects) to exclude although covered by <see cref="BaseLevel"/>.
 			/// </summary>
 			public List<string> Excludes { get; } = new List<string>();
+
+			/// <summary>
+			/// Gets or sets a value indicating whether this configuration is a default configuration.
+			/// </summary>
+			internal bool IsDefault { get; set; }
+
+			/// <summary>
+			/// Checks whether the specified object equals the current one.
+			/// </summary>
+			/// <param name="obj">Object to compare with.</param>
+			/// <returns>true, if the specified object equals the current one; otherwise false.</returns>
+			public override bool Equals(object obj)
+			{
+				if (obj is LogWriter other)
+				{
+					if (mPattern != other.mPattern) return false;
+					if (BaseLevel != other.BaseLevel) return false;
+					if (IsDefault != other.IsDefault) return false;
+					if (!Includes.SequenceEqual(other.Includes)) return false;
+					if (!Excludes.SequenceEqual(other.Excludes)) return false;
+					return true;
+				}
+
+				return false;
+			}
 		}
 	}
 }

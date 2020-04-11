@@ -67,7 +67,7 @@ The default configuration file contains a detailed description of the settings a
 ; ------------------------------------------------------------------------------
 ; Configuration of the Logging Subsystem
 ; ------------------------------------------------------------------------------
-; This file configures the logging subsystem that is encorporated in the
+; This file configures the logging subsystem that is incorporated in the
 ; application concerned. Each and every executable that makes use of the logging
 ; subsystem has its own configuration file (extension: .logconf) that is located
 ; beside the application's executable. The configuration is structured like an
@@ -235,42 +235,118 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
+    class MyClass1 { }
+    class MyClass2 { }
+    class MyClass3 { }
+    class MyClass4 { }
+    class MyClassA { }
+    class MyClassB { }
+
     class Program
     {
-        // register a log writer using a type
-        // (the actual log writer name becomes: GriffinPlus.Lib.Logging.Demo.Program)
-        private static readonly LogWriter sLog1 = Log.GetWriter<Program>();
-        private static readonly LogWriter sLog2 = Log.GetWriter(typeof(Program));
+        // Register log writers using types.
+        private static readonly LogWriter sLog1 = Log.GetWriter<MyClass1>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass1
+        private static readonly LogWriter sLog2 = Log.GetWriter<MyClass2>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass2
+        private static readonly LogWriter sLog3 = Log.GetWriter<MyClass3>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass3
+        private static readonly LogWriter sLog4 = Log.GetWriter(typeof(MyClass4)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass4
+        private static readonly LogWriter sLog5 = Log.GetWriter(typeof(MyClassA)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassA
+        private static readonly LogWriter sLog6 = Log.GetWriter(typeof(MyClassB)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassB
 
-        // register a log writer using a custom name
-        private static readonly LogWriter sLog3 = Log.GetWriter("My Fancy Writer");
+        // Register a log writer using a custom name.
+        private static readonly LogWriter sLog7 = Log.GetWriter("My Fancy Writer");
 
         static void Main(string[] args)
         {
             // By default the logging subsystem is set up to use a pure in-memory configuration and a console logger
-            // printing written messages to the console (stdout/stderr). In many cases you probably want to configure
+            // printing written messages to the console (stdout). In many cases you probably want to configure
             // what gets logged using a configuration file. The following example shows a simple, but complete setup
-            // of the logging subsystem. A file-backed log configuration is used and it's file is placed in the
-            // application's base directory named as the application plus extension '.logconf'. After that the log
-            // message processing pipeline is initialized using a customized console logger.
+            // of the logging subsystem.
 
-            // set configuration
-            var config = new FileBackedLogConfiguration(); // default location
-            // var config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
-            Log.Configuration = config;
+            // Create a volatile (in-memory) or persistent (file-backed) configuration
+            LogConfiguration config = new VolatileLogConfiguration();
+            // LogConfiguration config = new FileBackedLogConfiguration();                    // default location (beside the executable with file extension '.logconf');
+            // LogConfiguration config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
 
-            // save configuration to disk, if it does not exist, yet
-            if (!File.Exists(config.FullPath)) {
+            // Adjust configuration to your needs.
+            // This works for volatile and persistent configurations, but is usually only needed for volatile configurations.
+            config = config
+
+                // Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass1' only
+                // - set base log level to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+                // - include log level 'Trace0'
+                // - exclude log level 'Warning'
+                // => enabled log levels: 'Failure', 'Error', 'Note', 'Trace0'
+                .WithLogWriter<MyClass1>(x => x
+                    .WithBaseLevel(LogLevel.Note)
+                    .WithLevel(LogLevel.Trace0)
+                    .WithoutLevel("Warning"))
+
+                // Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass2' only
+                // - set base log level to 'None' effectively silencing the log writer
+                // - no included/excluded log levels
+                // => no enabled log levels
+                .WithLogWriter(typeof(MyClass2), x=> x
+                    .WithBaseLevel(LogLevel.None))
+
+                // Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass3' only
+                // - set base log level to 'All' enabling all log levels (including aspects)
+                // - exclude all log levels from 'Trace10' up to 'Trace19'
+                // => enabled log levels: All log levels, but 'Trace[10-19]'
+                .WithLogWriter(typeof(MyClass3), x => x
+                    .WithBaseLevel(LogLevel.All)
+                    .WithoutLevelRange(LogLevel.Trace10, LogLevel.Trace19))
+
+                // Add configuration for log writers matching regex pattern
+                // - pattern matches 'GriffinPlus.Lib.Logging.Demo.MyClassA' and 'GriffinPlus.Lib.Logging.Demo.MyClassB'
+                // - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+                // - include all log levels from 'Trace10' up to 'Trace15'
+                // - no excluded log levels
+                // => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace0'
+                .WithLogWritersByRegex("^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$", x => x
+                    .WithLevelRange(LogLevel.Trace10, LogLevel.Trace15))
+
+                // Add configuration for log writers matching wildcard pattern
+                // - applys to 'GriffinPlus.Lib.Logging.Demo.MyClass4' only
+                //   (other writers are handled by preceding steps)
+                // - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+                // - include log level 'Trace15'
+                // - no excluded log levels
+                // => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace15'
+                .WithLogWritersByWildcard("GriffinPlus.Lib.Logging.Demo.MyClass*", x => x
+                    .WithLevel(LogLevel.Trace15))
+
+                // Add configuration for log writer 'My Fancy Writer'
+                // - base level defaults to level 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+                // - include aspect log level 'Demo Aspect'
+                // - no excluded log levels
+                // => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Demo Aspect'
+                .WithLogWriter("My Fancy Writer", x => x
+                    .WithLevel("Demo Aspect"))
+
+                // Add configuration for log writer 'Timing' to enable logging time measurements written by the internal
+                // 'Timing' log writer (see below for time measurements)
+                .WithLogWriterTiming()
+
+                // Add default configuration for log writers that have not been handled up to this point
+                // - base level defaults  to level 'Note'
+                // - no included/excluded log levels
+                // => enabled log levels: 'Failure', 'Error', 'Warning', 'Note'
+                .WithLogWriterDefault();
+
+            // Save file backed configuration file to disk, if it does not exist, yet
+            if (config is FileBackedLogConfiguration fbc &&  !File.Exists(fbc.FullPath)) {
                 config.Save();
             }
 
-            // set application name (optional)
+            Log.Configuration = config;
+
+            // Set application name (optional)
             Log.ApplicationName = "Logging Demo";
 
-            // configure the log message processing pipeline and arrange the columns to print
-            // (only one stage here, you can use FollowedBy() to append another stage to this one)
+            // Configure the log message processing pipeline and arrange the columns to print.
+            // There is only one stage here, but you can use FollowedBy() to append another stage to this one.
             Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
-                .WithQueue(500, true)                              // buffer up to 500 messages and discard messages, if the queue is full
+                .WithQueue(500, false)                             // buffer up to 500 messages and block, if the queue is full (default)
                 .WithFormatter(new TableMessageFormatter()
                     .WithTimestamp("yyyy-MM-dd HH:mm:ss.fff")      // use custom timestamp format
                     .WithProcessId()
@@ -281,42 +357,41 @@ namespace GriffinPlus.Lib.Logging.Demo
                     .WithText()
                 );
 
-            // create an aspect log level
+            // Get an aspect log level.
             LogLevel aspect = LogLevel.GetAspect("Demo Aspect");
 
-            // write messages to all known log levels (predefined log levels + aspects)
+            // Write messages to all known log levels (predefined log levels + aspects).
             foreach (LogLevel level in LogLevel.KnownLevels)
             {
                 sLog1.Write(level, "This is sLog1 writing using level '{0}'.", level.Name);
                 sLog2.Write(level, "This is sLog2 writing using level '{0}'.", level.Name);
                 sLog3.Write(level, "This is sLog3 writing using level '{0}'.", level.Name);
+                sLog4.Write(level, "This is sLog4 writing using level '{0}'.", level.Name);
+                sLog5.Write(level, "This is sLog5 writing using level '{0}'.", level.Name);
+                sLog6.Write(level, "This is sLog6 writing using level '{0}'.", level.Name);
+                sLog7.Write(level, "This is sLog7 writing using level '{0}'.", level.Name);
             }
 
-            // use a timing logger to determine how long an operation takes
-            // (is uses log level 'Timing' and log writer 'Timing' by default, so you need
-            // to ensure that the configuration lets these messages pass).
+            // Use a timing logger to determine how long an operation takes. It uses log level 'Timing' and log writer
+            // 'Timing' by default, so you need to ensure that the configuration lets these messages pass).
             sLog1.Write(LogLevel.Note, "Presenting a timing logger with default settings...");
             using (TimingLogger.Measure()) {
                 Thread.Sleep(500);
             }
 
-            // use a timing logger and customize the log writer/level it uses + associate an operation name
-            // with the measurement that is printed to the log as well
+            // Use a timing logger, customize the log writer/level it uses and associate an operation name with the
+            // measurement that is printed to the log as well.
             sLog1.Write(LogLevel.Note, "A timing logger with custom log level/writer and operation name...");
             using (TimingLogger.Measure(sLog1, LogLevel.Note, "Waiting for 500ms")) {
                 Thread.Sleep(500);
             }
 
-            // now modify the configuration file in the output directory and run the demo application
-            // again to see what happens!
-
-            // shut the logging subsystem down
+            // Shut the logging subsystem down
             Log.Shutdown();
 
             Console.WriteLine();
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
-
         }
     }
 }

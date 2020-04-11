@@ -271,6 +271,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets all log levels that are currently known (except log level 'None' and 'All').
+		/// The index of the log level in the list corresponds to <see cref="LogLevel.Id"/>.
 		/// </summary>
 		public static IReadOnlyList<LogLevel> KnownLevels => sLogLevelsById;
 

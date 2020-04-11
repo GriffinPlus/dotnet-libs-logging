@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -34,47 +34,24 @@ namespace GriffinPlus.Lib.Logging
 		LogLevelBitMask GetActiveLogLevelMask(LogWriter writer);
 
 		/// <summary>
-		/// Gets the current log writer settings.
-		/// </summary>
-		/// <returns>A copy of the internal log writer settings.</returns>
-		IList<LogConfiguration.LogWriter> GetLogWriterSettings();
-
-		/// <summary>
-		/// Sets the log writer settings to use.
-		/// </summary>
-		/// <param name="settings">Settings to use.</param>
-		void SetLogWriterSettings(IEnumerable<LogConfiguration.LogWriter> settings);
-
-		/// <summary>
-		/// Sets the log writer settings to use.
-		/// </summary>
-		/// <param name="settings">Settings to use.</param>
-		void SetLogWriterSettings(params LogConfiguration.LogWriter[] settings);
-
-		/// <summary>
 		/// Gets the settings for pipeline stages by their name.
 		/// </summary>
 		/// <returns>The requested settings.</returns>
-		IDictionary<string, IDictionary<string, string>> GetProcessingPipelineStageSettings();
+		IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> GetProcessingPipelineStageSettings();
 
 		/// <summary>
 		/// Gets the settings for the pipeline stage with the specified name.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage to get the settings for.</param>
 		/// <returns>The requested settings.</returns>
-		IDictionary<string, string> GetProcessingPipelineStageSettings(string name);
+		IReadOnlyDictionary<string, string> GetProcessingPipelineStageSettings(string name);
 
 		/// <summary>
 		/// Sets the settings for the pipeline stage with the specified name.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
 		/// <param name="settings">Settings to set.</param>
-		void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings);
-
-		/// <summary>
-		/// Saves the configuration.
-		/// </summary>
-		void Save();
+		void SetProcessingPipelineStageSettings(string name, IReadOnlyDictionary<string, string> settings);
 	}
 
 }

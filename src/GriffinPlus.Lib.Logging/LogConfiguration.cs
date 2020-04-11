@@ -18,37 +18,14 @@ using System.Linq;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// The log configuration without persistence (purely in memory, thread-safe).
+	/// The base class for log configurations.
 	/// </summary>
-	public partial class LogConfiguration : ILogConfiguration
+	public abstract partial class LogConfiguration : ILogConfiguration
 	{
-		private string mApplicationName;
-		private Dictionary<string, Dictionary<string, string>> mProcessingPipelineStageSettings;
-		private List<LogWriter> mLogWriterSettings;
-		private readonly object mSync = new object();
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LogConfiguration"/> class.
-		/// </summary>
-		public LogConfiguration()
-		{
-			mProcessingPipelineStageSettings = new Dictionary<string, Dictionary<string, string>>();
-			mLogWriterSettings = new List<LogWriter>();
-			mLogWriterSettings.Add(new LogWriter()); // LogWriter comes with defaults...
-			mApplicationName = AppDomain.CurrentDomain.FriendlyName;
-		}
-
 		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
-		public string ApplicationName
-		{
-			get => mApplicationName;
-			set {
-				if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Invalid application name.");
-				mApplicationName = value;
-			}
-		}
+		public abstract string ApplicationName { get; set; }
 
 		/// <summary>
 		/// Gets a bit mask in which each bit is associated with a log level with the same id
@@ -56,92 +33,31 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
-		public LogLevelBitMask GetActiveLogLevelMask(GriffinPlus.Lib.Logging.LogWriter writer)
-		{
-			// get the first matching log writer settings
-			var settings = mLogWriterSettings.FirstOrDefault(x => x.Pattern.Regex.IsMatch(writer.Name));
-
-			if (settings != null)
-			{
-				LogLevelBitMask mask;
-
-				// enable all log levels that are covered by the base level
-				LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
-				if (level == LogLevel.All) {
-					mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
-				} else {
-					mask = new LogLevelBitMask(LogLevel.MaxId + 1, false, false);
-					mask.SetBits(0, level.Id + 1);
-				}
-
-				// add log levels explicitly included
-				foreach (var include in settings.Includes)
-				{
-					level = LogLevel.GetAspect(include);
-					mask.SetBit(level.Id);
-				}
-
-				// disable log levels explicitly excluded
-				foreach (var exclude in settings.Excludes)
-				{
-					level = LogLevel.GetAspect(exclude);
-					mask.ClearBit(level.Id);
-				}
-
-				return mask;
-			}
-			else
-			{
-				// no matching settings found
-				// => disable all log levels...
-				return new LogLevelBitMask(0, false, false);
-			}
-		}
+		public abstract LogLevelBitMask GetActiveLogLevelMask(GriffinPlus.Lib.Logging.LogWriter writer);
 
 		/// <summary>
 		/// Gets the current log writer settings.
 		/// </summary>
 		/// <returns>A copy of the internal log writer settings.</returns>
-		public IList<LogWriter> GetLogWriterSettings()
-		{
-			// return copy to avoid uncontrolled modifications of the collection
-			return new List<LogWriter>(mLogWriterSettings);
-		}
+		public abstract IEnumerable<LogWriter> GetLogWriterSettings();
 
 		/// <summary>
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public void SetLogWriterSettings(IEnumerable<LogWriter> settings)
-		{
-			// copy mutable log writer settings and replace entire collection atomically to avoid threading issues
-			mLogWriterSettings = new List<LogWriter>(settings.Select(x => new LogWriter(x)));
-		}
+		public abstract void SetLogWriterSettings(IEnumerable<LogWriter> settings);
 
 		/// <summary>
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public void SetLogWriterSettings(params LogWriter[] settings)
-		{
-			// copy mutable log writer settings and replace entire collection atomically to avoid threading issues
-			mLogWriterSettings = new List<LogWriter>(settings.Select(x => new LogWriter(x)));
-		}
+		public abstract void SetLogWriterSettings(params LogWriter[] settings);
 
 		/// <summary>
 		/// Gets the settings for pipeline stages by their name.
 		/// </summary>
 		/// <returns>The requested settings.</returns>
-		public IDictionary<string, IDictionary<string, string>> GetProcessingPipelineStageSettings()
-		{
-			// return copy to avoid uncontrolled modifications of the collection
-			IDictionary<string, IDictionary<string, string>> settingsByName = new Dictionary<string, IDictionary<string, string>>();
-			foreach (var kvp in mProcessingPipelineStageSettings) {
-				settingsByName.Add(kvp.Key, new Dictionary<string, string>(kvp.Value));
-			}
-
-			return settingsByName;
-		}
+		public abstract IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> GetProcessingPipelineStageSettings();
 
 		/// <summary>
 		/// Gets the settings for the pipeline stage with the specified name.
@@ -151,41 +67,19 @@ namespace GriffinPlus.Lib.Logging
 		/// The requested settings;
 		/// null, if the settings do not exist.
 		/// </returns>
-		public IDictionary<string, string> GetProcessingPipelineStageSettings(string name)
-		{
-			// return copy to avoid uncontrolled modifications of the collection
-			if (mProcessingPipelineStageSettings.TryGetValue(name, out var settings)) {
-				return new Dictionary<string, string>(settings);
-			}
-
-			return null;
-		}
+		public abstract IReadOnlyDictionary<string, string> GetProcessingPipelineStageSettings(string name);
 
 		/// <summary>
 		/// Sets the settings for the pipeline stage with the specified name.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
 		/// <param name="settings">Settings to set.</param>
-		public void SetProcessingPipelineStageSettings(string name, IDictionary<string, string> settings)
-		{
-			if (settings == null) throw new ArgumentNullException(nameof(settings));
-
-			// replace atomically to avoid threading issues
-			lock (mSync)
-			{
-				var copy = new Dictionary<string, Dictionary<string, string>>(mProcessingPipelineStageSettings);
-				copy[name] = new Dictionary<string, string>(settings);
-				mProcessingPipelineStageSettings = copy;
-			}
-		}
+		public abstract void SetProcessingPipelineStageSettings(string name, IReadOnlyDictionary<string, string> settings);
 
 		/// <summary>
-		/// Saves the configuration (not supported).
+		/// Saves the configuration.
 		/// </summary>
-		public void Save()
-		{
-			// no persistence => nothing to do...
-		}
+		public abstract void Save();
 
 	}
 }
