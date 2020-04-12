@@ -102,7 +102,7 @@ namespace GriffinPlus.Lib.Logging
 
 			try
 			{
-				await mWriter.WriteLineAsync(mOutputBuilder.ToString()).ConfigureAwait(false);
+				await mWriter.WriteAsync(mOutputBuilder.ToString()).ConfigureAwait(false);
 				// ReSharper disable once InconsistentlySynchronizedField
 				// (after attaching the pipeline stage to the logging subsystem, mAutoFlush will not change)
 				if (mAutoFlush) await mWriter.FlushAsync().ConfigureAwait(false);
