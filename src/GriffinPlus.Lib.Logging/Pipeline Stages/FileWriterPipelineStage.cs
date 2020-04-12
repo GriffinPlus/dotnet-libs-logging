@@ -94,10 +94,18 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		protected override async Task EmitOutputAsync(LocalLogMessage message, string output, CancellationToken cancellationToken)
 		{
-			await mWriter.WriteLineAsync(output).ConfigureAwait(false);
-			// ReSharper disable once InconsistentlySynchronizedField
-			// (after attaching the pipeline stage to the logging subsystem, mAutoFlush will not change)
-			if (mAutoFlush) await mWriter.FlushAsync().ConfigureAwait(false);
+			try
+			{
+				await mWriter.WriteLineAsync(output).ConfigureAwait(false);
+				// ReSharper disable once InconsistentlySynchronizedField
+				// (after attaching the pipeline stage to the logging subsystem, mAutoFlush will not change)
+				if (mAutoFlush) await mWriter.FlushAsync().ConfigureAwait(false);
+			}
+			catch
+			{
+				// swallow exceptions
+				// (i/o errors should not impact the application)
+			}
 		}
 
 	}
