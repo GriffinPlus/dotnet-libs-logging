@@ -364,7 +364,6 @@ namespace GriffinPlus.Lib.Logging.Demo
             Log.ApplicationName = "Logging Demo";
 
             // Configure the log message processing pipeline and arrange the columns to print.
-            // There is only one stage here, but you can use FollowedBy() to append another stage to this one.
             Log.LogMessageProcessingPipeline = new ConsoleWriterPipelineStage()
                 .WithQueue(500, false)                             // buffer up to 500 messages and block, if the queue is full (default)
                 .WithFormatter(new TableMessageFormatter()
@@ -375,7 +374,10 @@ namespace GriffinPlus.Lib.Logging.Demo
                     .WithLogWriter()
                     .WithLogLevel()
                     .WithText()
-                );
+                ).FollowedBy(new FileWriterPipelineStage("mylog.log", false)
+                    .WithFormatter(new TableMessageFormatter()
+                        .WithTimestamp()
+                        .WithText()));
 
             // Get an aspect log level.
             LogLevel aspect = LogLevel.GetAspect("Demo Aspect");
