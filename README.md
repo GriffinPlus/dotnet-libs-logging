@@ -53,13 +53,30 @@ In addition to the predefined log levels an aspect log level can be defined. Asp
 
 ### Configuration
 
-By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Failure`, `Error`, `Warning` and `Note`. Messages associated with other log levels are blocked. There is no restriction for log writers. The default log configuration is purely in-memory, but you can quickly tell *Griffin+ Logging* to retrieve settings from a file just by adding the following line:
+The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Failure`, `Error`, `Warning` and `Note`. Messages associated with other log levels are blocked. There is no restriction for log writers. The default log configuration is purely in-memory.
+
+You can tell *Griffin+ Logging* to use your own configuration by setting the `Log.Configuration` property. A configuration class only needs to implement the `ILogConfiguration` interface to work with the logging subsystem. Of course, you can implement a configuration class on your own, but in most cases one of the shipped implementations should suffice.
+
+#### In-Memory Log Configuration
+
+The `VolatileLogConfiguration` class provides a log configuration that lives in memory only. You can programmatically configure it to suit your needs.
+
+Please see the example below on how to configure log writers using the fluent API.
 
 ```csharp
-Log.Configuration = new FileBackedLogConfiguration();
+Log.Configuration = new VolatileLogConfiguration();
 ```
 
-This will drop a configuration file containing the default settings into the application's base directory. The configuration file is named as the application plus extension `.logconf`. An application named `MyApp.exe` will use `MyApp.logconf` as configuration file.
+#### File-Backed Log Configuration
+
+The `FileBackedConfiguration` class is a log configuration that is backed by an ini-like file. By default the file is expected to be located beside the executable with the same name as the executable, but with the extension `.logconf`. For example, the executable `MyApp.exe` will use the configuration file `MyApp.logconf`. Optionally you can choose to place the configuration file somewhere else. The configuration file can be adjusted while the application is running. It is reloaded automatically if changes are detected.
+
+Please see the example below on how to configure log writers using the fluent API.
+
+```csharp
+Log.Configuration = new FileBackedLogConfiguration();                    // default location
+Log.Configuration = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
+```
 
 The default configuration file contains a detailed description of the settings and looks like the following:
 
@@ -131,6 +148,26 @@ ApplicationName = MyApp
 WildcardPattern = *
 Level = Note
 ```
+
+### Log Message Processing Pipeline
+
+*Griffin+ Logging* features a flexible *log message processing pipeline* that is fed with log messages that pass the filter defined by the *log configuration*. By default log messages are simply written to the console (*stdout*) using a tabular layout. The *log message pipeline* can be replaced by setting the `Log.LogMessageProcessingPipeline` property to a pipeline stage of your choice.
+
+A pipeline stage class must implement the `IProcessingPipelineStage` interface. For the sake of simplicity, `ProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. For pipeline stages that perform I/O it is recommended to use the `AsyncProcessingPipelineStage` as base class to decouple I/O from the thread that is writing a log message. Both classes provide a `FollowedBy()` method that allows you to chain multiple pipeline stages in a fluent API fashion.
+
+*Griffin+ Logging* comes with the following processing pipeline stages:
+
+- `CallbackPipelineStage`
+  - A processing pipeline stage that simply invokes a specified callback to process log messages
+  - Processing is done synchronously
+- `ConsoleWriterPipelineStage`
+  - A processing pipeline stage that writes log messages to the console (*stdout* or *stderr*, can be configured per log level)
+  - Printed text can be influenced using a formatter that can be plugged in as a strategy (default: tabular layout)
+  - Processing is done asynchronously
+- `FileWriterPipelineStage`
+  - A processing pipeline stage that writes log messages to a custom file
+  - Written text can be influenced using a formatter that can be plugged in as a strategy (default: tabular layout)
+  - Processing is done asynchronously
 
 ### Requesting a Log Writer
 
@@ -206,23 +243,6 @@ public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>(IFormatProv
 // formatting with custom format provider (invariant culture), for more than 15 parameters
 public void Write(IFormatProvider provider, LogLevel level, string format, params object[] args);
 ```
-
-### Customization
-
-*Griffin+ Logging* can be used as shipped, if you need a logging facility that is configurable as described above and that prints messages to *stdout*. If this is not what you need, you can replace the *log configuration* and the *log message processing pipeline*.
-
-The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. If you feel that is something you want to customize, simply implement the `ILogConfiguration` interface and tell the `Log` class to use your implementation via its `Configuration` property.
-
-Probably customization of the *log message processing pipeline* is a more interesting issue. The pipeline is fed with log messages that pass the filter defined by the *log configuration*. A pipeline stage class must implement the `IProcessingPipelineStage` interface. For the sake of simplicity, `ProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. This class provides a `FollowedBy()` method that allows you to chain multiple pipeline stages in a fluent API fashion.
-
-*Griffin+ Logging* ships with a set of *log message processing pipeline stages* that cover common use cases:
-
-- [File](https://github.com/GriffinPlus/dotnet-libs-logging/wiki/Pipeline-Stage:-File):
-  Log messages are written to an ordinary text log file.
-- [Console](https://github.com/GriffinPlus/dotnet-libs-logging/wiki/Pipeline-Stage:-Console):
-  Log messages are emitted to the stdout/stderr stream of the console.
-- [Elasticsearch](https://github.com/GriffinPlus/dotnet-libs-logging/wiki/Pipeline-Stage:-Elasticsearch):
-  Log messages are sent to an [*Elasticsearch*](https://www.elastic.co/products/elasticsearch) or [*Logstash*](https://www.elastic.co/products/logstash) server.
 
 ### Complete Example
 
@@ -334,7 +354,7 @@ namespace GriffinPlus.Lib.Logging.Demo
                 .WithLogWriterDefault();
 
             // Save file backed configuration file to disk, if it does not exist, yet
-            if (config is FileBackedLogConfiguration fbc &&  !File.Exists(fbc.FullPath)) {
+            if (config is FileBackedLogConfiguration fbc && !File.Exists(fbc.FullPath)) {
                 config.Save();
             }
 
