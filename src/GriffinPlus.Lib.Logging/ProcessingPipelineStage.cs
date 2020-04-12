@@ -22,8 +22,8 @@ namespace GriffinPlus.Lib.Logging
 	/// Messages are always processed in the context of the thread writing the message.
 	/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
 	/// </summary>
-	public abstract class ProcessingPipelineStage<T> : IProcessingPipelineStage
-		where T: ProcessingPipelineStage<T>
+	public abstract class ProcessingPipelineStage<STAGE> : IProcessingPipelineStage
+		where STAGE: ProcessingPipelineStage<STAGE>
 	{
 		private bool mInitialized = false;
 
@@ -161,8 +161,8 @@ namespace GriffinPlus.Lib.Logging
 				lock (Sync)
 				{
 					EnsureNotAttachedToLoggingSubsystem();
-					IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length];
-					Array.Copy(mNextStages, copy, mNextStages.Length);
+					IProcessingPipelineStage[] copy = new IProcessingPipelineStage[value.Length];
+					Array.Copy(value, copy, value.Length);
 					mNextStages = copy;
 				}
 			}
@@ -239,6 +239,31 @@ namespace GriffinPlus.Lib.Logging
 		protected virtual bool ProcessSync(LocalLogMessage message)
 		{
 			return true;
+		}
+
+		#endregion
+
+		#region Fluent API
+
+		// NOTE: The following methods are only located here, because there was an ambiguity with the AsyncProcessingPipelineStage class.
+
+		/// <summary>
+		/// Links the specified pipeline stage to the current stage.
+		/// </summary>
+		/// <param name="stage">Pipeline stages to pass log messages to, when the current stage has completed.</param>
+		/// <returns>The updated pipeline stage.</returns>
+		public STAGE FollowedBy(IProcessingPipelineStage stage)
+		{
+			lock (Sync)
+			{
+				EnsureNotAttachedToLoggingSubsystem();
+				IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length + 1];
+				Array.Copy(mNextStages, copy, mNextStages.Length);
+				copy[copy.Length - 1] = stage;
+				NextStages = copy;
+			}
+
+			return this as STAGE;
 		}
 
 		#endregion

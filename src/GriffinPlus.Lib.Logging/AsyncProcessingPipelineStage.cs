@@ -174,7 +174,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets processing pipeline stages to call after the current stage has completed processing.
 		/// </summary>
-		protected IProcessingPipelineStage[] NextStages
+		public IProcessingPipelineStage[] NextStages
 		{
 			get
 			{
@@ -193,8 +193,8 @@ namespace GriffinPlus.Lib.Logging
 				lock (Sync)
 				{
 					EnsureNotAttachedToLoggingSubsystem();
-					IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length];
-					Array.Copy(mNextStages, copy, mNextStages.Length);
+					IProcessingPipelineStage[] copy = new IProcessingPipelineStage[value.Length];
+					Array.Copy(value, copy, value.Length);
 					mNextStages = copy;
 				}
 			}
@@ -433,6 +433,31 @@ namespace GriffinPlus.Lib.Logging
 					messages[i].Release();
 				}
 			}
+		}
+
+		#endregion
+
+		#region Fluent API
+
+		// NOTE: The following methods are only located here, because there was an ambiguity with the ProcessingPipelineStage class.
+
+		/// <summary>
+		/// Links the specified pipeline stage to the current stage.
+		/// </summary>
+		/// <param name="stage">Pipeline stages to pass log messages to, when the current stage has completed.</param>
+		/// <returns>The updated pipeline stage.</returns>
+		public STAGE FollowedBy(IProcessingPipelineStage stage)
+		{
+			lock (Sync)
+			{
+				EnsureNotAttachedToLoggingSubsystem();
+				IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length + 1];
+				Array.Copy(mNextStages, copy, mNextStages.Length);
+				copy[copy.Length - 1] = stage;
+				NextStages = copy;
+			}
+			
+			return this as STAGE;
 		}
 
 		#endregion
