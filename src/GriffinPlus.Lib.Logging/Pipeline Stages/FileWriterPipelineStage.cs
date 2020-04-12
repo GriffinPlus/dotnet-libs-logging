@@ -23,11 +23,13 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class FileWriterPipelineStage : TextWriterPipelineStage<FileWriterPipelineStage>
 	{
+		private readonly StringBuilder mOutputBuilder = new StringBuilder();
 		private readonly string mPath;
 		private readonly bool mAppend;
 		private FileStream mFile;
 		private StreamWriter mWriter;
 		private bool mAutoFlush;
+		
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileWriterPipelineStage"/> class.
@@ -86,17 +88,21 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Emits the formatted log message.
-		/// This method is called from within the pipeline stage lock (<see cref="AsyncProcessingPipelineStage{T}.Sync"/>).
+		/// Emits the formatted log messages.
 		/// </summary>
-		/// <param name="message">The current log message.</param>
-		/// <param name="output">The formatted output of the current log message.</param>
+		/// <param name="messages">The formatted log messages.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
-		protected override async Task EmitOutputAsync(LocalLogMessage message, string output, CancellationToken cancellationToken)
+		protected override async Task EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken)
 		{
+			mOutputBuilder.Clear();
+			for (int i = 0; i < messages.Length; i++)
+			{
+				mOutputBuilder.Append(messages[i].Output);
+			}
+
 			try
 			{
-				await mWriter.WriteLineAsync(output).ConfigureAwait(false);
+				await mWriter.WriteLineAsync(mOutputBuilder.ToString()).ConfigureAwait(false);
 				// ReSharper disable once InconsistentlySynchronizedField
 				// (after attaching the pipeline stage to the logging subsystem, mAutoFlush will not change)
 				if (mAutoFlush) await mWriter.FlushAsync().ConfigureAwait(false);
@@ -106,6 +112,7 @@ namespace GriffinPlus.Lib.Logging
 				// swallow exceptions
 				// (i/o errors should not impact the application)
 			}
+
 		}
 
 	}

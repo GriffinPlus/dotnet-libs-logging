@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,6 +43,8 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private ConsoleOutputStream mDefaultStream = ConsoleOutputStream.Stdout;
 		private readonly Dictionary<LogLevel, ConsoleOutputStream> mStreamByLevel = new Dictionary<LogLevel, ConsoleOutputStream>();
+		private readonly StringBuilder mStdoutBuilder = new StringBuilder();
+		private readonly StringBuilder mStderrBuilder = new StringBuilder();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConsoleWriterPipelineStage"/> class.
@@ -87,24 +90,37 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Emits the formatted log message.
-		/// This method is called from within the pipeline stage lock (<see cref="AsyncProcessingPipelineStage{T}.Sync"/>).
+		/// Emits the formatted log messages.
 		/// </summary>
-		/// <param name="message">The current log message.</param>
-		/// <param name="output">The formatted output of the current log message.</param>
+		/// <param name="messages">The formatted log messages.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
-		protected override async Task EmitOutputAsync(LocalLogMessage message, string output, CancellationToken cancellationToken)
+		protected override async Task EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken)
 		{
-			// NOTE: After attaching the pipeline stage to the logging subsystem, mStreamByLevel will not change.
-			if (!mStreamByLevel.TryGetValue(message.LogLevel, out ConsoleOutputStream stream)) {
-				stream = mDefaultStream;
+			mStdoutBuilder.Clear();
+			mStderrBuilder.Clear();
+
+			for (int i = 0; i < messages.Length; i++)
+			{
+				var message = messages[i];
+
+				// NOTE: After attaching the pipeline stage to the logging subsystem, mStreamByLevel will not change.
+				if (!mStreamByLevel.TryGetValue(message.Message.LogLevel, out ConsoleOutputStream stream))
+				{
+					stream = mDefaultStream;
+				}
+
+				if (stream == ConsoleOutputStream.Stdout)
+				{
+					mStdoutBuilder.Append(message.Output);
+				}
+				else
+				{
+					mStderrBuilder.Append(message.Output);
+				}
 			}
 
-			if (stream == ConsoleOutputStream.Stdout) {
-				await Console.Out.WriteAsync(output).ConfigureAwait(false);
-			} else {
-				await Console.Error.WriteAsync(output).ConfigureAwait(false);
-			}
+			if (mStdoutBuilder.Length > 0) await Console.Out.WriteAsync(mStdoutBuilder.ToString()).ConfigureAwait(false);
+			if (mStderrBuilder.Length > 0) await Console.Error.WriteAsync(mStderrBuilder.ToString()).ConfigureAwait(false);
 		}
 
 	}
