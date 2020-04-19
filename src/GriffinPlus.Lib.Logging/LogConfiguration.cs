@@ -33,25 +33,25 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
-		public abstract LogLevelBitMask GetActiveLogLevelMask(GriffinPlus.Lib.Logging.LogWriter writer);
+		public abstract LogLevelBitMask GetActiveLogLevelMask(LogWriter writer);
 
 		/// <summary>
 		/// Gets the current log writer settings.
 		/// </summary>
 		/// <returns>A copy of the internal log writer settings.</returns>
-		public abstract IEnumerable<LogWriter> GetLogWriterSettings();
+		public abstract IEnumerable<LogWriterConfiguration> GetLogWriterSettings();
 
 		/// <summary>
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public abstract void SetLogWriterSettings(IEnumerable<LogWriter> settings);
+		public abstract void SetLogWriterSettings(IEnumerable<LogWriterConfiguration> settings);
 
 		/// <summary>
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public abstract void SetLogWriterSettings(params LogWriter[] settings);
+		public abstract void SetLogWriterSettings(params LogWriterConfiguration[] settings);
 
 		/// <summary>
 		/// Gets the settings for pipeline stages by their name.

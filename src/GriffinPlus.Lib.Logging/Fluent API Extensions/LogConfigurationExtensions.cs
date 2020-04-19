@@ -26,7 +26,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Callback for log writer configurations.
 		/// </summary>
 		/// <param name="writer"></param>
-		public delegate void LogWriterConfigurationCallback(LogConfiguration.LogWriter writer);
+		public delegate void LogWriterConfigurationCallback(LogWriterConfiguration writer);
 
 		/// <summary>
 		/// Adds a log writer configuration using the full name of the specified type as its name.
@@ -64,8 +64,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The same log configuration.</returns>
 		public static LogConfiguration WithLogWriter(this LogConfiguration @this, string name, LogWriterConfigurationCallback configuration = null)
 		{
-			var writer = new LogConfiguration.LogWriter();
-			writer.Pattern = new LogConfiguration.ExactNameLogWriterPattern(name);
+			var writer = new LogWriterConfiguration();
+			writer.Pattern = new LogWriterConfiguration.ExactNameLogWriterPattern(name);
 			configuration?.Invoke(writer);
 			@this.SetLogWriterSettings(JoinLogWriterConfiguration(@this, writer));
 			return @this;
@@ -80,8 +80,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The same log configuration.</returns>
 		public static LogConfiguration WithLogWritersByWildcard(this LogConfiguration @this, string pattern, LogWriterConfigurationCallback configuration = null)
 		{
-			var writer = new LogConfiguration.LogWriter();
-			writer.Pattern = new LogConfiguration.WildcardLogWriterPattern(pattern);
+			var writer = new LogWriterConfiguration();
+			writer.Pattern = new LogWriterConfiguration.WildcardLogWriterPattern(pattern);
 			configuration?.Invoke(writer);
 			@this.SetLogWriterSettings(JoinLogWriterConfiguration(@this, writer));
 			return @this;
@@ -96,8 +96,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The same log configuration.</returns>
 		public static LogConfiguration WithLogWritersByRegex(this LogConfiguration @this, string regex, LogWriterConfigurationCallback configuration = null)
 		{
-			var writer = new LogConfiguration.LogWriter();
-			writer.Pattern = new LogConfiguration.RegexLogWriterPattern(regex);
+			var writer = new LogWriterConfiguration();
+			writer.Pattern = new LogWriterConfiguration.RegexLogWriterPattern(regex);
 			configuration?.Invoke(writer);
 			@this.SetLogWriterSettings(JoinLogWriterConfiguration(@this, writer));
 			return @this;
@@ -111,8 +111,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The same log configuration.</returns>
 		public static LogConfiguration WithLogWriterTiming(this LogConfiguration @this)
 		{
-			var writer = new LogConfiguration.LogWriter();
-			writer.Pattern = new LogConfiguration.ExactNameLogWriterPattern("Timing");
+			var writer = new LogWriterConfiguration();
+			writer.Pattern = new LogWriterConfiguration.ExactNameLogWriterPattern("Timing");
 			writer.BaseLevel = "None";
 			writer.Includes.Add("Timing");
 			@this.SetLogWriterSettings(JoinLogWriterConfiguration(@this, writer));
@@ -128,8 +128,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The log writer configuration.</returns>
 		public static LogConfiguration WithLogWriterDefault(this LogConfiguration @this, LogWriterConfigurationCallback configuration = null)
 		{
-			var writer = new LogConfiguration.LogWriter();
-			writer.Pattern = new LogConfiguration.WildcardLogWriterPattern("*");
+			var writer = new LogWriterConfiguration();
+			writer.Pattern = new LogWriterConfiguration.WildcardLogWriterPattern("*");
 			configuration?.Invoke(writer);
 			@this.SetLogWriterSettings(JoinLogWriterConfiguration(@this, writer));
 			return @this;
@@ -141,9 +141,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="log">Log configuration to append the log writer configuration to.</param>
 		/// <param name="writer">Log writer configuration to append to the log configuration.</param>
 		/// <returns>A list of log writer configurations containing the old log writer configuration and the new one.</returns>
-		private static List<LogConfiguration.LogWriter> JoinLogWriterConfiguration(LogConfiguration log, LogConfiguration.LogWriter writer)
+		private static List<LogWriterConfiguration> JoinLogWriterConfiguration(LogConfiguration log, LogWriterConfiguration writer)
 		{
-			List<LogConfiguration.LogWriter> writers = new List<LogConfiguration.LogWriter>(log.GetLogWriterSettings().Where(x => !x.IsDefault));
+			List<LogWriterConfiguration> writers = new List<LogWriterConfiguration>(log.GetLogWriterSettings().Where(x => !x.IsDefault));
 			writers.Add(writer);
 			return writers;
 		}
@@ -154,7 +154,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="this">The log writer configuration.</param>
 		/// <param name="level">Log level to set as base log level.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithBaseLevel(this LogConfiguration.LogWriter @this, LogLevel level)
+		public static LogWriterConfiguration WithBaseLevel(this LogWriterConfiguration @this, LogLevel level)
 		{
 			if (level == null) throw new ArgumentNullException(nameof(level));
 			return @this.WithBaseLevel(level.Name);
@@ -166,7 +166,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="this">The log writer configuration.</param>
 		/// <param name="level">Log level to set as base log level.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithBaseLevel(this LogConfiguration.LogWriter @this, string level)
+		public static LogWriterConfiguration WithBaseLevel(this LogWriterConfiguration @this, string level)
 		{
 			@this.BaseLevel = level ?? throw new ArgumentNullException(nameof(level));
 			return @this;
@@ -178,7 +178,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="this">The log writer configuration.</param>
 		/// <param name="levels">Log levels to enable.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithLevel(this LogConfiguration.LogWriter @this, params LogLevel[] levels)
+		public static LogWriterConfiguration WithLevel(this LogWriterConfiguration @this, params LogLevel[] levels)
 		{
 			return @this.WithLevel(levels.Select(x => x.Name).ToArray());
 		}
@@ -189,7 +189,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="this">The log writer configuration.</param>
 		/// <param name="levels">Log levels to enable.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithLevel(this LogConfiguration.LogWriter @this, params string[] levels)
+		public static LogWriterConfiguration WithLevel(this LogWriterConfiguration @this, params string[] levels)
 		{
 			if (levels == null) throw new ArgumentNullException(nameof(levels));
 			foreach (var level in levels) {
@@ -207,7 +207,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="from">First log level to enable.</param>
 		/// <param name="to">Last log level to enable.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithLevelRange(this LogConfiguration.LogWriter @this, LogLevel from, LogLevel to)
+		public static LogWriterConfiguration WithLevelRange(this LogWriterConfiguration @this, LogLevel from, LogLevel to)
 		{
 			if (from == null) throw new ArgumentNullException(nameof(from));
 			if (to == null) throw new ArgumentNullException(nameof(to));
@@ -221,7 +221,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="from">First log level to enable.</param>
 		/// <param name="to">Last log level to enable.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithLevelRange(this LogConfiguration.LogWriter @this, string from, string to)
+		public static LogWriterConfiguration WithLevelRange(this LogWriterConfiguration @this, string from, string to)
 		{
 			if (from == null) throw new ArgumentNullException(nameof(from));
 			if (to == null) throw new ArgumentNullException(nameof(to));
@@ -255,7 +255,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="this">The log writer configuration.</param>
 		/// <param name="levels">Log levels to disable.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithoutLevel(this LogConfiguration.LogWriter @this, params LogLevel[] levels)
+		public static LogWriterConfiguration WithoutLevel(this LogWriterConfiguration @this, params LogLevel[] levels)
 		{
 			if (levels == null) throw new ArgumentNullException(nameof(levels));
 			return @this.WithoutLevel(levels.Select(x => x.Name).ToArray());
@@ -267,7 +267,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="this">The log writer configuration.</param>
 		/// <param name="levels">Log levels to disable.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithoutLevel(this LogConfiguration.LogWriter @this, params string[] levels)
+		public static LogWriterConfiguration WithoutLevel(this LogWriterConfiguration @this, params string[] levels)
 		{
 			if (levels == null) throw new ArgumentNullException(nameof(levels));
 			foreach (var level in levels) {
@@ -285,7 +285,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="from">First log level to disable.</param>
 		/// <param name="to">Last log level to disable.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithoutLevelRange(this LogConfiguration.LogWriter @this, LogLevel from, LogLevel to)
+		public static LogWriterConfiguration WithoutLevelRange(this LogWriterConfiguration @this, LogLevel from, LogLevel to)
 		{
 			if (from == null) throw new ArgumentNullException(nameof(from));
 			if (to == null) throw new ArgumentNullException(nameof(to));
@@ -299,7 +299,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="from">First log level to disable.</param>
 		/// <param name="to">Last log level to disable.</param>
 		/// <returns>The same log writer configuration.</returns>
-		public static LogConfiguration.LogWriter WithoutLevelRange(this LogConfiguration.LogWriter @this, string from, string to)
+		public static LogWriterConfiguration WithoutLevelRange(this LogWriterConfiguration @this, string from, string to)
 		{
 			if (from == null) throw new ArgumentNullException(nameof(from));
 			if (to == null) throw new ArgumentNullException(nameof(to));

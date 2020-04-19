@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
-// Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
+// Copyright 2018 Sascha Falk <sascha@falk-online.eu>
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -15,41 +15,22 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
-	public partial class LogConfiguration
+	public partial class LogWriterConfiguration
 	{
 		/// <summary>
-		/// A .NET regular expression pattern (immutable).
+		/// Interface of log writer pattern classes (must be implemented immutable).
 		/// </summary>
-		public class RegexLogWriterPattern : ILogWriterPattern
+		internal interface ILogWriterPattern
 		{
-			/// <summary>
-			/// Initializes a new instance of the <see cref="RegexLogWriterPattern"/> class.
-			/// </summary>
-			/// <param name="pattern">The regular expression to use.</param>
-			public RegexLogWriterPattern(string pattern)
-			{
-				Pattern = pattern;
-				Regex = new Regex(pattern, RegexOptions.Singleline); // compilation is not needed as the regex matches only once against a log writer name and is then cached
-			}
-
 			/// <summary>
 			/// Gets the original pattern.
 			/// </summary>
-			public string Pattern { get; }
+			string Pattern { get; }
 
 			/// <summary>
 			/// Gets the regular expression matching the specified pattern.
 			/// </summary>
-			public Regex Regex { get; }
-
-			/// <summary>
-			/// Gets the string representation of the pattern.
-			/// </summary>
-			/// <returns>The string representation of the pattern.</returns>
-			public override string ToString()
-			{
-				return "Regex: " + Pattern;
-			}
+			Regex Regex { get; }
 		}
 	}
 }

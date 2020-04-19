@@ -56,8 +56,8 @@ namespace GriffinPlus.Lib.Logging
 
 			// set configuration to let all log levels below the specified log level pass
 			LogConfiguration configuration = new VolatileLogConfiguration();
-			configuration.SetLogWriterSettings(new LogConfiguration.LogWriter(
-				new LogConfiguration.WildcardLogWriterPattern("*"),
+			configuration.SetLogWriterSettings(new LogWriterConfiguration(
+				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
 				baseLevel,
 				null,
 				null));
@@ -112,8 +112,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// set configuration to let only the included log level pass
 			LogConfiguration configuration = new VolatileLogConfiguration();
-			configuration.SetLogWriterSettings(new LogConfiguration.LogWriter(
-				new LogConfiguration.WildcardLogWriterPattern("*"),
+			configuration.SetLogWriterSettings(new LogWriterConfiguration(
+				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
 				"None",
 				new[] { levelToInclude },
 				null));
@@ -169,8 +169,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// set configuration to block the excluded log level only
 			LogConfiguration configuration = new VolatileLogConfiguration();
-			configuration.SetLogWriterSettings(new LogConfiguration.LogWriter(
-				new LogConfiguration.WildcardLogWriterPattern("*"),
+			configuration.SetLogWriterSettings(new LogWriterConfiguration(
+				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
 				"All",
 				null,
 				new[] { levelToExclude }));

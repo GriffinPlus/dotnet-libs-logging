@@ -15,12 +15,12 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
-	public partial class LogConfiguration
+	public partial class LogWriterConfiguration
 	{
 		/// <summary>
 		/// A log writer pattern taking a wildcard pattern string (immutable).
 		/// </summary>
-		public class WildcardLogWriterPattern : ILogWriterPattern
+		internal class WildcardLogWriterPattern : ILogWriterPattern
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="WildcardLogWriterPattern"/> class.

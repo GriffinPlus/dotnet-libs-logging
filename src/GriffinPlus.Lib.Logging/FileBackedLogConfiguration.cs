@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The default path of the log configuration file.
 		/// </summary>
 		private static readonly string sDefaultConfigFilePath;
-		private static readonly GriffinPlus.Lib.Logging.LogWriter sLog = Log.GetWriter("Logging");
+		private static readonly LogWriter sLog = Log.GetWriter("Logging");
 		private readonly object mSync = new object();
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
@@ -192,11 +192,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the current log writer settings.
 		/// </summary>
 		/// <returns>A copy of the internal log writer settings.</returns>
-		public override IEnumerable<LogConfiguration.LogWriter> GetLogWriterSettings()
+		public override IEnumerable<LogWriterConfiguration> GetLogWriterSettings()
 		{
 			lock (mSync)
 			{
-				return new List<LogConfiguration.LogWriter>(mFile.LogWriterSettings.Select(x => new LogWriter(x)));
+				return new List<LogWriterConfiguration>(mFile.LogWriterSettings.Select(x => new LogWriterConfiguration(x)));
 			}
 		}
 
@@ -204,7 +204,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public override void SetLogWriterSettings(IEnumerable<LogConfiguration.LogWriter> settings)
+		public override void SetLogWriterSettings(IEnumerable<LogWriterConfiguration> settings)
 		{
 			lock (mSync)
 			{
@@ -217,7 +217,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public override void SetLogWriterSettings(params LogConfiguration.LogWriter[] settings)
+		public override void SetLogWriterSettings(params LogWriterConfiguration[] settings)
 		{
 			lock (mSync)
 			{

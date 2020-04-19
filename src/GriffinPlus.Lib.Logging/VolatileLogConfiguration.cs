@@ -24,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private string mApplicationName;
 		private Dictionary<string, IReadOnlyDictionary<string, string>> mProcessingPipelineStageSettings;
-		private List<LogWriter> mLogWriterSettings;
+		private List<LogWriterConfiguration> mLogWriterSettings;
 		private readonly object mSync = new object();
 
 		/// <summary>
@@ -33,8 +33,8 @@ namespace GriffinPlus.Lib.Logging
 		public VolatileLogConfiguration()
 		{
 			mProcessingPipelineStageSettings = new Dictionary<string, IReadOnlyDictionary<string, string>>();
-			mLogWriterSettings = new List<LogWriter>();
-			mLogWriterSettings.Add(new LogWriter() { IsDefault = true }); // LogWriter comes with defaults...
+			mLogWriterSettings = new List<LogWriterConfiguration>();
+			mLogWriterSettings.Add(new LogWriterConfiguration() { IsDefault = true }); // LogWriter comes with defaults...
 			mApplicationName = AppDomain.CurrentDomain.FriendlyName;
 		}
 
@@ -59,7 +59,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
-		public override LogLevelBitMask GetActiveLogLevelMask(GriffinPlus.Lib.Logging.LogWriter writer)
+		public override LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
 		{
 			lock (mSync)
 			{
@@ -111,7 +111,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the current log writer settings.
 		/// </summary>
 		/// <returns>A copy of the internal log writer settings.</returns>
-		public override IEnumerable<LogWriter> GetLogWriterSettings()
+		public override IEnumerable<LogWriterConfiguration> GetLogWriterSettings()
 		{
 			lock (mSync)
 			{
@@ -125,12 +125,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public override void SetLogWriterSettings(IEnumerable<LogWriter> settings)
+		public override void SetLogWriterSettings(IEnumerable<LogWriterConfiguration> settings)
 		{
 			lock (mSync)
 			{
 				// copy mutable log writer settings and replace entire collection atomically to avoid threading issues
-				mLogWriterSettings = new List<LogWriter>(settings.Select(x => new LogWriter(x)));
+				mLogWriterSettings = new List<LogWriterConfiguration>(settings.Select(x => new LogWriterConfiguration(x)));
 			}
 		}
 
@@ -138,12 +138,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Sets the log writer settings to use.
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
-		public override void SetLogWriterSettings(params LogWriter[] settings)
+		public override void SetLogWriterSettings(params LogWriterConfiguration[] settings)
 		{
 			lock (mSync)
 			{
 				// copy mutable log writer settings and replace entire collection atomically to avoid threading issues
-				mLogWriterSettings = new List<LogWriter>(settings.Select(x => new LogWriter(x)));
+				mLogWriterSettings = new List<LogWriterConfiguration>(settings.Select(x => new LogWriterConfiguration(x)));
 			}
 		}
 

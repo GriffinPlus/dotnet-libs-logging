@@ -137,7 +137,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			mGlobalSettings = new Dictionary<string, string>();
 			ApplicationName = AppDomain.CurrentDomain.FriendlyName;
-			LogWriterSettings.Add(new LogConfiguration.LogWriter() { IsDefault = true }); // LogWriter comes with defaults...
+			LogWriterSettings.Add(new LogWriterConfiguration() { IsDefault = true }); // LogWriter comes with defaults...
 		}
 
 		/// <summary>
@@ -157,7 +157,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the list of log writer settings.
 		/// </summary>
-		public List<LogConfiguration.LogWriter> LogWriterSettings { get; } = new List<LogConfiguration.LogWriter>();
+		public List<LogWriterConfiguration> LogWriterSettings { get; } = new List<LogWriterConfiguration>();
 
 		/// <summary>
 		/// Gets processing pipeline stage settings by their name.
@@ -200,7 +200,7 @@ namespace GriffinPlus.Lib.Logging
 			int lineNumber = 0;
 
 			string section = null;
-			LogConfiguration.LogWriter logWriter = null;
+			LogWriterConfiguration logWriter = null;
 			Dictionary<string, string> currentSettings = null;
 
 			while (true)
@@ -239,7 +239,7 @@ namespace GriffinPlus.Lib.Logging
 					else if (section == Section_Name_Log_Writer)
 					{
 						// a [LogWriter] section
-						logWriter = new LogConfiguration.LogWriter() { IsDefault = true };
+						logWriter = new LogWriterConfiguration() { IsDefault = true };
 						LogWriterSettings.Add(logWriter);
 						continue;
 					}
@@ -277,17 +277,17 @@ namespace GriffinPlus.Lib.Logging
 						// (Name, WildcardPattern, RegexPattern, Level, Include, Exclude)
 						if (key == Property_Name_LogWriter_Name)
 						{
-							logWriter.Pattern = new LogConfiguration.ExactNameLogWriterPattern(value);
+							logWriter.Pattern = new LogWriterConfiguration.ExactNameLogWriterPattern(value);
 							continue;
 						}
 						else if (key == Property_Name_LogWriter_Wildcard_Pattern)
 						{
-							logWriter.Pattern = new LogConfiguration.WildcardLogWriterPattern(value);
+							logWriter.Pattern = new LogWriterConfiguration.WildcardLogWriterPattern(value);
 							continue;
 						}
 						else if (key == Property_Name_LogWriter_Regex_Pattern)
 						{
-							logWriter.Pattern = new LogConfiguration.RegexLogWriterPattern(value);
+							logWriter.Pattern = new LogWriterConfiguration.RegexLogWriterPattern(value);
 							continue;
 						}
 						else if (key == Property_Name_LogWriter_Level)
@@ -396,20 +396,20 @@ namespace GriffinPlus.Lib.Logging
 			{
 				writer.WriteLine();
 				foreach (string line in sLogWriterConfigurationComment) writer.WriteLine(line);
-				foreach (LogConfiguration.LogWriter logWriter in LogWriterSettings)
+				foreach (LogWriterConfiguration logWriter in LogWriterSettings)
 				{
 					writer.WriteLine();
 					writer.WriteLine("[{0}]", Section_Name_Log_Writer);
 
-					if (logWriter.Pattern is LogConfiguration.ExactNameLogWriterPattern)
+					if (logWriter.Pattern is LogWriterConfiguration.ExactNameLogWriterPattern)
 					{
 						writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Name, logWriter.Pattern.Pattern);
 					}
-					else if (logWriter.Pattern is LogConfiguration.WildcardLogWriterPattern)
+					else if (logWriter.Pattern is LogWriterConfiguration.WildcardLogWriterPattern)
 					{
 						writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Wildcard_Pattern, logWriter.Pattern.Pattern);
 					}
-					else if (logWriter.Pattern is LogConfiguration.RegexLogWriterPattern)
+					else if (logWriter.Pattern is LogWriterConfiguration.RegexLogWriterPattern)
 					{
 						writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Regex_Pattern, logWriter.Pattern.Pattern);
 					}

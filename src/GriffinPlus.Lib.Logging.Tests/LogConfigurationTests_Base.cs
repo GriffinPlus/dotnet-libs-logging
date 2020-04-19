@@ -62,7 +62,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal("Note", logWriterSettings.First().BaseLevel);
 			Assert.Empty(logWriterSettings.First().Includes);
 			Assert.Empty(logWriterSettings.First().Excludes);
-			Assert.IsType<LogConfiguration.WildcardLogWriterPattern>(logWriterSettings.First().Pattern);
+			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(logWriterSettings.First().Pattern);
 			Assert.Equal("*", logWriterSettings.First().Pattern.Pattern);
 		}
 
@@ -103,8 +103,8 @@ namespace GriffinPlus.Lib.Logging
 		public void Getting_Active_Log_Level_Mask_For_Specific_BaseLevel(string level, uint expectedMask)
 		{
 			T configuration = new T();
-			configuration.SetLogWriterSettings(new LogConfiguration.LogWriter(
-				new LogConfiguration.WildcardLogWriterPattern("*"),
+			configuration.SetLogWriterSettings(new LogWriterConfiguration(
+				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
 				level,
 				null,
 				null));
@@ -138,8 +138,8 @@ namespace GriffinPlus.Lib.Logging
 		public void Getting_Active_Log_Level_Mask_With_Includes_And_Excludes(string baseLevel, string[] includes, string[] excludes, uint expectedMask)
 		{
 			T configuration = new T();
-			configuration.SetLogWriterSettings(new LogConfiguration.LogWriter(
-				new LogConfiguration.WildcardLogWriterPattern("*"),
+			configuration.SetLogWriterSettings(new LogWriterConfiguration(
+				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
 				baseLevel,
 				includes,
 				excludes));
