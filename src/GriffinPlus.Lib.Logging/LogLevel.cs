@@ -313,6 +313,15 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Converts a <see cref="LogLevel"/> to its name.
+		/// </summary>
+		/// <param name="level">Log level to convert.</param>
+		public static implicit operator string(LogLevel level)
+		{
+			return level.Name;
+		}
+
+		/// <summary>
 		/// Gets the string representation of the current log level.
 		/// </summary>
 		/// <returns>String representation of the current log level.</returns>
