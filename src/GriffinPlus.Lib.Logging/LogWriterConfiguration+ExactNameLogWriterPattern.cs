@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// A log writer pattern matching exactly (immutable).
 		/// </summary>
-		internal class ExactNameLogWriterPattern : ILogWriterPattern
+		public class ExactNameLogWriterPattern : ILogWriterPattern
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ExactNameLogWriterPattern"/> class.

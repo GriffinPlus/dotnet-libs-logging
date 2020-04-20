@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Unit tests targeting the <see cref="FileBackedLogConfiguration"/> class.
 	/// </summary>
-	public class LogConfigurationExtensionsTests_FileBacked : LogConfigurationExtensionsTests_Base<FileBackedLogConfiguration>
+	public class LogConfigurationExtensionsTests_FileBacked : LogWriterConfigurationBuilderTests<FileBackedLogConfiguration>
 	{
 
 	}

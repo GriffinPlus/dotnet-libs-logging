@@ -34,7 +34,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			mProcessingPipelineStageSettings = new Dictionary<string, IReadOnlyDictionary<string, string>>();
 			mLogWriterSettings = new List<LogWriterConfiguration>();
-			mLogWriterSettings.Add(new LogWriterConfiguration() { IsDefault = true }); // LogWriter comes with defaults...
+			var writer = LogWriterConfiguration.Default;
+			writer.IsDefault = true;
+			mLogWriterSettings.Add(writer);
 			mApplicationName = AppDomain.CurrentDomain.FriendlyName;
 		}
 
@@ -64,7 +66,16 @@ namespace GriffinPlus.Lib.Logging
 			lock (mSync)
 			{
 				// get the first matching log writer settings
-				var settings = mLogWriterSettings.FirstOrDefault(x => x.Pattern.Regex.IsMatch(writer.Name));
+				LogWriterConfiguration settings = null;
+				foreach (var configuration in mLogWriterSettings)
+				{
+					var match = configuration.Patterns.FirstOrDefault(x => x.Regex.IsMatch(writer.Name));
+					if (match != null)
+					{
+						settings = configuration;
+						break;
+					}
+				}
 
 				if (settings != null)
 				{

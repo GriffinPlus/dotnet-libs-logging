@@ -137,7 +137,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			mGlobalSettings = new Dictionary<string, string>();
 			ApplicationName = AppDomain.CurrentDomain.FriendlyName;
-			LogWriterSettings.Add(new LogWriterConfiguration() { IsDefault = true }); // LogWriter comes with defaults...
+			var writer = LogWriterConfiguration.Default;
+			writer.IsDefault = true;  // ensures that the log writer configuration is removed, if some other is added
+			LogWriterSettings.Add(writer); 
 		}
 
 		/// <summary>
@@ -277,34 +279,34 @@ namespace GriffinPlus.Lib.Logging
 						// (Name, WildcardPattern, RegexPattern, Level, Include, Exclude)
 						if (key == Property_Name_LogWriter_Name)
 						{
-							logWriter.Pattern = new LogWriterConfiguration.ExactNameLogWriterPattern(value);
+							logWriter.mPatterns.Add(new LogWriterConfiguration.ExactNameLogWriterPattern(value));
 							continue;
 						}
 						else if (key == Property_Name_LogWriter_Wildcard_Pattern)
 						{
-							logWriter.Pattern = new LogWriterConfiguration.WildcardLogWriterPattern(value);
+							logWriter.mPatterns.Add(new LogWriterConfiguration.WildcardLogWriterPattern(value));
 							continue;
 						}
 						else if (key == Property_Name_LogWriter_Regex_Pattern)
 						{
-							logWriter.Pattern = new LogWriterConfiguration.RegexLogWriterPattern(value);
+							logWriter.mPatterns.Add(new LogWriterConfiguration.RegexLogWriterPattern(value));
 							continue;
 						}
 						else if (key == Property_Name_LogWriter_Level)
 						{
-							logWriter.BaseLevel = value;
+							logWriter.mBaseLevel = value;
 							continue;
 						}
 						else if (key == Property_Name_LogWriter_Include)
 						{
 							string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
-							logWriter.Includes.AddRange(levels);
+							logWriter.mIncludes.AddRange(levels);
 							continue;
 						}
 						else if (key == Property_Name_LogWriter_Exclude)
 						{
 							string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
-							logWriter.Excludes.AddRange(levels);
+							logWriter.mExcludes.AddRange(levels);
 							continue;
 						}
 						else
@@ -331,6 +333,22 @@ namespace GriffinPlus.Lib.Logging
 				// syntax error
 				throw new LoggingException("Syntax error in line {0}.", lineNumber);
 			}
+
+			// add default log writer name pattern, if there is no pattern configured
+			foreach (var writer in LogWriterSettings)
+			{
+				if (writer.mPatterns.Count == 0)
+				{
+					writer.mPatterns.Add(LogWriterConfiguration.sDefaultPattern);
+				}
+			}
+
+			// add default log writer configuration, if there is no configuration
+			if (LogWriterSettings.Count == 0)
+			{
+				LogWriterSettings.Add(LogWriterConfiguration.Default);
+			}
+			
 		}
 
 		/// <summary>
@@ -401,17 +419,20 @@ namespace GriffinPlus.Lib.Logging
 					writer.WriteLine();
 					writer.WriteLine("[{0}]", Section_Name_Log_Writer);
 
-					if (logWriter.Pattern is LogWriterConfiguration.ExactNameLogWriterPattern)
+					foreach (var pattern in logWriter.Patterns)
 					{
-						writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Name, logWriter.Pattern.Pattern);
-					}
-					else if (logWriter.Pattern is LogWriterConfiguration.WildcardLogWriterPattern)
-					{
-						writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Wildcard_Pattern, logWriter.Pattern.Pattern);
-					}
-					else if (logWriter.Pattern is LogWriterConfiguration.RegexLogWriterPattern)
-					{
-						writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Regex_Pattern, logWriter.Pattern.Pattern);
+						if (pattern is LogWriterConfiguration.ExactNameLogWriterPattern)
+						{
+							writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Name, pattern.Pattern);
+						}
+						else if (pattern is LogWriterConfiguration.WildcardLogWriterPattern)
+						{
+							writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Wildcard_Pattern, pattern.Pattern);
+						}
+						else if (pattern is LogWriterConfiguration.RegexLogWriterPattern)
+						{
+							writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Regex_Pattern, pattern.Pattern);
+						}
 					}
 
 					writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Level, logWriter.BaseLevel);

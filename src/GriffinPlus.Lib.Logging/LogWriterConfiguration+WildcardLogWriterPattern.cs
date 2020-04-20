@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// A log writer pattern taking a wildcard pattern string (immutable).
 		/// </summary>
-		internal class WildcardLogWriterPattern : ILogWriterPattern
+		public class WildcardLogWriterPattern : ILogWriterPattern
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="WildcardLogWriterPattern"/> class.

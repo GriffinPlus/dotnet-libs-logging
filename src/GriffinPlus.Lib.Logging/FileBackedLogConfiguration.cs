@@ -85,6 +85,7 @@ namespace GriffinPlus.Lib.Logging
 				try
 				{
 					mFile = LogConfigurationFile.LoadFrom(mFilePath);
+					break;
 				}
 				catch (FileNotFoundException)
 				{
@@ -232,12 +233,21 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">Log writer to get the active log level mask for.</param>
 		/// <returns>The requested active log level mask.</returns>
-		public override LogLevelBitMask GetActiveLogLevelMask(GriffinPlus.Lib.Logging.LogWriter writer)
+		public override LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
 		{
 			lock (mSync)
 			{
 				// get the first matching log writer settings
-				var settings = mFile.LogWriterSettings.FirstOrDefault(x => x.Pattern.Regex.IsMatch(writer.Name));
+				LogWriterConfiguration settings = null;
+				foreach (var configuration in mFile.LogWriterSettings)
+				{
+					var match = configuration.Patterns.FirstOrDefault(x => x.Regex.IsMatch(writer.Name));
+					if (match != null)
+					{
+						settings = configuration;
+						break;
+					}
+				}
 
 				if (settings != null)
 				{

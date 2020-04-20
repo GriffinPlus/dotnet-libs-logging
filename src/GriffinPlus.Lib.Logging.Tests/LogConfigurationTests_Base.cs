@@ -59,11 +59,14 @@ namespace GriffinPlus.Lib.Logging
 			// log writer settings
 			var logWriterSettings = configuration.GetLogWriterSettings();
 			Assert.Single(logWriterSettings);
-			Assert.Equal("Note", logWriterSettings.First().BaseLevel);
-			Assert.Empty(logWriterSettings.First().Includes);
-			Assert.Empty(logWriterSettings.First().Excludes);
-			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(logWriterSettings.First().Pattern);
-			Assert.Equal("*", logWriterSettings.First().Pattern.Pattern);
+			var logWriterSetting = logWriterSettings.First();
+			Assert.Equal("Note", logWriterSetting.BaseLevel);
+			Assert.Empty(logWriterSetting.Includes);
+			Assert.Empty(logWriterSetting.Excludes);
+			Assert.Single(logWriterSetting.Patterns);
+			var pattern = logWriterSetting.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Equal("*", pattern.Pattern);
 		}
 
 		[Fact]

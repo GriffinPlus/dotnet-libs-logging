@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Unit tests targeting the <see cref="VolatileLogConfiguration"/> class.
 	/// </summary>
-	public class LogConfigurationExtensionsTests_Volatile : LogConfigurationExtensionsTests_Base<VolatileLogConfiguration>
+	public class LogConfigurationExtensionsTests_Volatile : LogWriterConfigurationBuilderTests<VolatileLogConfiguration>
 	{
 
 	}

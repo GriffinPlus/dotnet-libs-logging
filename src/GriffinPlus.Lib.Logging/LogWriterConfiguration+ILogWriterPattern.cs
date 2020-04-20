@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Interface of log writer pattern classes (must be implemented immutable).
 		/// </summary>
-		internal interface ILogWriterPattern
+		public interface ILogWriterPattern
 		{
 			/// <summary>
 			/// Gets the original pattern.

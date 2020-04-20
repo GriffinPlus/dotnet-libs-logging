@@ -17,7 +17,7 @@ using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
-	public abstract class LogConfigurationExtensionsTests_Base<T> where T : LogConfiguration, new()
+	public abstract class LogWriterConfigurationBuilderTests<T> where T : LogConfiguration, new()
 	{
 		#region Adding Log Writer Configurations
 
@@ -31,13 +31,10 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				LogWriterConfiguration writerInCallback = null;
-				Assert.Same(configuration, configuration.WithLogWriter<T>(x => writerInCallback = x));
+				Assert.Same(configuration, configuration.WithLogWriter<T>(x => Assert.NotNull(x)));
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
-				Assert.Equal(writer, writerInCallback);    // the log writer in the callback must be equal,
-				Assert.NotSame(writer, writerInCallback);  // but not the same as it should have been copied.
 			}
 			else {
 				Assert.Same(configuration, configuration.WithLogWriter<T>());
@@ -46,8 +43,10 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(writer.Pattern);
-			Assert.Equal($"{typeof(T).FullName}", writer.Pattern.Pattern);
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Equal($"{typeof(T).FullName}", pattern.Pattern);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -65,13 +64,10 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				LogWriterConfiguration writerInCallback = null;
-				Assert.Same(configuration, configuration.WithLogWriter(type, x => writerInCallback = x));
+				Assert.Same(configuration, configuration.WithLogWriter(type, x => Assert.NotNull(x)));
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
-				Assert.Equal(writer, writerInCallback);    // the log writer in the callback must be equal,
-				Assert.NotSame(writer, writerInCallback);  // but not the same as it should have been copied.
 			}
 			else
 			{
@@ -81,8 +77,10 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(writer.Pattern);
-			Assert.Equal($"{type.FullName}", writer.Pattern.Pattern);
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Equal($"{type.FullName}", pattern.Pattern);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -100,13 +98,10 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				LogWriterConfiguration writerInCallback = null;
-				Assert.Same(configuration, configuration.WithLogWritersByWildcard(wildcard, x => writerInCallback = x));
+				Assert.Same(configuration, configuration.WithLogWritersByWildcard(wildcard, x => Assert.NotNull(x)));
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
-				Assert.Equal(writer, writerInCallback);    // the log writer in the callback must be equal,
-				Assert.NotSame(writer, writerInCallback);  // but not the same as it should have been copied.
 			}
 			else
 			{
@@ -116,8 +111,10 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(writer.Pattern);
-			Assert.Equal(wildcard, writer.Pattern.Pattern);
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Equal(wildcard, pattern.Pattern);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -135,13 +132,10 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				LogWriterConfiguration writerInCallback = null;
-				Assert.Same(configuration, configuration.WithLogWritersByRegex(regex, x => writerInCallback = x));
+				Assert.Same(configuration, configuration.WithLogWritersByRegex(regex, x => Assert.NotNull(x)));
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
-				Assert.Equal(writer, writerInCallback);    // the log writer in the callback must be equal,
-				Assert.NotSame(writer, writerInCallback);  // but not the same as it should have been copied.
 			}
 			else
 			{
@@ -151,8 +145,10 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(writer.Pattern);
-			Assert.Equal(regex, writer.Pattern.Pattern);
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(pattern);
+			Assert.Equal(regex, pattern.Pattern);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -167,8 +163,10 @@ namespace GriffinPlus.Lib.Logging
 			var writers = configuration.GetLogWriterSettings().ToArray();
 			Assert.Single(writers);
 			var writer = writers[0];
-			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(writer.Pattern);
-			Assert.Equal("Timing", writer.Pattern.Pattern);
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Equal("Timing", pattern.Pattern);
 			Assert.Equal("None", writer.BaseLevel);
 			Assert.Single(writer.Includes, "Timing");
 			Assert.Empty(writer.Excludes);
@@ -185,13 +183,10 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				LogWriterConfiguration writerInCallback = null;
-				Assert.Same(configuration, configuration.WithLogWriterDefault(x => writerInCallback = x));
+				Assert.Same(configuration, configuration.WithLogWriterDefault(x => Assert.NotNull(x)));
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
-				Assert.Equal(writer, writerInCallback);    // the log writer in the callback must be equal,
-				Assert.NotSame(writer, writerInCallback);  // but not the same as it should have been copied.
 			}
 			else
 			{
@@ -201,8 +196,10 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(writer.Pattern);
-			Assert.Equal("*", writer.Pattern.Pattern);
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Equal("*", pattern.Pattern);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -234,36 +231,40 @@ namespace GriffinPlus.Lib.Logging
 
 			for (int i = 0; i < writers.Length; i++)
 			{
+				var writer = writers[i];
+				Assert.Single(writer.Patterns);
+				var pattern = writer.Patterns.First();
+
 				switch (i)
 				{
 					// effect of .WithLogWriter<T>()
 					case 0:
-						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(writers[i].Pattern);
-						Assert.Equal($"{typeof(T).FullName}", writers[i].Pattern.Pattern);
+						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.Equal($"{typeof(T).FullName}", pattern.Pattern);
 						break;
 
 					// effect of .WithLogWriter(typeof(T))
 					case 1:
-						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(writers[i].Pattern);
-						Assert.Equal($"{typeof(T).FullName}", writers[i].Pattern.Pattern);
+						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.Equal($"{typeof(T).FullName}", pattern.Pattern);
 						break;
 
 					// effect of .WithLogWritersByWildcard(wildcard)
 					case 2:
-						Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(writers[i].Pattern);
-						Assert.Equal(wildcard, writers[i].Pattern.Pattern);
+						Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+						Assert.Equal(wildcard, pattern.Pattern);
 						break;
 
 					// effect of WithLogWritersByRegex(regex)
 					case 3:
-						Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(writers[i].Pattern);
-						Assert.Equal(regex, writers[i].Pattern.Pattern);
+						Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(pattern);
+						Assert.Equal(regex, pattern.Pattern);
 						break;
 
 					// effect of .WithLogWriterTiming()
 					case 4:
-						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(writers[i].Pattern);
-						Assert.Equal("Timing", writers[i].Pattern.Pattern);
+						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.Equal("Timing", pattern.Pattern);
 						Assert.Equal("None", writers[i].BaseLevel);
 						Assert.Single(writers[i].Includes, "Timing");
 						Assert.Empty(writers[i].Excludes);
@@ -272,230 +273,16 @@ namespace GriffinPlus.Lib.Logging
 
 					// effect of .WithLogWriterDefault()
 					case 5:
-						Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(writers[i].Pattern);
-						Assert.Equal("*", writers[i].Pattern.Pattern);
+						Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+						Assert.Equal("*", pattern.Pattern);
 						break;
 				}
 
-				Assert.Equal("Note", writers[i].BaseLevel);
-				Assert.Empty(writers[i].Includes);
-				Assert.Empty(writers[i].Excludes);
-				Assert.False(writers[i].IsDefault);
-			}
-		}
-
-		#endregion
-
-		#region Adjusting the Base Level of a Log Writer Configuration
-
-		// The following tests use LogLevel objects only.
-		// The Fluent API supports overloads with strings identifying log levels as well,
-		// but the implementation taking LogLevel objects only calls the corresponding overloads.
-		// => There is no need to test the string overloads separately.
-
-		[Fact]
-		public void WithBaseLogLevel()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-			var levels = LogLevel.KnownLevels;
-			for (int i = 0; i < levels.Count; i++) {
-				Assert.Same(writer, writer.WithBaseLevel(levels[i]));
-				Assert.Equal(levels[i].Name, writer.BaseLevel);
-			}
-		}
-
-		#endregion
-
-		#region Including/Excluding Log Levels in a Log Writer Configuration
-
-		// The following tests use LogLevel objects only.
-		// The Fluent API supports overloads with strings identifying log levels as well,
-		// but the implementation taking LogLevel objects only calls the corresponding overloads.
-		// => There is no need to test the string overloads separately.
-
-		[Fact]
-		public void WithLevel_AddOnly()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-			var baseLevel = writer.BaseLevel;
-			var levels = LogLevel.KnownLevels;
-			for (int i = 0; i < levels.Count; i++)
-			{
-				Assert.Same(writer, writer.WithLevel(levels[i]));
-				Assert.Equal(baseLevel, writer.BaseLevel);
-				Assert.Equal(levels.Take(i+1).Select(x => x.Name), writer.Includes);
-				Assert.Empty(writer.Excludes);
-			}
-		}
-
-		[Fact]
-		public void WithLevel_AddRemovesExclude()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-
-			// populate the include list
-			var baseLevel = writer.BaseLevel;
-			var levels = LogLevel.KnownLevels;
-			for (int i = 0; i < levels.Count; i++)
-			{
-				Assert.Same(writer, writer.WithLevel(levels[i]));
-				Assert.Equal(baseLevel, writer.BaseLevel);
-				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Includes);
-				Assert.Empty(writer.Excludes);
-			}
-
-			// exclude the first and the last log level
-			// => these log levels should automatically be removed from the include list 
-			Assert.Same(writer, writer.WithoutLevel(levels[0].Name));
-			Assert.Equal(levels.Skip(1).Take(levels.Count - 1).Select(x => x.Name), writer.Includes);
-			Assert.Single(writer.Excludes);
-			Assert.Equal(writer.Excludes[0], levels.First().Name);
-			Assert.Same(writer, writer.WithoutLevel(levels[levels.Count - 1].Name));
-			Assert.Equal(levels.Skip(1).Take(levels.Count - 2).Select(x => x.Name), writer.Includes);
-			Assert.Equal(2, writer.Excludes.Count);
-			Assert.Equal(writer.Excludes[0], levels.First().Name);
-			Assert.Equal(writer.Excludes[1], levels.Last().Name);
-		}
-
-		[Fact]
-		public void WithLevelRange_AddOnly()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-			var baseLevel = writer.BaseLevel;
-			var from = LogLevel.Failure;
-			var to = LogLevel.Trace10;
-			var levels = LogLevel.KnownLevels.Where(x => x.Id >= from.Id && x.Id <= to.Id);
-			Assert.Same(writer, writer.WithLevelRange(from, to));
-			Assert.Equal(baseLevel, writer.BaseLevel);
-			Assert.Equal(levels.Select(x => x.Name), writer.Includes);
-			Assert.Empty(writer.Excludes);
-		}
-
-		[Fact]
-		public void WithLevelRange_AddRemovesExclude()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-
-			// populate the include list
-			var baseLevel = writer.BaseLevel;
-			var from = LogLevel.Failure;
-			var to = LogLevel.Trace10;
-			var levels = LogLevel.KnownLevels.Where(x => x.Id >= from.Id && x.Id <= to.Id).ToArray();
-			Assert.Same(writer, writer.WithLevelRange(from, to));
-
-			// exclude the first three log levels
-			// => these log levels should automatically be removed from the include list 
-			var levelsToInclude = levels.Skip(3).ToArray();
-			var levelsToExclude = levels.Take(3).ToArray();
-			Assert.Same(writer, writer.WithoutLevelRange(levelsToExclude.First(), levelsToExclude.Last()));
-			Assert.Equal(levelsToInclude.Select(x => x.Name), writer.Includes);
-			Assert.Equal(levelsToExclude.Select(x => x.Name), writer.Excludes);
-		}
-
-		[Fact]
-		public void WithoutLevel_AddOnly()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-			var baseLevel = writer.BaseLevel;
-			var levels = LogLevel.KnownLevels;
-			for (int i = 0; i < levels.Count; i++)
-			{
-				Assert.Same(writer, writer.WithoutLevel(levels[i]));
-				Assert.Equal(baseLevel, writer.BaseLevel);
+				Assert.Equal("Note", writer.BaseLevel);
 				Assert.Empty(writer.Includes);
-				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Excludes);
+				Assert.Empty(writer.Excludes);
+				Assert.False(writer.IsDefault);
 			}
-		}
-
-		[Fact]
-		public void WithoutLevel_AddRemovesInclude()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-
-			// populate the exclude list
-			var baseLevel = writer.BaseLevel;
-			var levels = LogLevel.KnownLevels;
-			for (int i = 0; i < levels.Count; i++)
-			{
-				Assert.Same(writer, writer.WithoutLevel(levels[i]));
-				Assert.Equal(baseLevel, writer.BaseLevel);
-				Assert.Empty(writer.Includes);
-				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Excludes);
-			}
-
-			// include the first and the last log level
-			// => these log levels should automatically be removed from the exclude list 
-			Assert.Same(writer, writer.WithLevel(levels[0].Name));
-			Assert.Equal(levels.Skip(1).Take(levels.Count - 1).Select(x => x.Name), writer.Excludes);
-			Assert.Single(writer.Includes);
-			Assert.Equal(writer.Includes[0], levels.First().Name);
-			Assert.Same(writer, writer.WithLevel(levels[levels.Count - 1].Name));
-			Assert.Equal(levels.Skip(1).Take(levels.Count - 2).Select(x => x.Name), writer.Excludes);
-			Assert.Equal(2, writer.Includes.Count);
-			Assert.Equal(writer.Includes[0], levels.First().Name);
-			Assert.Equal(writer.Includes[1], levels.Last().Name);
-		}
-
-		[Fact]
-		public void WithoutLevelRange_AddOnly()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-			var baseLevel = writer.BaseLevel;
-			var from = LogLevel.Failure;
-			var to = LogLevel.Trace10;
-			var levels = LogLevel.KnownLevels.Where(x => x.Id >= from.Id && x.Id <= to.Id);
-			Assert.Same(writer, writer.WithoutLevelRange(from, to));
-			Assert.Equal(baseLevel, writer.BaseLevel);
-			Assert.Empty(writer.Includes);
-			Assert.Equal(levels.Select(x => x.Name), writer.Excludes);
-		}
-
-		[Fact]
-		public void WithoutLevelRange_AddRemovesInclude()
-		{
-			T configuration = GetDefaultConfiguration();
-			var writers = configuration.GetLogWriterSettings().ToArray();
-			Assert.Single(writers);
-			var writer = writers[0];
-
-			// populate the exclude list
-			var baseLevel = writer.BaseLevel;
-			var from = LogLevel.Failure;
-			var to = LogLevel.Trace10;
-			var levels = LogLevel.KnownLevels.Where(x => x.Id >= from.Id && x.Id <= to.Id).ToArray();
-			Assert.Same(writer, writer.WithoutLevelRange(from, to));
-
-			// include the first three log levels
-			// => these log levels should automatically be removed from the exclude list 
-			var levelsToInclude = levels.Take(3).ToArray();
-			var levelsToExclude = levels.Skip(3).ToArray();
-			Assert.Same(writer, writer.WithLevelRange(levelsToInclude.First(), levelsToInclude.Last()));
-			Assert.Equal(levelsToInclude.Select(x => x.Name), writer.Includes);
-			Assert.Equal(levelsToExclude.Select(x => x.Name), writer.Excludes);
 		}
 
 		#endregion
@@ -508,7 +295,9 @@ namespace GriffinPlus.Lib.Logging
 			var writers = configuration.GetLogWriterSettings().ToArray();
 			Assert.Single(writers);
 			var writer = writers[0];
-			Assert.Equal("Wildcard: *", writer.Pattern.ToString());
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.Equal("Wildcard: *", pattern.ToString());
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);

@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// A .NET regular expression pattern (immutable).
 		/// </summary>
-		internal class RegexLogWriterPattern : ILogWriterPattern
+		public class RegexLogWriterPattern : ILogWriterPattern
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="RegexLogWriterPattern"/> class.
