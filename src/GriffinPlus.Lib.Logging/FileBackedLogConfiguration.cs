@@ -353,7 +353,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Saves the configuration.
 		/// </summary>
-		public override void Save()
+		public void Save()
 		{
 			lock (mSync)
 			{

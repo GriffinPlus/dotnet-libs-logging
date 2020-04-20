@@ -226,13 +226,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 
-		/// <summary>
-		/// Saves the configuration (not supported).
-		/// </summary>
-		public override void Save()
-		{
-			// no persistence => nothing to do...
-		}
-
 	}
 }

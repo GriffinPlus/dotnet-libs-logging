@@ -118,7 +118,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// Save file backed configuration file to disk, if it does not exist, yet
 			if (config is FileBackedLogConfiguration fbc && !File.Exists(fbc.FullPath)) {
-				config.Save();
+				fbc.Save();
 			}
 
 			Log.Configuration = config;
