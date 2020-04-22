@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// The log configuration without persistence (purely in memory, thread-safe).
 	/// </summary>
-	public class VolatileLogConfiguration : LogConfiguration
+	public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguration>
 	{
 		private string mApplicationName;
 		private Dictionary<string, IReadOnlyDictionary<string, string>> mProcessingPipelineStageSettings;
@@ -140,21 +140,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
-				// copy mutable log writer settings and replace entire collection atomically to avoid threading issues
-				mLogWriterSettings = new List<LogWriterConfiguration>(settings.Select(x => new LogWriterConfiguration(x)));
-			}
-		}
-
-		/// <summary>
-		/// Sets the log writer settings to use.
-		/// </summary>
-		/// <param name="settings">Settings to use.</param>
-		public override void SetLogWriterSettings(params LogWriterConfiguration[] settings)
-		{
-			lock (mSync)
-			{
-				// copy mutable log writer settings and replace entire collection atomically to avoid threading issues
-				mLogWriterSettings = new List<LogWriterConfiguration>(settings.Select(x => new LogWriterConfiguration(x)));
+				// log writer settings are immutable after creation, so copying the collection is sufficient
+				mLogWriterSettings = new List<LogWriterConfiguration>(settings);
 			}
 		}
 

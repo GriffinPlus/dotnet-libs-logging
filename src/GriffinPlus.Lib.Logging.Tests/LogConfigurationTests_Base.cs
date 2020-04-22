@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Common unit tests targeting the <see cref="LogConfiguration"/> and the <see cref="FileBackedLogConfiguration"/> class.
 	/// </summary>
-	public abstract class LogConfigurationTests_Base<T> where T: LogConfiguration, new()
+	public abstract class LogConfigurationTests_Base<CONFIGURATION> where CONFIGURATION: LogConfiguration<CONFIGURATION>, new()
 	{
 		const string Aspect1Name = "Aspect1";
 		const string Aspect2Name = "Aspect2";
@@ -47,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Creating_Default_Configuration()
 		{
-			T configuration = new T();
+			CONFIGURATION configuration = new CONFIGURATION();
 
 			// global settings
 			Assert.Equal(AppDomain.CurrentDomain.FriendlyName, configuration.ApplicationName);
@@ -72,7 +72,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Setting_ApplicationName()
 		{
-			T configuration = new T();
+			CONFIGURATION configuration = new CONFIGURATION();
 			configuration.ApplicationName = "My App";
 			Assert.Equal("My App", configuration.ApplicationName);
 		}
@@ -105,13 +105,14 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Trace19",   0x01FFFFFFu)]
 		public void Getting_Active_Log_Level_Mask_For_Specific_BaseLevel(string level, uint expectedMask)
 		{
-			T configuration = new T();
-			configuration.SetLogWriterSettings(new LogWriterConfiguration(
-				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
-				level,
-				null,
-				null));
-
+			CONFIGURATION configuration = new CONFIGURATION();
+			var settings = new LogWriterConfiguration[1];
+			settings[0] = LogWriterConfigurationBuilder
+				.New
+				.MatchingWildcardPattern("*")
+				.WithBaseLevel(level)
+				.Build();
+			configuration.SetLogWriterSettings(settings);
 			LogWriter writer = Log.GetWriter("UnitTest");
 			LogLevelBitMask mask = configuration.GetActiveLogLevelMask(writer);
 			uint[] bitArray = mask.AsArray();
@@ -140,13 +141,16 @@ namespace GriffinPlus.Lib.Logging
 			0x0D00003Du)]
 		public void Getting_Active_Log_Level_Mask_With_Includes_And_Excludes(string baseLevel, string[] includes, string[] excludes, uint expectedMask)
 		{
-			T configuration = new T();
-			configuration.SetLogWriterSettings(new LogWriterConfiguration(
-				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
-				baseLevel,
-				includes,
-				excludes));
-
+			CONFIGURATION configuration = new CONFIGURATION();
+			var settings = new LogWriterConfiguration[1];
+			settings[0] = LogWriterConfigurationBuilder
+				.New
+				.MatchingWildcardPattern("*")
+				.WithBaseLevel(baseLevel)
+				.WithLevel(includes)
+				.WithoutLevel(excludes)
+				.Build();
+			configuration.SetLogWriterSettings(settings);
 			LogWriter writer = Log.GetWriter("UnitTest");
 			LogLevelBitMask mask = configuration.GetActiveLogLevelMask(writer);
 			uint[] bitArray = mask.AsArray();
@@ -156,5 +160,292 @@ namespace GriffinPlus.Lib.Logging
 
 		[Fact]
 		public abstract void Saving_Default_Configuration();
+
+		#region AddLogWriter()
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public void AddLogWriter_ExactNameByGenericArgument(bool useConfigurationCallback)
+		{
+			CONFIGURATION configuration = GetDefaultConfiguration();
+
+			LogWriterConfiguration writer;
+			if (useConfigurationCallback)
+			{
+				configuration.AddLogWriter<CONFIGURATION>(x => Assert.NotNull(x));
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+			else
+			{
+				configuration.AddLogWriter<CONFIGURATION>();
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Equal($"{typeof(CONFIGURATION).FullName}", pattern.Pattern);
+			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public void AddLogWriter_ExactNameByType(bool useConfigurationCallback)
+		{
+			CONFIGURATION configuration = GetDefaultConfiguration();
+			Type type = typeof(CONFIGURATION);
+
+			LogWriterConfiguration writer;
+			if (useConfigurationCallback)
+			{
+				configuration.AddLogWriter(type, x => Assert.NotNull(x));
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+			else
+			{
+				configuration.AddLogWriter(type);
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Equal($"{type.FullName}", pattern.Pattern);
+			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public void AddLogWriter_WithWildcardPattern(bool useConfigurationCallback)
+		{
+			CONFIGURATION configuration = GetDefaultConfiguration();
+			string wildcard = "MyDemo*";
+
+			LogWriterConfiguration writer;
+			if (useConfigurationCallback)
+			{
+				configuration.AddLogWritersByWildcard(wildcard, x => Assert.NotNull(x));
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+			else
+			{
+				configuration.AddLogWritersByWildcard(wildcard);
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Equal(wildcard, pattern.Pattern);
+			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public void AddLogWriter_WithRegexPattern(bool useConfigurationCallback)
+		{
+			CONFIGURATION configuration = GetDefaultConfiguration();
+			string regex = "^[a-z][A-Z][0-9]$";
+
+			LogWriterConfiguration writer;
+			if (useConfigurationCallback)
+			{
+				configuration.AddLogWritersByRegex(regex, x => Assert.NotNull(x));
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+			else
+			{
+				configuration.AddLogWritersByRegex(regex);
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(pattern);
+			Assert.Equal(regex, pattern.Pattern);
+			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		[Fact]
+		public void AddLogWriterTiming()
+		{
+			CONFIGURATION configuration = GetDefaultConfiguration();
+			configuration.AddLogWriterTiming();
+			var writers = configuration.GetLogWriterSettings().ToArray();
+			Assert.Single(writers);
+			var writer = writers[0];
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Equal("Timing", pattern.Pattern);
+			Assert.Equal("None", writer.BaseLevel);
+			Assert.Single(writer.Includes, "Timing");
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public void AddLogWriterDefault(bool useConfigurationCallback)
+		{
+			CONFIGURATION configuration = GetDefaultConfiguration();
+
+			LogWriterConfiguration writer;
+			if (useConfigurationCallback)
+			{
+				configuration.AddLogWriterDefault(x => Assert.NotNull(x));
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+			else
+			{
+				configuration.AddLogWriterDefault();
+				var writers = configuration.GetLogWriterSettings().ToArray();
+				Assert.Single(writers);
+				writer = writers[0];
+			}
+
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Equal("*", pattern.Pattern);
+			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		[Fact]
+		public void AddLogWriter_AllTogether()
+		{
+			// Testing with/without configuration callback is not necessary as the methods invoking the callbacks
+			// were already covered above.
+
+			CONFIGURATION configuration = GetDefaultConfiguration();
+
+			string wildcard = "MyDemo*";
+			string regex = "^[a-z][A-Z][0-9]$";
+
+			configuration.AddLogWriter<CONFIGURATION>();
+			configuration.AddLogWriter(typeof(CONFIGURATION));
+			configuration.AddLogWritersByWildcard(wildcard);
+			configuration.AddLogWritersByRegex(regex);
+			configuration.AddLogWriterTiming();
+			configuration.AddLogWriterDefault();
+
+			var writers = configuration.GetLogWriterSettings().ToArray();
+			Assert.Equal(6, writers.Length);
+
+			for (int i = 0; i < writers.Length; i++)
+			{
+				var writer = writers[i];
+				Assert.Single(writer.Patterns);
+				var pattern = writer.Patterns.First();
+
+				switch (i)
+				{
+					// effect of .WithLogWriter<T>()
+					case 0:
+						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.Equal($"{typeof(CONFIGURATION).FullName}", pattern.Pattern);
+						break;
+
+					// effect of .WithLogWriter(typeof(T))
+					case 1:
+						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.Equal($"{typeof(CONFIGURATION).FullName}", pattern.Pattern);
+						break;
+
+					// effect of .WithLogWritersByWildcard(wildcard)
+					case 2:
+						Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+						Assert.Equal(wildcard, pattern.Pattern);
+						break;
+
+					// effect of WithLogWritersByRegex(regex)
+					case 3:
+						Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(pattern);
+						Assert.Equal(regex, pattern.Pattern);
+						break;
+
+					// effect of .WithLogWriterTiming()
+					case 4:
+						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.Equal("Timing", pattern.Pattern);
+						Assert.Equal("None", writers[i].BaseLevel);
+						Assert.Single(writers[i].Includes, "Timing");
+						Assert.Empty(writers[i].Excludes);
+						Assert.False(writers[i].IsDefault);
+						continue;
+
+					// effect of .WithLogWriterDefault()
+					case 5:
+						Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+						Assert.Equal("*", pattern.Pattern);
+						break;
+				}
+
+				Assert.Equal("Note", writer.BaseLevel);
+				Assert.Empty(writer.Includes);
+				Assert.Empty(writer.Excludes);
+				Assert.False(writer.IsDefault);
+			}
+		}
+
+		#endregion
+
+		#region Helpers
+
+		private CONFIGURATION GetDefaultConfiguration()
+		{
+			CONFIGURATION configuration = new CONFIGURATION();
+			var writers = configuration.GetLogWriterSettings().ToArray();
+			Assert.Single(writers);
+			var writer = writers[0];
+			Assert.Single(writer.Patterns);
+			var pattern = writer.Patterns.First();
+			Assert.Equal("Wildcard: *", pattern.ToString());
+			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.True(writer.IsDefault);
+			return configuration;
+		}
+
+		#endregion
 	}
 }

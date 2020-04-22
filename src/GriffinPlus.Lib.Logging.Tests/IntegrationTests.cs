@@ -55,12 +55,14 @@ namespace GriffinPlus.Lib.Logging
 			LogLevel threshold = LogLevel.GetAspect(baseLevel);
 
 			// set configuration to let all log levels below the specified log level pass
-			LogConfiguration configuration = new VolatileLogConfiguration();
-			configuration.SetLogWriterSettings(new LogWriterConfiguration(
-				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
-				baseLevel,
-				null,
-				null));
+			VolatileLogConfiguration configuration = new VolatileLogConfiguration();
+			var settings = new LogWriterConfiguration[1];
+			settings[0] = LogWriterConfigurationBuilder
+				.New
+				.MatchingWildcardPattern("*")
+				.WithBaseLevel(baseLevel)
+				.Build();
+			configuration.SetLogWriterSettings(settings);
 			Log.Configuration = configuration;
 
 			// set the processing stage test callback
@@ -111,12 +113,15 @@ namespace GriffinPlus.Lib.Logging
 		public void Log_Configuration_Should_Let_Messages_Of_Included_Levels_Pass(string levelToInclude)
 		{
 			// set configuration to let only the included log level pass
-			LogConfiguration configuration = new VolatileLogConfiguration();
-			configuration.SetLogWriterSettings(new LogWriterConfiguration(
-				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
-				"None",
-				new[] { levelToInclude },
-				null));
+			VolatileLogConfiguration configuration = new VolatileLogConfiguration();
+			var settings = new LogWriterConfiguration[1];
+			settings[0] = LogWriterConfigurationBuilder
+				.New
+				.MatchingWildcardPattern("*")
+				.WithBaseLevel(LogLevel.None)
+				.WithLevel(levelToInclude)
+				.Build();
+			configuration.SetLogWriterSettings(settings);
 			Log.Configuration = configuration;
 
 			// set the processing stage test callback
@@ -168,12 +173,15 @@ namespace GriffinPlus.Lib.Logging
 		public void Log_Configuration_Should_Filter_Messages_Of_Excluded_Levels(string levelToExclude)
 		{
 			// set configuration to block the excluded log level only
-			LogConfiguration configuration = new VolatileLogConfiguration();
-			configuration.SetLogWriterSettings(new LogWriterConfiguration(
-				new LogWriterConfiguration.WildcardLogWriterPattern("*"),
-				"All",
-				null,
-				new[] { levelToExclude }));
+			VolatileLogConfiguration configuration = new VolatileLogConfiguration();
+			var settings = new LogWriterConfiguration[1];
+			settings[0] = LogWriterConfigurationBuilder
+				.New
+				.MatchingWildcardPattern("*")
+				.WithBaseLevel(LogLevel.All)
+				.WithoutLevel(levelToExclude)
+				.Build();
+			configuration.SetLogWriterSettings(settings);
 			Log.Configuration = configuration;
 
 			// set the processing stage test callback

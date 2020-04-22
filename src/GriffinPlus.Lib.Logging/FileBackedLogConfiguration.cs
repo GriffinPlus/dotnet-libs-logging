@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log configuration with ini-style file backing (thread-safe).
 	/// </summary>
-	public class FileBackedLogConfiguration : LogConfiguration, IDisposable
+	public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfiguration>, IDisposable
 	{
 		/// <summary>
 		/// The default path of the log configuration file.
@@ -206,19 +206,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="settings">Settings to use.</param>
 		public override void SetLogWriterSettings(IEnumerable<LogWriterConfiguration> settings)
-		{
-			lock (mSync)
-			{
-				mFile.LogWriterSettings.Clear();
-				mFile.LogWriterSettings.AddRange(settings);
-			}
-		}
-
-		/// <summary>
-		/// Sets the log writer settings to use.
-		/// </summary>
-		/// <param name="settings">Settings to use.</param>
-		public override void SetLogWriterSettings(params LogWriterConfiguration[] settings)
 		{
 			lock (mSync)
 			{

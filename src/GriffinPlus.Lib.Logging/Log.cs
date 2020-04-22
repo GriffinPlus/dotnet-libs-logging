@@ -255,7 +255,7 @@ namespace GriffinPlus.Lib.Logging
 			if (sLogConfiguration == null)
 			{
 				// create and init default configuration
-				LogConfiguration configuration = new VolatileLogConfiguration();
+				VolatileLogConfiguration configuration = new VolatileLogConfiguration();
 				SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline);
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 				sLogConfiguration = configuration;
@@ -298,7 +298,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// get all stages of the processing pipeline recursively
 			HashSet<IProcessingPipelineStage> allStages = new HashSet<IProcessingPipelineStage>();
-			firstStage.GetAllStages(allStages);
+			firstStage.GetAllFollowingStages(allStages);
 
 			// retrieve default settings from all stages and populate the configuration accordingly
 			bool modified = false;

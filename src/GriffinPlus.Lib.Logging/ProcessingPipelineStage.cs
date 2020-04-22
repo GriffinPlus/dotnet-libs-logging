@@ -137,7 +137,7 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region Next Pipeline Stages
+		#region Chaining Pipeline Stages
 
 		/// <summary>
 		/// Gets processing pipeline stages that are called after the current stage has completed processing.
@@ -169,17 +169,34 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets all pipeline stages following the current stage (including the current one).
+		/// Gets all pipeline stages following the current stage recursively (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
-		public void GetAllStages(HashSet<IProcessingPipelineStage> stages)
+		public void GetAllFollowingStages(HashSet<IProcessingPipelineStage> stages)
 		{
 			lock (Sync)
 			{
 				stages.Add(this);
 				for (int i = 0; i < mNextStages.Length; i++) {
-					mNextStages[i].GetAllStages(stages);
+					mNextStages[i].GetAllFollowingStages(stages);
 				}
+			}
+		}
+
+		/// <summary>
+		/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
+		/// its <see cref="Process(LocalLogMessage)"/> method. The method must return <c>true</c> to call the following stage.
+		/// </summary>
+		/// <param name="stage">The pipeline stage that should follow the current stage.</param>
+		public void AddNextStage(IProcessingPipelineStage stage)
+		{
+			lock (Sync)
+			{
+				EnsureNotAttachedToLoggingSubsystem();
+				IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length + 1];
+				Array.Copy(mNextStages, copy, mNextStages.Length);
+				copy[copy.Length - 1] = stage;
+				NextStages = copy;
 			}
 		}
 
@@ -239,31 +256,6 @@ namespace GriffinPlus.Lib.Logging
 		protected virtual bool ProcessSync(LocalLogMessage message)
 		{
 			return true;
-		}
-
-		#endregion
-
-		#region Fluent API
-
-		// NOTE: The following methods are only located here, because there was an ambiguity with the AsyncProcessingPipelineStage class.
-
-		/// <summary>
-		/// Links the specified pipeline stage to the current stage.
-		/// </summary>
-		/// <param name="stage">Pipeline stages to pass log messages to, when the current stage has completed.</param>
-		/// <returns>The updated pipeline stage.</returns>
-		public STAGE FollowedBy(IProcessingPipelineStage stage)
-		{
-			lock (Sync)
-			{
-				EnsureNotAttachedToLoggingSubsystem();
-				IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length + 1];
-				Array.Copy(mNextStages, copy, mNextStages.Length);
-				copy[copy.Length - 1] = stage;
-				NextStages = copy;
-			}
-
-			return this as STAGE;
 		}
 
 		#endregion

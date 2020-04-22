@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 		private LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
 		private bool mDiscardMessagesIfQueueFull = false;
 		private int mMessageQueueSize = 500;
-		private int mShutdownTimeout = 5000;
+		private TimeSpan mShutdownTimeout = TimeSpan.FromMilliseconds(5000);
 		private CancellationTokenSource mAsyncProcessingCancellationTokenSource;
 		private bool mTerminateProcessingTask = false;
 
@@ -169,10 +169,10 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region Next Pipeline Stages
+		#region Chaining Pipeline Stages
 
 		/// <summary>
-		/// Gets processing pipeline stages to call after the current stage has completed processing.
+		/// Gets processing pipeline stages that are called after the current stage has completed processing.
 		/// </summary>
 		public IProcessingPipelineStage[] NextStages
 		{
@@ -201,17 +201,35 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets all pipeline stages following the current stage (including the current one).
+		/// Gets all pipeline stages following the current stage recursively (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
-		public void GetAllStages(HashSet<IProcessingPipelineStage> stages)
+		public void GetAllFollowingStages(HashSet<IProcessingPipelineStage> stages)
 		{
 			lock (Sync)
 			{
 				stages.Add(this);
-				for (int i = 0; i < mNextStages.Length; i++) {
-					mNextStages[i].GetAllStages(stages);
+				for (int i = 0; i < mNextStages.Length; i++)
+				{
+					mNextStages[i].GetAllFollowingStages(stages);
 				}
+			}
+		}
+
+		/// <summary>
+		/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
+		/// its <see cref="Process(LocalLogMessage)"/> method. The method must return <c>true</c> to call the following stage.
+		/// </summary>
+		/// <param name="stage">The pipeline stage that should follow the current stage.</param>
+		public void AddNextStage(IProcessingPipelineStage stage)
+		{
+			lock (Sync)
+			{
+				EnsureNotAttachedToLoggingSubsystem();
+				IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length + 1];
+				Array.Copy(mNextStages, copy, mNextStages.Length);
+				copy[copy.Length - 1] = stage;
+				NextStages = copy;
 			}
 		}
 
@@ -235,8 +253,22 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public bool DiscardMessagesIfQueueFull
 		{
-			get { lock (Sync) return mDiscardMessagesIfQueueFull; }
-			set { lock (Sync) ConfigureQueue(mMessageQueueSize, value); }
+			get
+			{
+				lock (Sync)
+				{
+					return mDiscardMessagesIfQueueFull;
+				}
+			}
+
+			set
+			{
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mDiscardMessagesIfQueueFull = value;
+				}
+			}
 		}
 
 		/// <summary>
@@ -245,49 +277,48 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public int MessageQueueSize
 		{
-			get { lock (Sync) return mMessageQueueSize; }
-			set { lock (Sync) ConfigureQueue(value, mDiscardMessagesIfQueueFull); }
+			get
+			{
+				lock (Sync)
+				{
+					return mMessageQueueSize;
+				}
+			}
+
+			set
+			{
+				if (value < 1) throw new ArgumentOutOfRangeException(nameof(MessageQueueSize), "The shutdown timeout must be >= 1.");
+
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mMessageQueueSize = value;
+				}
+			}
 		}
 
 		/// <summary>
 		/// Gets or sets the shutdown timeout of the asynchronous processing thread (in ms).
 		/// The default is 5000 ms.
 		/// </summary>
-		public int ShutdownTimeout
+		public TimeSpan ShutdownTimeout
 		{
-			get { lock (Sync) return mShutdownTimeout; }
-			set { 
-				if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), "The shutdown timeout must be >= 0.");
-				lock (Sync) mShutdownTimeout = value;
-			}
-		}
-
-		/// <summary>
-		/// Configures the queue buffering messages to be processed asynchronously.
-		/// </summary>
-		/// <param name="queueSize">Capacity of the queue buffering messages to be processed asynchronously.</param>
-		/// <param name="discardMessageIfQueueFull">
-		/// <c>true</c> to discard a message, if the message queue is full;
-		/// <c>false</c> to block the thread writing a message until the message is in the queue.
-		/// </param>
-		/// <returns>The pipeline stage itself.</returns>
-		public void ConfigureQueue(int queueSize, bool discardMessageIfQueueFull)
-		{
-			if (queueSize < 1) {
-				throw new ArgumentOutOfRangeException(nameof(MessageQueueSize), "The shutdown timeout must be >= 1.");
-			}
-
-			lock (Sync)
+			get
 			{
-				if (mInitialized)
+				lock (Sync)
 				{
-					throw new InvalidOperationException(
-						"The pipeline stage is already attached to the logging subsystem. " +
-						"Please configure the queue before attaching the pipeline stage.");
+					return mShutdownTimeout;
 				}
+			}
 
-				mMessageQueueSize = queueSize;
-				mDiscardMessagesIfQueueFull = discardMessageIfQueueFull;
+			set
+			{
+				if (value < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(value), "The shutdown timeout must be positive.");
+
+				lock (Sync)
+				{
+					mShutdownTimeout = value;
+				}
 			}
 		}
 
@@ -433,31 +464,6 @@ namespace GriffinPlus.Lib.Logging
 					messages[i].Release();
 				}
 			}
-		}
-
-		#endregion
-
-		#region Fluent API
-
-		// NOTE: The following methods are only located here, because there was an ambiguity with the ProcessingPipelineStage class.
-
-		/// <summary>
-		/// Links the specified pipeline stage to the current stage.
-		/// </summary>
-		/// <param name="stage">Pipeline stages to pass log messages to, when the current stage has completed.</param>
-		/// <returns>The updated pipeline stage.</returns>
-		public STAGE FollowedBy(IProcessingPipelineStage stage)
-		{
-			lock (Sync)
-			{
-				EnsureNotAttachedToLoggingSubsystem();
-				IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length + 1];
-				Array.Copy(mNextStages, copy, mNextStages.Length);
-				copy[copy.Length - 1] = stage;
-				NextStages = copy;
-			}
-			
-			return this as STAGE;
 		}
 
 		#endregion
