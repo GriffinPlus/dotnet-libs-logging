@@ -25,17 +25,14 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private readonly List<ColumnBase> mColumns = new List<ColumnBase>();
 		private readonly StringBuilder mOutputBuilder = new StringBuilder();
-		private IFormatProvider mFormatProvider;
-		private bool mDefaultColumnConfiguration = true;
+		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TableMessageFormatter"/> class.
 		/// </summary>
 		public TableMessageFormatter()
 		{
-			mColumns.Add(new TextColumn(this));
-			mColumns[mColumns.Count - 1].IsLastColumn = true;
-			mFormatProvider = CultureInfo.InvariantCulture;
+
 		}
 
 		/// <summary>
@@ -115,12 +112,6 @@ namespace GriffinPlus.Lib.Logging
 			// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
 
-			if (mDefaultColumnConfiguration)
-			{
-				mColumns.Clear();
-				mDefaultColumnConfiguration = false;
-			}
-
 			TimestampColumn column = new TimestampColumn(this, format);
 			AppendColumn(column);
 		}
@@ -130,12 +121,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddProcessIdColumn()
 		{
-			if (mDefaultColumnConfiguration)
-			{
-				mColumns.Clear();
-				mDefaultColumnConfiguration = false;
-			}
-
 			ProcessIdColumn column = new ProcessIdColumn(this);
 			AppendColumn(column);
 		}
@@ -145,12 +130,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddProcessNameColumn()
 		{
-			if (mDefaultColumnConfiguration)
-			{
-				mColumns.Clear();
-				mDefaultColumnConfiguration = false;
-			}
-
 			ProcessNameColumn column = new ProcessNameColumn(this);
 			AppendColumn(column);
 		}
@@ -160,12 +139,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddApplicationNameColumn()
 		{
-			if (mDefaultColumnConfiguration)
-			{
-				mColumns.Clear();
-				mDefaultColumnConfiguration = false;
-			}
-
 			ApplicationNameColumn column = new ApplicationNameColumn(this);
 			AppendColumn(column);
 		}
@@ -175,12 +148,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddLogWriterColumn()
 		{
-			if (mDefaultColumnConfiguration)
-			{
-				mColumns.Clear();
-				mDefaultColumnConfiguration = false;
-			}
-
 			LogWriterColumn column = new LogWriterColumn(this);
 			AppendColumn(column);
 		}
@@ -190,12 +157,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddLogLevelColumn()
 		{
-			if (mDefaultColumnConfiguration)
-			{
-				mColumns.Clear();
-				mDefaultColumnConfiguration = false;
-			}
-
 			LogLevelColumn column = new LogLevelColumn(this);
 			AppendColumn(column);
 		}
@@ -205,12 +166,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddTextColumn()
 		{
-			if (mDefaultColumnConfiguration)
-			{
-				mColumns.Clear();
-				mDefaultColumnConfiguration = false;
-			}
-
 			TextColumn column = new TextColumn(this);
 			AppendColumn(column);
 		}
@@ -226,24 +181,5 @@ namespace GriffinPlus.Lib.Logging
 			column.IsLastColumn = true;
 		}
 
-		/// <summary>
-		/// Moves the column at the specified index to the end of the column collection.
-		/// </summary>
-		/// <param name="index">Index of the column to move.</param>
-		private void MoveColumnToEnd(int index)
-		{
-			ColumnBase column = mColumns[index];
-
-			// abort, if the column is already the last column
-			if (index + 1 == mColumns.Count)
-			{
-				return;
-			}
-
-			mColumns[mColumns.Count - 1].IsLastColumn = false;
-			mColumns.RemoveAt(index);
-			mColumns.Add(column);
-			column.IsLastColumn = true;
-		}
 	}
 }
