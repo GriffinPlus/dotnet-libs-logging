@@ -50,10 +50,10 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Appends output of the current column for the specified line.
+			/// Appends output of the current column for the specified line to the specified string builder.
 			/// </summary>
-			/// <param name="message">Message containing output to write.</param>
-			/// <param name="builder">Buffer to append the output of the current column to.</param>
+			/// <param name="message">Message containing the field to format.</param>
+			/// <param name="builder">String builder to append the output of the current column to.</param>
 			/// <param name="line">Line number to append (zero-based).</param>
 			/// <returns>true, if there are more lines to process; otherwise false.</returns>
 			public override bool Write(ILogMessage message, StringBuilder builder, int line)

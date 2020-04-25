@@ -29,6 +29,8 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TableMessageFormatter"/> class.
+		/// The formatter contains no preconfigured columns.
+		/// The columns must be added explicitly afterwards using the 'Add...Column()' methods.
 		/// </summary>
 		public TableMessageFormatter()
 		{
