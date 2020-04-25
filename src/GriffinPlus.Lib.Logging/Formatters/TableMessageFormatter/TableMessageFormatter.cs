@@ -39,6 +39,26 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a formatter writing all columns. The columns are written in the following order:
+		/// 'Timestamp', 'Log Writer', 'Log Level', 'Application Name', 'Process Name', 'Process Id', 'Text'.
+		/// </summary>
+		public static TableMessageFormatter AllColumns
+		{
+			get
+			{
+				var formatter = new TableMessageFormatter();
+				formatter.AddTimestampColumn();
+				formatter.AddLogWriterColumn();
+				formatter.AddLogLevelColumn();
+				formatter.AddApplicationNameColumn();
+				formatter.AddProcessNameColumn();
+				formatter.AddProcessIdColumn();
+				formatter.AddTextColumn();
+				return formatter;
+			}
+		}
+
+		/// <summary>
 		/// Gets or sets the format provider to use when formatting log messages.
 		/// By default <see cref="CultureInfo.InvariantCulture"/> is used.
 		/// </summary>
