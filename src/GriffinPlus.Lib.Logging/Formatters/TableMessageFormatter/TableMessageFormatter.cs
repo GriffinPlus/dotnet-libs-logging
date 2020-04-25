@@ -19,13 +19,14 @@ using System.Text;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// A log message formatter that formats log messages in a tabular fashion.
+	/// A log message formatter that formats log messages in a tabular fashion (thread-safe).
 	/// </summary>
 	public partial class TableMessageFormatter : ILogMessageFormatter
 	{
 		private readonly List<ColumnBase> mColumns = new List<ColumnBase>();
 		private readonly StringBuilder mOutputBuilder = new StringBuilder();
 		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
+		private object mSync = new object();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TableMessageFormatter"/> class.
@@ -63,8 +64,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public IFormatProvider FormatProvider
 		{
-			get => mFormatProvider;
-			set => mFormatProvider = value ?? throw new ArgumentNullException(nameof(value));
+			get { lock (mSync) return mFormatProvider; }
+			set { lock (mSync) { mFormatProvider = value ?? throw new ArgumentNullException(nameof(value)); } }
 		}
 
 		/// <summary>
@@ -74,34 +75,37 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The formatted log message.</returns>
 		public string Format(ILogMessage message)
 		{
-			mOutputBuilder.Clear();
-
-			// update the width of the column needed to print the message
-			foreach (var column in mColumns)
+			lock (mSync)
 			{
-				column.UpdateWidth(message);
-			}
+				mOutputBuilder.Clear();
 
-			// prepare output
-			bool more = true;
-			for (int line = 0; more; line++)
-			{
-				more = false;
-				for (int i = 0; i < mColumns.Count; i++)
+				// update the width of the column needed to print the message
+				foreach (var column in mColumns)
 				{
-					var column = mColumns[i];
-					if (i > 0) mOutputBuilder.Append(" | ");
-					more |= column.Write(message, mOutputBuilder, line);
+					column.UpdateWidth(message);
 				}
 
-				mOutputBuilder.Append(Environment.NewLine);
-			}
+				// prepare output
+				bool more = true;
+				for (int line = 0; more; line++)
+				{
+					more = false;
+					for (int i = 0; i < mColumns.Count; i++)
+					{
+						var column = mColumns[i];
+						if (i > 0) mOutputBuilder.Append(" | ");
+						more |= column.Write(message, mOutputBuilder, line);
+					}
 
-			return mOutputBuilder.ToString();
+					mOutputBuilder.Append(Environment.NewLine);
+				}
+
+				return mOutputBuilder.ToString();
+			}
 		}
 
 		/// <summary>
-		/// Adds a timestamp column and sets the format of the timestamps written to the console
+		/// Adds a timestamp column and sets the format of the timestamp
 		/// (default: "u", conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ)
 		/// </summary>
 		/// <param name="format">
@@ -178,9 +182,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="column">Column to add.</param>
 		private void AppendColumn(ColumnBase column)
 		{
-			if (mColumns.Count > 0) mColumns[mColumns.Count - 1].IsLastColumn = false;
-			mColumns.Add(column);
-			column.IsLastColumn = true;
+			lock (mSync)
+			{
+				if (mColumns.Count > 0) mColumns[mColumns.Count - 1].IsLastColumn = false;
+				mColumns.Add(column);
+				column.IsLastColumn = true;
+			}
 		}
 
 	}
