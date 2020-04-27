@@ -172,7 +172,8 @@ namespace GriffinPlus.Lib.Logging
 		#region Chaining Pipeline Stages
 
 		/// <summary>
-		/// Gets processing pipeline stages that are called after the current stage has completed processing.
+		/// Gets or sets processing pipeline stages that are called after the current stage has completed processing.
+		/// The return value of <see cref="ProcessSync(LocalLogMessage, out bool)"/> determines whether these stages are called.
 		/// </summary>
 		public IProcessingPipelineStage[] NextStages
 		{
