@@ -59,44 +59,44 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the date/time the message was written to the log.
 		/// </summary>
-		public DateTimeOffset Timestamp { get; private set; }
+		public DateTimeOffset Timestamp { get; set; }
 
 		/// <summary>
 		/// Gets the timestamp for relative time measurements with high accuracy
 		/// (see <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/>).
 		/// </summary>
-		public long HighAccuracyTimestamp { get; private set; }
+		public long HighAccuracyTimestamp { get; set; }
 
 		/// <summary>
 		/// Gets the name of the log level associated with the log message.
 		/// </summary>
-		public string LogLevelName { get; private set; }
+		public string LogLevelName { get; set; }
 
 		/// <summary>
 		/// Gets the name of the log writer associated with the log message.
 		/// </summary>
-		public string LogWriterName { get; private set; }
+		public string LogWriterName { get; set; }
 
 		/// <summary>
 		/// Gets the id of the process emitting the log message.
 		/// </summary>
-		public int ProcessId { get; private set; }
+		public int ProcessId { get; set; }
 
 		/// <summary>
 		/// Gets the name of the process emitting the log message.
 		/// </summary>
-		public string ProcessName { get; private set; }
+		public string ProcessName { get; set; }
 
 		/// <summary>
 		/// Gets the name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </summary>
-		public string ApplicationName { get; private set; }
+		public string ApplicationName { get; set; }
 
 		/// <summary>
 		/// Gets the actual text the log message is about.
 		/// </summary>
-		public string Text { get; private set; }
+		public string Text { get; set; }
 
 		#endregion
 
