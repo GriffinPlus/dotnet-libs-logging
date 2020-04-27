@@ -12,7 +12,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.IO;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
@@ -138,6 +137,17 @@ namespace GriffinPlus.Lib.Logging.Demo
 			tableFormatter.AddLogLevelColumn();
 			tableFormatter.AddTextColumn();
 
+			// Create log message formatter that prints log messages as JSON
+			var jsonFormatter = new JsonMessageFormatter();
+			jsonFormatter.Style = JsonMessageFormatterStyle.Beautified;
+			jsonFormatter.AddTimestampField("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
+			jsonFormatter.AddProcessIdField();
+			jsonFormatter.AddProcessNameField();
+			jsonFormatter.AddApplicationNameField();
+			jsonFormatter.AddLogWriterField();
+			jsonFormatter.AddLogLevelField();
+			jsonFormatter.AddTextField();
+
 			// Create pipeline stage for printing to the console
 			var consoleStage = new ConsoleWriterPipelineStage();
 			consoleStage.MessageQueueSize = 500;                                            // buffer up to 500 messages (default)
@@ -153,7 +163,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			fileStage.MessageQueueSize = 500;                                               // buffer up to 500 messages (default)
 			fileStage.DiscardMessagesIfQueueFull = false;                                   // block if the queue is full (default)
 			fileStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                    // wait up to 5000ms for the stage to shut down (default)
-			fileStage.Formatter = tableFormatter;                                           // use specific formatter
+			fileStage.Formatter = jsonFormatter;                                            // use specific formatter
 			fileStage.AutoFlush = false;                                                    // do not flush the file after writing a log message (default)
 
 			// Chain the stages
