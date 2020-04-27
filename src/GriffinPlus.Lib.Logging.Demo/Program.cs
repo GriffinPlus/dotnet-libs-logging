@@ -166,11 +166,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 			fileStage.Formatter = jsonFormatter;                                            // use specific formatter
 			fileStage.AutoFlush = false;                                                    // do not flush the file after writing a log message (default)
 
-			// Chain the stages
-			consoleStage.AddNextStage(fileStage);
+			// Create splitter pipeline stage to unconditionally feed log messages into both pipelines stages
+			var splitterStage = new SplitterPipelineStage();
+			splitterStage.AddNextStage(consoleStage);
+			splitterStage.AddNextStage(fileStage);
 
 			// Activate the stages
-			Log.LogMessageProcessingPipeline = consoleStage;
+			Log.LogMessageProcessingPipeline = splitterStage;
 
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------

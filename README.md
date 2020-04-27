@@ -165,6 +165,8 @@ A pipeline stage class must implement the `IProcessingPipelineStage` interface. 
     - `AsyncCallbackPipelineStage`
         - Log messages are processed by invoking specified callbacks
         - Supports synchronous and asynchronous processing
+    - `SplitterPipelineStage`
+        - Log messages are unconditionally passed to the following stages
 - Pipeline Stages emitting Text
   - Text can be influenced using a formatter that can exchanged via the `Formatter` property
     - `TableMessageFormatter` : Log messages are formatted in a tabular fashion
@@ -412,11 +414,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 			fileStage.Formatter = jsonFormatter;                                            // use specific formatter
 			fileStage.AutoFlush = false;                                                    // do not flush the file after writing a log message (default)
 
-			// Chain the stages
-			consoleStage.AddNextStage(fileStage);
+			// Create splitter pipeline stage to unconditionally feed log messages into both pipelines stages
+			var splitterStage = new SplitterPipelineStage();
+			splitterStage.AddNextStage(consoleStage);
+			splitterStage.AddNextStage(fileStage);
 
 			// Activate the stages
-			Log.LogMessageProcessingPipeline = consoleStage;
+			Log.LogMessageProcessingPipeline = splitterStage;
 
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------
