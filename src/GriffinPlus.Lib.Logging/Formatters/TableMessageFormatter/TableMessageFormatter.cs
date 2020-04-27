@@ -97,7 +97,7 @@ namespace GriffinPlus.Lib.Logging
 						more |= column.Write(message, mOutputBuilder, line);
 					}
 
-					mOutputBuilder.Append(Environment.NewLine);
+					if (more) mOutputBuilder.Append(Environment.NewLine);
 				}
 
 				return mOutputBuilder.ToString();

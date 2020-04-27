@@ -112,10 +112,12 @@ namespace GriffinPlus.Lib.Logging
 				if (stream == ConsoleOutputStream.Stdout)
 				{
 					mStdoutBuilder.Append(message.Output);
+					mStdoutBuilder.AppendLine();
 				}
 				else
 				{
 					mStderrBuilder.Append(message.Output);
+					mStderrBuilder.AppendLine();
 				}
 			}
 

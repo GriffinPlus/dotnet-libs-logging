@@ -98,6 +98,7 @@ namespace GriffinPlus.Lib.Logging
 			for (int i = 0; i < messages.Length; i++)
 			{
 				mOutputBuilder.Append(messages[i].Output);
+				mOutputBuilder.AppendLine();
 			}
 
 			try
