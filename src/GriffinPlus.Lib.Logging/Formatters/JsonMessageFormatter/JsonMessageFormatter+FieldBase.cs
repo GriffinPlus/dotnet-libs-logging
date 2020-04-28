@@ -28,10 +28,12 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="FieldBase"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the field belongs to.</param>
+			/// <param name="field">The formatted log message field.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>
-			protected FieldBase(JsonMessageFormatter formatter, string jsonKey)
+			protected FieldBase(JsonMessageFormatter formatter, LogMessageField field, string jsonKey)
 			{
 				Formatter = formatter;
+				Field = field;
 				JsonKey = jsonKey;
 				EscapedJsonKey = GetEscapedString(jsonKey);
 			}
@@ -40,6 +42,11 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the formatter the field belongs to.
 			/// </summary>
 			protected JsonMessageFormatter Formatter { get; }
+
+			/// <summary>
+			/// Gets the log message field the field is responsible for.
+			/// </summary>
+			public LogMessageField Field { get; }
 
 			/// <summary>
 			/// Gets the unescaped key in the JSON document the field is associated with.

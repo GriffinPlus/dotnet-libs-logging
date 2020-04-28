@@ -26,6 +26,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private List<FieldBase> mFields = new List<FieldBase>();
 		private readonly StringBuilder mOutputBuilder = new StringBuilder();
+		private LogMessageField mFormattedFields = LogMessageField.None;
 		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
 		private JsonMessageFormatterStyle mStyle = JsonMessageFormatterStyle.OneLine;
 		private string mIndent = "    ";
@@ -58,6 +59,14 @@ namespace GriffinPlus.Lib.Logging
 				formatter.AddTextField();
 				return formatter;
 			}
+		}
+
+		/// <summary>
+		/// Gets the formatted log message fields.
+		/// </summary>
+		public LogMessageField FormattedFields
+		{
+			get { lock (mSync) return mFormattedFields; }
 		}
 
 		/// <summary>
@@ -263,6 +272,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (mSync)
 			{
 				mFields.Add(field);
+				mFormattedFields |= field.Field;
 				mMaxEscapedJsonKeyLength = Math.Max(mMaxEscapedJsonKeyLength, field.EscapedJsonKey.Length);
 			}
 		}

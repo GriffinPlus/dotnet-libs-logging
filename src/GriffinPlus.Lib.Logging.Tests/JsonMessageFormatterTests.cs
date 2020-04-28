@@ -14,7 +14,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -32,8 +31,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var formatter = new JsonMessageFormatter();
 			Assert.Equal(CultureInfo.InvariantCulture, formatter.FormatProvider);
-			Assert.Equal("    ", formatter.Indent);
+			Assert.Equal(LogMessageField.None, formatter.FormattedFields);
 			Assert.Equal(JsonMessageFormatterStyle.OneLine, formatter.Style);
+			Assert.Equal("    ", formatter.Indent);
 
 			// the formatter should not contain any fields at start
 			// => the output should be an empty JSON document
@@ -131,11 +131,11 @@ namespace GriffinPlus.Lib.Logging
 					"{" +
 					"\"Timestamp\":\"2000-01-01 00:00:00Z\"," +
 					"\"HighAccuracyTimestamp\":123," +
-					"\"LogLevel\":\"MyLevel\"," +
 					"\"LogWriter\":\"MyWriter\"," +
-					"\"ProcessId\":42," +
-					"\"ProcessName\":\"MyProcess\"," +
+					"\"LogLevel\":\"MyLevel\"," +
 					"\"ApplicationName\":\"MyApp\"," +
+					"\"ProcessName\":\"MyProcess\"," +
+					"\"ProcessId\":42," +
 					"\"Text\":\"MyText\"" +
 					"}"
 				};
@@ -214,11 +214,11 @@ namespace GriffinPlus.Lib.Logging
 					"{" +
 					" \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
 					" \"HighAccuracyTimestamp\" : 123," +
-					" \"LogLevel\" : \"MyLevel\"," +
 					" \"LogWriter\" : \"MyWriter\"," +
-					" \"ProcessId\" : 42," +
-					" \"ProcessName\" : \"MyProcess\"," +
+					" \"LogLevel\" : \"MyLevel\"," +
 					" \"ApplicationName\" : \"MyApp\"," +
+					" \"ProcessName\" : \"MyProcess\"," +
+					" \"ProcessId\" : 42," +
 					" \"Text\" : \"MyText\"" +
 					" }"
 				};
@@ -314,11 +314,11 @@ namespace GriffinPlus.Lib.Logging
 					"{\r\n" +
 					"    \"Timestamp\"             : \"2000-01-01 00:00:00Z\",\r\n" +
 					"    \"HighAccuracyTimestamp\" : 123,\r\n" +
-					"    \"LogLevel\"              : \"MyLevel\",\r\n" +
 					"    \"LogWriter\"             : \"MyWriter\",\r\n" +
-					"    \"ProcessId\"             : 42,\r\n" +
-					"    \"ProcessName\"           : \"MyProcess\",\r\n" +
+					"    \"LogLevel\"              : \"MyLevel\",\r\n" +
 					"    \"ApplicationName\"       : \"MyApp\",\r\n" +
+					"    \"ProcessName\"           : \"MyProcess\",\r\n" +
+					"    \"ProcessId\"             : 42,\r\n" +
 					"    \"Text\"                  : \"MyText\"\r\n" +
 					"}"
 				};
@@ -337,15 +337,60 @@ namespace GriffinPlus.Lib.Logging
 
 			if (fields.HasFlag(LogMessageField.Timestamp)) formatter.AddTimestampField();
 			if (fields.HasFlag(LogMessageField.HighAccuracyTimestamp)) formatter.AddHighAccuracyTimestampField();
-			if (fields.HasFlag(LogMessageField.LogLevelName)) formatter.AddLogLevelField();
 			if (fields.HasFlag(LogMessageField.LogWriterName)) formatter.AddLogWriterField();
-			if (fields.HasFlag(LogMessageField.ProcessId)) formatter.AddProcessIdField();
-			if (fields.HasFlag(LogMessageField.ProcessName)) formatter.AddProcessNameField();
+			if (fields.HasFlag(LogMessageField.LogLevelName)) formatter.AddLogLevelField();
 			if (fields.HasFlag(LogMessageField.ApplicationName)) formatter.AddApplicationNameField();
+			if (fields.HasFlag(LogMessageField.ProcessName)) formatter.AddProcessNameField();
+			if (fields.HasFlag(LogMessageField.ProcessId)) formatter.AddProcessIdField();
 			if (fields.HasFlag(LogMessageField.Text)) formatter.AddTextField();
+
+			Assert.Equal(fields, formatter.FormattedFields);
 
 			var output = formatter.Format(message);
 			Assert.Equal(expected, output);
+		}
+
+		/// <summary>
+		/// Tests whether the <see cref="JsonMessageFormatter.AllFields"/> property returns the correct formatter.
+		/// </summary>
+		[Fact]
+		public void AllFields()
+		{
+			var formatter = JsonMessageFormatter.AllFields;
+			var expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
+			Assert.Equal(expectedFields, formatter.FormattedFields);
+			var message = GetTestMessage();
+			formatter.Style = JsonMessageFormatterStyle.OneLine;
+			var output = formatter.Format(message);
+			var expected = "{" +
+				" \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
+				" \"LogWriter\" : \"MyWriter\"," +
+				" \"LogLevel\" : \"MyLevel\"," +
+				" \"ApplicationName\" : \"MyApp\"," +
+				" \"ProcessName\" : \"MyProcess\"," +
+				" \"ProcessId\" : 42," +
+				" \"Text\" : \"MyText\"" +
+				" }";
+			Assert.Equal(expected, output);
+		}
+
+		/// <summary>
+		/// Gets a log message with test data.
+		/// </summary>
+		/// <returns>A log message with test data.</returns>
+		private static LogMessage GetTestMessage()
+		{
+			return new LogMessage()
+			{
+				Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
+				HighAccuracyTimestamp = 123,
+				ProcessName = "MyProcess",
+				ProcessId = 42,
+				ApplicationName = "MyApp",
+				LogLevelName = "MyLevel",
+				LogWriterName = "MyWriter",
+				Text = "MyText"
+			};
 		}
 	}
 }

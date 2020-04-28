@@ -31,7 +31,8 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="formatter">The formatter the field belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>
-			public TextField(JsonMessageFormatter formatter, string jsonKey) : base(formatter, jsonKey)
+			public TextField(JsonMessageFormatter formatter, string jsonKey) :
+				base(formatter, LogMessageField.Text, jsonKey)
 			{
 
 			}

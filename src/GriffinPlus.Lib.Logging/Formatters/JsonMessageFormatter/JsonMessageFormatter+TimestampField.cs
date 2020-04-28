@@ -29,7 +29,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="formatter">The formatter the field belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>
 			/// <param name="format">Timestamp format to use.</param>
-			public TimestampField(JsonMessageFormatter formatter, string jsonKey, string format) : base(formatter, jsonKey)
+			public TimestampField(JsonMessageFormatter formatter, string jsonKey, string format) :
+				base(formatter, LogMessageField.Timestamp, jsonKey)
 			{
 				TimestampFormat = format;
 			}

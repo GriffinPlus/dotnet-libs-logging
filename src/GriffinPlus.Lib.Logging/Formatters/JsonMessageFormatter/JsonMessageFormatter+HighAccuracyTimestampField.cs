@@ -28,7 +28,8 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>
-			public HighAccuracyTimestampField(JsonMessageFormatter formatter, string jsonKey) : base(formatter, jsonKey)
+			public HighAccuracyTimestampField(JsonMessageFormatter formatter, string jsonKey) :
+				base(formatter, LogMessageField.HighAccuracyTimestamp , jsonKey)
 			{
 
 			}
