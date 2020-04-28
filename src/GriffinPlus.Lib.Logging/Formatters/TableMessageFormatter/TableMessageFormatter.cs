@@ -123,6 +123,15 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Adds the high accuracy timestamp column.
+		/// </summary>
+		public void AddHighAccuracyTimestampColumn()
+		{
+			HighAccuracyTimestampColumn column = new HighAccuracyTimestampColumn(this);
+			AppendColumn(column);
+		}
+
+		/// <summary>
 		/// Adds a column showing the id of the process that has written a log message.
 		/// </summary>
 		public void AddProcessIdColumn()
