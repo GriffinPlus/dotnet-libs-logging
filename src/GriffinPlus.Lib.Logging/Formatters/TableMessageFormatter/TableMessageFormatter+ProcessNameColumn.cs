@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="ProcessNameColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			public ProcessNameColumn(TableMessageFormatter formatter) : base(formatter)
+			public ProcessNameColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.ProcessName)
 			{
 
 			}

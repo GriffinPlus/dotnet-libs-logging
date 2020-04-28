@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="ProcessIdColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			public ProcessIdColumn(TableMessageFormatter formatter) : base(formatter)
+			public ProcessIdColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.ProcessId)
 			{
 
 			}
@@ -61,7 +61,6 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (!IsLastColumn) builder.Append(' ', Width);
 				}
-
 
 				return false; // last line
 			}

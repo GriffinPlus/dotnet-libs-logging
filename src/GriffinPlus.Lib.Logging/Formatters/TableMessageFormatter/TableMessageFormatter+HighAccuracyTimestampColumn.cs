@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="HighAccuracyTimestampColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			public HighAccuracyTimestampColumn(TableMessageFormatter formatter) : base(formatter)
+			public HighAccuracyTimestampColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.HighAccuracyTimestamp)
 			{
 
 			}

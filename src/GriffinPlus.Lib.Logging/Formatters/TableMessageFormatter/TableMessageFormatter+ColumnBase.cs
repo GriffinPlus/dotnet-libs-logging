@@ -26,15 +26,22 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="ColumnBase"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			protected ColumnBase(TableMessageFormatter formatter)
+			/// <param name="field">The formatted log message field.</param>
+			protected ColumnBase(TableMessageFormatter formatter, LogMessageField field)
 			{
 				Formatter = formatter;
+				Field = field;
 			}
 
 			/// <summary>
 			/// Gets the formatter the column belongs to.
 			/// </summary>
 			protected TableMessageFormatter Formatter { get; }
+
+			/// <summary>
+			/// Gets the log message field the column is responsible for.
+			/// </summary>
+			public LogMessageField Field { get; }
 
 			/// <summary>
 			/// Gets or sets a value indicating whether the column is the last one.

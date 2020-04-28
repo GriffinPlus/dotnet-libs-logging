@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="ApplicationNameColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			public ApplicationNameColumn(TableMessageFormatter formatter) : base(formatter)
+			public ApplicationNameColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.ApplicationName)
 			{
 
 			}

@@ -25,6 +25,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private readonly List<ColumnBase> mColumns = new List<ColumnBase>();
 		private readonly StringBuilder mOutputBuilder = new StringBuilder();
+		private LogMessageField mFormattedFields = LogMessageField.None;
 		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
 		private object mSync = new object();
 
@@ -39,7 +40,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a formatter writing all columns. The columns are written in the following order:
+		/// Gets a formatter writing all columns that are useful for user's eyes.
+		/// The columns are written in the following order:
 		/// 'Timestamp', 'Log Writer', 'Log Level', 'Application Name', 'Process Name', 'Process Id', 'Text'.
 		/// </summary>
 		public static TableMessageFormatter AllColumns
@@ -56,6 +58,14 @@ namespace GriffinPlus.Lib.Logging
 				formatter.AddTextColumn();
 				return formatter;
 			}
+		}
+
+		/// <summary>
+		/// Gets the formatted log message fields.
+		/// </summary>
+		public LogMessageField FormattedFields
+		{
+			get { lock (mSync) return mFormattedFields; }
 		}
 
 		/// <summary>
@@ -196,6 +206,7 @@ namespace GriffinPlus.Lib.Logging
 				if (mColumns.Count > 0) mColumns[mColumns.Count - 1].IsLastColumn = false;
 				mColumns.Add(column);
 				column.IsLastColumn = true;
+				mFormattedFields |= column.Field;
 			}
 		}
 

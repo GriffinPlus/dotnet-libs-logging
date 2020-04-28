@@ -28,7 +28,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			/// <param name="format">Timestamp format to use.</param>
-			public TimestampColumn(TableMessageFormatter formatter, string format = "u") : base(formatter)
+			public TimestampColumn(TableMessageFormatter formatter, string format = "u") : base(formatter, LogMessageField.Timestamp)
 			{
 				TimestampFormat = format;
 			}

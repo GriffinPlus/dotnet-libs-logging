@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="LogWriterColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			public LogWriterColumn(TableMessageFormatter formatter) : base(formatter)
+			public LogWriterColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.LogWriterName)
 			{
 
 			}

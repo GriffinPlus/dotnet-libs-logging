@@ -30,7 +30,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="TextColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			public TextColumn(TableMessageFormatter formatter) : base(formatter)
+			public TextColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.Text)
 			{
 
 			}
