@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 				Formatter = formatter;
 				Field = field;
 				JsonKey = jsonKey;
-				EscapedJsonKey = GetEscapedString(jsonKey);
+				UpdateEscapedJsonKey();
 			}
 
 			/// <summary>
@@ -56,7 +56,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// Gets the escaped key in the JSON document the field is associated with.
 			/// </summary>
-			public string EscapedJsonKey { get; }
+			public string EscapedJsonKey { get; private set; }
 
 			/// <summary>
 			/// Appends the formatted value of the current field to the specified string builder.
@@ -66,14 +66,23 @@ namespace GriffinPlus.Lib.Logging
 			public abstract void AppendFormattedValue(ILogMessage message, StringBuilder builder);
 
 			/// <summary>
+			/// Updates the <see cref="EscapedJsonKey"/> property.
+			/// </summary>
+			internal void UpdateEscapedJsonKey()
+			{
+				EscapedJsonKey = GetEscapedString(JsonKey, Formatter.mEscapeSolidus);
+			}
+
+			/// <summary>
 			/// Escapes characters in the specified string complying with the JSON specification.
 			/// </summary>
 			/// <param name="s">String to escape.</param>
+			/// <param name="escapeSolidus">true to escape the solidus ('/'), otherwise false.</param>
 			/// <returns>The escaped string.</returns>
-			private static string GetEscapedString(string s)
+			private static string GetEscapedString(string s, bool escapeSolidus)
 			{
 				StringBuilder builder = new StringBuilder();
-				AppendEscapedStringToBuilder(builder, s);
+				AppendEscapedStringToBuilder(builder, s, escapeSolidus);
 				return builder.ToString();
 			}
 

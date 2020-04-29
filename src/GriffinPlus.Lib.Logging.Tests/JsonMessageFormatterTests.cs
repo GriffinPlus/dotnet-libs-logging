@@ -14,6 +14,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -23,6 +25,91 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class JsonMessageFormatterTests
 	{
+		private static Dictionary<int, string> sEscapedCodepoints = new Dictionary<int, string>();
+		private static string sUnescapedString;
+		private static string sEscapedString_WithSolidus;
+		private static string sEscapedString_WithoutSolidus;
+
+		/// <summary>
+		/// Initializes the <see cref="JsonMessageFormatter"/> class.
+		/// </summary>
+		static JsonMessageFormatterTests()
+		{
+			// add dictionary with codepoints to escape
+			// ---------------------------------------------------------------------------------------------
+			for (int i = 0; i <= 0x1F; i++) sEscapedCodepoints[i] = string.Format("\\u{0:X04}", i);
+			sEscapedCodepoints[0x0008] = "\\b";      // backspace
+			sEscapedCodepoints[0x0009] = "\\t";      // tab
+			sEscapedCodepoints[0x000D] = "\\r";      // carriage return
+			sEscapedCodepoints[0x000A] = "\\n";      // line feed
+			sEscapedCodepoints[0x000C] = "\\f";      // form feed
+			sEscapedCodepoints[0x0022] = "\\\"";     // quotation marks
+			sEscapedCodepoints[0x002F] = "\\/";      // solidus
+			sEscapedCodepoints[0x005C] = "\\\\";     // reverse solidus
+			sEscapedCodepoints[0x0085] = "\\u0085";  // next line
+			sEscapedCodepoints[0x0085] = "\\u0085";  // next line
+			sEscapedCodepoints[0x2028] = "\\u2028";  // line separator
+			sEscapedCodepoints[0x2029] = "\\u2029";  // paragraph separator
+
+			// build strings that contains all unicode characters and their escaped equivalents
+			// ---------------------------------------------------------------------------------------------
+			StringBuilder unescaped = new StringBuilder();
+			StringBuilder escaped_WithSolidus = new StringBuilder();
+			StringBuilder escaped_WithoutSolidus = new StringBuilder();
+			for (int codepoint = 0; codepoint <= 0x10FFFF; codepoint++)
+			{
+				// add codepoint to the buffer with the input string
+				if (codepoint < 0x10000)
+				{
+					unescaped.Append(unchecked((char)codepoint));
+				}
+				else
+				{
+					var sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
+					var sg2 = (codepoint % 0x400) + 0xDC00;
+					unescaped.Append((char)sg1);
+					unescaped.Append((char)sg2);
+				}
+
+				// handle solidus separately
+				if (codepoint == 0x002F)
+				{
+					escaped_WithSolidus.Append("\\/");
+					escaped_WithoutSolidus.Append('/');
+					continue;
+				}
+
+				// add codepoint to buffer with the expected string
+				if (sEscapedCodepoints.TryGetValue(codepoint, out var sequence))
+				{
+					escaped_WithSolidus.Append(sequence);
+					escaped_WithoutSolidus.Append(sequence);
+				}
+				else
+				{
+					if (codepoint < 0x10000)
+					{
+						escaped_WithSolidus.Append((char)codepoint);
+						escaped_WithoutSolidus.Append((char)codepoint);
+					}
+					else
+					{
+						var sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
+						var sg2 = (codepoint % 0x400) + 0xDC00;
+						escaped_WithSolidus.Append((char)sg1);
+						escaped_WithSolidus.Append((char)sg2);
+						escaped_WithoutSolidus.Append((char)sg1);
+						escaped_WithoutSolidus.Append((char)sg2);
+					}
+				}
+			}
+
+			sUnescapedString = unescaped.ToString();
+			sEscapedString_WithSolidus = escaped_WithSolidus.ToString();
+			sEscapedString_WithoutSolidus = escaped_WithoutSolidus.ToString();
+		}
+
+
 		/// <summary>
 		/// Tests whether the creation of the formatter succeeds.
 		/// </summary>
@@ -34,12 +121,14 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(LogMessageField.None, formatter.FormattedFields);
 			Assert.Equal(JsonMessageFormatterStyle.OneLine, formatter.Style);
 			Assert.Equal("    ", formatter.Indent);
+			Assert.False(formatter.EscapeSolidus);
 
 			// the formatter should not contain any fields at start
 			// => the output should be an empty JSON document
 			var output = formatter.Format(new LogMessage());
 			Assert.Equal("{ }", output);
 		}
+
 
 		public static IEnumerable<object[]> FormatTestData
 		{
@@ -325,6 +414,7 @@ namespace GriffinPlus.Lib.Logging
 
 			}
 		}
+
 		/// <summary>
 		/// Tests whether formatting specific fields works as expected.
 		/// </summary>
@@ -350,6 +440,182 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(expected, output);
 		}
 
+
+		/// <summary>
+		/// Tests whether the <see cref="JsonMessageFormatter.AppendEscapedStringToBuilder(StringBuilder, string)"/> method
+		/// escapes all characters properly.
+		/// </summary>
+		[Fact]
+		public void AppendEscapedStringToBuilder()
+		{
+			// without escaping solidus
+			StringBuilder builder1 = new StringBuilder();
+			JsonMessageFormatter.AppendEscapedStringToBuilder(builder1, sUnescapedString, false);
+			Assert.Equal(sEscapedString_WithoutSolidus, builder1.ToString());
+
+			// with escaping solidus
+			StringBuilder builder2 = new StringBuilder();
+			JsonMessageFormatter.AppendEscapedStringToBuilder(builder2, sUnescapedString, true);
+			Assert.Equal(sEscapedString_WithSolidus, builder2.ToString());
+		}
+
+
+		/// <summary>
+		/// Tests whether keys are are escaped properly.
+		/// </summary>
+		[Theory]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.Timestamp)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.HighAccuracyTimestamp)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.LogWriterName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.ApplicationName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.ProcessName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.ProcessId)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.Text)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.Timestamp)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.HighAccuracyTimestamp)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.LogWriterName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.ApplicationName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.ProcessName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.ProcessId)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.Text)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.Timestamp)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.HighAccuracyTimestamp)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.LogWriterName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.ApplicationName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.ProcessName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.ProcessId)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.Text)]
+		public void Format_EscapingKeys(JsonMessageFormatterStyle style, LogMessageField fields)
+		{
+			var message = new LogMessage();
+			var formatter = new JsonMessageFormatter();
+			formatter.Style = style;
+
+			if (fields.HasFlag(LogMessageField.Timestamp)) formatter.AddTimestampField("u", sUnescapedString);
+			if (fields.HasFlag(LogMessageField.HighAccuracyTimestamp)) formatter.AddHighAccuracyTimestampField(sUnescapedString);
+			if (fields.HasFlag(LogMessageField.LogWriterName)) formatter.AddLogWriterField(sUnescapedString);
+			if (fields.HasFlag(LogMessageField.LogLevelName)) formatter.AddLogLevelField(sUnescapedString);
+			if (fields.HasFlag(LogMessageField.ApplicationName)) formatter.AddApplicationNameField(sUnescapedString);
+			if (fields.HasFlag(LogMessageField.ProcessName)) formatter.AddProcessNameField(sUnescapedString);
+			if (fields.HasFlag(LogMessageField.ProcessId)) formatter.AddProcessIdField(sUnescapedString);
+			if (fields.HasFlag(LogMessageField.Text)) formatter.AddTextField(sUnescapedString);
+
+			Assert.Equal(fields, formatter.FormattedFields);
+
+			// prepare regex to match output
+			string pattern;
+			if (style == JsonMessageFormatterStyle.Compact) pattern = $"^{{\"(.+)\":.+}}$";
+			else if (style == JsonMessageFormatterStyle.OneLine) pattern = $"^{{ \"(.+)\" : .+ }}$";
+			else pattern = $"^{{\r\n    \"(.+)\" : .+\r\n}}$";
+			var regex = new Regex(pattern);
+
+			// check whether the key has been escaped properly (without escaping the solidus)
+			formatter.EscapeSolidus = false;
+			var output1 = formatter.Format(message);
+			var match1 = regex.Match(output1);
+			Assert.True(match1.Success);
+			Assert.Equal(sEscapedString_WithoutSolidus, match1.Groups[1].Value);
+
+			// check whether the key has been escaped properly (with escaping the solidus)
+			formatter.EscapeSolidus = true;
+			var output2 = formatter.Format(message);
+			var match2 = regex.Match(output2);
+			Assert.True(match2.Success);
+			Assert.Equal(sEscapedString_WithSolidus, match2.Groups[1].Value);
+		}
+
+
+		/// <summary>
+		/// Tests whether values are are escaped properly.
+		/// </summary>
+		[Theory]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.LogWriterName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.ApplicationName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.ProcessName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.Text)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.LogWriterName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.ApplicationName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.ProcessName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.Text)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.LogWriterName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.ApplicationName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.ProcessName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.Text)]
+		public void Format_EscapingValues(JsonMessageFormatterStyle style, LogMessageField fields)
+		{
+			var formatter = new JsonMessageFormatter();
+			formatter.Style = style;
+
+			var key = "";
+			var message = new LogMessage();
+
+			if (fields.HasFlag(LogMessageField.LogWriterName)) {
+				key = "LogWriter";
+				formatter.AddLogWriterField(key);
+				message.LogWriterName = sUnescapedString;
+			}
+
+			if (fields.HasFlag(LogMessageField.LogLevelName))
+			{
+				key = "LogLevel";
+				formatter.AddLogLevelField(key);
+				message.LogLevelName = sUnescapedString;
+			}
+
+			if (fields.HasFlag(LogMessageField.ApplicationName))
+			{
+				key = "ApplicationName";
+				formatter.AddApplicationNameField(key);
+				message.ApplicationName = sUnescapedString;
+			}
+
+			if (fields.HasFlag(LogMessageField.ProcessName))
+			{
+				key = "ProcessName";
+				formatter.AddProcessNameField(key);
+				message.ProcessName = sUnescapedString;
+			}
+
+			if (fields.HasFlag(LogMessageField.Text))
+			{
+				key = "Text";
+				formatter.AddTextField(key);
+				message.Text = sUnescapedString;
+			}
+
+			Assert.Equal(fields, formatter.FormattedFields);
+
+			// prepare regex to match output
+			string pattern;
+			if (style == JsonMessageFormatterStyle.Compact) pattern = $"^{{\"(.+)\":\"(.+)\"}}$";
+			else if (style == JsonMessageFormatterStyle.OneLine) pattern = $"^{{ \"(.+)\" : \"(.+)\" }}$";
+			else pattern = $"^{{\r\n    \"(.+)\" : \"(.+)\"\r\n}}$";
+			var regex = new Regex(pattern);
+
+			// check whether the key has been escaped properly (without escaping the solidus)
+			formatter.EscapeSolidus = false;
+			var output1 = formatter.Format(message);
+			var match1 = regex.Match(output1);
+			Assert.True(match1.Success);
+			Assert.Equal(key, match1.Groups[1].Value);
+			Assert.Equal(sEscapedString_WithoutSolidus, match1.Groups[2].Value);
+
+			// check whether the key has been escaped properly (with escaping the solidus)
+			formatter.EscapeSolidus = true;
+			var output2 = formatter.Format(message);
+			var match2 = regex.Match(output2);
+			Assert.True(match2.Success);
+			Assert.Equal(key, match2.Groups[1].Value);
+			Assert.Equal(sEscapedString_WithSolidus, match2.Groups[2].Value);
+		}
+
+
 		/// <summary>
 		/// Tests whether the <see cref="JsonMessageFormatter.AllFields"/> property returns the correct formatter.
 		/// </summary>
@@ -374,6 +640,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(expected, output);
 		}
 
+
 		/// <summary>
 		/// Gets a log message with test data.
 		/// </summary>
@@ -392,5 +659,6 @@ namespace GriffinPlus.Lib.Logging
 				Text = "MyText"
 			};
 		}
+
 	}
 }

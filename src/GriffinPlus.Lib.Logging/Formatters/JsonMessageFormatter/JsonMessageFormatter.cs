@@ -30,6 +30,7 @@ namespace GriffinPlus.Lib.Logging
 		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
 		private JsonMessageFormatterStyle mStyle = JsonMessageFormatterStyle.OneLine;
 		private string mIndent = "    ";
+		private bool mEscapeSolidus = false;
 		private int mMaxEscapedJsonKeyLength = 0;
 		private object mSync = new object();
 
@@ -67,6 +68,26 @@ namespace GriffinPlus.Lib.Logging
 		public LogMessageField FormattedFields
 		{
 			get { lock (mSync) return mFormattedFields; }
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the solidus character ('/') is escaped (default <c>false</c>).
+		/// </summary>
+		public bool EscapeSolidus
+		{
+			get { lock (mSync) return mEscapeSolidus; }
+			set
+			{
+				lock (mSync)
+				{
+					if (mEscapeSolidus != value)
+					{
+						mEscapeSolidus = value;
+						foreach (var field in mFields) field.UpdateEscapedJsonKey();
+						UpdateMaxEscapedJsonKeyLength();
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -278,11 +299,21 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Updates the <see cref="mMaxEscapedJsonKeyLength"/> field to reflect changes to the fields.
+		/// </summary>
+		private void UpdateMaxEscapedJsonKeyLength()
+		{
+			mMaxEscapedJsonKeyLength = 0;
+			foreach (var field in mFields) mMaxEscapedJsonKeyLength = Math.Max(mMaxEscapedJsonKeyLength, field.EscapedJsonKey.Length);
+		}
+
+		/// <summary>
 		/// Escapes characters in the specified string complying with the JSON specification (https://json.org).
 		/// </summary>
 		/// <param name="builder">String builder to append the escaped string to.</param>
 		/// <param name="s">String to escape and append to the string builder.</param>
-		private static void AppendEscapedStringToBuilder(StringBuilder builder, string s)
+		/// <param name="escapeSolidus">true to escape the solidus ('/'), otherwise false.</param>
+		internal static void AppendEscapedStringToBuilder(StringBuilder builder, string s, bool escapeSolidus)
 		{
 			// NOTE:
 			// According to the JSON specification (https://json.org) any codepoint except the quotation mark (")
@@ -299,6 +330,10 @@ namespace GriffinPlus.Lib.Logging
 					case '"': // quotation mark
 						builder.Append('\\');
 						builder.Append('"');
+						break;
+					case '/': // solidus
+						if (escapeSolidus) builder.Append('\\');
+						builder.Append('/');
 						break;
 					case '\t': // tab
 						builder.Append('\\');
@@ -334,7 +369,14 @@ namespace GriffinPlus.Lib.Logging
 						builder.Append("\\u2029");
 						break;
 					default:
-						builder.Append(c);
+						if (c <= 0x1F) // control characters
+						{
+							builder.AppendFormat("\\u{0:X04}", (int)c);
+						}
+						else
+						{
+							builder.Append(c);
+						}
 						break;
 				}
 			}

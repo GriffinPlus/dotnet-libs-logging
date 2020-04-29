@@ -49,7 +49,7 @@ namespace GriffinPlus.Lib.Logging
 			public override void AppendFormattedValue(ILogMessage message, StringBuilder builder)
 			{
 				builder.Append('"');
-				AppendEscapedStringToBuilder(builder, message.Timestamp.ToString(TimestampFormat, Formatter.FormatProvider));
+				AppendEscapedStringToBuilder(builder, message.Timestamp.ToString(TimestampFormat, Formatter.mFormatProvider), Formatter.mEscapeSolidus);
 				builder.Append('"');
 			}
 		}

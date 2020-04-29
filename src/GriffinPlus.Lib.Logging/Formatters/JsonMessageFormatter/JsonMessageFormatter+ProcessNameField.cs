@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 			public override void AppendFormattedValue(ILogMessage message, StringBuilder builder)
 			{
 				builder.Append('"');
-				if (message.ProcessName != null) AppendEscapedStringToBuilder(builder, message.ProcessName);
+				if (message.ProcessName != null) AppendEscapedStringToBuilder(builder, message.ProcessName, Formatter.mEscapeSolidus);
 				builder.Append('"');
 			}
 		}
