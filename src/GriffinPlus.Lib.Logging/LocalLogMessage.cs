@@ -72,7 +72,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets the timestamp for relative time measurements with high accuracy
-		/// (see <see cref="System.Diagnostics.Stopwatch.GetTimestamp"/>).
+		/// (in nanoseconds, but the actual accuracy depends on the system timer).
 		/// </summary>
 		public long HighAccuracyTimestamp { get; private set; }
 

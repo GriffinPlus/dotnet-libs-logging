@@ -32,6 +32,7 @@ namespace GriffinPlus.Lib.Logging
 		private static ILogConfiguration sLogConfiguration;
 		private static volatile IProcessingPipelineStage sLogMessageProcessingPipeline;
 		private static readonly LogWriter sLog = GetWriter("Logging");
+		private static long sTimerTickStart = Stopwatch.GetTimestamp();
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
@@ -166,9 +167,11 @@ namespace GriffinPlus.Lib.Logging
 
 					lock (sSync) // needed to avoid race conditions causing timestamps getting mixed up
 					{
+						long highAccuracyTimestamp = unchecked((long)((decimal)(Stopwatch.GetTimestamp() - sTimerTickStart) * 1000000000L / Stopwatch.Frequency)); // in ns
+
 						message.Init(
 							DateTimeOffset.Now,
-							Stopwatch.GetTimestamp(),
+							highAccuracyTimestamp,
 							sProcessId,
 							sProcessName,
 							ApplicationName,
