@@ -11,6 +11,7 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -88,11 +89,12 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Emits the formatted log messages.
+		/// Emits the formatted log messages (should not throw any exceptions).
 		/// </summary>
 		/// <param name="messages">The formatted log messages.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
-		protected override async Task EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken)
+		/// <returns>Number of successfully written log messages.</returns>
+		protected override async Task<int> EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken)
 		{
 			mOutputBuilder.Clear();
 			for (int i = 0; i < messages.Length; i++)
@@ -101,19 +103,44 @@ namespace GriffinPlus.Lib.Logging
 				mOutputBuilder.AppendLine();
 			}
 
+			// get the current stream position
+			long position = -1;
 			try
 			{
-				await mWriter.WriteAsync(mOutputBuilder.ToString()).ConfigureAwait(false);
-				// ReSharper disable once InconsistentlySynchronizedField
-				// (after attaching the pipeline stage to the logging subsystem, mAutoFlush will not change)
-				if (mAutoFlush) await mWriter.FlushAsync().ConfigureAwait(false);
+				position = mFile.Position;
 			}
 			catch
 			{
 				// swallow exceptions
 				// (i/o errors should not impact the application)
+				return 0;
 			}
 
+			// write to the file and flush it to ensure that all data is passed to the operating system
+			try
+			{
+				await mWriter.WriteAsync(mOutputBuilder.ToString()).ConfigureAwait(false);
+				await mWriter.FlushAsync().ConfigureAwait(false);
+			}
+			catch
+			{
+				// writing failed
+				// => try remove partially written messages to avoid generating duplicates when trying again
+				try
+				{
+					mFile.SetLength(position);
+				}
+				catch
+				{
+					// swallow exceptions
+					// (i/o errors should not impact the application)
+				}
+
+				// return that no messages have been written at all
+				return 0;
+			}
+
+			return messages.Length;
 		}
 
 	}

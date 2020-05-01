@@ -12,6 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,8 @@ namespace GriffinPlus.Lib.Logging
 	public abstract class TextWriterPipelineStage<STAGE> : AsyncProcessingPipelineStage<STAGE>
 		where STAGE: TextWriterPipelineStage<STAGE>
 	{
+		private Queue<FormattedMessage> mFormattedMessageQueue = new Queue<FormattedMessage>();
+
 		/// <summary>
 		/// A message and its formatted output.
 		/// </summary>
@@ -84,25 +87,37 @@ namespace GriffinPlus.Lib.Logging
 		/// </remarks>
 		protected override async Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)
 		{
-			FormattedMessage[] formattedMessages = new FormattedMessage[messages.Length];
-
+			// enqueue messages to process
+			// (helps to defer messages that could not be processed successfully)
 			for (int i = 0; i < messages.Length; i++)
 			{
-				// ReSharper disable once InconsistentlySynchronizedField
-				// (after attaching the pipeline stage to the logging subsystem, mFormatter will not change)
-				formattedMessages[i].Message = messages[i];
-				formattedMessages[i].Output = mFormatter.Format(messages[i]);
+				var message = messages[i];
+				message.AddRef();
+
+				var formattedMessage = new FormattedMessage();
+				formattedMessage.Message = messages[i];
+				formattedMessage.Output = mFormatter.Format(messages[i]);
+				mFormattedMessageQueue.Enqueue(formattedMessage);
 			}
 
-			await EmitOutputAsync(formattedMessages, cancellationToken).ConfigureAwait(false);
+			if (mFormattedMessageQueue.Count > 0)
+			{
+				int count = await EmitOutputAsync(mFormattedMessageQueue.ToArray(), cancellationToken).ConfigureAwait(false);
+				for (int i = 0; i < count; i++)
+				{
+					var item = mFormattedMessageQueue.Dequeue();
+					item.Message.Release();
+				}
+			}
 		}
 
 		/// <summary>
-		/// Emits the formatted log messages.
+		/// Emits the formatted log messages (should not throw any exceptions).
 		/// </summary>
 		/// <param name="messages">The formatted log messages.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
-		protected abstract Task EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken);
+		/// <returns>Number of successfully written log messages.</returns>
+		protected abstract Task<int> EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken);
 
 	}
 }

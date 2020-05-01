@@ -90,11 +90,11 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Emits the formatted log messages.
+		/// Emits the formatted log messages (should not throw any exceptions).
 		/// </summary>
 		/// <param name="messages">The formatted log messages.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
-		protected override async Task EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken)
+		protected override async Task<int> EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken)
 		{
 			mStdoutBuilder.Clear();
 			mStderrBuilder.Clear();
@@ -121,8 +121,33 @@ namespace GriffinPlus.Lib.Logging
 				}
 			}
 
-			if (mStdoutBuilder.Length > 0) await Console.Out.WriteAsync(mStdoutBuilder.ToString()).ConfigureAwait(false);
-			if (mStderrBuilder.Length > 0) await Console.Error.WriteAsync(mStderrBuilder.ToString()).ConfigureAwait(false);
+			// try to write to the console
+			// (usually this should not fail, but who knows...)
+			try
+			{
+				if (mStdoutBuilder.Length > 0)
+				{
+					await Console.Out.WriteAsync(mStdoutBuilder.ToString()).ConfigureAwait(false);
+					await Console.Out.FlushAsync().ConfigureAwait(false);
+				}
+
+				if (mStderrBuilder.Length > 0)
+				{
+					await Console.Error.WriteAsync(mStderrBuilder.ToString()).ConfigureAwait(false);
+					await Console.Error.FlushAsync().ConfigureAwait(false);
+				}
+			}
+			catch
+			{
+				// swallow exceptions
+				// (i/o errors should not impact the application)
+
+				// return that no messages have been written at all
+				// (could be wrong, if the console printed some of the messages and can lead to printing messages multiple times in case of errors)
+				return 0;
+			}
+
+			return messages.Length;
 		}
 
 	}
