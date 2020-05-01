@@ -37,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets all pipeline stages following the current stage (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
-		void GetAllFollowingStages(HashSet<IProcessingPipelineStage> stages);
+		void GetAllStages(HashSet<IProcessingPipelineStage> stages);
 
 		/// <summary>
 		/// Gets the default settings the pipeline stage operates with.

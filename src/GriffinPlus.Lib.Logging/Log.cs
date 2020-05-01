@@ -301,7 +301,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// get all stages of the processing pipeline recursively
 			HashSet<IProcessingPipelineStage> allStages = new HashSet<IProcessingPipelineStage>();
-			firstStage.GetAllFollowingStages(allStages);
+			firstStage.GetAllStages(allStages);
 
 			// retrieve default settings from all stages and populate the configuration accordingly
 			bool modified = false;

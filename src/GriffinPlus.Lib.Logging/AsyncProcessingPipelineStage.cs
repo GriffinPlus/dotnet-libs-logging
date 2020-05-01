@@ -205,14 +205,14 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets all pipeline stages following the current stage recursively (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
-		public void GetAllFollowingStages(HashSet<IProcessingPipelineStage> stages)
+		public void GetAllStages(HashSet<IProcessingPipelineStage> stages)
 		{
 			lock (Sync)
 			{
 				stages.Add(this);
 				for (int i = 0; i < mNextStages.Length; i++)
 				{
-					mNextStages[i].GetAllFollowingStages(stages);
+					mNextStages[i].GetAllStages(stages);
 				}
 			}
 		}
