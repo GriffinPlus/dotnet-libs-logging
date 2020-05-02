@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 	/// A processing pipeline stage that invokes a callback to process a log message (thread-safe).
 	/// This is a lightweight alternative to implementing an entire custom processing pipeline stage.
 	/// </summary>
-	public class CallbackProcessingPipelineStage : ProcessingPipelineStage<CallbackProcessingPipelineStage>
+	public class CallbackPipelineStage : ProcessingPipelineStage<CallbackPipelineStage>
 	{
 		/// <summary>
 		/// A delegate that processes the specified log message.
@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly ProcessingCallback mProcessingCallback;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncCallbackProcessingPipelineStage"/> class.
+		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage"/> class.
 		/// </summary>
 		/// <param name="processCallback">
 		/// Callback processing a log message traveling through the pipeline (may be null).
@@ -46,7 +46,7 @@ namespace GriffinPlus.Lib.Logging
 		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
-		public CallbackProcessingPipelineStage(ProcessingCallback processCallback)
+		public CallbackPipelineStage(ProcessingCallback processCallback)
 		{
 			mProcessingCallback = processCallback;
 		}
