@@ -299,7 +299,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets or sets the shutdown timeout of the asynchronous processing thread (in ms).
+		/// Gets or sets the shutdown timeout (in ms).
 		/// The default is 5000 ms.
 		/// </summary>
 		public TimeSpan ShutdownTimeout
@@ -399,7 +399,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// When overridden in a derived class, processes the specified log messages asynchronously
-		/// (is executed in the context of the asynchronous processing thread of the pipeline stage).
+		/// (is executed in the context of a worker thread).
 		/// </summary>
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
