@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// A processing pipeline stage that invokes a callback to process a log message (thread-safe).
 	/// This is a lightweight alternative to implementing an entire custom processing pipeline stage.
 	/// </summary>
-	public class AsyncCallbackProcessingPipelineStage : AsyncProcessingPipelineStage<AsyncCallbackProcessingPipelineStage>
+	public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage<AsyncCallbackPipelineStage>
 	{
 		/// <summary>
 		/// A delegate that processes the specified log message (synchronous processing).
@@ -58,7 +58,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly AsynchronousProcessingCallback mAsynchronousProcessingCallback;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncCallbackProcessingPipelineStage"/> class.
+		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage"/> class.
 		/// </summary>
 		/// <param name="processSyncCallback">
 		/// Callback processing a log message traveling through the pipeline (may be null).
@@ -66,14 +66,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		/// <param name="processAsyncCallback">
 		/// Callback processing a log message traveling through the pipeline (may be null).
-		/// The callback is executed in the context of the asynchronous processing thread of the processing pipeline stage.
+		/// The callback is executed by a worker thread.
 		/// </param>
 		/// <remarks>
 		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
-		public AsyncCallbackProcessingPipelineStage(
+		public AsyncCallbackPipelineStage(
 			SynchronousProcessingCallback processSyncCallback,
 			AsynchronousProcessingCallback processAsyncCallback)
 		{
@@ -101,7 +101,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Processes the specified log messages asynchronously
-		/// (is executed in the context of the asynchronous processing thread of the pipeline stage).
+		/// (is executed in the context of a worker thread).
 		/// </summary>
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
