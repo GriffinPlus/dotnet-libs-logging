@@ -60,6 +60,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
+				mSet = true;
+
 				// Now signal to any asynchronous waiters, if there are any. While we've already
 				// signaled the synchronous waiters, we still hold the lock, and thus
 				// they won't have had an opportunity to acquire this yet. So, when releasing
@@ -75,6 +77,7 @@ namespace GriffinPlus.Lib.Logging
 					RemoveAsyncWaiter(waiterTask); // ensures waiterTask.Next/Prev are null
 					bool ok = waiterTask.TrySetResult(true);
 					Contract.Assert(ok);
+					mSet = false;
 				}
 			}
 		}
