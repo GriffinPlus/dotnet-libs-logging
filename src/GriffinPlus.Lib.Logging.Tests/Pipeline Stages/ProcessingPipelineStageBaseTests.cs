@@ -35,6 +35,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests whether creating a new stage succeeds and the stage is in the expected state
 		/// (as far as the state of the base class is concerned).
 		/// </summary>
+		[Fact]
 		public void Create_And_Check_State()
 		{
 			var stage = CreateStage();
@@ -179,6 +180,17 @@ namespace GriffinPlus.Lib.Logging
 			stage1.Shutdown();
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
+		}
+
+		/// <summary>
+		/// Test whether <see cref="ProcessingPipelineStage{STAGE}.Process(LocalLogMessage)"/> throws an exception,
+		/// if the message to process is a null reference.
+		/// </summary>
+		[Fact]
+		public void Process_FailsIfMessageIsNull()
+		{
+			var stage = CreateStage();
+			Assert.Throws<ArgumentNullException>(() => stage.Process(null));
 		}
 
 		/// <summary>

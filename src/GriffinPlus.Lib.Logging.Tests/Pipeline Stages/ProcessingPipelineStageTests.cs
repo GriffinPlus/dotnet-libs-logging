@@ -38,7 +38,11 @@ namespace GriffinPlus.Lib.Logging
 		public void Create()
 		{
 			var stage = CreateStage();
+
+			// check properties of the base pipeline stage
 			Assert.Empty(stage.GetDefaultSettings());
+
+			// check properties of test pipeline stage
 			Assert.False(stage.OnInitializeWasCalled);
 			Assert.False(stage.OnShutdownWasCalled);
 		}

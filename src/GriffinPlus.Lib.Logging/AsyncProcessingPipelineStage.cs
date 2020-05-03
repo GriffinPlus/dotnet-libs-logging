@@ -335,6 +335,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="message">Message to process.</param>
 		public void Process(LocalLogMessage message)
 		{
+			if (message == null) throw new ArgumentNullException(nameof(message));
+
 			lock (Sync)
 			{
 				if (!mInitialized)
