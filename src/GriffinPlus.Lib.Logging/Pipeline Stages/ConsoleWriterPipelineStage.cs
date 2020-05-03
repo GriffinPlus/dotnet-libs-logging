@@ -75,6 +75,34 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets or sets the explicit mapping overrides of log levels to output streams.
+		/// A message written using an explictly mapped log level will go out on the defined steam.
+		/// Others will be emitted using the streams defined by the <see cref="DefaultStream"/> property.
+		/// </summary>
+		public IReadOnlyDictionary<LogLevel, ConsoleOutputStream> StreamByLevelOverrides
+		{
+			get
+			{
+				lock (Sync)
+				{
+					// copy mappings to avoid modifications being done in an unsynchronized way
+					return new Dictionary<LogLevel, ConsoleOutputStream>(mStreamByLevel);
+				}
+			}
+
+			set
+			{
+				if (value == null) throw new ArgumentNullException(nameof(value));
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mStreamByLevel.Clear();
+					foreach (var kvp in value) mStreamByLevel.Add(kvp.Key, kvp.Value);
+				}
+			}
+		}
+
+		/// <summary>
 		/// Configures the console writer to emit log messages written using the specified log level to the specified stream.
 		/// Only necessary, if the stream is different from the default stream (<see cref="DefaultStream"/>).
 		/// </summary>
