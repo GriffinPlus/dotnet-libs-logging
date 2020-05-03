@@ -12,6 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -25,23 +26,21 @@ namespace GriffinPlus.Lib.Logging
 		const string Aspect1Name = "Aspect1";
 		const string Aspect2Name = "Aspect2";
 		const string Aspect3Name = "Aspect3";
-		const int Aspect1Id = 26;
-		const int Aspect2Id = 27;
-		const int Aspect3Id = 28;
 
 		protected LogConfigurationTests_Base()
 		{
 			LogLevel aspect1 = LogLevel.GetAspect(Aspect1Name);
 			Assert.Equal(Aspect1Name, aspect1.Name);
-			Assert.Equal(Aspect1Id, aspect1.Id);
 
 			LogLevel aspect2 = LogLevel.GetAspect(Aspect2Name);
 			Assert.Equal(Aspect2Name, aspect2.Name);
-			Assert.Equal(Aspect2Id, aspect2.Id);
 
 			LogLevel aspect3 = LogLevel.GetAspect(Aspect3Name);
 			Assert.Equal(Aspect3Name, aspect3.Name);
-			Assert.Equal(Aspect3Id, aspect3.Id);
+
+			// the ids of the log levels should be different
+			HashSet<int> ids = new HashSet<int>(new[] { aspect1.Id, aspect2.Id, aspect3.Id });
+			Assert.Equal(3, ids.Count);
 		}
 
 		[Fact]
@@ -126,9 +125,7 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("All",     new string[] { },           new string[] { },           0xFFFFFFFFu)]
 		// includes
 		[InlineData("None",    new string[] { "Note" },    new string[] { },           0x00000008u)] // single predefined level only
-		[InlineData("None",    new string[] { "Aspect1" }, new string[] { },           0x04000000u)] // single aspect level only
 		[InlineData("Note",    new string[] { "Trace0" },  new string[] { },           0x0000002Fu)] // base level + predefined level
-		[InlineData("Note",    new string[] { "Aspect1" }, new string[] { },           0x0400000Fu)] // base level + aspect level
 		// excludes
 		[InlineData("All",     new string[] { },           new string[] { "Note" },    0xFFFFFFF7u)] // all except a single level
 		[InlineData("Note",    new string[] { },           new string[] { "Note" },    0x00000007u)]
@@ -136,9 +133,9 @@ namespace GriffinPlus.Lib.Logging
 		// mixed
 		[InlineData(
 			"Developer",
-			new string[] { "Trace0", "Trace19", "Aspect1", "Aspect2", "Aspect3" },
-			new string[] { "Error", "Aspect3" }, // exclude overrides include for 'Aspect3'
-			0x0D00003Du)]
+			new string[] { "Error", "Trace0", "Trace19" },
+			new string[] { "Error"}, // exclude overrides include for 'Error'
+			0x0100003D)]
 		public void Getting_Active_Log_Level_Mask_With_Includes_And_Excludes(string baseLevel, string[] includes, string[] excludes, uint expectedMask)
 		{
 			CONFIGURATION configuration = new CONFIGURATION();
