@@ -44,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Create()
 		{
 			var stage = CreateStage();
-			Assert.Empty(stage.GetDefaultSettings());
+			Assert.Empty(stage.GetSettings());
 			Assert.Equal(ConsoleOutputStream.Stdout, stage.DefaultStream);
 			Assert.Empty(stage.StreamByLevelOverrides);
 		}

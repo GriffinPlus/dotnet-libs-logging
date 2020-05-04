@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		void Create()
 		{
 			var stage = new SplitterPipelineStage();
-			Assert.Empty(stage.GetDefaultSettings());
+			Assert.Empty(stage.GetSettings());
 		}
 
 	}

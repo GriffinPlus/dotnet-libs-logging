@@ -100,7 +100,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var callback = new Callback();
 			var stage = new AsyncCallbackPipelineStage(callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
-			Assert.Empty(stage.GetDefaultSettings());
+			Assert.Empty(stage.GetSettings());
 		}
 
 		/// <summary>
@@ -111,7 +111,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var callback = new Callback();
 			var stage = new AsyncCallbackPipelineStage(callback.ProcessSyncCallback, null);
-			Assert.Empty(stage.GetDefaultSettings());
+			Assert.Empty(stage.GetSettings());
 		}
 
 		/// <summary>
@@ -122,7 +122,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var callback = new Callback();
 			var stage = new AsyncCallbackPipelineStage(null, callback.ProcessAsyncCallback);
-			Assert.Empty(stage.GetDefaultSettings());
+			Assert.Empty(stage.GetSettings());
 		}
 
 		/// <summary>

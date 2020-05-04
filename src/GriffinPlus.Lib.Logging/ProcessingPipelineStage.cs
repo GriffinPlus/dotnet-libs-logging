@@ -210,11 +210,10 @@ namespace GriffinPlus.Lib.Logging
 		#region Pipeline Stage Settings
 
 		/// <summary>
-		/// When overridden in a derived class, returns a dictionary containing the default settings the
-		/// pipeline stage operates with.
+		/// Gets a dictionary containing the settings the pipeline stage operates with.
 		/// </summary>
-		/// <returns>Dictionary with default settings</returns>
-		public virtual IReadOnlyDictionary<string,string> GetDefaultSettings()
+		/// <returns>Dictionary with settings</returns>
+		public virtual IReadOnlyDictionary<string,string> GetSettings()
 		{
 			return new Dictionary<string, string>();
 		}

@@ -60,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		void Create()
 		{
 			var stage = CreateStage();
-			Assert.Empty(stage.GetDefaultSettings());
+			Assert.Empty(stage.GetSettings());
 		}
 
 		public static IEnumerable<object[]> Process_TestData
