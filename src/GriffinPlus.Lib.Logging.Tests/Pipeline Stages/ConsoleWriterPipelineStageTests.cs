@@ -187,55 +187,15 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				var message1 = sMessagePool.GetMessage(
-					DateTimeOffset.Parse("2001-01-01 00:00:00Z"),
-					123,
-					42,
-					"MyProcess1",
-					"MyApp1",
-					Log.GetWriter("MyWriter1"),
-					LogLevel.Failure,
-					"MyText1");
-
-				var message2 = sMessagePool.GetMessage(
-					DateTimeOffset.Parse("2002-01-01 00:00:00Z"),
-					456,
-					43,
-					"MyProcess2",
-					"MyApp2",
-					Log.GetWriter("MyWriter2"),
-					LogLevel.Error,
-					"MyText2");
-
-				var message3 = sMessagePool.GetMessage(
-					DateTimeOffset.Parse("2003-01-01 00:00:00Z"),
-					789,
-					44,
-					"MyProcess3",
-					"MyApp3",
-					Log.GetWriter("MyWriter3"),
-					LogLevel.Warning,
-					"MyText3");
-
-				var message4 = sMessagePool.GetMessage(
-					DateTimeOffset.Parse("2004-01-01 00:00:00Z"),
-					789,
-					44,
-					"MyProcess4",
-					"MyApp4",
-					Log.GetWriter("MyWriter4"),
-					LogLevel.Note,
-					"MyText4");
-
 				foreach (var defaultStream in new[] { ConsoleOutputStream.Stdout, ConsoleOutputStream.Stderr })
 				{
 					foreach (var args in LogLevelToStreamMapping_TestData)
 					{
 						var mappings = (List<Tuple<LogLevel, ConsoleOutputStream>>)args[0];
-						yield return new object[] { defaultStream, mappings, new[] { message1 } };
-						yield return new object[] { defaultStream, mappings, new[] { message1, message2 } };
-						yield return new object[] { defaultStream, mappings, new[] { message1, message2, message3 } };
-						yield return new object[] { defaultStream, mappings, new[] { message1, message2, message3, message4 } };
+						foreach (var messages in TestData.LocalLogMessageSet)
+						{
+							yield return new object[] { defaultStream, mappings, messages };
+						}
 					}
 				}
 			}
@@ -249,7 +209,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="messages">Messages that are passed to the stage.</param>
 		[Theory]
 		[MemberData(nameof(Process_TestData))]
-		public void Process(ConsoleOutputStream defaultStream, List<Tuple<LogLevel, ConsoleOutputStream>> mappings, LocalLogMessage[] messages)
+		public void Process(ConsoleOutputStream defaultStream, List<Tuple<LogLevel, ConsoleOutputStream>> mappings, IEnumerable<LocalLogMessage> messages)
 		{
 			// replace the stdout/stderr streams of the console
 			var stdoutStream = new MemoryStream();
