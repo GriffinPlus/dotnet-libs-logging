@@ -64,6 +64,14 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the path of the log file.
+		/// </summary>
+		public string Path
+		{
+			get { lock (Sync) return mPath; }
+		}
+
+		/// <summary>
 		/// Performs pipeline stage specific initialization tasks that must run when the pipeline stage is attached to the
 		/// logging subsystem. This method is called from within the pipeline stage lock (<see cref="AsyncProcessingPipelineStage{T}.Sync"/>).
 		/// </summary>
