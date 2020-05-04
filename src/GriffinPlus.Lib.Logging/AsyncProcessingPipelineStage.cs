@@ -243,7 +243,7 @@ namespace GriffinPlus.Lib.Logging
 		/// operates with.
 		/// </summary>
 		/// <returns>Dictionary with default settings</returns>
-		public virtual IDictionary<string,string> GetDefaultSettings()
+		public virtual IReadOnlyDictionary<string,string> GetDefaultSettings()
 		{
 			return new Dictionary<string, string>();
 		}

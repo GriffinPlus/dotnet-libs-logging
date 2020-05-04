@@ -43,7 +43,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the default settings the pipeline stage operates with.
 		/// </summary>
 		/// <returns>Dictionary with default settings.</returns>
-		IDictionary<string, string> GetDefaultSettings();
+		IReadOnlyDictionary<string, string> GetDefaultSettings();
 
 		/// <summary>
 		/// Processes the specified log message.
