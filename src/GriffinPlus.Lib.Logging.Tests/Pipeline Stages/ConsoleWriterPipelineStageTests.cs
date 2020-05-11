@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xunit;
@@ -27,6 +28,11 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<ConsoleWriterPipelineStage>
 	{
+		private static Dictionary<string, object> sDefaultSettings = new Dictionary<string, object>()
+		{
+			{ "DefaultStream", ConsoleOutputStream.Stdout },
+		};
+
 		/// <summary>
 		/// Creates a new instance of the pipeline stage.
 		/// </summary>
@@ -44,7 +50,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Create()
 		{
 			var stage = CreateStage();
-			Assert.Empty(stage.GetSettings());
+			Assert.Equal(sDefaultSettings, stage.Settings.ToDictionary(x => x.Key, x => x.Value.Value));
 			Assert.Equal(ConsoleOutputStream.Stdout, stage.DefaultStream);
 			Assert.Empty(stage.StreamByLevelOverrides);
 		}

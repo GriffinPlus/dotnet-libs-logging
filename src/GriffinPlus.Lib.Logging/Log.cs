@@ -344,7 +344,7 @@ namespace GriffinPlus.Lib.Logging
 			foreach (var stage in allStages)
 			{
 				// get default settings
-				IReadOnlyDictionary<string, string> defaultSettings = stage.GetSettings();
+				IReadOnlyDictionary<string, string> defaultSettings = stage.Settings.ToDictionary(x => x.Key, x => x.Value.ValueAsString);
 
 				// add pipeline stage settings that are missing in the configuration
 				bool stageSettingsModified = false;

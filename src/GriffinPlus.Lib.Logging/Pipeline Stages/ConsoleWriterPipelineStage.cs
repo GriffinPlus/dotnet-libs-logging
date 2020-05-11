@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,17 +42,18 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class ConsoleWriterPipelineStage : TextWriterPipelineStage<ConsoleWriterPipelineStage>
 	{
-		private ConsoleOutputStream mDefaultStream = ConsoleOutputStream.Stdout;
 		private readonly Dictionary<LogLevel, ConsoleOutputStream> mStreamByLevel = new Dictionary<LogLevel, ConsoleOutputStream>();
 		private readonly StringBuilder mStdoutBuilder = new StringBuilder();
 		private readonly StringBuilder mStderrBuilder = new StringBuilder();
+		private IProcessingPipelineStageSetting<ConsoleOutputStream> mDefaultStreamSetting;
+		private const string SettingName_DefaultStream = "DefaultStream";
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConsoleWriterPipelineStage"/> class.
 		/// </summary>
 		public ConsoleWriterPipelineStage()
 		{
-
+			mDefaultStreamSetting = Settings.GetSetting(SettingName_DefaultStream, ConsoleOutputStream.Stdout);
 		}
 
 		/// <summary>
@@ -61,7 +63,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				lock (Sync) return mDefaultStream;
+				return mDefaultStreamSetting.Value;
 			}
 
 			set
@@ -69,7 +71,7 @@ namespace GriffinPlus.Lib.Logging
 				lock (Sync)
 				{
 					EnsureNotAttachedToLoggingSubsystem();
-					mDefaultStream = value;
+					mDefaultStreamSetting.Value = value;
 				}
 			}
 		}
@@ -134,7 +136,7 @@ namespace GriffinPlus.Lib.Logging
 				// NOTE: After attaching the pipeline stage to the logging subsystem, mStreamByLevel will not change.
 				if (!mStreamByLevel.TryGetValue(message.Message.LogLevel, out ConsoleOutputStream stream))
 				{
-					stream = mDefaultStream;
+					stream = mDefaultStreamSetting.Value;
 				}
 
 				if (stream == ConsoleOutputStream.Stdout)

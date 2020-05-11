@@ -11,35 +11,23 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using Xunit;
+using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Unit tests targeting the <see cref="SplitterPipelineStage"/> class.
-	/// The splitter pipeline stage is basically the functionality of the base class, so here is not that much to test.
+	/// Interface for pipeline stage configurations (must be implemented thread-safe).
 	/// </summary>
-	public class SplitterPipelineStageTests : ProcessingPipelineStageBaseTests<SplitterPipelineStage>
+	public interface IProcessingPipelineStageConfiguration : IReadOnlyDictionary<string, IUntypedProcessingPipelineStageSetting>
 	{
 		/// <summary>
-		/// Creates a new instance of the pipeline stage.
+		/// Gets the setting with the specified name.
 		/// </summary>
-		/// <returns></returns>
-		protected override SplitterPipelineStage CreateStage()
-		{
-			return new SplitterPipelineStage();
-		}
-
-		/// <summary>
-		/// Tests whether creating a new instance of the pipeline stage succeeds and the stage is in the expected state
-		/// (only non-default stuff is checked, the rest is done by the base test class).
-		/// </summary>
-		[Fact]
-		void Create()
-		{
-			var stage = new SplitterPipelineStage();
-			Assert.Empty(stage.Settings);
-		}
-
+		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
+		/// <param name="name">Name of the setting.</param>
+		/// <param name="defaultValue">Default value of the setting.</param>
+		/// <returns>The requested setting.</returns>
+		IProcessingPipelineStageSetting<T> GetSetting<T>(string name, T defaultValue);
 	}
+
 }

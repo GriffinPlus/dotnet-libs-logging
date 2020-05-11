@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 			var stage = CreateStage();
 
 			// check properties of the base pipeline stage
-			Assert.Empty(stage.GetSettings());
+			Assert.Empty(stage.Settings);
 			Assert.Equal(500, stage.MessageQueueSize);
 			Assert.False(stage.DiscardMessagesIfQueueFull);
 			Assert.Equal(TimeSpan.FromSeconds(5), stage.ShutdownTimeout);

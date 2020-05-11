@@ -47,6 +47,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		protected AsyncProcessingPipelineStage()
 		{
+			Settings = new ProcessingPipelineStageConfiguration(Sync);
 		}
 
 		/// <summary>
@@ -242,13 +243,10 @@ namespace GriffinPlus.Lib.Logging
 		#region Pipeline Stage Settings
 
 		/// <summary>
-		/// Gets a dictionary containing the settings the pipeline stage operates with.
+		/// Gets the configuration the pipeline stage operates with.
 		/// </summary>
-		/// <returns>Dictionary with settings</returns>
-		public virtual IReadOnlyDictionary<string, string> GetSettings()
-		{
-			return new Dictionary<string, string>();
-		}
+		/// <returns>Configuration of the pipeline stage.</returns>
+		public IProcessingPipelineStageConfiguration Settings { get; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether messages are discarded when the queue is full.

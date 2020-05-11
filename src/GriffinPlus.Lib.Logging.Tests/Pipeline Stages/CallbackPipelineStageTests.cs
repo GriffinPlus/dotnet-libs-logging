@@ -70,7 +70,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var callback = new Callback();
 			var stage = new CallbackPipelineStage(callback.ProcessSyncCallback);
-			Assert.Empty(stage.GetSettings());
+			Assert.Empty(stage.Settings);
 		}
 
 		/// <summary>
@@ -80,7 +80,7 @@ namespace GriffinPlus.Lib.Logging
 		void Create_WithoutCallback()
 		{
 			var stage = new CallbackPipelineStage(null);
-			Assert.Empty(stage.GetSettings());
+			Assert.Empty(stage.Settings);
 		}
 
 		/// <summary>

@@ -11,35 +11,45 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using Xunit;
+using System;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Unit tests targeting the <see cref="SplitterPipelineStage"/> class.
-	/// The splitter pipeline stage is basically the functionality of the base class, so here is not that much to test.
+	/// Untyped interface for a setting in a <see cref="IProcessingPipelineStageConfiguration"/> (must be implemented thread-safe).
 	/// </summary>
-	public class SplitterPipelineStageTests : ProcessingPipelineStageBaseTests<SplitterPipelineStage>
+	public interface IUntypedProcessingPipelineStageSetting
 	{
 		/// <summary>
-		/// Creates a new instance of the pipeline stage.
+		/// Gets the name of the setting.
 		/// </summary>
-		/// <returns></returns>
-		protected override SplitterPipelineStage CreateStage()
-		{
-			return new SplitterPipelineStage();
-		}
+		string Name { get; }
 
 		/// <summary>
-		/// Tests whether creating a new instance of the pipeline stage succeeds and the stage is in the expected state
-		/// (only non-default stuff is checked, the rest is done by the base test class).
+		/// Gets the type of the value.
 		/// </summary>
-		[Fact]
-		void Create()
-		{
-			var stage = new SplitterPipelineStage();
-			Assert.Empty(stage.Settings);
-		}
+		Type ValueType { get; }
+
+		/// <summary>
+		/// Gets a value indicating whether the setting has valid value (true) or just its default value (false).
+		/// </summary>
+		bool HasValue { get; }
+
+		/// <summary>
+		/// Gets or sets the value of the setting.
+		/// </summary>
+		object Value { get; set; }
+
+		/// <summary>
+		/// Gets or sets the value of the setting as a string (for serialization purposes).
+		/// </summary>
+		string ValueAsString { get; set; }
+
+		/// <summary>
+		/// Gets the default value of the setting.
+		/// </summary>
+		object DefaultValue { get; }
 
 	}
+
 }
