@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 		private static List<LogWriter> sLogWritersById = new List<LogWriter>();
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static ILogConfiguration sLogConfiguration;
-		private static volatile IProcessingPipelineStage sLogMessageProcessingPipeline;
+		private static volatile IProcessingPipelineStage sProcessingPipeline;
 		private static readonly LogWriter sLog = GetWriter("Logging");
 		private static readonly long sTimerTickStart = Stopwatch.GetTimestamp();
 
@@ -47,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync) // just to prevent assertions from firing...
 			{
 				InitDefaultConfiguration();
-				LogMessageProcessingPipeline = new ConsoleWriterPipelineStage();
+				ProcessingPipeline = new ConsoleWriterPipelineStage();
 			}
 		}
 
@@ -83,7 +83,7 @@ namespace GriffinPlus.Lib.Logging
 						sLogConfiguration = value;
 
 						// add default settings to configuration, if necessary
-						SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline);
+						SetDefaultProcessingPipelineSettings(ProcessingPipeline);
 
 						// update log writers to comply with the new configuration
 						UpdateLogWriters();
@@ -99,16 +99,16 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the log message processing pipeline that receives any log messages written to the logging subsystem.
 		/// </summary>
-		public static IProcessingPipelineStage LogMessageProcessingPipeline
+		public static IProcessingPipelineStage ProcessingPipeline
 		{
-			get => sLogMessageProcessingPipeline;
+			get => sProcessingPipeline;
 
 			set
 			{
 				lock (Sync)
 				{
 					// abort, if the processing pipeline has not changed
-					if (sLogMessageProcessingPipeline == value) return;
+					if (sProcessingPipeline == value) return;
 
 					if (value != null)
 					{
@@ -120,8 +120,8 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					// make new processing pipeline the current one
-					var oldPipeline = sLogMessageProcessingPipeline;
-					sLogMessageProcessingPipeline = value;
+					var oldPipeline = sProcessingPipeline;
+					sProcessingPipeline = value;
 
 					// shutdown old processing pipeline, if any
 					if (oldPipeline != null)
@@ -148,7 +148,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// pipeline stages might have buffered messages
 				// => shut them down gracefully to allow them to complete processing before exiting
-				sLogMessageProcessingPipeline?.Shutdown();
+				sProcessingPipeline?.Shutdown();
 			}
 		}
 
@@ -181,7 +181,7 @@ namespace GriffinPlus.Lib.Logging
 			// remove preceding and trailing line breaks
 			text = text.Trim('\r', '\n');
 
-			IProcessingPipelineStage pipeline = LogMessageProcessingPipeline;
+			IProcessingPipelineStage pipeline = ProcessingPipeline;
 			if (pipeline != null)
 			{
 				LocalLogMessage message = null;
@@ -295,7 +295,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// create and init default configuration
 				VolatileLogConfiguration configuration = new VolatileLogConfiguration();
-				SetDefaultProcessingPipelineSettings(LogMessageProcessingPipeline);
+				SetDefaultProcessingPipelineSettings(ProcessingPipeline);
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 				sLogConfiguration = configuration;
 
@@ -389,7 +389,7 @@ namespace GriffinPlus.Lib.Logging
 			Debug.Assert(Monitor.IsEntered(Sync));
 
 			// notify log message processing pipeline stages
-			sLogMessageProcessingPipeline?.ProcessLogLevelAdded(level);
+			ProcessingPipeline?.ProcessLogLevelAdded(level);
 		}
 
 		/// <summary>
@@ -403,7 +403,7 @@ namespace GriffinPlus.Lib.Logging
 			Debug.Assert(Monitor.IsEntered(Sync));
 
 			// notify log message processing pipeline stages
-			sLogMessageProcessingPipeline?.ProcessLogWriterAdded(writer);
+			ProcessingPipeline?.ProcessLogWriterAdded(writer);
 		}
 
 	}

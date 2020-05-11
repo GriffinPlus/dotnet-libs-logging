@@ -67,7 +67,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
-			Log.LogMessageProcessingPipeline = new CallbackPipelineStage(msg => {
+			Log.ProcessingPipeline = new CallbackPipelineStage(msg => {
 				Assert.True(msg.LogLevel.Id <= threshold.Id);
 				callbackInvokedCount++;
 				return true;
@@ -126,7 +126,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
-			Log.LogMessageProcessingPipeline = new CallbackPipelineStage(msg => {
+			Log.ProcessingPipeline = new CallbackPipelineStage(msg => {
 				Assert.Equal(TestMessage, msg.Text);
 				Assert.Equal(levelToInclude, msg.LogLevel.Name);
 				Assert.Equal(levelToInclude, msg.LogLevelName);
@@ -186,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// set the processing stage test callback
 			int callbackInvokedCount = 0;
-			Log.LogMessageProcessingPipeline = new CallbackPipelineStage(msg => {
+			Log.ProcessingPipeline = new CallbackPipelineStage(msg => {
 				Assert.NotEqual(levelToExclude, msg.LogLevel.Name);
 				Assert.NotEqual(levelToExclude, msg.LogLevelName);
 				callbackInvokedCount++;

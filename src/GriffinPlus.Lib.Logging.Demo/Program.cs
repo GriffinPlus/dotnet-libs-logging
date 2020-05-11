@@ -172,7 +172,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			splitterStage.AddNextStage(fileStage);
 
 			// Activate the stages
-			Log.LogMessageProcessingPipeline = splitterStage;
+			Log.ProcessingPipeline = splitterStage;
 
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------
