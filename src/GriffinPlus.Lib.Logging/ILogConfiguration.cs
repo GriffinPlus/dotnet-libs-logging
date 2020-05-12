@@ -52,6 +52,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
 		/// <param name="settings">Settings to set.</param>
 		void SetProcessingPipelineStageSettings(string name, IReadOnlyDictionary<string, string> settings);
+
+		/// <summary>
+		/// Saves the configuration.
+		/// </summary>
+		void Save();
 	}
 
 }

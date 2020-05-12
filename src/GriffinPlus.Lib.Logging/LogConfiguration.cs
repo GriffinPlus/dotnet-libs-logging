@@ -78,6 +78,11 @@ namespace GriffinPlus.Lib.Logging
 		public abstract void SetProcessingPipelineStageSettings(string name, IReadOnlyDictionary<string, string> settings);
 
 		/// <summary>
+		/// Saves the configuration.
+		/// </summary>
+		public abstract void Save();
+
+		/// <summary>
 		/// Adds a log writer configuration using the full name of the specified type as its name.
 		/// The configuration will match exactly the log writer with this name.
 		/// </summary>

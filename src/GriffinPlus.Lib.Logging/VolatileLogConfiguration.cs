@@ -213,5 +213,14 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 
+		/// <summary>
+		/// Saves the configuration
+		/// (not supported as the volatile configuration does not support persistence).
+		/// </summary>
+		public override void Save()
+		{
+
+		}
+
 	}
 }
