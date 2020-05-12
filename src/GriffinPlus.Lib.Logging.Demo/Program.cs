@@ -12,6 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.IO;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
@@ -39,88 +40,6 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 		static void Main(string[] args)
 		{
-			// -----------------------------------------------------------------------------------------------------------------
-			// -----------------------------------------------------------------------------------------------------------------
-			// Set up the volatile (in-memory) or persistent (file-backed) configuration
-			// -----------------------------------------------------------------------------------------------------------------
-			// -----------------------------------------------------------------------------------------------------------------
-
-			var config = new VolatileLogConfiguration();
-			// var config = new FileBackedLogConfiguration();                    // default location (beside the executable with file extension '.logconf');
-			// var config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
-
-			// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass1' only
-			// - set base log level to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-			// - include log level 'Trace0'
-			// - exclude log level 'Warning'
-			// => enabled log levels: 'Failure', 'Error', 'Note', 'Trace0'
-			config.AddLogWriter<MyClass1>(x => x
-				.WithBaseLevel(LogLevel.Note)
-				.WithLevel(LogLevel.Trace0)
-				.WithoutLevel("Warning"));
-
-			// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass2' only
-			// - set base log level to 'None' effectively silencing the log writer
-			// - no included/excluded log levels
-			// => no enabled log levels
-			config.AddLogWriter(typeof(MyClass2), x => x
-				.WithBaseLevel(LogLevel.None));
-
-			// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass3' only
-			// - set base log level to 'All' enabling all log levels (including aspects)
-			// - exclude all log levels from 'Trace10' up to 'Trace19'
-			// => enabled log levels: All log levels, but 'Trace[10-19]'
-			config.AddLogWriter(typeof(MyClass3), x => x
-				.WithBaseLevel(LogLevel.All)
-				.WithoutLevelRange(LogLevel.Trace10, LogLevel.Trace19));
-
-			// Add configuration for log writers matching regex pattern
-			// - pattern matches 'GriffinPlus.Lib.Logging.Demo.MyClassA' and 'GriffinPlus.Lib.Logging.Demo.MyClassB'
-			// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-			// - include all log levels from 'Trace10' up to 'Trace15'
-			// - no excluded log levels
-			// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace0'
-			config.AddLogWritersByRegex("^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$", x => x
-				.WithLevelRange(LogLevel.Trace10, LogLevel.Trace15));
-
-			// Add configuration for log writers matching wildcard pattern
-			// - applys to 'GriffinPlus.Lib.Logging.Demo.MyClass4' only
-			//   (other writers are handled by preceding steps)
-			// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-			// - include log level 'Trace15'
-			// - no excluded log levels
-			// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace15'
-			config.AddLogWritersByWildcard("GriffinPlus.Lib.Logging.Demo.MyClass*", x => x
-				.WithLevel(LogLevel.Trace15));
-
-			// Add configuration for log writer 'My Fancy Writer'
-			// - base level defaults to level 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-			// - include aspect log level 'Demo Aspect'
-			// - no excluded log levels
-			// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Demo Aspect'
-			config.AddLogWriter("My Fancy Writer", x => x
-				.WithLevel("Demo Aspect"));
-
-			// Add configuration for log writer 'Timing' to enable logging time measurements written by the internal
-			// 'Timing' log writer (see below for time measurements)
-			config.AddLogWriterTiming();
-
-			// Add default configuration for log writers that have not been handled up to this point
-			// - base level defaults  to level 'Note'
-			// - no included/excluded log levels
-			// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note'
-			config.AddLogWriterDefault();
-
-			// Save file backed configuration file to disk, if it does not exist, yet
-			// (uncomment if using the FileBackedConfiguration)
-			// if (!File.Exists(config.FullPath)) config.Save();
-
-			// activate the configuration
-			Log.Configuration = config;
-
-			// Set application name (optional)
-			Log.ApplicationName = "Logging Demo";
-
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------
 			// Configure the log message pipeline
@@ -173,6 +92,97 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// Activate the stages
 			Log.ProcessingPipeline = splitterStage;
+
+			// -----------------------------------------------------------------------------------------------------------------
+			// -----------------------------------------------------------------------------------------------------------------
+			// Set up the volatile (in-memory) or persistent (file-backed) configuration
+			// -----------------------------------------------------------------------------------------------------------------
+			// -----------------------------------------------------------------------------------------------------------------
+
+			// volatile configuration (programmatic configuration only, no persistence)
+			var config = new VolatileLogConfiguration();
+			bool initConfig = true; // always init programmatically
+
+			// file-based configuration 
+			// var config = new FileBackedLogConfiguration(); // default location (beside the executable with file extension '.logconf');
+			// var config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
+			// bool initConfig = !File.Exists(config.FullPath); // init programmatically, if file does not exist, yet
+
+			if (initConfig)
+			{
+				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass1' only
+				// - set base log level to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+				// - include log level 'Trace0'
+				// - exclude log level 'Warning'
+				// => enabled log levels: 'Failure', 'Error', 'Note', 'Trace0'
+				config.AddLogWriter<MyClass1>(x => x
+					.WithBaseLevel(LogLevel.Note)
+					.WithLevel(LogLevel.Trace0)
+					.WithoutLevel("Warning"));
+
+				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass2' only
+				// - set base log level to 'None' effectively silencing the log writer
+				// - no included/excluded log levels
+				// => no enabled log levels
+				config.AddLogWriter(typeof(MyClass2), x => x
+					.WithBaseLevel(LogLevel.None));
+
+				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass3' only
+				// - set base log level to 'All' enabling all log levels (including aspects)
+				// - exclude all log levels from 'Trace10' up to 'Trace19'
+				// => enabled log levels: All log levels, but 'Trace[10-19]'
+				config.AddLogWriter(typeof(MyClass3), x => x
+					.WithBaseLevel(LogLevel.All)
+					.WithoutLevelRange(LogLevel.Trace10, LogLevel.Trace19));
+
+				// Add configuration for log writers matching regex pattern
+				// - pattern matches 'GriffinPlus.Lib.Logging.Demo.MyClassA' and 'GriffinPlus.Lib.Logging.Demo.MyClassB'
+				// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+				// - include all log levels from 'Trace10' up to 'Trace15'
+				// - no excluded log levels
+				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace0'
+				config.AddLogWritersByRegex("^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$", x => x
+					.WithLevelRange(LogLevel.Trace10, LogLevel.Trace15));
+
+				// Add configuration for log writers matching wildcard pattern
+				// - applys to 'GriffinPlus.Lib.Logging.Demo.MyClass4' only
+				//   (other writers are handled by preceding steps)
+				// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+				// - include log level 'Trace15'
+				// - no excluded log levels
+				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace15'
+				config.AddLogWritersByWildcard("GriffinPlus.Lib.Logging.Demo.MyClass*", x => x
+					.WithLevel(LogLevel.Trace15));
+
+				// Add configuration for log writer 'My Fancy Writer'
+				// - base level defaults to level 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+				// - include aspect log level 'Demo Aspect'
+				// - no excluded log levels
+				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Demo Aspect'
+				config.AddLogWriter("My Fancy Writer", x => x
+					.WithLevel("Demo Aspect"));
+
+				// Add configuration for log writer 'Timing' to enable logging time measurements written by the internal
+				// 'Timing' log writer (see below for time measurements)
+				config.AddLogWriterTiming();
+
+				// Add default configuration for log writers that have not been handled up to this point
+				// - base level defaults  to level 'Note'
+				// - no included/excluded log levels
+				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note'
+				config.AddLogWriterDefault();
+
+				// Set application name (optional)
+				Log.ApplicationName = "Logging Demo";
+			}
+
+			// activate the configuration
+			Log.Configuration = config;
+
+			// Save configuration file, if it was initialized programmatically
+			// (It is important that Log.ProcessingPipeline and Log.Configuration are set at this point, so the
+			// pipeline stages can persist their settings in the configuration)
+			if (initConfig) config.Save();
 
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------
