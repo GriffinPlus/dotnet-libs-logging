@@ -68,7 +68,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the log configuration that determines the behavior of the log
-		/// (if set to <c>null</c> the default log configuration with its ini-style configuration file is used).
+		/// (if set to <c>null</c> a volatile log configuration is used).
 		/// </summary>
 		public static ILogConfiguration Configuration
 		{
