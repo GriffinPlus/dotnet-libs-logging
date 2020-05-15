@@ -193,23 +193,19 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (mSync)
 			{
-				// replace atomically to avoid threading issues
-				lock (mSync)
+				var copy = new Dictionary<string, IReadOnlyDictionary<string, string>>(mProcessingPipelineStageSettings);
+				if (settings is IDictionary<string, string> dict)
 				{
-					var copy = new Dictionary<string, IReadOnlyDictionary<string, string>>(mProcessingPipelineStageSettings);
-					if (settings is IDictionary<string, string> dict)
-					{
-						copy[name] = new Dictionary<string, string>(dict);
-					}
-					else
-					{
-						var tmp = new Dictionary<string, string>();
-						foreach (var kvp in settings) tmp.Add(kvp.Key, kvp.Value);
-						copy[name] = tmp;
-					}
-
-					mProcessingPipelineStageSettings = copy;
+					copy[name] = new Dictionary<string, string>(dict);
 				}
+				else
+				{
+					var tmp = new Dictionary<string, string>();
+					foreach (var kvp in settings) tmp.Add(kvp.Key, kvp.Value);
+					copy[name] = tmp;
+				}
+
+				mProcessingPipelineStageSettings = copy;
 			}
 		}
 
