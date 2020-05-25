@@ -23,16 +23,15 @@ namespace GriffinPlus.Lib.Logging
 	public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguration>
 	{
 		private string mApplicationName;
-		private Dictionary<string, IReadOnlyDictionary<string, string>> mProcessingPipelineStageSettings;
+		private VolatileProcessingPipelineConfiguration mProcessingPipelineConfiguration;
 		private List<LogWriterConfiguration> mLogWriterSettings;
-		private readonly object mSync = new object();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="VolatileLogConfiguration"/> class.
 		/// </summary>
 		public VolatileLogConfiguration()
 		{
-			mProcessingPipelineStageSettings = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+			mProcessingPipelineConfiguration = new VolatileProcessingPipelineConfiguration(this);
 			mLogWriterSettings = new List<LogWriterConfiguration>();
 			var writer = LogWriterConfiguration.Default;
 			writer.IsDefault = true;
@@ -46,14 +45,20 @@ namespace GriffinPlus.Lib.Logging
 		public override string ApplicationName
 		{
 			get => mApplicationName;
-			set {
-				lock (mSync)
+			set
+			{
+				lock (Sync)
 				{
 					if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Invalid application name.");
 					mApplicationName = value;
 				}
 			}
 		}
+
+		/// <summary>
+		/// Gets the configuration of the processing pipeline.
+		/// </summary>
+		public override IProcessingPipelineConfiguration ProcessingPipeline => mProcessingPipelineConfiguration;
 
 		/// <summary>
 		/// Gets a bit mask in which each bit is associated with a log level with the same id
@@ -63,7 +68,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested active log level mask.</returns>
 		public override LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				// get the first matching log writer settings
 				LogWriterConfiguration settings = null;
@@ -124,7 +129,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>A copy of the internal log writer settings.</returns>
 		public override IEnumerable<LogWriterConfiguration> GetLogWriterSettings()
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				// mLogWriterSettings is immutable after it has been set
 				// => copying is not necessary
@@ -138,7 +143,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="settings">Settings to use.</param>
 		public override void SetLogWriterSettings(IEnumerable<LogWriterConfiguration> settings)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				// log writer settings are immutable after creation, so copying the collection is sufficient
 				mLogWriterSettings = new List<LogWriterConfiguration>(settings);
@@ -146,74 +151,14 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the settings for pipeline stages by their name.
-		/// </summary>
-		/// <returns>The requested settings.</returns>
-		public override IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> GetProcessingPipelineStageSettings()
-		{
-			lock (mSync)
-			{
-				// mProcessingPipelineStageSettings is immutable after it has been set
-				// => copying is not necessary
-				return mProcessingPipelineStageSettings;
-			}
-		}
-
-		/// <summary>
-		/// Gets the settings for the pipeline stage with the specified name.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage to get the settings for.</param>
-		/// <returns>
-		/// The requested settings;
-		/// null, if the settings do not exist.
-		/// </returns>
-		public override IReadOnlyDictionary<string, string> GetProcessingPipelineStageSettings(string name)
-		{
-			lock (mSync)
-			{
-				// mProcessingPipelineStageSettings is immutable after it has been set
-				// => copying is not necessary
-				if (mProcessingPipelineStageSettings.TryGetValue(name, out var settings))
-				{
-					return settings;
-				}
-
-				return null;
-			}
-		}
-
-		/// <summary>
-		/// Sets the settings for the pipeline stage with the specified name.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
-		/// <param name="settings">Settings to set.</param>
-		public override void SetProcessingPipelineStageSettings(string name, IReadOnlyDictionary<string, string> settings)
-		{
-			if (settings == null) throw new ArgumentNullException(nameof(settings));
-
-			lock (mSync)
-			{
-				var copy = new Dictionary<string, IReadOnlyDictionary<string, string>>(mProcessingPipelineStageSettings);
-				if (settings is IDictionary<string, string> dict)
-				{
-					copy[name] = new Dictionary<string, string>(dict);
-				}
-				else
-				{
-					var tmp = new Dictionary<string, string>();
-					foreach (var kvp in settings) tmp.Add(kvp.Key, kvp.Value);
-					copy[name] = tmp;
-				}
-
-				mProcessingPipelineStageSettings = copy;
-			}
-		}
-
-		/// <summary>
 		/// Saves the configuration
 		/// (not supported as the volatile configuration does not support persistence).
 		/// </summary>
-		public override void Save()
+		/// <param name="includeDefaults">
+		/// true to include the default value of settings that have not been explicitly set;
+		/// false to save only settings that have not been explicitly set.
+		/// </param>
+		public override void Save(bool includeDefaults = false)
 		{
 
 		}

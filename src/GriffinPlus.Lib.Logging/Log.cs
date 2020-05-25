@@ -78,20 +78,27 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (Sync)
 				{
+					// abort, if the configuration has not changed
+					if (value == sLogConfiguration) return;
+
+					// unlink pipeline stages and the configuration
+					UnlinkPipelineStagesFromConfiguration(ProcessingPipeline);
+
 					if (value != null)
 					{
 						sLogConfiguration = value;
-
-						// add default settings to configuration, if necessary
-						SetDefaultProcessingPipelineSettings(ProcessingPipeline);
-
-						// update log writers to comply with the new configuration
-						UpdateLogWriters();
 					}
 					else
 					{
 						InitDefaultConfiguration();
 					}
+
+					// update log writers to comply with the new configuration
+					UpdateLogWriters();
+
+					// link pipeline stages to the configuration, so configuration changes effect the pipeline stages
+					// and programmatic changes to pipeline stages effect the configuration
+					LinkPipelineStagesToConfiguration(ProcessingPipeline, sLogConfiguration);
 				}
 			}
 		}
@@ -112,11 +119,12 @@ namespace GriffinPlus.Lib.Logging
 
 					if (value != null)
 					{
+						// link pipeline stages to the configuration, so configuration changes effect the pipeline stages
+						// and programmatic changes to pipeline stages effect the configuration
+						LinkPipelineStagesToConfiguration(value, sLogConfiguration);
+
 						// initialize the new processing pipeline
 						value.Initialize(); // can throw...
-
-						// let pipeline stages set their default configuration
-						SetDefaultProcessingPipelineSettings(value);
 					}
 
 					// make new processing pipeline the current one
@@ -134,6 +142,9 @@ namespace GriffinPlus.Lib.Logging
 						{
 							Debug.Fail("Shutting down the old processing pipeline failed unexpectedly.", ex.ToString());
 						}
+
+						// unlink old pipeline stages and the configuration
+						UnlinkPipelineStagesFromConfiguration(oldPipeline);
 					}
 				}
 			}
@@ -295,7 +306,6 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// create and init default configuration
 				VolatileLogConfiguration configuration = new VolatileLogConfiguration();
-				SetDefaultProcessingPipelineSettings(ProcessingPipeline);
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 				sLogConfiguration = configuration;
 
@@ -319,63 +329,55 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the default settings of the specified processing pipeline stage and all following stages and
-		/// updates the current log configuration with default processing stage settings, if the corresponding
-		/// processing stage settings are not defined, yet.
+		/// Links the specified processing pipeline stage and its following stages with to the specified configuration.
+		/// This enables the stages to persist their settings.
 		/// </summary>
 		/// <param name="firstStage">First stage of the processing pipeline.</param>
-		/// <returns>true, if configuration was modified; otherwise false.</returns>
-		private static bool SetDefaultProcessingPipelineSettings(IProcessingPipelineStage firstStage)
+		/// <param name="configuration">The configuration to set.</param>
+		private static void LinkPipelineStagesToConfiguration(
+			IProcessingPipelineStage firstStage,
+			ILogConfiguration configuration)
 		{
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
 
 			// abort, if the first stage is not defined...
-			if (firstStage == null) {
-				return false;
-			}
+			if (firstStage == null) return;
 
 			// get all stages of the processing pipeline recursively
 			HashSet<IProcessingPipelineStage> allStages = new HashSet<IProcessingPipelineStage>();
 			firstStage.GetAllStages(allStages);
 
-			// retrieve default settings from all stages and populate the configuration accordingly
-			bool modified = false;
+			// link configuration to all stages
 			foreach (var stage in allStages)
 			{
-				// get default settings
-				IReadOnlyDictionary<string, string> defaultSettings = stage.Settings.ToDictionary(x => x.Key, x => x.Value.ValueAsString);
-
-				// add pipeline stage settings that are missing in the configuration
-				bool stageSettingsModified = false;
-				var ps = Configuration.GetProcessingPipelineStageSettings(stage.GetType().Name);
-				Dictionary<string, string> persistentSettings;
-				if (ps is IDictionary<string, string> dict) {
-					persistentSettings = new Dictionary<string, string>(dict);
-				} else if (ps != null) {
-					var copy = new Dictionary<string, string>();
-					foreach (var kvp in ps) copy.Add(kvp.Key, kvp.Value);
-					persistentSettings = copy;
-				} else {
-					persistentSettings = new Dictionary<string, string>();
-				}
-
-				foreach (var kvp in defaultSettings.Where(x => persistentSettings.ContainsKey(x.Key)))
-				{
-					// add default setting to configuration
-					persistentSettings.Add(kvp.Key, kvp.Value);
-					stageSettingsModified = true;
-					modified = true;
-				}
-
-				// update settings in configuration
-				if (stageSettingsModified)
-				{
-					Configuration.SetProcessingPipelineStageSettings(stage.GetType().Name, persistentSettings);
-				}
+				var stageConfiguration = configuration.ProcessingPipeline.Stages.Where(x => x.Name == stage.Name).FirstOrDefault();
+				if (stageConfiguration == null) stageConfiguration = configuration.ProcessingPipeline.Stages.AddNew(stage.Name);
+				stage.Settings = stageConfiguration;
 			}
+		}
 
-			return modified;
+		/// <summary>
+		/// Unlinks the specified processing pipeline stage and its following stages from the specified configuration.
+		/// </summary>
+		/// <param name="firstStage">First stage of the processing pipeline.</param>
+		private static void UnlinkPipelineStagesFromConfiguration(IProcessingPipelineStage firstStage)
+		{
+			// global logging lock is hold here...
+			Debug.Assert(Monitor.IsEntered(Sync));
+
+			// abort, if the first stage is not defined...
+			if (firstStage == null) return;
+
+			// get all stages of the processing pipeline recursively
+			HashSet<IProcessingPipelineStage> allStages = new HashSet<IProcessingPipelineStage>();
+			firstStage.GetAllStages(allStages);
+
+			// unlink configuration from all stages
+			foreach (var stage in allStages)
+			{
+				stage.Settings = null;
+			}
 		}
 
 		/// <summary>

@@ -43,11 +43,11 @@ namespace GriffinPlus.Lib.Logging
 			"; ------------------------------------------------------------------------------",
 			"; This file configures the logging subsystem that is incorporated in the",
 			"; application concerned. Each and every executable that makes use of the logging",
-			"; subsystem has its own configuration file (extension: .logconf) that is located",
-			"; beside the application's executable. The configuration is structured like an",
-			"; ini-file, i.e. it consists of sections and properties. A section defines a",
-			"; configuration scope while properties contain the actual settings within a",
-			"; section.",
+			"; subsystem has its own configuration file (extension: .logconf) that is usually",
+			"; located beside the application's executable. The configuration is structured",
+			"; similar to an ini-file, i.e. it consists of sections and properties. A section",
+			"; defines a configuration scope while properties contain the actual settings",
+			"; within a section.",
 			"; ------------------------------------------------------------------------------",
 		};
 
@@ -140,6 +140,19 @@ namespace GriffinPlus.Lib.Logging
 			var writer = LogWriterConfiguration.Default;
 			writer.IsDefault = true;  // ensures that the log writer configuration is removed, if some other is added
 			LogWriterSettings.Add(writer); 
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LogConfigurationFile"/> by copying another instance.
+		/// </summary>
+		/// <param name="other">Log configuration file to copy.</param>
+		public LogConfigurationFile(LogConfigurationFile other)
+		{
+			if (other == null) throw new ArgumentNullException(nameof(other));
+			mGlobalSettings = new Dictionary<string, string>(other.mGlobalSettings);
+			ApplicationName = other.ApplicationName;
+			LogWriterSettings.AddRange(other.LogWriterSettings); // log writer settings are immutable, so no copy needed
+			foreach (var kvp in other.ProcessingPipelineStageSettings) ProcessingPipelineStageSettings.Add(kvp.Key, new Dictionary<string,string>(kvp.Value));
 		}
 
 		/// <summary>
@@ -393,7 +406,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				writer.WriteLine();
 				foreach (string line in sProcessingPipelineStageSettingsComment) writer.WriteLine(line);
-				writer.WriteLine();
+
 				foreach (var stage in ProcessingPipelineStageSettings)
 				{
 					if (stage.Value.Count > 0)

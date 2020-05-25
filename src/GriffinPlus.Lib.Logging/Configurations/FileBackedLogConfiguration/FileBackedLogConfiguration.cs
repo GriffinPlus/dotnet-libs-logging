@@ -29,11 +29,12 @@ namespace GriffinPlus.Lib.Logging
 		/// The default path of the log configuration file.
 		/// </summary>
 		private static readonly string sDefaultConfigFilePath;
+
 		private static readonly LogWriter sLog = Log.GetWriter("Logging");
-		private readonly object mSync = new object();
+
+		private FileBackedProcessingPipelineConfiguration mProcessingPipelineConfiguration;
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
-		private LogConfigurationFile mFile;
 		private readonly string mFilePath;
 		private readonly string mFileName;
 
@@ -75,58 +76,64 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="path">Path of the configuration file to use.</param>
 		public FileBackedLogConfiguration(string path)
 		{
-			mFilePath = Path.GetFullPath(path);
-			mFileName = Path.GetFileName(path);
-
-			// load configuration file
-			const int maxRetryCount = 5;
-			for (int retry = 0; retry < maxRetryCount; retry++)
+			lock (Sync)
 			{
-				try
-				{
-					mFile = LogConfigurationFile.LoadFrom(mFilePath);
-					break;
-				}
-				catch (FileNotFoundException)
-				{
-					// file does not exist
-					// => that's ok, use a default configuration file...
-					mFile = new LogConfigurationFile();
-					break;
-				}
-				catch (IOException)
-				{
-					// there is something wrong at a lower level, most probably a sharing violation
-					// => just try again...
-					if (retry + 1 >= maxRetryCount) throw;
-					Thread.Sleep(10);
-				}
-				catch (Exception ex)
-				{
-					// a severe error that cannot be fixed here
-					// => abort
-					sLog.ForceWrite(
-						LogLevel.Failure,
-						"Loading log configuration file ({0}) failed. Exception: {1}",
-						mFilePath, ex);
+				mFilePath = Path.GetFullPath(path);
+				mFileName = Path.GetFileName(path);
 
-					throw;
+				// load configuration file
+				const int maxRetryCount = 5;
+				for (int retry = 0; retry < maxRetryCount; retry++)
+				{
+					try
+					{
+						File = LogConfigurationFile.LoadFrom(mFilePath);
+						break;
+					}
+					catch (FileNotFoundException)
+					{
+						// file does not exist
+						// => that's ok, use a default configuration file...
+						File = new LogConfigurationFile();
+						break;
+					}
+					catch (IOException)
+					{
+						// there is something wrong at a lower level, most probably a sharing violation
+						// => just try again...
+						if (retry + 1 >= maxRetryCount) throw;
+						Thread.Sleep(10);
+					}
+					catch (Exception ex)
+					{
+						// a severe error that cannot be fixed here
+						// => abort
+						sLog.ForceWrite(
+							LogLevel.Failure,
+							"Loading log configuration file ({0}) failed. Exception: {1}",
+							mFilePath, ex);
+
+						throw;
+					}
 				}
+
+				// set up the file system watcher to get notified of changes to the file
+				// (notifications about the creation of files with zero-length do not contain
+				// valuable information, so renaming/deleting is sufficient)
+				mFileSystemWatcher = new FileSystemWatcher();
+				mFileSystemWatcher.Path = Path.GetDirectoryName(path);
+				mFileSystemWatcher.Filter = "*" + Path.GetExtension(mFileName);
+				mFileSystemWatcher.Changed += EH_FileSystemWatcher_Changed;
+				mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Removed;
+				mFileSystemWatcher.Renamed += EH_FileSystemWatcher_Renamed;
+				mFileSystemWatcher.EnableRaisingEvents = true;
+
+				// set up timer that will handle reloading the configuration file
+				mReloadingTimer = new Timer(TimerProc, null, -1, -1); // do not start immediately
+
+				// initialize the pipeline configuration part
+				mProcessingPipelineConfiguration = new FileBackedProcessingPipelineConfiguration(this);
 			}
-
-			// set up the file system watcher to get notified of changes to the file
-			// (notifications about the creation of files with zero-length do not contain
-			// valuable information, so renaming/deleting is sufficient)
-			mFileSystemWatcher = new FileSystemWatcher();
-			mFileSystemWatcher.Path = Path.GetDirectoryName(path);
-			mFileSystemWatcher.Filter = "*" + Path.GetExtension(mFileName);
-			mFileSystemWatcher.Changed += EH_FileSystemWatcher_Changed;
-			mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Removed;
-			mFileSystemWatcher.Renamed += EH_FileSystemWatcher_Renamed;
-			mFileSystemWatcher.EnableRaisingEvents = true;
-
-			// set up timer that will handle reloading the configuration file
-			mReloadingTimer = new Timer(TimerProc, null, -1, -1); // do not start immediately
 		}
 
 		/// <summary>
@@ -146,7 +153,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		protected virtual void Dispose(bool disposing)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				if (mReloadingTimer != null)
 				{
@@ -168,26 +175,36 @@ namespace GriffinPlus.Lib.Logging
 		public string FullPath => mFilePath;
 
 		/// <summary>
+		/// Gets the wrapped log configuration file.
+		/// </summary>
+		internal LogConfigurationFile File { get; private set; }
+
+		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
 		public override string ApplicationName
 		{
 			get
 			{
-				lock (mSync)
+				lock (Sync)
 				{
-					return mFile.ApplicationName;
+					return File.ApplicationName;
 				}
 			}
 			
 			set
 			{
-				lock (mSync)
+				lock (Sync)
 				{
-					mFile.ApplicationName = value;
+					File.ApplicationName = value;
 				}
 			}
 		}
+
+		/// <summary>
+		/// Gets the configuration of the processing pipeline.
+		/// </summary>
+		public override IProcessingPipelineConfiguration ProcessingPipeline => mProcessingPipelineConfiguration;
 
 		/// <summary>
 		/// Gets the current log writer settings.
@@ -195,9 +212,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>A copy of the internal log writer settings.</returns>
 		public override IEnumerable<LogWriterConfiguration> GetLogWriterSettings()
 		{
-			lock (mSync)
+			lock (Sync)
 			{
-				return new List<LogWriterConfiguration>(mFile.LogWriterSettings.Select(x => new LogWriterConfiguration(x)));
+				return new List<LogWriterConfiguration>(File.LogWriterSettings.Select(x => new LogWriterConfiguration(x)));
 			}
 		}
 
@@ -207,10 +224,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="settings">Settings to use.</param>
 		public override void SetLogWriterSettings(IEnumerable<LogWriterConfiguration> settings)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
-				mFile.LogWriterSettings.Clear();
-				mFile.LogWriterSettings.AddRange(settings);
+				File.LogWriterSettings.Clear();
+				File.LogWriterSettings.AddRange(settings);
 			}
 		}
 
@@ -222,11 +239,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested active log level mask.</returns>
 		public override LogLevelBitMask GetActiveLogLevelMask(LogWriter writer)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				// get the first matching log writer settings
 				LogWriterConfiguration settings = null;
-				foreach (var configuration in mFile.LogWriterSettings)
+				foreach (var configuration in File.LogWriterSettings)
 				{
 					var match = configuration.Patterns.FirstOrDefault(x => x.Regex.IsMatch(writer.Name));
 					if (match != null)
@@ -278,97 +295,69 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the settings for pipeline stages by their name.
-		/// </summary>
-		/// <returns>The requested settings.</returns>
-		public override IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> GetProcessingPipelineStageSettings()
-		{
-			lock (mSync)
-			{
-				// return a copy of the settings to avoid uncontrolled modifications
-				Dictionary<string, IReadOnlyDictionary<string, string>> copy = new Dictionary<string, IReadOnlyDictionary<string, string>>();
-				foreach (var kvp in mFile.ProcessingPipelineStageSettings) {
-					copy.Add(kvp.Key, new Dictionary<string, string>(kvp.Value));
-				}
-
-				return copy;
-			}
-		}
-
-		/// <summary>
-		/// Gets the settings for the pipeline stage with the specified name.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage to get the settings for.</param>
-		/// <returns>
-		/// The requested settings;
-		/// null, if the settings do not exist.</returns>
-		public override IReadOnlyDictionary<string, string> GetProcessingPipelineStageSettings(string name)
-		{
-			lock (mSync)
-			{
-				// return a copy of the settings to avoid uncontrolled modifications
-				if (mFile.ProcessingPipelineStageSettings.TryGetValue(name, out var settings)) {
-					return new Dictionary<string, string>(settings);
-				}
-
-				return null;
-			}
-		}
-
-		/// <summary>
-		/// Sets the settings for the pipeline stage with the specified name.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
-		/// <param name="settings">Settings to set.</param>
-		public override void SetProcessingPipelineStageSettings(string name, IReadOnlyDictionary<string, string> settings)
-		{
-			lock (mSync)
-			{
-				if (settings is IDictionary<string, string> dict)
-				{
-					mFile.ProcessingPipelineStageSettings[name] = new Dictionary<string, string>(dict);
-				}
-				else
-				{
-					var copy = new Dictionary<string, string>();
-					foreach (var kvp in settings) copy.Add(kvp.Key, kvp.Value);
-					mFile.ProcessingPipelineStageSettings[name] = copy;
-				}
-			}
-		}
-
-		/// <summary>
 		/// Saves the configuration.
 		/// </summary>
-		public override void Save()
+		/// <param name="includeDefaults">
+		/// true to include the default value of settings that have not been explicitly set;
+		/// false to save only settings that have not been explicitly set.
+		/// </param>
+		public override void Save(bool includeDefaults = false)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
-				const int maxRetryCount = 5;
-				for (int retry = 0; retry < maxRetryCount; retry++)
-				{
-					try
-					{
-						mFile.Save(mFilePath);
-					}
-					catch (IOException)
-					{
-						// there is something wrong at a lower level, most probably a sharing violation
-						// => just try again...
-						if (retry + 1 >= maxRetryCount) throw;
-						Thread.Sleep(10);
-					}
-					catch (Exception ex)
-					{
-						// a severe error that cannot be fixed here
-						// => abort
-						sLog.ForceWrite(
-							LogLevel.Failure,
-							"Loading log configuration file ({0}) failed. Exception: {1}",
-							mFilePath, ex);
+				// save the configuration file before making modifications
+				LogConfigurationFile oldFile = File;
 
-						throw;
+				try
+				{
+					if (includeDefaults)
+					{
+						// create a temporary configuration file and add the default value of the settings that don't
+						// have an explicitly set value
+						File = new LogConfigurationFile(oldFile);
+						foreach (var stageSettings in mProcessingPipelineConfiguration.Stages)
+						{
+							foreach (var setting in stageSettings.Values)
+							{
+								if (!setting.HasValue)
+								{
+									setting.Value = setting.DefaultValue;
+								}
+							}
+						}
 					}
+
+					const int maxRetryCount = 5;
+					for (int retry = 0; retry < maxRetryCount; retry++)
+					{
+						try
+						{
+							File.Save(mFilePath);
+						}
+						catch (IOException)
+						{
+							// there is something wrong at a lower level, most probably a sharing violation
+							// => just try again...
+							if (retry + 1 >= maxRetryCount) throw;
+							Thread.Sleep(10);
+						}
+						catch (Exception ex)
+						{
+							// a severe error that cannot be fixed here
+							// => abort
+							sLog.ForceWrite(
+								LogLevel.Failure,
+								"Loading log configuration file ({0}) failed. Exception: {1}",
+								mFilePath, ex);
+
+							throw;
+						}
+					}
+				}
+				finally
+				{
+					// revert to using the old configuration file
+					File = oldFile;
 				}
 			}
 		}
@@ -395,7 +384,7 @@ namespace GriffinPlus.Lib.Logging
 		private void EH_FileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
 		{
 			// called by worker thread...
-			lock (mSync)
+			lock (Sync)
 			{
 				if (mReloadingTimer == null) return; // object has been disposed
 
@@ -416,7 +405,7 @@ namespace GriffinPlus.Lib.Logging
 		private void EH_FileSystemWatcher_Removed(object sender, FileSystemEventArgs e)
 		{
 			// called by worker thread...
-			lock (mSync)
+			lock (Sync)
 			{
 				if (mReloadingTimer == null) return; // object has been disposed
 
@@ -425,7 +414,7 @@ namespace GriffinPlus.Lib.Logging
 					// configuration file was removed
 					// => create a default configuration...
 					LogConfigurationFile file = new LogConfigurationFile();
-					mFile = file;
+					File = file;
 				}
 			}
 		}
@@ -438,7 +427,7 @@ namespace GriffinPlus.Lib.Logging
 		private void EH_FileSystemWatcher_Renamed(object sender, RenamedEventArgs e)
 		{
 			// called by worker thread...
-			lock (mSync)
+			lock (Sync)
 			{
 				if (mReloadingTimer == null) return; // object has been disposed
 
@@ -455,7 +444,7 @@ namespace GriffinPlus.Lib.Logging
 					// configuration file was removed
 					// => create a default configuration...
 					LogConfigurationFile file = new LogConfigurationFile();
-					mFile = file;
+					File = file;
 				}
 			}
 		}
@@ -466,14 +455,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="state">Some state object (not used).</param>
 		private void TimerProc(object state)
 		{
-			lock (mSync)
+			lock (Sync)
 			{
 				if (mReloadingTimer == null) return; // object has been disposed
 
 				try
 				{
 					// load file (always replace mFile, do not modify existing instance for threading reasons)
-					mFile = LogConfigurationFile.LoadFrom(mFilePath);
+					File = LogConfigurationFile.LoadFrom(mFilePath);
 				}
 				catch (FileNotFoundException)
 				{

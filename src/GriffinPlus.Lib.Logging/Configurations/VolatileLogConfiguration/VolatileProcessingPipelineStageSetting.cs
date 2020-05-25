@@ -16,49 +16,39 @@ using System;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// A setting in a <see cref="ProcessingPipelineStageConfiguration"/>.
+	/// A setting in a <see cref="VolatileProcessingPipelineStageConfiguration"/>.
 	/// </summary>
 	/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
-	public class ProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>, IUntypedProcessingPipelineStageSetting
+	public class VolatileProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>, IUntypedProcessingPipelineStageSetting
 	{
-		internal delegate string ValueToStringConverter(T obj);
-		internal delegate T ValueFromStringConverter(string s);
-
-		private readonly ProcessingPipelineStageConfiguration mConfiguration;
-		private readonly ValueFromStringConverter mFromStringConverter;
-		private readonly ValueToStringConverter mToStringConverter;
-		private readonly string mName;
-		private readonly T mDefaultValue;
-		private T mValue;
-		private bool mHasValue;
+		private readonly VolatileProcessingPipelineStageRawSetting mRawSetting;
+		private readonly ProcessingPipelineStageConfigurationBase.ValueFromStringConverter<T> mFromStringConverter;
+		private readonly ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T> mToStringConverter;
+		private string mCachedRawValue;
+		private T mCachedValue;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineStageSetting{T}"/> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageSetting{T}"/> class.
 		/// </summary>
-		/// <param name="configuration">The configuration the setting belongs to.</param>
+		/// <param name="rawSetting">The corresponding raw setting in the configuration.</param>
 		/// <param name="valueFromStringConverter">Delegate that converts the setting value to a string.</param>
 		/// <param name="valueToStringConverter">Delegate that converts a string to the setting value.</param>
 		/// <param name="name">Name of the setting.</param>
-		/// <param name="defaultValue">The default value of the setting.</param>
-		internal ProcessingPipelineStageSetting(
-			ProcessingPipelineStageConfiguration configuration,
-			ValueFromStringConverter valueFromStringConverter,
-			ValueToStringConverter valueToStringConverter,
-			string name,
-			T defaultValue)
+		internal VolatileProcessingPipelineStageSetting(
+			VolatileProcessingPipelineStageRawSetting rawSetting,
+			ProcessingPipelineStageConfigurationBase.ValueFromStringConverter<T> valueFromStringConverter,
+			ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T> valueToStringConverter,
+			string name)
 		{
-			mConfiguration = configuration;
+			mRawSetting = rawSetting;
 			mFromStringConverter = valueFromStringConverter;
 			mToStringConverter = valueToStringConverter;
-			mName = name;
-			mDefaultValue = mValue = defaultValue;
-			mHasValue = false;
 		}
 
 		/// <summary>
 		/// Gets the name of the setting.
 		/// </summary>
-		public string Name => mName; // immutable => no sync necessary
+		public string Name => mRawSetting.Name;
 
 		/// <summary>
 		/// Gets the type of the value.
@@ -72,7 +62,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				lock (mConfiguration.Sync) return mHasValue;
+				lock (mRawSetting.StageConfiguration.Sync) return mRawSetting.HasValue;
 			}
 		}
 
@@ -83,19 +73,21 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				lock (mConfiguration.Sync)
+				lock (mRawSetting.StageConfiguration.Sync)
 				{
-					if (mHasValue) return mValue;
-					return mDefaultValue;
+					string rawValue = mRawSetting.Value;
+					if (mCachedRawValue == rawValue) return mCachedValue;
+					mCachedValue = mFromStringConverter(mRawSetting.Value);
+					mCachedRawValue = rawValue;
+					return mCachedValue;
 				}
 			}
 
 			set
 			{
-				lock (mConfiguration.Sync)
+				lock (mRawSetting.StageConfiguration.Sync)
 				{
-					mValue = value;
-					mHasValue = true;
+					mRawSetting.Value = mToStringConverter(value);
 				}
 			}
 		}
@@ -114,19 +106,19 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ValueAsString
 		{
-			get { return mToStringConverter(Value); }
-			set { Value = mFromStringConverter(value); }
+			get { return mRawSetting.Value; }
+			set { mRawSetting.Value = value; }
 		}
 
 		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
-		public T DefaultValue => mDefaultValue; // immutable => no sync necessary
+		public T DefaultValue => mFromStringConverter(mRawSetting.DefaultValue);
 
 		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
-		object IUntypedProcessingPipelineStageSetting.DefaultValue => mDefaultValue; // immutable => no sync necessary
+		object IUntypedProcessingPipelineStageSetting.DefaultValue => mFromStringConverter(mRawSetting.DefaultValue);
 
 	}
 

@@ -46,10 +46,10 @@ namespace GriffinPlus.Lib.Logging
 		void GetAllStages(HashSet<IProcessingPipelineStage> stages);
 
 		/// <summary>
-		/// Gets the configuration the pipeline stage operates with.
+		/// Gets or sets pipeline specific settings that are backed by the log configuration.
 		/// </summary>
 		/// <returns>Configuration of the pipeline stage.</returns>
-		IProcessingPipelineStageConfiguration Settings { get; }
+		IProcessingPipelineStageConfiguration Settings { get; set; }
 
 		/// <summary>
 		/// Processes that a new log level was added to the logging subsystem.

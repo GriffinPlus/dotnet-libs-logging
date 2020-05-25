@@ -29,6 +29,7 @@ namespace GriffinPlus.Lib.Logging
 	public abstract class ProcessingPipelineStage<STAGE> : IProcessingPipelineStage
 		where STAGE: ProcessingPipelineStage<STAGE>
 	{
+		private IProcessingPipelineStageConfiguration mSettings;
 		private bool mInitialized;
 
 		/// <summary>
@@ -43,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		protected ProcessingPipelineStage(string name)
 		{
 			Name = name ?? throw new ArgumentNullException(nameof(name));
-			Settings = new ProcessingPipelineStageConfiguration(Sync);
+			Settings = new VolatileProcessingPipelineStageConfiguration(name, Sync);
 		}
 
 		/// <summary>
@@ -81,6 +82,9 @@ namespace GriffinPlus.Lib.Logging
 
 				try
 				{
+					// bind settings
+					BindSettings();
+
 					// perform pipeline stage specific initializations
 					OnInitialize();
 
@@ -215,13 +219,48 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region Pipeline Stage Settings
+		#region Settings Backed by the Log Configuration
 
 		/// <summary>
-		/// Gets the configuration the pipeline stage operates with.
+		/// Gets or sets the configuration the pipeline stage operates with.
 		/// </summary>
 		/// <returns>Configuration of the pipeline stage.</returns>
-		public IProcessingPipelineStageConfiguration Settings { get; }
+		public IProcessingPipelineStageConfiguration Settings
+		{
+			get
+			{
+				lock (Sync)
+				{
+					return mSettings;
+				}
+			}
+
+			set
+			{
+				lock (Sync)
+				{
+					if (mSettings != value)
+					{
+						var newConfiguration = value != null ? value : new VolatileProcessingPipelineStageConfiguration(Name, null);
+						mSettings = newConfiguration;
+						BindSettings();
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Is called to allow a derived stage bind its settings when the <see cref="Settings"/> property has changed
+		/// (the pipeline stage lock <see cref="Sync"/> is acquired when this method is called).
+		/// </summary>
+		protected virtual void BindSettings()
+		{
+
+		}
+
+		#endregion
+
+		#region Processing Log Messages
 
 		#endregion
 

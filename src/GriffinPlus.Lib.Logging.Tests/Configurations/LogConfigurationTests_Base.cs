@@ -21,7 +21,7 @@ using Xunit;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Common unit tests targeting the <see cref="LogConfiguration{CONFIGURATION}"/> and the <see cref="FileBackedLogConfiguration"/> class.
+	/// Common unit tests targeting the <see cref="VolatileLogConfiguration"/> and the <see cref="FileBackedLogConfiguration"/> class.
 	/// </summary>
 	public abstract class LogConfigurationTests_Base<CONFIGURATION> where CONFIGURATION: LogConfiguration<CONFIGURATION>, new()
 	{
@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(AppDomain.CurrentDomain.FriendlyName, configuration.ApplicationName);
 
 			// pipeline stage settings
-			var stageSettings = configuration.GetProcessingPipelineStageSettings();
+			var stageSettings = configuration.ProcessingPipeline.Stages;
 			Assert.Empty(stageSettings);
 
 			// log writer settings

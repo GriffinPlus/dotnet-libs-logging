@@ -30,9 +30,19 @@ namespace GriffinPlus.Lib.Logging
 		where CONFIGURATION: LogConfiguration<CONFIGURATION>
 	{
 		/// <summary>
+		/// Gets the object to use when synchronizing access to the log configuration.
+		/// </summary>
+		protected internal object Sync { get; } = new object();
+
+		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
 		public abstract string ApplicationName { get; set; }
+
+		/// <summary>
+		/// Gets the configuration of the processing pipeline.
+		/// </summary>
+		public abstract IProcessingPipelineConfiguration ProcessingPipeline { get; }
 
 		/// <summary>
 		/// Gets a bit mask in which each bit is associated with a log level with the same id
@@ -55,32 +65,13 @@ namespace GriffinPlus.Lib.Logging
 		public abstract void SetLogWriterSettings(IEnumerable<LogWriterConfiguration> settings);
 
 		/// <summary>
-		/// Gets the settings for pipeline stages by their name.
-		/// </summary>
-		/// <returns>The requested settings.</returns>
-		public abstract IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> GetProcessingPipelineStageSettings();
-
-		/// <summary>
-		/// Gets the settings for the pipeline stage with the specified name.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage to get the settings for.</param>
-		/// <returns>
-		/// The requested settings;
-		/// null, if the settings do not exist.
-		/// </returns>
-		public abstract IReadOnlyDictionary<string, string> GetProcessingPipelineStageSettings(string name);
-
-		/// <summary>
-		/// Sets the settings for the pipeline stage with the specified name.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage to set the settings for.</param>
-		/// <param name="settings">Settings to set.</param>
-		public abstract void SetProcessingPipelineStageSettings(string name, IReadOnlyDictionary<string, string> settings);
-
-		/// <summary>
 		/// Saves the configuration.
 		/// </summary>
-		public abstract void Save();
+		/// <param name="includeDefaults">
+		/// true to include the default value of settings that have not been explicitly set;
+		/// false to save only settings that have not been explicitly set.
+		/// </param>
+		public abstract void Save(bool includeDefaults = false);
 
 		/// <summary>
 		/// Adds a log writer configuration using the full name of the specified type as its name.

@@ -200,7 +200,6 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>Hash code of the object.</returns>
 		public override int GetHashCode()
 		{
-			// TODO: implement properly
 			return base.GetHashCode();
 		}
 

@@ -13,37 +13,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Unit tests targeting the <see cref="ProcessingPipelineStageConfiguration"/> class.
+	/// Common unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration"/> and the <see cref="FileBackedProcessingPipelineConfiguration"/> class.
 	/// </summary>
-	public class ProcessingPipelineStageConfigurationTests
+	public abstract class ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION> where CONFIGURATION : ProcessingPipelineStageConfigurationBase
 	{
 		/// <summary>
-		/// Tests whether invoking the constructor without a synchronization object succeeds.
+		/// Creates a new instance of the pipeline stage configuration to test.
 		/// </summary>
-		[Fact]
-		public void Create_WithoutSyncObject()
-		{
-			var configuration = new ProcessingPipelineStageConfiguration();
-			Assert.NotNull(configuration.Sync);
-		}
-
-		/// <summary>
-		/// Tests whether invoking the constructor taking a synchronization object to synchonize access to the configuration succeeds.
-		/// </summary>
-		[Fact]
-		public void Create_WithSyncObject()
-		{
-			var sync = new object();
-			var configuration = new ProcessingPipelineStageConfiguration(sync);
-			Assert.Same(sync, configuration.Sync);
-		}
+		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
+		/// <returns>The created pipeline stage configuration.</returns>
+		protected abstract CONFIGURATION CreateConfiguration(string name);
 
 		public static IEnumerable<object[]> GetSetting_TestData
 		{
@@ -95,15 +80,15 @@ namespace GriffinPlus.Lib.Logging
 
 				// floating point numbers
 				// ----------------------------------------------------------------------------------------------------------------
-				yield return new object[] { typeof(float), float.MinValue, "-3.402823E+38", 0.0f, "0" };
-				yield return new object[] { typeof(float), float.MaxValue, "3.402823E+38", 0.0f, "0" };
-				yield return new object[] { typeof(float), 0.0f, "0", float.MinValue, "-3.402823E+38" };
-				yield return new object[] { typeof(float), 0.0f, "0", float.MaxValue, "3.402823E+38" };
+				yield return new object[] { typeof(float), float.NegativeInfinity, "-Infinity", 0.0f, "0" };
+				yield return new object[] { typeof(float), float.PositiveInfinity, "Infinity", 0.0f, "0" };
+				yield return new object[] { typeof(float), 0.0f, "0", float.NegativeInfinity, "-Infinity" };
+				yield return new object[] { typeof(float), 0.0f, "0", float.PositiveInfinity, "Infinity" };
 
-				yield return new object[] { typeof(double), double.MinValue, "-1.79769313486232E+308", 0.0, "0" };
-				yield return new object[] { typeof(double), double.MaxValue, "1.79769313486232E+308", 0.0, "0" };
-				yield return new object[] { typeof(double), 0.0, "0", double.MinValue, "-1.79769313486232E+308" };
-				yield return new object[] { typeof(double), 0.0, "0", double.MaxValue, "1.79769313486232E+308" };
+				yield return new object[] { typeof(double), double.NegativeInfinity, "-Infinity", 0.0, "0" };
+				yield return new object[] { typeof(double), double.PositiveInfinity, "Infinity", 0.0, "0" };
+				yield return new object[] { typeof(double), 0.0, "0", double.NegativeInfinity, "-Infinity" };
+				yield return new object[] { typeof(double), 0.0, "0", double.PositiveInfinity, "Infinity" };
 
 				// decimal numbers
 				// ----------------------------------------------------------------------------------------------------------------
@@ -139,8 +124,8 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			var method = typeof(ProcessingPipelineStageConfiguration).GetMethod("GetSetting").MakeGenericMethod(type);
-			var configuration = new ProcessingPipelineStageConfiguration();
+			var method = typeof(ProcessingPipelineStageConfigurationBase).GetMethod("GetSetting").MakeGenericMethod(type);
+			var configuration = CreateConfiguration("Stage");
 			var setting11 = method.Invoke(configuration, new object[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 			var setting21 = method.Invoke(configuration, new object[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 
@@ -148,7 +133,7 @@ namespace GriffinPlus.Lib.Logging
 			GetSetting_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
 
 			// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests).GetMethod(nameof(GetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(type);
+			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION>).GetMethod(nameof(GetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(type);
 			typedTestMethod.Invoke(this, new object[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
 
 			// test getting the same setting once again (should succeed, if default value is the same)

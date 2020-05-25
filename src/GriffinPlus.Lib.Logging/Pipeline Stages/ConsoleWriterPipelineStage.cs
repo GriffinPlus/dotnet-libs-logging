@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		public ConsoleWriterPipelineStage(string name) : base(name)
 		{
-			mDefaultStreamSetting = Settings.GetSetting(SettingName_DefaultStream, ConsoleOutputStream.Stdout);
+
 		}
 
 		/// <summary>
@@ -118,6 +118,15 @@ namespace GriffinPlus.Lib.Logging
 				EnsureNotAttachedToLoggingSubsystem();
 				mStreamByLevel[level] = stream;
 			}
+		}
+
+		/// <summary>
+		/// Is called to allow a derived stage bind its settings when the <see cref="AsyncProcessingPipelineStage{STAGE}.Settings"/> property has changed
+		/// (the pipeline stage lock <see cref="AsyncProcessingPipelineStage{STAGE}.Sync"/> is acquired when this method is called).
+		/// </summary>
+		protected override void BindSettings()
+		{
+			mDefaultStreamSetting = Settings.GetSetting(SettingName_DefaultStream, ConsoleOutputStream.Stdout);
 		}
 
 		/// <summary>

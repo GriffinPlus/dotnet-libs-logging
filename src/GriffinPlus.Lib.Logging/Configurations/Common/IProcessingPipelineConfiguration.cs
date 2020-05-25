@@ -16,18 +16,14 @@ using System.Collections.Generic;
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Interface for pipeline stage configurations (must be implemented thread-safe).
+	/// Interface for the pipeline configuration (must be implemented thread-safe).
 	/// </summary>
-	public interface IProcessingPipelineStageConfiguration : IReadOnlyDictionary<string, IUntypedProcessingPipelineStageSetting>
+	public interface IProcessingPipelineConfiguration
 	{
 		/// <summary>
-		/// Gets the setting with the specified name.
+		/// Gets the configurations for pipeline stages.
 		/// </summary>
-		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
-		/// <param name="name">Name of the setting.</param>
-		/// <param name="defaultValue">Default value of the setting.</param>
-		/// <returns>The requested setting.</returns>
-		IProcessingPipelineStageSetting<T> GetSetting<T>(string name, T defaultValue);
+		IProcessingPipelineStageConfigurations Stages { get; }
 	}
 
 }

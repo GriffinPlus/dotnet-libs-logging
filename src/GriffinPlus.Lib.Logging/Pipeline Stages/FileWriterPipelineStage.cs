@@ -152,5 +152,6 @@ namespace GriffinPlus.Lib.Logging
 			return messages.Length;
 		}
 
+
 	}
 }
