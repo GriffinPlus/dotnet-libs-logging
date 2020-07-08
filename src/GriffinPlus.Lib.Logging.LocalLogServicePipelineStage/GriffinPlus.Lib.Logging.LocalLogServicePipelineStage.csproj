@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
+    <AssemblyName>GriffinPlus.Lib.Logging.LocalLogServicePipelineStage</AssemblyName>
+    <RootNamespace>GriffinPlus.Lib.Logging.LocalLogServicePipelineStage</RootNamespace>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="NuGet\" />
+  </ItemGroup>
+
+</Project>
