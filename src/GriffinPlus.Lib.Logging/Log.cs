@@ -154,6 +154,24 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the current timestamp as used by the logging subsystem.
+		/// </summary>
+		/// <returns>The current timestamp.</returns>
+		public static DateTimeOffset GetTimestamp()
+		{
+			return DateTimeOffset.Now;
+		}
+
+		/// <summary>
+		/// Gets the current high accuracy timestamp as used by the logging subsystem (in ns).
+		/// </summary>
+		/// <returns>The current high accuracy timestamp.</returns>
+		public static long GetHighAccuracyTimestamp()
+		{
+			return unchecked((long)((decimal)(Stopwatch.GetTimestamp() - sTimerTickStart) * 1000000000L / Stopwatch.Frequency)); // in ns
+		}
+
+		/// <summary>
 		/// Writes the specified log message using the specified log writer at the specified level.
 		/// </summary>
 		/// <param name="writer">Log writer to use.</param>
@@ -174,10 +192,10 @@ namespace GriffinPlus.Lib.Logging
 
 					lock (sSync) // needed to avoid race conditions causing timestamps getting mixed up
 					{
-						long highAccuracyTimestamp = unchecked((long)((decimal)(Stopwatch.GetTimestamp() - sTimerTickStart) * 1000000000L / Stopwatch.Frequency)); // in ns
+						long highAccuracyTimestamp = GetHighAccuracyTimestamp();
 
 						message.Init(
-							DateTimeOffset.Now,
+							GetTimestamp(),
 							highAccuracyTimestamp,
 							sProcessId,
 							sProcessName,
