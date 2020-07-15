@@ -28,6 +28,7 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly int sProcessId = Process.GetCurrentProcess().Id;
 		private static readonly string sProcessName = Process.GetCurrentProcess().ProcessName;
 		private static readonly LocalLogMessagePool sLogMessagePool = new LocalLogMessagePool();
+		private static List<LogWriter> sLogWritersById = new List<LogWriter>();
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static ILogConfiguration sLogConfiguration;
 		private static volatile IProcessingPipelineStage sLogMessageProcessingPipeline;
@@ -59,6 +60,12 @@ namespace GriffinPlus.Lib.Logging
 			get => sLogConfiguration.ApplicationName;
 			set => sLogConfiguration.ApplicationName = value;
 		}
+
+		/// <summary>
+		/// Gets all log writers that have been registered using <see cref="GetWriter{T}"/> or <see cref="GetWriter(string)"/>.
+		/// The index of the log writer in the list corresponds to <see cref="LogWriter.Id"/>.
+		/// </summary>
+		public static IReadOnlyList<LogWriter> KnownWriters => sLogWritersById;
 
 		/// <summary>
 		/// Gets or sets the log configuration that determines the behavior of the log
@@ -207,17 +214,28 @@ namespace GriffinPlus.Lib.Logging
 					{
 						writer = new LogWriter(name);
 
+						// the id of the writer should correspond to the index in the list and the
+						// number of elements in the dictionary.
+						Debug.Assert(writer.Id == sLogWritersById.Count);
+						Debug.Assert(writer.Id == sLogWritersByName.Count);
+
 						// set active log level mask, if the configuration is already initialized
 						if (sLogConfiguration != null)
 						{
 							writer.ActiveLogLevelMask = sLogConfiguration.GetActiveLogLevelMask(writer);
 						}
 
-						// replace log writer collection
-						Dictionary<string, LogWriter> copy = new Dictionary<string, LogWriter>(sLogWritersByName);
-						copy.Add(writer.Name, writer);
+						// replace log writer list
+						List<LogWriter> newLogWritersById = new List<LogWriter>(sLogWritersById);
+						newLogWritersById.Add(writer);
 						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
-						sLogWritersByName = copy;
+						sLogWritersById = newLogWritersById;
+
+						// replace log writer collection dictionary
+						Dictionary<string, LogWriter> newLogWritersByName = new Dictionary<string, LogWriter>(sLogWritersByName);
+						newLogWritersByName.Add(writer.Name, writer);
+						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
+						sLogWritersByName = newLogWritersByName;
 					}
 				}
 			}
