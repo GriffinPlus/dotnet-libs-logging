@@ -26,6 +26,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private static readonly IFormatProvider sDefaultFormatProvider = CultureInfo.InvariantCulture;
 		private static readonly ThreadLocal<StringBuilder> sBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder());
+		private static int sNextId = 0;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogWriter"/> class.
@@ -33,9 +34,16 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="name">Name of the log writer.</param>
 		internal LogWriter(string name)
 		{
+			// global logging lock is acquired here...
+			Id = sNextId++;
 			Name = name;
 			ActiveLogLevelMask = LogLevelBitMask.Zeros;
 		}
+
+		/// <summary>
+		/// Gets the id of the log level.
+		/// </summary>
+		public int Id { get; }
 
 		/// <summary>
 		/// Gets the name of the log writer.
