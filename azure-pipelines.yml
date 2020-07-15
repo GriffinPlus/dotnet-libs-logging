@@ -13,6 +13,13 @@ variables:
   BuildConfiguration: 'Release'
 
 steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk'
+  inputs:
+    packageType: sdk
+    version: 2.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
 - task: GitVersion@5
   displayName: 'GitVersion'
   inputs:
