@@ -225,7 +225,7 @@ namespace GriffinPlus.Lib.Logging
 					// only a comment may be following
 					if (remaining.Length > 0 && !sCommentRegex.IsMatch(remaining))
 					{
-						throw new LoggingException("Syntax error in line {0}.", lineNumber);
+						throw new LoggingException($"Syntax error in line {lineNumber}.");
 					}
 
 					// close started section
@@ -256,7 +256,7 @@ namespace GriffinPlus.Lib.Logging
 						continue;
 					}
 
-					throw new LoggingException("Syntax error in line {0}", lineNumber);
+					throw new LoggingException($"Syntax error in line {lineNumber}");
 				}
 
 				// a key/value pair?
@@ -270,7 +270,7 @@ namespace GriffinPlus.Lib.Logging
 					// only a comment may be following
 					if (remaining.Length > 0 && !sCommentRegex.IsMatch(remaining))
 					{
-						throw new LoggingException("Syntax error in line {0}.", lineNumber);
+						throw new LoggingException($"Syntax error in line {lineNumber}.");
 					}
 
 					if (logWriter != null)
@@ -311,7 +311,7 @@ namespace GriffinPlus.Lib.Logging
 						}
 						else
 						{
-							throw new LoggingException("Unexpected property name in section '{0}' (line: {1}).", section, lineNumber);
+							throw new LoggingException($"Unexpected property name in section '{section}' (line: {lineNumber}).");
 						}
 					}
 					else if (currentSettings != null)
@@ -321,7 +321,7 @@ namespace GriffinPlus.Lib.Logging
 						continue;
 					}
 
-					throw new LoggingException("Syntax error in line {0}", lineNumber);
+					throw new LoggingException($"Syntax error in line {lineNumber}");
 				}
 
 				// a comment line?
@@ -331,7 +331,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				// syntax error
-				throw new LoggingException("Syntax error in line {0}.", lineNumber);
+				throw new LoggingException($"Syntax error in line {lineNumber}.");
 			}
 
 			// add default log writer name pattern, if there is no pattern configured
