@@ -40,9 +40,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LoggingException"/> class.
 		/// </summary>
-		/// <param name="format">Format string for the message describing the reason why the exception is thrown.</param>
-		/// <param name="args">Arguments to use when formatting the format string.</param>
-		public LoggingException(string format, params object[] args) : base(string.Format(format, args))
+		/// <param name="message">Message describing the reason why the exception is thrown.</param>
+		/// <param name="innerException">The original exception that led to the exception being thrown.</param>
+		public LoggingException(string message, Exception innerException) : base(message, innerException)
 		{
 
 		}
