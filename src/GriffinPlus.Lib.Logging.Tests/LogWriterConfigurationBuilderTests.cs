@@ -11,9 +11,11 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
 using System.Linq;
 using Xunit;
+
+// ReSharper disable ForCanBeConvertedToForeach
+// ReSharper disable JoinDeclarationAndInitializer
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -263,7 +265,9 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var levels = LogLevel.KnownLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id);
+			var levels = LogLevel.KnownLevels
+				.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id)
+				.ToArray();
 			
 			// from small level id to big level id
 			Assert.Same(builder, builder.WithLevelRange(fromLevel, toLevel)); // <- level as LogLevel
@@ -304,7 +308,9 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var levels = LogLevel.KnownLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id);
+			var levels = LogLevel.KnownLevels
+				.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id)
+				.ToArray();
 
 			// from small level id to big level id
 			Assert.Same(builder, builder.WithLevelRange(fromLevel.Name, toLevel.Name)); // <- level as string
@@ -555,7 +561,9 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var levels = LogLevel.KnownLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id);
+			var levels = LogLevel.KnownLevels
+				.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id)
+				.ToArray();
 
 			// from small level id to big level id
 			Assert.Same(builder, builder.WithoutLevelRange(fromLevel, toLevel)); // <- level as LogLevel
@@ -596,7 +604,9 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var levels = LogLevel.KnownLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id);
+			var levels = LogLevel.KnownLevels
+				.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id)
+				.ToArray();
 
 			// from small level id to big level id
 			Assert.Same(builder, builder.WithoutLevelRange(fromLevel.Name, toLevel.Name)); // <- level as string

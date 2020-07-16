@@ -30,15 +30,14 @@ namespace GriffinPlus.Lib.Logging
 		public bool OnShutdownWasCalled { get; private set; }
 
 		/// <summary>
-		/// Gets a value indicating whether <see cref="ProcessSync(LocalLogMessage, out bool)"/> was called.
+		/// Gets a value indicating whether <see cref="ProcessSync"/> was called.
 		/// </summary>
 		public bool ProcessSyncWasCalled { get; private set; }
 
 		/// <summary>
-		/// Gets the message that was passed to <see cref="AsyncProcessingPipelineStage{STAGE}.ProcessSync(LocalLogMessage, out bool)" />
-		/// with the last call.
+		/// Gets the message that was passed to <see cref="ProcessSync" /> with the last call.
 		/// </summary>
-		public LocalLogMessage MessagePassedToProcessSync { get; private set; } = null;
+		public LocalLogMessage MessagePassedToProcessSync { get; private set; }
 
 		protected override void OnInitialize()
 		{

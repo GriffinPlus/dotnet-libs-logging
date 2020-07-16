@@ -16,10 +16,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
+// ReSharper disable RedundantExplicitArrayCreation
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
-	/// Common unit tests targeting the <see cref="LogConfiguration"/> and the <see cref="FileBackedLogConfiguration"/> class.
+	/// Common unit tests targeting the <see cref="LogConfiguration{CONFIGURATION}"/> and the <see cref="FileBackedLogConfiguration"/> class.
 	/// </summary>
 	public abstract class LogConfigurationTests_Base<CONFIGURATION> where CONFIGURATION: LogConfiguration<CONFIGURATION>, new()
 	{
@@ -56,9 +58,9 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Empty(stageSettings);
 
 			// log writer settings
-			var logWriterSettings = configuration.GetLogWriterSettings();
+			var logWriterSettings = configuration.GetLogWriterSettings().ToArray();
 			Assert.Single(logWriterSettings);
-			var logWriterSetting = logWriterSettings.First();
+			var logWriterSetting = logWriterSettings[0];
 			Assert.Equal("Note", logWriterSetting.BaseLevel);
 			Assert.Empty(logWriterSetting.Includes);
 			Assert.Empty(logWriterSetting.Excludes);
@@ -71,8 +73,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Setting_ApplicationName()
 		{
-			CONFIGURATION configuration = new CONFIGURATION();
-			configuration.ApplicationName = "My App";
+			CONFIGURATION configuration = new CONFIGURATION { ApplicationName = "My App" };
 			Assert.Equal("My App", configuration.ApplicationName);
 		}
 
@@ -170,7 +171,7 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				configuration.AddLogWriter<CONFIGURATION>(x => Assert.NotNull(x));
+				configuration.AddLogWriter<CONFIGURATION>(Assert.NotNull);
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
@@ -204,7 +205,7 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				configuration.AddLogWriter(type, x => Assert.NotNull(x));
+				configuration.AddLogWriter(type, Assert.NotNull);
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
@@ -238,7 +239,7 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				configuration.AddLogWritersByWildcard(wildcard, x => Assert.NotNull(x));
+				configuration.AddLogWritersByWildcard(wildcard, Assert.NotNull);
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
@@ -272,7 +273,7 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				configuration.AddLogWritersByRegex(regex, x => Assert.NotNull(x));
+				configuration.AddLogWritersByRegex(regex, Assert.NotNull);
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];
@@ -323,7 +324,7 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
 			{
-				configuration.AddLogWriterDefault(x => Assert.NotNull(x));
+				configuration.AddLogWriterDefault(Assert.NotNull);
 				var writers = configuration.GetLogWriterSettings().ToArray();
 				Assert.Single(writers);
 				writer = writers[0];

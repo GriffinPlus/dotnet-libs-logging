@@ -25,31 +25,31 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class JsonMessageFormatterTests
 	{
-		private static Dictionary<int, string> sEscapedCodepoints = new Dictionary<int, string>();
-		private static string sUnescapedString;
-		private static string sEscapedString_WithSolidus;
-		private static string sEscapedString_WithoutSolidus;
+		private static readonly Dictionary<int, string> sEscapedCodePoints = new Dictionary<int, string>();
+		private static readonly string sUnescapedString;
+		private static readonly string sEscapedString_WithSolidus;
+		private static readonly string sEscapedString_WithoutSolidus;
 
 		/// <summary>
 		/// Initializes the <see cref="JsonMessageFormatter"/> class.
 		/// </summary>
 		static JsonMessageFormatterTests()
 		{
-			// add dictionary with codepoints to escape
+			// add dictionary with code points to escape
 			// ---------------------------------------------------------------------------------------------
-			for (int i = 0; i <= 0x1F; i++) sEscapedCodepoints[i] = string.Format("\\u{0:X04}", i);
-			sEscapedCodepoints[0x0008] = "\\b";      // backspace
-			sEscapedCodepoints[0x0009] = "\\t";      // tab
-			sEscapedCodepoints[0x000D] = "\\r";      // carriage return
-			sEscapedCodepoints[0x000A] = "\\n";      // line feed
-			sEscapedCodepoints[0x000C] = "\\f";      // form feed
-			sEscapedCodepoints[0x0022] = "\\\"";     // quotation marks
-			sEscapedCodepoints[0x002F] = "\\/";      // solidus
-			sEscapedCodepoints[0x005C] = "\\\\";     // reverse solidus
-			sEscapedCodepoints[0x0085] = "\\u0085";  // next line
-			sEscapedCodepoints[0x0085] = "\\u0085";  // next line
-			sEscapedCodepoints[0x2028] = "\\u2028";  // line separator
-			sEscapedCodepoints[0x2029] = "\\u2029";  // paragraph separator
+			for (int i = 0; i <= 0x1F; i++) sEscapedCodePoints[i] = $"\\u{i:X04}";
+			sEscapedCodePoints[0x0008] = "\\b";      // backspace
+			sEscapedCodePoints[0x0009] = "\\t";      // tab
+			sEscapedCodePoints[0x000D] = "\\r";      // carriage return
+			sEscapedCodePoints[0x000A] = "\\n";      // line feed
+			sEscapedCodePoints[0x000C] = "\\f";      // form feed
+			sEscapedCodePoints[0x0022] = "\\\"";     // quotation marks
+			sEscapedCodePoints[0x002F] = "\\/";      // solidus
+			sEscapedCodePoints[0x005C] = "\\\\";     // reverse solidus
+			sEscapedCodePoints[0x0085] = "\\u0085";  // next line
+			sEscapedCodePoints[0x0085] = "\\u0085";  // next line
+			sEscapedCodePoints[0x2028] = "\\u2028";  // line separator
+			sEscapedCodePoints[0x2029] = "\\u2029";  // paragraph separator
 
 			// build strings that contains all unicode characters and their escaped equivalents
 			// ---------------------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				// add codepoint to buffer with the expected string
-				if (sEscapedCodepoints.TryGetValue(codepoint, out var sequence))
+				if (sEscapedCodePoints.TryGetValue(codepoint, out var sequence))
 				{
 					escaped_WithSolidus.Append(sequence);
 					escaped_WithoutSolidus.Append(sequence);
@@ -422,8 +422,7 @@ namespace GriffinPlus.Lib.Logging
 		[MemberData(nameof(FormatTestData))]
 		public void Format(JsonMessageFormatterStyle style, LogMessageField fields, LogMessage message, string expected)
 		{
-			var formatter = new JsonMessageFormatter();
-			formatter.Style = style;
+			var formatter = new JsonMessageFormatter { Style = style };
 
 			if (fields.HasFlag(LogMessageField.Timestamp)) formatter.AddTimestampField();
 			if (fields.HasFlag(LogMessageField.HighAccuracyTimestamp)) formatter.AddHighAccuracyTimestampField();
@@ -442,7 +441,7 @@ namespace GriffinPlus.Lib.Logging
 
 
 		/// <summary>
-		/// Tests whether the <see cref="JsonMessageFormatter.AppendEscapedStringToBuilder(StringBuilder, string)"/> method
+		/// Tests whether the <see cref="JsonMessageFormatter.AppendEscapedStringToBuilder"/> method
 		/// escapes all characters properly.
 		/// </summary>
 		[Fact]
@@ -491,8 +490,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Format_EscapingKeys(JsonMessageFormatterStyle style, LogMessageField fields)
 		{
 			var message = new LogMessage();
-			var formatter = new JsonMessageFormatter();
-			formatter.Style = style;
+			var formatter = new JsonMessageFormatter { Style = style };
 
 			if (fields.HasFlag(LogMessageField.Timestamp)) formatter.AddTimestampField("u", sUnescapedString);
 			if (fields.HasFlag(LogMessageField.HighAccuracyTimestamp)) formatter.AddHighAccuracyTimestampField(sUnescapedString);
@@ -507,9 +505,9 @@ namespace GriffinPlus.Lib.Logging
 
 			// prepare regex to match output
 			string pattern;
-			if (style == JsonMessageFormatterStyle.Compact) pattern = $"^{{\"(.+)\":.+}}$";
-			else if (style == JsonMessageFormatterStyle.OneLine) pattern = $"^{{ \"(.+)\" : .+ }}$";
-			else pattern = $"^{{\r\n    \"(.+)\" : .+\r\n}}$";
+			if (style == JsonMessageFormatterStyle.Compact) pattern = "^{\"(.+)\":.+}$";
+			else if (style == JsonMessageFormatterStyle.OneLine) pattern = "^{ \"(.+)\" : .+ }$";
+			else pattern = "^{\r\n    \"(.+)\" : .+\r\n}$";
 			var regex = new Regex(pattern);
 
 			// check whether the key has been escaped properly (without escaping the solidus)
@@ -549,8 +547,7 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.Text)]
 		public void Format_EscapingValues(JsonMessageFormatterStyle style, LogMessageField fields)
 		{
-			var formatter = new JsonMessageFormatter();
-			formatter.Style = style;
+			var formatter = new JsonMessageFormatter { Style = style };
 
 			var key = "";
 			var message = new LogMessage();
@@ -593,9 +590,9 @@ namespace GriffinPlus.Lib.Logging
 
 			// prepare regex to match output
 			string pattern;
-			if (style == JsonMessageFormatterStyle.Compact) pattern = $"^{{\"(.+)\":\"(.+)\"}}$";
-			else if (style == JsonMessageFormatterStyle.OneLine) pattern = $"^{{ \"(.+)\" : \"(.+)\" }}$";
-			else pattern = $"^{{\r\n    \"(.+)\" : \"(.+)\"\r\n}}$";
+			if (style == JsonMessageFormatterStyle.Compact) pattern = "^{\"(.+)\":\"(.+)\"}$";
+			else if (style == JsonMessageFormatterStyle.OneLine) pattern = "^{ \"(.+)\" : \"(.+)\" }$";
+			else pattern = "^{\r\n    \"(.+)\" : \"(.+)\"\r\n}$";
 			var regex = new Regex(pattern);
 
 			// check whether the key has been escaped properly (without escaping the solidus)

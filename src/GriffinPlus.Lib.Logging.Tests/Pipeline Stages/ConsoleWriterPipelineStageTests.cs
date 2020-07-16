@@ -14,10 +14,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Xunit;
+
+// ReSharper disable UseObjectOrCollectionInitializer
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -134,7 +135,7 @@ namespace GriffinPlus.Lib.Logging
 		public void MapLogLevelToStream_FailsIfInitialized()
 		{
 			var stage = CreateStage();
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.MapLogLevelToStream(LogLevel.Note, ConsoleOutputStream.Stdout));
 		}
 
@@ -176,7 +177,7 @@ namespace GriffinPlus.Lib.Logging
 		public void StreamByLevelOverrides_FailsIfInitialized()
 		{
 			var stage = CreateStage();
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.StreamByLevelOverrides = new Dictionary<LogLevel, ConsoleOutputStream>());
 		}
 
@@ -235,17 +236,16 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// initialize the pipeline stage
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 
 			// process the message and determine the expected output in stdout/stderr
 			StringBuilder expectedStdout = new StringBuilder();
 			StringBuilder expectedStderr = new StringBuilder();
 			foreach (var message in messages)
 			{
-				stage.Process(message);
+				((IProcessingPipelineStage) stage).ProcessMessage(message);
 
-				ConsoleOutputStream stream;
-				if (!levelToStreamMap.TryGetValue(message.LogLevel, out stream)) {
+				if (!levelToStreamMap.TryGetValue(message.LogLevel, out var stream)) {
 					stream = defaultStream;
 				}
 

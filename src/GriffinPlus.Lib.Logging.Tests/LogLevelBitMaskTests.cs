@@ -13,6 +13,8 @@
 
 using Xunit;
 
+// ReSharper disable RedundantExplicitArrayCreation
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
