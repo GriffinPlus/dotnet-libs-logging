@@ -66,7 +66,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// Gets the log message passed to <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)"/>.
 			/// </summary>
-			public List<LocalLogMessage> MessagesPassedToProcessAsyncCallback { get; private set; } = new List<LocalLogMessage>();
+			public List<LocalLogMessage> MessagesPassedToProcessAsyncCallback { get; } = new List<LocalLogMessage>();
 
 			public Task ProcessAsyncCallback(LocalLogMessage[] messages, CancellationToken cancellationToken)
 			{
@@ -143,13 +143,13 @@ namespace GriffinPlus.Lib.Logging
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 			Assert.True(stage.IsInitialized);
 
 			// process a log message
-			var message = sMessagePool.GetUninitializedMessage();
+			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback.ProcessSyncCallbackWasCalled);
-			stage.Process(message);
+			((IProcessingPipelineStage) stage).ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
 			Thread.Sleep(50);
@@ -197,15 +197,15 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			stage1.Initialize();
+			((IProcessingPipelineStage) stage1).Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 
 			// process a log message
-			var message = sMessagePool.GetUninitializedMessage();
+			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback1.ProcessSyncCallbackWasCalled);
 			Assert.False(callback2.ProcessSyncCallbackWasCalled);
-			stage1.Process(message);
+			((IProcessingPipelineStage) stage1).ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
 			Thread.Sleep(50);
@@ -214,7 +214,7 @@ namespace GriffinPlus.Lib.Logging
 			if (processSyncReturnValue)
 			{
 				// check synchronous processing
-				// (the message should have travelled through stage 1 and 2)
+				// (the message should have traveled through stage 1 and 2)
 				Assert.True(callback1.ProcessSyncCallbackWasCalled);
 				Assert.True(callback2.ProcessSyncCallbackWasCalled);
 				Assert.Same(message, callback1.MessagePassedToProcessSyncCallback);
@@ -241,7 +241,7 @@ namespace GriffinPlus.Lib.Logging
 			else
 			{
 				// check synchronous processing
-				// (the message should have travelled through stage 1 only)
+				// (the message should have traveled through stage 1 only)
 				Assert.True(callback1.ProcessSyncCallbackWasCalled);
 				Assert.False(callback2.ProcessSyncCallbackWasCalled);
 				Assert.Same(message, callback1.MessagePassedToProcessSyncCallback);

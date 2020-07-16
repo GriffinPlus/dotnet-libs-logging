@@ -11,7 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -48,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether initializing the pipeline stage using <see cref="ProcessingPipelineStage{STAGE}.Initialize"/> succeeds,
+		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> succeeds,
 		/// if the stage does not have following stages. The stage should have called <see cref="ProcessingPipelineStage{STAGE}.OnInitialize"/>
 		/// after this.
 		/// </summary>
@@ -58,13 +57,13 @@ namespace GriffinPlus.Lib.Logging
 			var stage = CreateStage();
 			Assert.False(stage.IsInitialized);
 			Assert.False(stage.OnInitializeWasCalled);
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 			Assert.True(stage.OnInitializeWasCalled);
 			Assert.True(stage.IsInitialized);
 		}
 
 		/// <summary>
-		/// Tests whether initializing the pipeline stage using <see cref="ProcessingPipelineStage{STAGE}.Initialize"/> succeeds,
+		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> succeeds,
 		/// if the stage has a following stage. Both stages should have called <see cref="ProcessingPipelineStage{STAGE}.OnInitialize"/>
 		/// after this.
 		/// </summary>
@@ -78,7 +77,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.False(stage2.IsInitialized);
 			Assert.False(stage1.OnInitializeWasCalled);
 			Assert.False(stage2.OnInitializeWasCalled);
-			stage1.Initialize();
+			((IProcessingPipelineStage) stage1).Initialize();
 			Assert.True(stage1.OnInitializeWasCalled);
 			Assert.True(stage2.OnInitializeWasCalled);
 			Assert.True(stage1.IsInitialized);
@@ -86,9 +85,10 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether shutting the pipeline stage down using <see cref="ProcessingPipelineStage{STAGE}.Shutdown"/> succeeds,
+		/// Tests whether shutting the pipeline stage down using <see cref="IProcessingPipelineStage.Shutdown"/> succeeds,
 		/// if the stage does not have following stages. The stage should have called <see cref="ProcessingPipelineStage{STAGE}.OnShutdown"/>
 		/// after this.
+		/// </summary>
 		[Fact]
 		public void Shutdown_Specific_Standalone()
 		{
@@ -97,19 +97,19 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
 			Assert.False(stage.OnInitializeWasCalled);
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 			Assert.True(stage.OnInitializeWasCalled);
 			Assert.True(stage.IsInitialized);
 
 			// shut the stage down
 			Assert.False(stage.OnShutdownWasCalled);
-			stage.Shutdown();
+			((IProcessingPipelineStage) stage).Shutdown();
 			Assert.True(stage.OnShutdownWasCalled);
 			Assert.False(stage.IsInitialized);
 		}
 
 		/// <summary>
-		/// Tests whether shutting the pipeline stage using <see cref="ProcessingPipelineStage{STAGE}.Shutdown"/> succeeds,
+		/// Tests whether shutting the pipeline stage using <see cref="IProcessingPipelineStage.Shutdown"/> succeeds,
 		/// if the stage has a following stage. Both stages should have called <see cref="ProcessingPipelineStage{STAGE}.OnShutdown"/>
 		/// after this.
 		/// </summary>
@@ -123,14 +123,14 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			stage1.Initialize();
+			((IProcessingPipelineStage) stage1).Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 
 			// shut the stages down
 			Assert.False(stage1.OnShutdownWasCalled);
 			Assert.False(stage2.OnShutdownWasCalled);
-			stage1.Shutdown();
+			((IProcessingPipelineStage) stage1).Shutdown();
 			Assert.True(stage1.OnShutdownWasCalled);
 			Assert.True(stage2.OnShutdownWasCalled);
 			Assert.False(stage1.IsInitialized);
@@ -138,7 +138,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether processing a log message using <see cref="ProcessingPipelineStage{STAGE}.Process(LocalLogMessage)"/> succeeds,
+		/// Tests whether processing a log message using <see cref="IProcessingPipelineStage.ProcessMessage"/> succeeds,
 		/// if the stage does not have following stages. The stage should have called <see cref="ProcessingPipelineStage{STAGE}.ProcessSync"/>
 		/// after this.
 		/// </summary>
@@ -150,20 +150,20 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
 			Assert.False(stage.OnInitializeWasCalled);
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 			Assert.True(stage.OnInitializeWasCalled);
 			Assert.True(stage.IsInitialized);
 
 			// process a log message
-			var message = sMessagePool.GetUninitializedMessage();
+			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(stage.ProcessSyncWasCalled);
-			stage.Process(message);
+			((IProcessingPipelineStage) stage).ProcessMessage(message);
 			Assert.True(stage.ProcessSyncWasCalled);
 			Assert.Same(message, stage.MessagePassedToProcessSync);
 		}
 
 		/// <summary>
-		/// Tests whether calling <see cref="ProcessingPipelineStage{STAGE}.Process(LocalLogMessage)"/> invokes
+		/// Tests whether calling <see cref="IProcessingPipelineStage.ProcessMessage"/> invokes
 		/// <see cref="ProcessingPipelineStage{STAGE}.ProcessSync(LocalLogMessage)"/>, if the stage has a following stage.
 		/// Both stages should have called <see cref="ProcessingPipelineStage{STAGE}.ProcessSync"/> after this.
 		/// </summary>
@@ -177,15 +177,15 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			stage1.Initialize();
+			((IProcessingPipelineStage) stage1).Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 
 			// process a log message
-			var message = sMessagePool.GetUninitializedMessage();
+			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(stage1.ProcessSyncWasCalled);
 			Assert.False(stage2.ProcessSyncWasCalled);
-			stage1.Process(message);
+			((IProcessingPipelineStage) stage1).ProcessMessage(message);
 			Assert.True(stage1.ProcessSyncWasCalled);
 			Assert.True(stage2.ProcessSyncWasCalled);
 			Assert.Same(message, stage1.MessagePassedToProcessSync);

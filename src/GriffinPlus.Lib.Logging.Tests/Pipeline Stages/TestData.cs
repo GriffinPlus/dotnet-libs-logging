@@ -13,7 +13,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -22,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public static class TestData
 	{
-		private static LocalLogMessagePool sMessagePool = new LocalLogMessagePool();
+		private static readonly LocalLogMessagePool sMessagePool = new LocalLogMessagePool();
 
 		/// <summary>
 		/// Four different local log messages in lists of different size.

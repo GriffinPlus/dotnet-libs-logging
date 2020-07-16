@@ -12,8 +12,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -70,7 +68,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var stage = CreateStage();
 			var formatter = new TestFormatter();
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.Formatter = formatter);
 		}
 

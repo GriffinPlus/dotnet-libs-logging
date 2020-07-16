@@ -59,7 +59,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes the processing pipeline stage.
 		/// This method is called by the logging subsystem and should not be called explicitly.
 		/// </summary>
-		public void Initialize()
+		void IProcessingPipelineStage.Initialize()
 		{
 			lock (Sync)
 			{
@@ -83,7 +83,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 				catch (Exception)
 				{
-					Shutdown();
+					(this as IProcessingPipelineStage).Shutdown();
 					throw;
 				}
 			}
@@ -104,7 +104,7 @@ namespace GriffinPlus.Lib.Logging
 		/// This method is called by the logging subsystem and should not be called explicitly.
 		/// This method must not throw exceptions.
 		/// </summary>
-		public void Shutdown()
+		void IProcessingPipelineStage.Shutdown()
 		{
 			lock (Sync)
 			{
@@ -186,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
-		/// its <see cref="Process(LocalLogMessage)"/> method. The method must return <c>true</c> to call the following stage.
+		/// its <see cref="ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
 		/// </summary>
 		/// <param name="stage">The pipeline stage that should follow the current stage.</param>
 		public void AddNextStage(IProcessingPipelineStage stage)
@@ -220,7 +220,7 @@ namespace GriffinPlus.Lib.Logging
 		/// if <see cref="ProcessSync(LocalLogMessage)"/> returns <c>true</c>.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
-		public void Process(LocalLogMessage message)
+		void IProcessingPipelineStage.ProcessMessage(LocalLogMessage message)
 		{
 			if (message == null) throw new ArgumentNullException(nameof(message));
 
@@ -236,7 +236,7 @@ namespace GriffinPlus.Lib.Logging
 					// pass log message to the next pipeline stages
 					for (int i = 0; i < mNextStages.Length; i++)
 					{
-						mNextStages[i].Process(message);
+						mNextStages[i].ProcessMessage(message);
 					}
 				}
 			}

@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Do not keep a reference to the passed log message object as it returns to a pool.
 		/// Log message objects are re-used to reduce garbage collection pressure.
 		/// </remarks>
-		void Process(LocalLogMessage message);
+		void ProcessMessage(LocalLogMessage message);
 	}
 
 }

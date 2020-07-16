@@ -58,8 +58,9 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(-1,  true )]
 		public void Create_InvalidCapacity(int initialCapacity, bool canGrow)
 		{
-			var ex = Assert.Throws<ArgumentOutOfRangeException>(() => {
-				new LocklessStack<int>(initialCapacity, canGrow);
+			var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+			{
+				var _ = new LocklessStack<int>(initialCapacity, canGrow);
 			});
 
 			Assert.Equal("initialCapacity", ex.ParamName);
@@ -188,8 +189,7 @@ namespace GriffinPlus.Lib.Logging
 			PopulateStack(stack, capacity, itemCount);
 
 			// pop an item from the stack
-			int item;
-			Assert.True(stack.Pop(out item));
+			Assert.True(stack.Pop(out var item));
 			Assert.Equal(itemCount - 1, item);
 			Assert.Equal(capacity - itemCount + 1, stack.FreeItemCount);
 			Assert.Equal(itemCount - 1, stack.UsedItemCount);

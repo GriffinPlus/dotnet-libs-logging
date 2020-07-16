@@ -15,7 +15,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -25,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class FileWriterPipelineStageTests : TextWriterPipelineStageBaseTests<FileWriterPipelineStage>, IDisposable
 	{
-		private List<string> mTemporaryFiles = new List<string>();
+		private readonly List<string> mTemporaryFiles = new List<string>();
 
 		/// <summary>
 		/// Disposes the test cleaning up temporary files.
@@ -38,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 			GC.WaitForPendingFinalizers();
 			foreach (var path in mTemporaryFiles)
 			{
-				try { File.Delete(path); } catch { }
+				try { File.Delete(path); } catch { /* swallow */ }
 			}
 		}
 
@@ -48,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns></returns>
 		protected override FileWriterPipelineStage CreateStage()
 		{
-			string path = Path.GetFullPath($"TestLog_{Guid.NewGuid().ToString("N")}.log");
+			string path = Path.GetFullPath($"TestLog_{Guid.NewGuid():N}.log");
 			mTemporaryFiles.Add(path);
 			return new FileWriterPipelineStage(path, false);
 		}
@@ -89,19 +88,19 @@ namespace GriffinPlus.Lib.Logging
 			stage.Formatter = formatter;
 
 			// initialize the pipeline stage
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 
 			// process the message and determine the expected output in stdout/stderr
 			StringBuilder expected = new StringBuilder();
 			foreach (var message in messages)
 			{
-				stage.Process(message);
+				((IProcessingPipelineStage) stage).ProcessMessage(message);
 				expected.Append(formatter.Format(message));
 				expected.AppendLine(); // a newline is automatically added after a message
 			}
 
 			// shut the pipeline stage down to release the file
-			stage.Shutdown();
+			((IProcessingPipelineStage) stage).Shutdown();
 
 			// the file should contain the expected output now
 			using (var fs = new FileStream(stage.Path, FileMode.Open, FileAccess.Read, FileShare.Read))

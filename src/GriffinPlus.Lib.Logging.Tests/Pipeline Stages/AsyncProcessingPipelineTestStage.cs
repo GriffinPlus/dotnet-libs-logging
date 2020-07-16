@@ -42,13 +42,13 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the message that was passed to <see cref="AsyncProcessingPipelineStage{STAGE}.ProcessSync(LocalLogMessage, out bool)" />
 		/// with the last call.
 		/// </summary>
-		public LocalLogMessage MessagePassedToProcessSync { get; private set; } = null;
+		public LocalLogMessage MessagePassedToProcessSync { get; private set; }
 
 		/// <summary>
 		/// Gets the messages that were passed to <see cref="AsyncProcessingPipelineStage{STAGE}.ProcessAsync(LocalLogMessage[], CancellationToken)" />
 		/// with the last call.
 		/// </summary>
-		public List<LocalLogMessage> MessagesPassedToProcessAsync { get; private set; } = new List<LocalLogMessage>();
+		public List<LocalLogMessage> MessagesPassedToProcessAsync { get; } = new List<LocalLogMessage>();
 
 		/// <summary>
 		/// Gets a value indicating whether <see cref="ProcessAsync(LocalLogMessage[], CancellationToken)"/> was called.

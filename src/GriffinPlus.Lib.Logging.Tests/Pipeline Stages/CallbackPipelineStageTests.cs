@@ -96,13 +96,13 @@ namespace GriffinPlus.Lib.Logging
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
-			stage.Initialize();
+			((IProcessingPipelineStage) stage).Initialize();
 			Assert.True(stage.IsInitialized);
 
 			// process a log message
-			var message = sMessagePool.GetUninitializedMessage();
+			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback.ProcessSyncCallbackWasCalled);
-			stage.Process(message);
+			((IProcessingPipelineStage) stage).ProcessMessage(message);
 			Assert.True(callback.ProcessSyncCallbackWasCalled);
 			Assert.Same(message, callback.MessagePassedToProcessSyncCallback);
 		}
@@ -125,18 +125,18 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			stage1.Initialize();
+			((IProcessingPipelineStage) stage1).Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 
 			// process a log message
-			var message = sMessagePool.GetUninitializedMessage();
+			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback1.ProcessSyncCallbackWasCalled);
 			Assert.False(callback2.ProcessSyncCallbackWasCalled);
-			stage1.Process(message);
+			((IProcessingPipelineStage) stage1).ProcessMessage(message);
 			if (processSyncReturnValue)
 			{
-				// the message should have travelled through stage 1 and 2
+				// the message should have traveled through stage 1 and 2
 				Assert.True(callback1.ProcessSyncCallbackWasCalled);
 				Assert.True(callback2.ProcessSyncCallbackWasCalled);
 				Assert.Same(message, callback1.MessagePassedToProcessSyncCallback);
@@ -144,7 +144,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 			else
 			{
-				// the message should have travelled through stage 1 only
+				// the message should have traveled through stage 1 only
 				Assert.True(callback1.ProcessSyncCallbackWasCalled);
 				Assert.False(callback2.ProcessSyncCallbackWasCalled);
 				Assert.Same(message, callback1.MessagePassedToProcessSyncCallback);

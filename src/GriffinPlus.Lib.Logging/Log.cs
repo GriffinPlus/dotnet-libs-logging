@@ -204,7 +204,7 @@ namespace GriffinPlus.Lib.Logging
 							level,
 							text);
 
-						pipeline.Process(message);
+						pipeline.ProcessMessage(message);
 					}
 				}
 				finally
