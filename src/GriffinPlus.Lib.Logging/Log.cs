@@ -37,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 		private static ILogConfiguration sLogConfiguration;
 		private static volatile IProcessingPipelineStage sLogMessageProcessingPipeline;
 		private static readonly LogWriter sLog = GetWriter("Logging");
-		private static long sTimerTickStart = Stopwatch.GetTimestamp();
+		private static readonly long sTimerTickStart = Stopwatch.GetTimestamp();
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
@@ -243,16 +243,17 @@ namespace GriffinPlus.Lib.Logging
 						}
 
 						// replace log writer list
-						List<LogWriter> newLogWritersById = new List<LogWriter>(sLogWritersById);
-						newLogWritersById.Add(writer);
+						List<LogWriter> newLogWritersById = new List<LogWriter>(sLogWritersById) { writer };
 						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 						sLogWritersById = newLogWritersById;
 
 						// replace log writer collection dictionary
-						Dictionary<string, LogWriter> newLogWritersByName = new Dictionary<string, LogWriter>(sLogWritersByName);
-						newLogWritersByName.Add(writer.Name, writer);
+						Dictionary<string, LogWriter> newLogWritersByName = new Dictionary<string, LogWriter>(sLogWritersByName) { { writer.Name, writer } };
 						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 						sLogWritersByName = newLogWritersByName;
+
+						// notify about the new log writer
+						ProcessLogWriterAdded(writer);
 					}
 				}
 			}
@@ -375,6 +376,34 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			return modified;
+		}
+
+		/// <summary>
+		/// Is called when a new log level is added to the logging subsystem.
+		/// It notifies other components about the new log level.
+		/// </summary>
+		/// <param name="level">The new log level.</param>
+		internal static void ProcessLogLevelAdded(LogLevel level)
+		{
+			// the global logging lock should have been acquired
+			Debug.Assert(Monitor.IsEntered(Sync));
+
+			// notify log message processing pipeline stages
+			sLogMessageProcessingPipeline?.ProcessLogLevelAdded(level);
+		}
+
+		/// <summary>
+		/// Is called when a new log writer is added to the logging subsystem.
+		/// It notifies other components about the new log writer.
+		/// </summary>
+		/// <param name="writer">The new log writer.</param>
+		internal static void ProcessLogWriterAdded(LogWriter writer)
+		{
+			// the global logging lock should have been acquired
+			Debug.Assert(Monitor.IsEntered(Sync));
+
+			// notify log message processing pipeline stages
+			sLogMessageProcessingPipeline?.ProcessLogWriterAdded(writer);
 		}
 
 	}

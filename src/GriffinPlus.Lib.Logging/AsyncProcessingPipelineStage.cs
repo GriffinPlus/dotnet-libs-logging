@@ -17,6 +17,9 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+// ReSharper disable EmptyConstructor
+// ReSharper disable ForCanBeConvertedToForeach
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -28,16 +31,16 @@ namespace GriffinPlus.Lib.Logging
 	public abstract class AsyncProcessingPipelineStage<STAGE> : IProcessingPipelineStage
 		where STAGE: AsyncProcessingPipelineStage<STAGE>
 	{
-		private bool mInitialized = false;
+		private bool mInitialized;
 		private IProcessingPipelineStage[] mNextStages = new IProcessingPipelineStage[0];
 		private Task mAsyncProcessingTask;
 		private AsyncAutoResetEvent mTriggerAsyncProcessingEvent;
 		private LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
-		private bool mDiscardMessagesIfQueueFull = false;
+		private bool mDiscardMessagesIfQueueFull;
 		private int mMessageQueueSize = 500;
 		private TimeSpan mShutdownTimeout = TimeSpan.FromMilliseconds(5000);
 		private CancellationTokenSource mAsyncProcessingCancellationTokenSource;
-		private bool mTerminateProcessingTask = false;
+		private bool mTerminateProcessingTask;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage{T}"/> class.
@@ -219,7 +222,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
-		/// its <see cref="ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
+		/// its <see cref="IProcessingPipelineStage.ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
 		/// </summary>
 		/// <param name="stage">The pipeline stage that should follow the current stage.</param>
 		public void AddNextStage(IProcessingPipelineStage stage)
@@ -325,7 +328,117 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region Processing
+		#region Processing Messages and Notifications
+
+		/// <summary>
+		/// Processes that a new log level was added to the logging subsystem.
+		/// </summary>
+		/// <param name="level">The new log level.</param>
+		void IProcessingPipelineStage.ProcessLogLevelAdded(LogLevel level)
+		{
+			Debug.Assert(Monitor.IsEntered(Log.Sync));
+
+			List<Exception> exceptions = null;
+
+			// call OnLogLevelAdded() of this stage
+			try
+			{
+				OnLogLevelAdded(level);
+			}
+			catch (Exception ex)
+			{
+				exceptions = new List<Exception> { ex };
+			}
+
+			// call OnLogLevelAdded() of following stages
+			for (int i = 0; i < mNextStages.Length; i++)
+			{
+				try
+				{
+					mNextStages[i].ProcessLogLevelAdded(level);
+				}
+				catch (AggregateException ex)
+				{
+					// unwrap exceptions to avoid returning a nested aggregate exception
+					if (exceptions == null) exceptions = new List<Exception>();
+					exceptions.AddRange(ex.InnerExceptions);
+				}
+				catch (Exception ex)
+				{
+					if (exceptions == null) exceptions = new List<Exception>();
+					exceptions.Add(ex);
+				}
+			}
+
+			if (exceptions != null)
+			{
+				throw new AggregateException(exceptions);
+			}
+		}
+
+		/// <summary>
+		/// Is called when a new log level was added to the logging subsystem.
+		/// </summary>
+		/// <param name="level">The new log level.</param>
+		protected virtual void OnLogLevelAdded(LogLevel level)
+		{
+
+		}
+
+		/// <summary>
+		/// Processes that a new log writer was added to the logging subsystem.
+		/// </summary>
+		/// <param name="writer">the new log writer.</param>
+		void IProcessingPipelineStage.ProcessLogWriterAdded(LogWriter writer)
+		{
+			Debug.Assert(Monitor.IsEntered(Log.Sync));
+
+			List<Exception> exceptions = null;
+
+			// call OnLogWriterAdded() of this stage
+			try
+			{
+				OnLogWriterAdded(writer);
+			}
+			catch (Exception ex)
+			{
+				exceptions = new List<Exception> { ex };
+			}
+
+			// call OnLogWriterAdded() of following stages
+			for (int i = 0; i < mNextStages.Length; i++)
+			{
+				try
+				{
+					mNextStages[i].ProcessLogWriterAdded(writer);
+				}
+				catch (AggregateException ex)
+				{
+					// unwrap exceptions to avoid returning a nested aggregate exception
+					if (exceptions == null) exceptions = new List<Exception>();
+					exceptions.AddRange(ex.InnerExceptions);
+				}
+				catch (Exception ex)
+				{
+					if (exceptions == null) exceptions = new List<Exception>();
+					exceptions.Add(ex);
+				}
+			}
+
+			if (exceptions != null)
+			{
+				throw new AggregateException(exceptions);
+			}
+		}
+
+		/// <summary>
+		/// Is called when a new log writer was added to the logging subsystem.
+		/// </summary>
+		/// <param name="writer">The new log writer.</param>
+		protected virtual void OnLogWriterAdded(LogWriter writer)
+		{
+
+		}
 
 		/// <summary>
 		/// Processes the specified log message calling the <see cref="ProcessSync(LocalLogMessage, out bool)"/> method

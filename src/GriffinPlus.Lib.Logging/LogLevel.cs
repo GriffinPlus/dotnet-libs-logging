@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private static Dictionary<string, LogLevel> sLogLevelsByName;
 		private static LogLevel[] sLogLevelsById;
-		private static int sNextId = 0;
+		private static int sNextId;
 
 		/// <summary>
 		/// Failure:
@@ -217,10 +217,11 @@ namespace GriffinPlus.Lib.Logging
 		static LogLevel()
 		{
 			// populate log level collections with predefined log levels
-			sLogLevelsByName = new Dictionary<string,LogLevel>();
-			sLogLevelsByName.Add(None.Name, None);
-			sLogLevelsByName.Add(All.Name, All);
-			sLogLevelsByName.Add(Timing.Name, Timing);
+			sLogLevelsByName = new Dictionary<string, LogLevel> {
+				{ None.Name, None },
+				{ All.Name, All },
+				{ Timing.Name, Timing }
+			};
 			foreach (LogLevel level in sPredefinedLogLevels) {
 				sLogLevelsByName.Add(level.Name, level);
 			}
@@ -297,14 +298,16 @@ namespace GriffinPlus.Lib.Logging
 						// log level does not exist, yet
 						// => add a new one...
 						level = new LogLevel(name);
-						Dictionary<string, LogLevel> newLogLevelsByName = new Dictionary<string, LogLevel>(sLogLevelsByName);
-						newLogLevelsByName.Add(level.Name, level);
+						Dictionary<string, LogLevel> newLogLevelsByName = new Dictionary<string, LogLevel>(sLogLevelsByName) { { level.Name, level } };
 						LogLevel[] newLogLevelById = new LogLevel[sLogLevelsById.Length + 1];
 						Array.Copy(sLogLevelsById, newLogLevelById, sLogLevelsById.Length);
 						newLogLevelById[sLogLevelsById.Length] = level;
 						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 						sLogLevelsByName = newLogLevelsByName;
 						sLogLevelsById = newLogLevelById;
+
+						// notify about the new log level
+						Log.ProcessLogLevelAdded(level);
 					}
 				}
 			}
