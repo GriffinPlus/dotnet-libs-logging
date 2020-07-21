@@ -46,6 +46,18 @@ namespace GriffinPlus.Lib.Logging
 		IReadOnlyDictionary<string, string> GetDefaultSettings();
 
 		/// <summary>
+		/// Processes that a new log level was added to the logging subsystem.
+		/// </summary>
+		/// <param name="level">The new log level.</param>
+		void ProcessLogLevelAdded(LogLevel level);
+
+		/// <summary>
+		/// Processes that a new log writer was added to the logging subsystem.
+		/// </summary>
+		/// <param name="writer"></param>
+		void ProcessLogWriterAdded(LogWriter writer);
+
+		/// <summary>
 		/// Processes the specified log message.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
