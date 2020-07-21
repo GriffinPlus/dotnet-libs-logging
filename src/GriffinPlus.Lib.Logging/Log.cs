@@ -24,7 +24,11 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class Log
 	{
-		private static readonly object sSync = new object();
+		/// <summary>
+		/// Object that is used to synchronize access to shared resources in the logging subsystem.
+		/// </summary>
+		internal static readonly object Sync = new object();
+
 		private static readonly int sProcessId = Process.GetCurrentProcess().Id;
 		private static readonly string sProcessName = Process.GetCurrentProcess().ProcessName;
 		private static readonly LocalLogMessagePool sLogMessagePool = new LocalLogMessagePool();
@@ -40,17 +44,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		static Log()
 		{
-			lock (sSync) // just to prevent assertions from firing...
+			lock (Sync) // just to prevent assertions from firing...
 			{
 				InitDefaultConfiguration();
 				LogMessageProcessingPipeline = new ConsoleWriterPipelineStage();
 			}
 		}
-
-		/// <summary>
-		/// Gets the object that is used to synchronize access to shared resources in the logging subsystem.
-		/// </summary>
-		internal static object Sync => sSync;
 
 		/// <summary>
 		/// Gets or sets the name of the application.
@@ -77,7 +76,7 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
-				lock (sSync)
+				lock (Sync)
 				{
 					if (value != null)
 					{
@@ -106,7 +105,7 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
-				lock (sSync)
+				lock (Sync)
 				{
 					// abort, if the processing pipeline has not changed
 					if (sLogMessageProcessingPipeline == value) return;
@@ -145,7 +144,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public static void Shutdown()
 		{
-			lock (sSync)
+			lock (Sync)
 			{
 				// pipeline stages might have buffered messages
 				// => shut them down gracefully to allow them to complete processing before exiting
@@ -190,7 +189,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					message = sLogMessagePool.GetUninitializedMessage();
 
-					lock (sSync) // needed to avoid race conditions causing timestamps getting mixed up
+					lock (Sync) // needed to avoid race conditions causing timestamps getting mixed up
 					{
 						long highAccuracyTimestamp = GetHighAccuracyTimestamp();
 
@@ -226,7 +225,7 @@ namespace GriffinPlus.Lib.Logging
 			sLogWritersByName.TryGetValue(name, out var writer);
 			if (writer == null)
 			{
-				lock (sSync)
+				lock (Sync)
 				{
 					if (!sLogWritersByName.TryGetValue(name, out writer))
 					{
@@ -289,7 +288,7 @@ namespace GriffinPlus.Lib.Logging
 		internal static void InitDefaultConfiguration()
 		{
 			// global logging lock is hold here...
-			Debug.Assert(Monitor.IsEntered(sSync));
+			Debug.Assert(Monitor.IsEntered(Sync));
 
 			if (sLogConfiguration == null)
 			{
@@ -310,7 +309,7 @@ namespace GriffinPlus.Lib.Logging
 		private static void UpdateLogWriters()
 		{
 			// global logging lock is hold here...
-			Debug.Assert(Monitor.IsEntered(sSync));
+			Debug.Assert(Monitor.IsEntered(Sync));
 
 			foreach (var kvp in sLogWritersByName)
 			{
