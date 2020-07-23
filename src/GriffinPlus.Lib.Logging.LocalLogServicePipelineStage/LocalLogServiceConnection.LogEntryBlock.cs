@@ -117,7 +117,7 @@ namespace GriffinPlus.Lib.Logging
 			public const int LogLevelNameSize = 242;
 
 			/// <summary>
-			/// Identifier of the log source.
+			/// Identifier of the log level.
 			/// </summary>
 			public int Identifier;
 

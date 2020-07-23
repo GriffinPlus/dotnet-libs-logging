@@ -69,13 +69,13 @@ namespace GriffinPlus.Lib.Logging
 	/// After having finished work with the queue you can call the <see cref="Close"/> method to release operating
 	/// system resources.
 	/// </summary>
-	internal unsafe partial class UnsafeSharedMemoryQueue : IDisposable
+	internal sealed unsafe partial class UnsafeSharedMemoryQueue : IDisposable
 	{
 		/// <summary>
 		/// Size of the queue's header containing administrative and user-specific data (see <see cref="QueueHeader"/>).
 		/// </summary>
 		private int mQueueHeaderSize;
-		
+
 		/// <summary>
 		/// Indicates whether the queue is initialized.
 		/// </summary>
@@ -109,12 +109,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Size of a block in the queue (as specified when creating the queue).
 		/// </summary>
-		private int mBlockSize;
+		private int mBufferSize;
 
 		/// <summary>
 		/// Real size of block in the queue (including block header and padding bytes).
 		/// </summary>
-		private int mRealBlockSize;
+		private int mBlockSize;
 
 		/// <summary>
 		/// The first block in a sequence of blocks that is currently read.
@@ -156,32 +156,33 @@ namespace GriffinPlus.Lib.Logging
 		/// Creates a new shared memory queue.
 		/// </summary>
 		/// <param name="name">Name of the shared memory region to create the queue in.</param>
-		/// <param name="blockSize">Size of a block in the shared memory queue (in bytes).</param>
+		/// <param name="bufferSize">Size of a buffer in the shared memory queue (in bytes).</param>
 		/// <param name="numberOfBlocks">Number of blocks the queue should keep.</param>
 		/// <remarks>
 		/// This method creates a new queue in a shared memory region specified by the given name and the given size.
 		/// </remarks>
-		public void Create(string name, int blockSize, int numberOfBlocks)
+		public void Create(string name, int bufferSize, int numberOfBlocks)
 		{
 			if (name == null) throw new ArgumentNullException(nameof(name));
-			if (blockSize < 0) throw new ArgumentOutOfRangeException(nameof(blockSize), "The block size must be positive.");
+			if (bufferSize < 0) throw new ArgumentOutOfRangeException(nameof(bufferSize), "The block size must be positive.");
 			if (numberOfBlocks < 0) throw new ArgumentOutOfRangeException(nameof(numberOfBlocks), "The number of blocks must be positive.");
 
 			// close currently opened queue, if necessary
 			Close();
 
 			mNumberOfBlocks = numberOfBlocks;
-			mBlockSize = blockSize;
-			mRealBlockSize = (sizeof(QueueBlock) + mBlockSize + CacheLineSize - 1) & ~(CacheLineSize - 1);
+			mBufferSize = bufferSize;
+			// ensure that the block sizes are a multiple of the cache line size to avoid false sharing
+			mBlockSize = (sizeof(QueueBlock) + mBufferSize + CacheLineSize - 1) & ~(CacheLineSize - 1);
 			mQueueHeaderSize = (sizeof(QueueHeader) + CacheLineSize - 1) & ~(CacheLineSize - 1);
-			long dataSize = (long)mNumberOfBlocks * mRealBlockSize;
-			long bufferSize = mQueueHeaderSize + dataSize;
+			long dataSize = (long)mNumberOfBlocks * mBlockSize;
+			long totalBufferSize = mQueueHeaderSize + dataSize;
 
 			// create the shared memory region
 			string queueName = $"{name} - Shared Memory";
 			mMemoryMappedFile = MemoryMappedFile.CreateNew(
 				queueName,
-				bufferSize,
+				totalBufferSize,
 				MemoryMappedFileAccess.ReadWrite,
 				MemoryMappedFileOptions.None,
 				sMemoryMappedFileSecurity,
@@ -226,15 +227,18 @@ namespace GriffinPlus.Lib.Logging
 
 				// check the queue's signature
 				// (for an explanation why 'ALVA' see InitQueue()
-				Debug.Assert(mQueueHeader->Signature[0] == 'A');
-				Debug.Assert(mQueueHeader->Signature[1] == 'L');
-				Debug.Assert(mQueueHeader->Signature[2] == 'V');
-				Debug.Assert(mQueueHeader->Signature[3] == 'A');
+				if (mQueueHeader->Signature[0] != 'A' ||
+				    mQueueHeader->Signature[1] != 'L' ||
+				    mQueueHeader->Signature[2] != 'V' ||
+				    mQueueHeader->Signature[3] != 'A')
+				{
+					throw new InvalidDataException("Shared region does not start with the magic word 'ALVA'.");
+				}
 
 				// read administrative information from the queue's header
 				mNumberOfBlocks = mQueueHeader->NumberOfBlocks;
+				mBufferSize = mQueueHeader->BufferSize;
 				mBlockSize = mQueueHeader->BlockSize;
-				mRealBlockSize = mQueueHeader->RealBlockSize;
 				mQueueHeaderSize = (sizeof(QueueHeader) + CacheLineSize - 1) & ~(CacheLineSize - 1);
 				mFirstBlockInMemory = (QueueBlock*)((byte*)mQueueHeader + mQueueHeaderSize);
 
@@ -281,8 +285,8 @@ namespace GriffinPlus.Lib.Logging
 			mFirstBlockInMemory = null;
 			mFirstBlockUnderRead = null;
 			mNumberOfBlocks = 0;
+			mBufferSize = 0;
 			mBlockSize = 0;
-			mRealBlockSize = 0;
 			mInitialized = false;
 		}
 
@@ -320,7 +324,7 @@ namespace GriffinPlus.Lib.Logging
 				return null;
 			}
 
-			bufferSize = mBlockSize;
+			bufferSize = mBufferSize;
 			return (byte*)block + sizeof(QueueBlock);
 		}
 
@@ -342,10 +346,11 @@ namespace GriffinPlus.Lib.Logging
 			// check arguments
 			if (((long)buffer & 15) != 0) throw new ArgumentException("The buffer is not aligned to a 16 byte boundary.", nameof(buffer));
 			if (numberOfBytesWritten < 0) throw new ArgumentOutOfRangeException(nameof(numberOfBytesWritten), "The number of written bytes must be positive.");
-			if (numberOfBytesWritten > mBlockSize) throw new ArgumentOutOfRangeException(nameof(numberOfBytesWritten), "The number of written bytes must not exceed the queue's block size.");
+			if (numberOfBytesWritten > mBufferSize) throw new ArgumentOutOfRangeException(nameof(numberOfBytesWritten), "The number of written bytes must not exceed the queue's buffer size.");
+			QueueBlock* block = (QueueBlock*)((byte*)buffer - sizeof(QueueBlock));
+			if (block->MagicNumber != QueueBlock.MagicNumberValue) throw new ArgumentException($"The block of the buffer does not have a valid magic number.", nameof(buffer));
 
 			// append block to the end of the 'used block stack'
-			QueueBlock* block = (QueueBlock*)((byte*)buffer - sizeof(QueueBlock));
 			block->DataSize = numberOfBytesWritten;
 			PushUsedBlock(block, overflowCount);
 		}
@@ -377,7 +382,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (((long)buffers[i] & 15) != 0) throw new ArgumentException($"Buffer[{i}] is not aligned to a 16 byte boundary.", nameof(buffers));
 				if (numberOfBytesWritten[i] < 0) throw new ArgumentOutOfRangeException(nameof(numberOfBytesWritten), "The number of written bytes to buffer[{i}] must be positive.");
-				if (numberOfBytesWritten[i] > mBlockSize) throw new ArgumentOutOfRangeException(nameof(numberOfBytesWritten), "The number of written bytes to buffer[{i}] must not exceed the queue's block size.");
+				if (numberOfBytesWritten[i] > mBufferSize) throw new ArgumentOutOfRangeException(nameof(numberOfBytesWritten), "The number of written bytes to buffer[{i}] must not exceed the queue's buffer size.");
 				QueueBlock* block = (QueueBlock*)((byte*)buffers[i] - sizeof(QueueBlock));
 				if (block->MagicNumber != QueueBlock.MagicNumberValue) throw new ArgumentException($"The block of buffer[{i}] does not have a valid magic number.", nameof(buffers));
 			}
@@ -388,7 +393,7 @@ namespace GriffinPlus.Lib.Logging
 			for (int i = 0; i < count; i++)
 			{
 				QueueBlock* block = (QueueBlock*)((byte*)buffers[i] - sizeof(QueueBlock));
-				int blockIndex = (int)(((byte*)block - (byte*)mFirstBlockInMemory) / mRealBlockSize);
+				int blockIndex = (int)(((byte*)block - (byte*)mFirstBlockInMemory) / mBlockSize);
 				Debug.Assert(blockIndex < mNumberOfBlocks);
 				block->DataSize = numberOfBytesWritten[i];
 				block->NextIndex = previousIndex;
@@ -463,7 +468,7 @@ namespace GriffinPlus.Lib.Logging
 				if (mFirstBlockUnderRead->NextIndex >= 0)
 				{
 					Debug.Assert(mFirstBlockUnderRead->NextIndex < mNumberOfBlocks);
-					mFirstBlockUnderRead = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)mFirstBlockUnderRead->NextIndex * mRealBlockSize);
+					mFirstBlockUnderRead = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)mFirstBlockUnderRead->NextIndex * mBlockSize);
 					Debug.Assert(mFirstBlockUnderRead->MagicNumber == QueueBlock.MagicNumberValue);
 				}
 				else
@@ -498,7 +503,7 @@ namespace GriffinPlus.Lib.Logging
 					continue;
 
 				// reverse the sequence of blocks to restore the original order
-				QueueBlock* block = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)blockIndex * mRealBlockSize);
+				QueueBlock* block = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)blockIndex * mBlockSize);
 				int currentBlockIndex = blockIndex;
 				int previousIndex = -1;
 				while (true)
@@ -510,11 +515,11 @@ namespace GriffinPlus.Lib.Logging
 					previousIndex = currentBlockIndex;
 					currentBlockIndex = nextIndex;
 					if (currentBlockIndex < 0) break;
-					block = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)currentBlockIndex * mRealBlockSize);
+					block = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)currentBlockIndex * mBlockSize);
 				}
 
 				Debug.Assert(previousIndex >= 0 && previousIndex < mNumberOfBlocks);
-				mFirstBlockUnderRead = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)previousIndex * mRealBlockSize);
+				mFirstBlockUnderRead = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)previousIndex * mBlockSize);
 				validSize = mFirstBlockUnderRead->DataSize;
 				overflowCount = mFirstBlockUnderRead->OverflowCount;
 				void* buffer = (byte*)mFirstBlockUnderRead + sizeof(QueueBlock);
@@ -523,7 +528,7 @@ namespace GriffinPlus.Lib.Logging
 				if (mFirstBlockUnderRead->NextIndex >= 0)
 				{
 					Debug.Assert(mFirstBlockUnderRead->NextIndex < mNumberOfBlocks);
-					mFirstBlockUnderRead = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)mFirstBlockUnderRead->NextIndex * mRealBlockSize);
+					mFirstBlockUnderRead = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)mFirstBlockUnderRead->NextIndex * mBlockSize);
 				}
 				else
 				{
@@ -574,8 +579,8 @@ namespace GriffinPlus.Lib.Logging
 			mQueueHeader->Signature[2] = (byte)'V';         // The rest is up to your imagination...
 			mQueueHeader->Signature[3] = (byte)'A';         // Ooook, we just needed a handy signature with four characters ;)
 			mQueueHeader->NumberOfBlocks = mNumberOfBlocks;
+			mQueueHeader->BufferSize = mBufferSize;
 			mQueueHeader->BlockSize = mBlockSize;
-			mQueueHeader->RealBlockSize = mRealBlockSize;
 			mQueueHeader->FreeStackHeaderIndex = 0;
 			mQueueHeader->UsedStackHeaderIndex = -1;
 
@@ -584,7 +589,7 @@ namespace GriffinPlus.Lib.Logging
 			QueueBlock* firstBlock = (QueueBlock*)((byte*)mQueueHeader + mQueueHeaderSize);
 			for (int i = 0; i < mNumberOfBlocks; i++)
 			{
-				block = (QueueBlock*)((byte*)firstBlock + (long)i * mRealBlockSize);
+				block = (QueueBlock*)((byte*)firstBlock + (long)i * mBlockSize);
 				block->MagicNumber = QueueBlock.MagicNumberValue;
 				block->NextIndex = i + 1;
 				block->DataSize = 0;
@@ -592,7 +597,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// init last block
-			block = (QueueBlock*)((byte*)firstBlock + (long)(mNumberOfBlocks - 1) * mRealBlockSize);
+			block = (QueueBlock*)((byte*)firstBlock + (long)(mNumberOfBlocks - 1) * mBlockSize);
 			block->NextIndex = -1;
 		}
 
@@ -610,7 +615,7 @@ namespace GriffinPlus.Lib.Logging
 				int blockIndex = mQueueHeader->FreeStackHeaderIndex;
 				if (blockIndex < 0) return null;
 
-				QueueBlock* block = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)blockIndex * mRealBlockSize);
+				QueueBlock* block = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)blockIndex * mBlockSize);
 				if (Interlocked.CompareExchange(ref mQueueHeader->FreeStackHeaderIndex, block->NextIndex, blockIndex) == blockIndex)
 				{
 					Debug.Assert(block->MagicNumber == QueueBlock.MagicNumberValue);
@@ -638,8 +643,8 @@ namespace GriffinPlus.Lib.Logging
 			// block->DataSize = 0;
 			// block->OverflowCount = 0;
 
-			Debug.Assert(((byte*)block - (byte*)mFirstBlockInMemory) % mRealBlockSize == 0);
-			int blockIndex = (int)(((byte*)block - (byte*)mFirstBlockInMemory) / mRealBlockSize);
+			Debug.Assert(((byte*)block - (byte*)mFirstBlockInMemory) % mBlockSize == 0);
+			int blockIndex = (int)(((byte*)block - (byte*)mFirstBlockInMemory) / mBlockSize);
 			Debug.Assert(blockIndex < mNumberOfBlocks);
 
 			while (true)
@@ -662,8 +667,8 @@ namespace GriffinPlus.Lib.Logging
 
 			block->OverflowCount = overflowCount;
 
-			Debug.Assert(((byte*)block - (byte*)mFirstBlockInMemory) % mRealBlockSize == 0);
-			int blockIndex = (int)(((byte*)block - (byte*)mFirstBlockInMemory) / mRealBlockSize);
+			Debug.Assert(((byte*)block - (byte*)mFirstBlockInMemory) % mBlockSize == 0);
+			int blockIndex = (int)(((byte*)block - (byte*)mFirstBlockInMemory) / mBlockSize);
 			Debug.Assert(blockIndex < mNumberOfBlocks);
 
 			while (true)
@@ -684,7 +689,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lastBlock->OverflowCount = overflowCount; // last block is the first block of the pushed sequence
 
-			int firstBlockIndex = (int)(((byte*)firstBlock - (byte*)mFirstBlockInMemory) / mRealBlockSize);
+			int firstBlockIndex = (int)(((byte*)firstBlock - (byte*)mFirstBlockInMemory) / mBlockSize);
 
 			while (true)
 			{
