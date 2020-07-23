@@ -46,12 +46,12 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// Size of a queue element (as specified when creating the queue).
 			/// </summary>
-			public int BlockSize;
+			public int BufferSize;
 
 			/// <summary>
 			/// Size of a queue element (including padding bytes to fill up entire cache lines).
 			/// </summary>
-			public int RealBlockSize;
+			public int BlockSize;
 		}
 	}
 }
