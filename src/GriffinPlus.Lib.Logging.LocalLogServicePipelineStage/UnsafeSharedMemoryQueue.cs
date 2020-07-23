@@ -151,18 +151,19 @@ namespace GriffinPlus.Lib.Logging
 
 		#region Creating/Opening and Closing
 
-#if NETFRAMEWORK
 		/// <summary>
-		/// Creates a new shared memory queue.
+		/// Creates a new shared memory queue (only supported on the full .NET framework).
 		/// </summary>
 		/// <param name="name">Name of the shared memory region to create the queue in.</param>
 		/// <param name="bufferSize">Size of a buffer in the shared memory queue (in bytes).</param>
 		/// <param name="numberOfBlocks">Number of blocks the queue should keep.</param>
+		/// <exception cref="NotSupportedException">This method is not supported on the current platform/framework.</exception>
 		/// <remarks>
 		/// This method creates a new queue in a shared memory region specified by the given name and the given size.
 		/// </remarks>
 		public void Create(string name, int bufferSize, int numberOfBlocks)
 		{
+#if NETFRAMEWORK
 			if (name == null) throw new ArgumentNullException(nameof(name));
 			if (bufferSize < 0) throw new ArgumentOutOfRangeException(nameof(bufferSize), "The block size must be positive.");
 			if (numberOfBlocks < 0) throw new ArgumentOutOfRangeException(nameof(numberOfBlocks), "The number of blocks must be positive.");
@@ -201,8 +202,10 @@ namespace GriffinPlus.Lib.Logging
 			// the queue is initialized now
 			mFirstBlockUnderRead = null;
 			mInitialized = true;
-		}
+#else
+			throw new NotSupportedException("The Created() method is only supported on the full .NET framework.");
 #endif
+		}
 
 		/// <summary>
 		/// Opens an existing queue in the shared memory region with the specified name.
@@ -290,9 +293,9 @@ namespace GriffinPlus.Lib.Logging
 			mInitialized = false;
 		}
 
-		#endregion
+#endregion
 
-		#region Writing
+#region Writing
 
 		/// <summary>
 		/// Begins writing a block.
@@ -430,9 +433,9 @@ namespace GriffinPlus.Lib.Logging
 			PushFreeBlock(block);
 		}
 
-		#endregion
+#endregion
 
-		#region Reading
+#region Reading
 
 		/// <summary>
 		/// Begins reading a new block.
@@ -564,9 +567,9 @@ namespace GriffinPlus.Lib.Logging
 			PushFreeBlock(block);
 		}
 
-		#endregion
+#endregion
 
-		#region Internal Management
+#region Internal Management
 
 		/// <summary>
 		/// Initializes the the queue structure in shared memory.
