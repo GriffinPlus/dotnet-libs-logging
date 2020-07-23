@@ -3,9 +3,11 @@
   <PropertyGroup>
     <TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
     <AssemblyName>GriffinPlus.Lib.Logging.LocalLogServicePipelineStage</AssemblyName>
-    <RootNamespace>GriffinPlus.Lib.Logging.LocalLogServicePipelineStage</RootNamespace>
+    <RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
