@@ -16,6 +16,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
+// ReSharper disable EmptyConstructor
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -24,16 +26,15 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public partial class JsonMessageFormatter : ILogMessageFormatter
 	{
-		private List<FieldBase> mFields = new List<FieldBase>();
+		private readonly List<FieldBase> mFields = new List<FieldBase>();
 		private readonly StringBuilder mOutputBuilder = new StringBuilder();
 		private LogMessageField mFormattedFields = LogMessageField.None;
 		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
 		private JsonMessageFormatterStyle mStyle = JsonMessageFormatterStyle.OneLine;
 		private string mIndent = "    ";
-		private bool mEscapeSolidus = false;
-		private int mMaxEscapedJsonKeyLength = 0;
-		private object mSync = new object();
-
+		private bool mEscapeSolidus;
+		private int mMaxEscapedJsonKeyLength;
+		private readonly object mSync = new object();
 		/// <summary>
 		/// Initializes a new instance of the <see cref="JsonMessageFormatter"/> class.
 		/// </summary>
@@ -111,7 +112,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the string to use for indenting lines
-		/// (applys only if <see cref="Style"/> is set to <see cref="JsonMessageFormatterStyle.Beautified"/>).
+		/// (applies only if <see cref="Style"/> is set to <see cref="JsonMessageFormatterStyle.Beautified"/>).
 		/// </summary>
 		public string Indent
 		{
@@ -160,8 +161,7 @@ namespace GriffinPlus.Lib.Logging
 								mOutputBuilder.Append('"');
 								mOutputBuilder.Append(" : ");
 								field.AppendFormattedValue(message, mOutputBuilder);
-								if (i + 1 < mFields.Count) mOutputBuilder.Append(", ");
-								else mOutputBuilder.Append(" ");
+								mOutputBuilder.Append(i + 1 < mFields.Count ? ", " : " ");
 							}
 							mOutputBuilder.Append("}");
 							break;
@@ -317,14 +317,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// NOTE:
 			// According to the JSON specification (https://json.org) any codepoint except the quotation mark (")
-			// and the reverse solidus (\) may be used unescaped, but these codepoints can be escaped as well.
+			// and the reverse solidus (\) may be used unescaped, but these code points can be escaped as well.
 			// The following implementation escapes control characters that could cause issues when loading the
 			// JSON file into an editor.
 
-			for (int i = 0; i < s.Length; i++)
+			foreach (var c in s)
 			{
-				char c = s[i];
-
 				switch (c)
 				{
 					case '"': // quotation mark

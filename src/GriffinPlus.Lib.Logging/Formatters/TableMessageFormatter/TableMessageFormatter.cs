@@ -16,6 +16,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
+// ReSharper disable EmptyConstructor
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -27,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly StringBuilder mOutputBuilder = new StringBuilder();
 		private LogMessageField mFormattedFields = LogMessageField.None;
 		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
-		private object mSync = new object();
+		private readonly object mSync = new object();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TableMessageFormatter"/> class.

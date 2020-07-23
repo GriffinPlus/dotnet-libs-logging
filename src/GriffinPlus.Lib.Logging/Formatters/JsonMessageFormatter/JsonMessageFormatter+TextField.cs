@@ -11,8 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
-using System.Linq;
 using System.Text;
 
 namespace GriffinPlus.Lib.Logging
@@ -24,8 +22,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		sealed class TextField : FieldBase
 		{
-			private string[] mBuffer;
-
 			/// <summary>
 			/// Initializes a new instance of the <see cref="TextField"/> class.
 			/// </summary>
