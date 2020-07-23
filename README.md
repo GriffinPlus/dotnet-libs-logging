@@ -179,6 +179,13 @@ A pipeline stage class must implement the `IProcessingPipelineStage` interface. 
     - `FileWriterPipelineStage`
         - Log messages are written to a custom file as defined by the formatter
         - Processing is done asynchronously
+- Pipeline Stages forwarding messages to other logging systems
+  - Implementations
+    - `LocalLogServicePipelineStage` (***proprietary, Windows only***)
+	  - Log messages are forwarded to a service via a shared memory queue ensuring high performance
+	  - Messages up to a process crash are available as the stage does not buffer messages in-process
+	  - Available via nuget package `GriffinPlus.Lib.Logging.LocalLogServicePipelineStage`
+	  - *At the moment there is no publicly available implementation of the service*
 
 ### Requesting a Log Writer
 
