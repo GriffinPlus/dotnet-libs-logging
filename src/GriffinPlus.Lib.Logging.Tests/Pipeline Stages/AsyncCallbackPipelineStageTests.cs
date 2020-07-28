@@ -84,11 +84,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Creates a new instance of the pipeline stage.
 		/// </summary>
-		/// <returns></returns>
-		protected override AsyncCallbackPipelineStage CreateStage()
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
+		/// <returns>The created stage.</returns>
+		protected override AsyncCallbackPipelineStage CreateStage(string name)
 		{
 			var callback = new Callback();
-			return new AsyncCallbackPipelineStage(callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
+			return new AsyncCallbackPipelineStage(name, callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
 		}
 
 		/// <summary>
@@ -99,7 +100,7 @@ namespace GriffinPlus.Lib.Logging
 		void Create_WithBothCallbacks()
 		{
 			var callback = new Callback();
-			var stage = new AsyncCallbackPipelineStage(callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
+			var stage = new AsyncCallbackPipelineStage("Callback", callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
 			Assert.Empty(stage.Settings);
 		}
 
@@ -110,7 +111,7 @@ namespace GriffinPlus.Lib.Logging
 		void Create_WithSyncCallbackOnly()
 		{
 			var callback = new Callback();
-			var stage = new AsyncCallbackPipelineStage(callback.ProcessSyncCallback, null);
+			var stage = new AsyncCallbackPipelineStage("Callback", callback.ProcessSyncCallback, null);
 			Assert.Empty(stage.Settings);
 		}
 
@@ -121,7 +122,7 @@ namespace GriffinPlus.Lib.Logging
 		void Create_WithAsyncCallbackOnly()
 		{
 			var callback = new Callback();
-			var stage = new AsyncCallbackPipelineStage(null, callback.ProcessAsyncCallback);
+			var stage = new AsyncCallbackPipelineStage("Callback", null, callback.ProcessAsyncCallback);
 			Assert.Empty(stage.Settings);
 		}
 
@@ -139,7 +140,7 @@ namespace GriffinPlus.Lib.Logging
 				ProcessSyncCallbackReturnValue = processSyncReturnValue,
 				ProcessSyncCallbackQueueForAsyncProcessing = queueForAsyncProcessing
 			};
-			var stage = new AsyncCallbackPipelineStage(callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
+			var stage = new AsyncCallbackPipelineStage("Callback", callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
@@ -190,8 +191,8 @@ namespace GriffinPlus.Lib.Logging
 				ProcessSyncCallbackReturnValue = processSyncReturnValue,
 				ProcessSyncCallbackQueueForAsyncProcessing = queueForAsyncProcessing
 			};
-			var stage1 = new AsyncCallbackPipelineStage(callback1.ProcessSyncCallback, callback1.ProcessAsyncCallback);
-			var stage2 = new AsyncCallbackPipelineStage(callback2.ProcessSyncCallback, callback2.ProcessAsyncCallback);
+			var stage1 = new AsyncCallbackPipelineStage("Callback1", callback1.ProcessSyncCallback, callback1.ProcessAsyncCallback);
+			var stage2 = new AsyncCallbackPipelineStage("Callback2", callback2.ProcessSyncCallback, callback2.ProcessAsyncCallback);
 			stage1.AddNextStage(stage2);
 
 			// initialize the stages

@@ -32,7 +32,7 @@ namespace GriffinPlus.Lib.Logging
 			base.Create_And_Check_BaseClass_State();
 
 			// check state introduced with the TextWriterPipelineStage class
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 			Assert.NotNull(stage.Formatter);
 		}
 
@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Formatter_SetSuccessfully()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 			var formatter = new TestFormatter();
 			stage.Formatter = formatter;
 			Assert.Same(formatter, stage.Formatter);
@@ -55,7 +55,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Formatter_FailsIfNull()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 			Assert.Throws<ArgumentNullException>(() => stage.Formatter = null);
 		}
 
@@ -66,7 +66,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Formatter_FailsIfInitialized()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 			var formatter = new TestFormatter();
 			((IProcessingPipelineStage) stage).Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.Formatter = formatter);

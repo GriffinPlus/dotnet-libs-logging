@@ -44,12 +44,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Creates a new instance of the pipeline stage.
 		/// </summary>
-		/// <returns></returns>
-		protected override FileWriterPipelineStage CreateStage()
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
+		/// <returns>The created stage.</returns>
+		protected override FileWriterPipelineStage CreateStage(string name)
 		{
 			string path = Path.GetFullPath($"TestLog_{Guid.NewGuid():N}.log");
 			mTemporaryFiles.Add(path);
-			return new FileWriterPipelineStage(path, false);
+			return new FileWriterPipelineStage(name, path, false);
 		}
 
 		/// <summary>
@@ -59,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		void Create()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("File");
 			Assert.Empty(stage.Settings);
 		}
 
@@ -84,7 +85,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// create a new pipeline stage
 			var formatter = new TestFormatter();
-			var stage = CreateStage();
+			var stage = CreateStage("File");
 			stage.Formatter = formatter;
 
 			// initialize the pipeline stage

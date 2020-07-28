@@ -37,6 +37,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage"/> class.
 		/// </summary>
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="processCallback">
 		/// Callback processing a log message traveling through the pipeline (may be null).
 		/// The callback is executed in the context of the thread writing the message.
@@ -46,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
-		public CallbackPipelineStage(ProcessingCallback processCallback)
+		public CallbackPipelineStage(string name, ProcessingCallback processCallback) : base(name)
 		{
 			mProcessingCallback = processCallback;
 		}

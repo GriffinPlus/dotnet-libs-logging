@@ -60,6 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage"/> class.
 		/// </summary>
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="processSyncCallback">
 		/// Callback processing a log message traveling through the pipeline (may be null).
 		/// The callback is executed in the context of the thread writing the message.
@@ -74,8 +75,9 @@ namespace GriffinPlus.Lib.Logging
 		/// need the message any more.
 		/// </remarks>
 		public AsyncCallbackPipelineStage(
+			string name,
 			SynchronousProcessingCallback processSyncCallback,
-			AsynchronousProcessingCallback processAsyncCallback)
+			AsynchronousProcessingCallback processAsyncCallback) : base(name)
 		{
 			mSynchronousProcessingCallback = processSyncCallback;
 			mAsynchronousProcessingCallback = processAsyncCallback;

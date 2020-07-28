@@ -30,17 +30,18 @@ namespace GriffinPlus.Lib.Logging
 		private FileStream mFile;
 		private StreamWriter mWriter;
 		private bool mAutoFlush;
-		
+
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileWriterPipelineStage"/> class.
 		/// </summary>
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="path">Path of the file to write to.</param>
 		/// <param name="append">
 		/// true to append new messages to the specified file, if it exists already;
 		/// false to truncate the file and start from scratch.
 		/// </param>
-		public FileWriterPipelineStage(string path, bool append)
+		public FileWriterPipelineStage(string name, string path, bool append) : base(name)
 		{
 			mPath = path;
 			mAppend = append;

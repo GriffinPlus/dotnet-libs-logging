@@ -68,7 +68,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			jsonFormatter.AddTextField();
 
 			// Create pipeline stage for printing to the console
-			var consoleStage = new ConsoleWriterPipelineStage();
+			var consoleStage = new ConsoleWriterPipelineStage("Console");
 			consoleStage.MessageQueueSize = 500;                                            // buffer up to 500 messages (default)
 			consoleStage.DiscardMessagesIfQueueFull = false;                                // block if the queue is full (default)
 			consoleStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                 // wait up to 5000ms for the stage to shut down (default)
@@ -78,7 +78,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			consoleStage.MapLogLevelToStream(LogLevel.Error, ConsoleOutputStream.Stderr);   // print errors to stderr
 
 			// Create pipeline stage for writing to a file
-			var fileStage = new FileWriterPipelineStage("mylog.log", false);
+			var fileStage = new FileWriterPipelineStage("File", "mylog.log", false);
 			fileStage.MessageQueueSize = 500;                                               // buffer up to 500 messages (default)
 			fileStage.DiscardMessagesIfQueueFull = false;                                   // block if the queue is full (default)
 			fileStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                    // wait up to 5000ms for the stage to shut down (default)
@@ -86,7 +86,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			fileStage.AutoFlush = false;                                                    // do not flush the file after writing a log message (default)
 
 			// Create splitter pipeline stage to unconditionally feed log messages into both pipelines stages
-			var splitterStage = new SplitterPipelineStage();
+			var splitterStage = new SplitterPipelineStage("Splitter");
 			splitterStage.AddNextStage(consoleStage);
 			splitterStage.AddNextStage(fileStage);
 

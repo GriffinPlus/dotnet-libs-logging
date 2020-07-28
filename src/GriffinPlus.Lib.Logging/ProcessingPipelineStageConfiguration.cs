@@ -77,7 +77,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineStageConfiguration"/> class.
 		/// </summary>
-		/// <param name="sync">Object to use for synchronizing access to the configuration (may be null).</param>
+		/// <param name="sync">
+		/// Object to use for synchronizing access to the configuration (may be null).
+		/// This is usually the same as the lock that is used to synchronize the pipeline stage itself.
+		/// </param>
 		public ProcessingPipelineStageConfiguration(object sync = null)
 		{
 			Sync = sync ?? new object();

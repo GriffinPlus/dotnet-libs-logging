@@ -54,11 +54,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Creates a new instance of the pipeline stage.
 		/// </summary>
-		/// <returns></returns>
-		protected override CallbackPipelineStage CreateStage()
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
+		/// <returns>The created stage.</returns>
+		protected override CallbackPipelineStage CreateStage(string name)
 		{
 			var callback = new Callback();
-			return new CallbackPipelineStage(callback.ProcessSyncCallback);
+			return new CallbackPipelineStage(name, callback.ProcessSyncCallback);
 		}
 
 		/// <summary>
@@ -69,7 +70,7 @@ namespace GriffinPlus.Lib.Logging
 		void Create_WithCallback()
 		{
 			var callback = new Callback();
-			var stage = new CallbackPipelineStage(callback.ProcessSyncCallback);
+			var stage = new CallbackPipelineStage("Callback", callback.ProcessSyncCallback);
 			Assert.Empty(stage.Settings);
 		}
 
@@ -79,7 +80,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		void Create_WithoutCallback()
 		{
-			var stage = new CallbackPipelineStage(null);
+			var stage = new CallbackPipelineStage("Callback", null);
 			Assert.Empty(stage.Settings);
 		}
 
@@ -92,7 +93,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Process_Standalone(bool processSyncReturnValue)
 		{
 			var callback = new Callback() { ProcessSyncCallbackReturnValue = processSyncReturnValue };
-			var stage = new CallbackPipelineStage(callback.ProcessSyncCallback);
+			var stage = new CallbackPipelineStage("Callback", callback.ProcessSyncCallback);
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
@@ -118,8 +119,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var callback1 = new Callback() { ProcessSyncCallbackReturnValue = processSyncReturnValue };
 			var callback2 = new Callback() { ProcessSyncCallbackReturnValue = processSyncReturnValue };
-			var stage1 = new CallbackPipelineStage(callback1.ProcessSyncCallback);
-			var stage2 = new CallbackPipelineStage(callback2.ProcessSyncCallback);
+			var stage1 = new CallbackPipelineStage("Callback1", callback1.ProcessSyncCallback);
+			var stage2 = new CallbackPipelineStage("Callback2", callback2.ProcessSyncCallback);
 			stage1.AddNextStage(stage2);
 
 			// initialize the stages

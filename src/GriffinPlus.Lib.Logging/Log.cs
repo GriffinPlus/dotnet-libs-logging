@@ -47,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync) // just to prevent assertions from firing...
 			{
 				InitDefaultConfiguration();
-				ProcessingPipeline = new ConsoleWriterPipelineStage();
+				ProcessingPipeline = new ConsoleWriterPipelineStage("Console");
 			}
 		}
 

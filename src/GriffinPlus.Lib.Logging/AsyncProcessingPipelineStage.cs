@@ -45,10 +45,18 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage{T}"/> class.
 		/// </summary>
-		protected AsyncProcessingPipelineStage()
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
+		protected AsyncProcessingPipelineStage(string name)
 		{
+			Name = name ?? throw new ArgumentNullException(nameof(name));
 			Settings = new ProcessingPipelineStageConfiguration(Sync);
 		}
+
+		/// <summary>
+		/// Gets the name of the processing pipeline stage identifying the stage
+		/// (unique throughout the entire processing pipeline).
+		/// </summary>
+		public string Name { get; private set; }
 
 		/// <summary>
 		/// Gets the object to use for synchronization of changes to the pipeline stage using a monitor.

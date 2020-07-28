@@ -25,11 +25,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogServicePipelineStage"/> class.
 		/// </summary>
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="prefix">
 		/// Prefix for kernel objects created along with the connection
 		/// (helps to create a kind of namespace to differentiate instances of the local log service)
 		/// </param>
-		public LocalLogServicePipelineStage(string prefix = "Griffin+")
+		public LocalLogServicePipelineStage(string name, string prefix = "Griffin+") : base(name)
 		{
 			mSource = new LocalLogServiceConnection(prefix);
 		}

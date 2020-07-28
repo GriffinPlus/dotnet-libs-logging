@@ -11,6 +11,7 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
@@ -20,6 +21,11 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public interface IProcessingPipelineStage
 	{
+		/// <summary>
+		/// Gets the name of the processing pipeline stage identifying the stage throughout the entire pipeline (must be unique).
+		/// </summary>
+		string Name { get; }
+
 		/// <summary>
 		/// Initializes the processing pipeline stage and all following stages.
 		/// This method is called by the logging subsystem and should not be called explicitly.

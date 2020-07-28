@@ -27,10 +27,11 @@ namespace GriffinPlus.Lib.Logging
 		internal static LocalLogMessagePool MessagePool = new LocalLogMessagePool();
 
 		/// <summary>
-		/// Creates a new pipeline stage instance to test.
+		/// Creates a new instance of the pipeline stage.
 		/// </summary>
-		/// <returns></returns>
-		protected abstract STAGE CreateStage();
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
+		/// <returns>The created stage.</returns>
+		protected abstract STAGE CreateStage(string name);
 
 		/// <summary>
 		/// Tests whether creating a new stage succeeds and the stage is in the expected state
@@ -39,7 +40,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Create_And_Check_State()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 
 			// a new stage should not be initialized (attached to the logging subsystem)
 			Assert.False(stage.IsInitialized);
@@ -63,9 +64,11 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Adding_And_Getting_Next_Stages()
 		{
-			var stage1 = CreateStage();
-			var stage2 = CreateStage();
-			var stages12 = new HashSet<STAGE> { stage1, stage2 };
+			var stage1 = CreateStage("Stage1");
+			var stage2 = CreateStage("Stage2");
+			var stages12 = new HashSet<STAGE>();
+			stages12.Add(stage1);
+			stages12.Add(stage2);
 
 			// add stage 2 as follower of stage 1
 			stage1.AddNextStage(stage2);
@@ -98,7 +101,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Initialize_Standalone()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 			Assert.False(stage.IsInitialized);
 			((IProcessingPipelineStage) stage).Initialize();
 			Assert.True(stage.IsInitialized);
@@ -111,8 +114,8 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Initialize_WithFollowingStage()
 		{
-			var stage1 = CreateStage();
-			var stage2 = new ProcessingPipelineTestStage();
+			var stage1 = CreateStage("Stage1");
+			var stage2 = new ProcessingPipelineTestStage("Stage2");
 			stage1.AddNextStage(stage2);
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
@@ -128,7 +131,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Initialize_FailsIfAlreadyInitialized()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 			
 			// initialize the first time
 			Assert.False(stage.IsInitialized);
@@ -146,7 +149,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Shutdown_Standalone()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
@@ -165,8 +168,8 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Shutdown_WithFollowingStage()
 		{
-			var stage1 = CreateStage();
-			var stage2 = new ProcessingPipelineTestStage();
+			var stage1 = CreateStage("Stage1");
+			var stage2 = new ProcessingPipelineTestStage("Stage2");
 			stage1.AddNextStage(stage2);
 
 			// initialize the stages
@@ -189,7 +192,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Process_FailsIfMessageIsNull()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 			Assert.Throws<ArgumentNullException>(() => ((IProcessingPipelineStage) stage).ProcessMessage(null));
 		}
 
@@ -200,7 +203,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Process_FailsIfNotInitialized()
 		{
-			var stage = CreateStage();
+			var stage = CreateStage("Stage");
 			var message = MessagePool.GetUninitializedMessage();
 			Assert.Throws<InvalidOperationException>(() => ((IProcessingPipelineStage) stage).ProcessMessage(message));
 		}

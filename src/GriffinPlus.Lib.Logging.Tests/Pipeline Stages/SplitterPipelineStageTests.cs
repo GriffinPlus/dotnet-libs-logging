@@ -24,10 +24,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Creates a new instance of the pipeline stage.
 		/// </summary>
-		/// <returns></returns>
-		protected override SplitterPipelineStage CreateStage()
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
+		/// <returns>The created stage.</returns>
+		protected override SplitterPipelineStage CreateStage(string name)
 		{
-			return new SplitterPipelineStage();
+			return new SplitterPipelineStage(name);
 		}
 
 		/// <summary>
@@ -37,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		void Create()
 		{
-			var stage = new SplitterPipelineStage();
+			var stage = new SplitterPipelineStage("Splitter"); // do not use CreateStage() to emphasize that the constructor is tested
 			Assert.Empty(stage.Settings);
 		}
 

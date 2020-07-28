@@ -25,7 +25,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SplitterPipelineStage"/> class.
 		/// </summary>
-		public SplitterPipelineStage()
+		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
+		public SplitterPipelineStage(string name) : base(name)
 		{
 
 		}
