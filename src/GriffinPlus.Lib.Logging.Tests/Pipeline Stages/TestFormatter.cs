@@ -32,7 +32,7 @@ namespace GriffinPlus.Lib.Logging
 			builder.AppendFormat(
 				"{0} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7}",
 				message.Timestamp,
-				message.HighAccuracyTimestamp,
+				message.HighPrecisionTimestamp,
 				message.LogLevelName,
 				message.LogWriterName,
 				message.ProcessId,

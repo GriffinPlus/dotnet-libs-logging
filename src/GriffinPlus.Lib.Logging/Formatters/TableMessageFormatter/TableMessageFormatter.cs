@@ -135,11 +135,11 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Adds the high accuracy timestamp column.
+		/// Adds the high precision timestamp column.
 		/// </summary>
-		public void AddHighAccuracyTimestampColumn()
+		public void AddHighPrecisionTimestampColumn()
 		{
-			HighAccuracyTimestampColumn column = new HighAccuracyTimestampColumn(this);
+			HighPrecisionTimestampColumn column = new HighPrecisionTimestampColumn(this);
 			AppendColumn(column);
 		}
 

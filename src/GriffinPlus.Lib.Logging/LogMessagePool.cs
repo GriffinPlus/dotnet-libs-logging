@@ -38,8 +38,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets a log message from the pool, creates a new one, if the pool is empty.
 		/// </summary>
 		/// <param name="timestamp">Time the message was written to the log.</param>
-		/// <param name="highAccuracyTimestamp">
-		/// Timestamp for relative time measurements with high accuracy
+		/// <param name="highPrecisionTimestamp">
+		/// Timestamp for relative time measurements with high precision
 		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="processId">Id of the process emitting the log message.</param>
@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested log message.</returns>
 		public LogMessage GetMessage(
 			DateTimeOffset timestamp,
-			long highAccuracyTimestamp,
+			long highPrecisionTimestamp,
 			int processId,
 			string processName,
 			string applicationName,
@@ -73,7 +73,7 @@ namespace GriffinPlus.Lib.Logging
 				message = new LogMessage(this);
 			}
 
-			message.Init(timestamp, highAccuracyTimestamp, processId, processName, applicationName, logWriterName, logLevelName, text);
+			message.Init(timestamp, highPrecisionTimestamp, processId, processName, applicationName, logWriterName, logLevelName, text);
 			return message;
 		}
 

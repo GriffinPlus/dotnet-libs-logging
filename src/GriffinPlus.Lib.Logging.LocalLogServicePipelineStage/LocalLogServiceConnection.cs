@@ -935,7 +935,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (mSync)
 			{
 				var timestamp = message.Timestamp.ToUniversalTime().ToFileTime();
-				var highAccuracyTimestamp = (message.HighAccuracyTimestamp + 500) / 1000; // ns => µs
+				var highPrecisionTimestamp = (message.HighPrecisionTimestamp + 500) / 1000; // ns => µs
 
 				if (defer || mServiceProcess != null)
 				{
@@ -957,7 +957,7 @@ namespace GriffinPlus.Lib.Logging
 						block->Type = LogEntryBlockType.Message;
 						block->Reserved = 0;
 						block->Message.Timestamp = timestamp;
-						block->Message.HighPrecisionTimestamp = highAccuracyTimestamp;
+						block->Message.HighPrecisionTimestamp = highPrecisionTimestamp;
 						block->Message.LogLevelNameId = message.LogLevel.Id;
 						block->Message.SourceNameId = message.LogWriter.Id;
 						block->Message.ProcessId = sCurrentProcessId;
@@ -1348,7 +1348,7 @@ namespace GriffinPlus.Lib.Logging
 						// => put command into it
 						block->Type = LogEntryBlockType.ClearLogViewer;
 						block->ClearLogViewer.Timestamp = Log.GetTimestamp().ToUniversalTime().ToFileTime();
-						block->ClearLogViewer.HighPrecisionTimestamp = (Log.GetHighAccuracyTimestamp() + 500) / 1000; // ns => µs
+						block->ClearLogViewer.HighPrecisionTimestamp = (Log.GetHighPrecisionTimestamp() + 500) / 1000; // ns => µs
 						block->ClearLogViewer.ProcessId = sCurrentProcessId;
 
 						// enqueue command
@@ -1433,7 +1433,7 @@ namespace GriffinPlus.Lib.Logging
 						// prepare command and send it
 						block->Type = LogEntryBlockType.SaveSnapshot;
 						block->SaveSnapshot.Timestamp = Log.GetTimestamp().ToUniversalTime().ToFileTime();
-						block->SaveSnapshot.HighPrecisionTimestamp = (Log.GetHighAccuracyTimestamp() + 500) / 1000; // ns => µs
+						block->SaveSnapshot.HighPrecisionTimestamp = (Log.GetHighPrecisionTimestamp() + 500) / 1000; // ns => µs
 						block->SaveSnapshot.ProcessId = sCurrentProcessId;
 
 						// enqueue command

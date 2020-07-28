@@ -50,7 +50,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			Context = new Dictionary<string, object>(other.Context);
 			Timestamp = other.Timestamp;
-			HighAccuracyTimestamp = other.HighAccuracyTimestamp;
+			HighPrecisionTimestamp = other.HighPrecisionTimestamp;
 			ProcessId = other.ProcessId;
 			ProcessName = other.ProcessName;
 			ApplicationName = other.ApplicationName;
@@ -73,10 +73,10 @@ namespace GriffinPlus.Lib.Logging
 		public DateTimeOffset Timestamp { get; private set; }
 
 		/// <summary>
-		/// Gets the timestamp for relative time measurements with high accuracy
-		/// (in nanoseconds, but the actual accuracy depends on the system timer).
+		/// Gets the timestamp for relative time measurements with high precision
+		/// (in nanoseconds, but the actual precision depends on the system timer).
 		/// </summary>
-		public long HighAccuracyTimestamp { get; private set; }
+		public long HighPrecisionTimestamp { get; private set; }
 
 		/// <summary>
 		/// Gets the log level associated with the log message.
@@ -170,9 +170,9 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes the log message.
 		/// </summary>
 		/// <param name="timestamp">Time the message was written to the log.</param>
-		/// <param name="highAccuracyTimestamp">
-		/// Timestamp for relative time measurements with high accuracy
-		/// (in ns, the actual accuracy depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
+		/// <param name="highPrecisionTimestamp">
+		/// Timestamp for relative time measurements with high precision
+		/// (in ns, the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="processId">Id of the process emitting the log message.</param>
 		/// <param name="processName">Name of the process emitting the log message.</param>
@@ -185,7 +185,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="text">The actual text the log message is about.</param>
 		internal void Init(
 			DateTimeOffset timestamp,
-			long highAccuracyTimestamp,
+			long highPrecisionTimestamp,
 			int processId,
 			string processName,
 			string applicationName,
@@ -194,7 +194,7 @@ namespace GriffinPlus.Lib.Logging
 			string text)
 		{
 			Timestamp = timestamp;
-			HighAccuracyTimestamp = highAccuracyTimestamp;
+			HighPrecisionTimestamp = highPrecisionTimestamp;
 			ProcessId = processId;
 			ProcessName = processName;
 			ApplicationName = applicationName;

@@ -18,17 +18,17 @@ namespace GriffinPlus.Lib.Logging
 	partial class JsonMessageFormatter
 	{
 		/// <summary>
-		/// The high accuracy timestamp field (immutable).
+		/// The high precision timestamp field (immutable).
 		/// </summary>
-		sealed class HighAccuracyTimestampField : FieldBase
+		sealed class HighPrecisionTimestampField : FieldBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="HighAccuracyTimestampField"/> class.
+			/// Initializes a new instance of the <see cref="HighPrecisionTimestampField"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>
-			public HighAccuracyTimestampField(JsonMessageFormatter formatter, string jsonKey) :
-				base(formatter, LogMessageField.HighAccuracyTimestamp , jsonKey)
+			public HighPrecisionTimestampField(JsonMessageFormatter formatter, string jsonKey) :
+				base(formatter, LogMessageField.HighPrecisionTimestamp , jsonKey)
 			{
 
 			}
@@ -40,7 +40,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="builder">String builder to append the output of the current field to.</param>
 			public override void AppendFormattedValue(ILogMessage message, StringBuilder builder)
 			{
-				builder.Append(message.HighAccuracyTimestamp);
+				builder.Append(message.HighPrecisionTimestamp);
 			}
 		}
 	}

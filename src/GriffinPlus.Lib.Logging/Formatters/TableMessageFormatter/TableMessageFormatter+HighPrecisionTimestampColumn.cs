@@ -19,15 +19,15 @@ namespace GriffinPlus.Lib.Logging
 	partial class TableMessageFormatter
 	{
 		/// <summary>
-		/// The high accuracy timestamp column.
+		/// The high precision timestamp column.
 		/// </summary>
-		sealed class HighAccuracyTimestampColumn : ColumnBase
+		sealed class HighPrecisionTimestampColumn : ColumnBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="HighAccuracyTimestampColumn"/> class.
+			/// Initializes a new instance of the <see cref="HighPrecisionTimestampColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			public HighAccuracyTimestampColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.HighAccuracyTimestamp)
+			public HighPrecisionTimestampColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.HighPrecisionTimestamp)
 			{
 
 			}
@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (line == 0)
 				{
-					string s = message.HighAccuracyTimestamp.ToString();
+					string s = message.HighPrecisionTimestamp.ToString();
 					builder.Append(s);
 					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
 				}

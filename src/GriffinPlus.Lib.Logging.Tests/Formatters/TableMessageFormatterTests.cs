@@ -58,7 +58,7 @@ namespace GriffinPlus.Lib.Logging
 				};
 
 				yield return new object[] {
-					LogMessageField.HighAccuracyTimestamp,
+					LogMessageField.HighPrecisionTimestamp,
 					message,
 					"123"
 				};
@@ -117,7 +117,7 @@ namespace GriffinPlus.Lib.Logging
 			var formatter = new TableMessageFormatter();
 
 			if (fields.HasFlag(LogMessageField.Timestamp)) formatter.AddTimestampColumn();
-			if (fields.HasFlag(LogMessageField.HighAccuracyTimestamp)) formatter.AddHighAccuracyTimestampColumn();
+			if (fields.HasFlag(LogMessageField.HighPrecisionTimestamp)) formatter.AddHighPrecisionTimestampColumn();
 			if (fields.HasFlag(LogMessageField.LogWriterName)) formatter.AddLogWriterColumn();
 			if (fields.HasFlag(LogMessageField.LogLevelName)) formatter.AddLogLevelColumn();
 			if (fields.HasFlag(LogMessageField.ApplicationName)) formatter.AddApplicationNameColumn();
@@ -154,7 +154,7 @@ namespace GriffinPlus.Lib.Logging
 			return new LogMessage()
 			{
 				Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
-				HighAccuracyTimestamp = 123,
+				HighPrecisionTimestamp = 123,
 				ProcessName = "MyProcess",
 				ProcessId = 42,
 				ApplicationName = "MyApp",

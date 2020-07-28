@@ -26,10 +26,10 @@ namespace GriffinPlus.Lib.Logging
 		DateTimeOffset Timestamp { get; }
 
 		/// <summary>
-		/// Gets the timestamp for relative time measurements with high accuracy
-		/// (in nanoseconds, but the actual accuracy depends on the system timer).
+		/// Gets the timestamp for relative time measurements with high precision
+		/// (in nanoseconds, but the actual precision depends on the system timer).
 		/// </summary>
-		long HighAccuracyTimestamp { get; }
+		long HighPrecisionTimestamp { get; }
 
 		/// <summary>
 		/// Gets the name of the log level associated with the current log message.

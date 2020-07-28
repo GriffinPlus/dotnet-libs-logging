@@ -32,9 +32,9 @@ namespace GriffinPlus.Lib.Logging
 		Timestamp = 1,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.HighAccuracyTimestamp"/> field.
+		/// The <see cref="ILogMessage.HighPrecisionTimestamp"/> field.
 		/// </summary>
-		HighAccuracyTimestamp = 1 << 1,
+		HighPrecisionTimestamp = 1 << 1,
 
 		/// <summary>
 		/// The <see cref="ILogMessage.LogWriterName"/> field.
@@ -69,7 +69,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// All fields.
 		/// </summary>
-		All = Timestamp | HighAccuracyTimestamp | LogWriterName | LogLevelName | ApplicationName | ProcessName | ProcessId | Text,
+		All = Timestamp | HighPrecisionTimestamp | LogWriterName | LogLevelName | ApplicationName | ProcessName | ProcessId | Text,
 
 	}
 }

@@ -45,7 +45,7 @@ namespace GriffinPlus.Lib.Logging
 		public LogMessage(LogMessage other)
 		{
 			Timestamp = other.Timestamp;
-			HighAccuracyTimestamp = other.HighAccuracyTimestamp;
+			HighPrecisionTimestamp = other.HighPrecisionTimestamp;
 			ProcessId = other.ProcessId;
 			ProcessName = other.ProcessName;
 			ApplicationName = other.ApplicationName;
@@ -62,10 +62,10 @@ namespace GriffinPlus.Lib.Logging
 		public DateTimeOffset Timestamp { get; set; }
 
 		/// <summary>
-		/// Gets the timestamp for relative time measurements with high accuracy
-		/// (in nanoseconds, but the actual accuracy depends on the system timer).
+		/// Gets the timestamp for relative time measurements with high precision
+		/// (in nanoseconds, but the actual precision depends on the system timer).
 		/// </summary>
-		public long HighAccuracyTimestamp { get; set; }
+		public long HighPrecisionTimestamp { get; set; }
 
 		/// <summary>
 		/// Gets the name of the log level associated with the log message.
@@ -149,8 +149,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes the log message.
 		/// </summary>
 		/// <param name="timestamp">Time the message was written to the log.</param>
-		/// <param name="highAccuracyTimestamp">
-		/// Timestamp for relative time measurements with high accuracy
+		/// <param name="highPrecisionTimestamp">
+		/// Timestamp for relative time measurements with high precision
 		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="processId">Id of the process emitting the log message.</param>
@@ -164,7 +164,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="text">The actual text the log message is about.</param>
 		public void Init(
 			DateTimeOffset timestamp,
-			long highAccuracyTimestamp,
+			long highPrecisionTimestamp,
 			int processId,
 			string processName,
 			string applicationName,
@@ -173,7 +173,7 @@ namespace GriffinPlus.Lib.Logging
 			string text)
 		{
 			Timestamp = timestamp;
-			HighAccuracyTimestamp = highAccuracyTimestamp;
+			HighPrecisionTimestamp = highPrecisionTimestamp;
 			ProcessId = processId;
 			ProcessName = processName;
 			ApplicationName = applicationName;

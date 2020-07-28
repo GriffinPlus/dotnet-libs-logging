@@ -215,12 +215,12 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Adds the high accuracy timestamp field.
+		/// Adds the high precision timestamp field.
 		/// </summary>
 		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddHighAccuracyTimestampField(string jsonKey = "HighAccuracyTimestamp")
+		public void AddHighPrecisionTimestampField(string jsonKey = "HighPrecisionTimestamp")
 		{
-			HighAccuracyTimestampField field = new HighAccuracyTimestampField(this, jsonKey);
+			HighPrecisionTimestampField field = new HighPrecisionTimestampField(this, jsonKey);
 			AppendField(field);
 		}
 
