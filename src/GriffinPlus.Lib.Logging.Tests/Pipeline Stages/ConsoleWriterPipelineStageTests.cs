@@ -270,7 +270,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// give the message some time to travel through the pipeline
-			Thread.Sleep(50);
+			Thread.Sleep(250);
 
 			// the streams should contain the output now
 			var stdoutReader = new StreamReader(new MemoryStream(stdoutStream.ToArray()));
