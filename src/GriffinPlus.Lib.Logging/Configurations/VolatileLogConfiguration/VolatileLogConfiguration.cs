@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 	public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguration>
 	{
 		private string mApplicationName;
-		private VolatileProcessingPipelineConfiguration mProcessingPipelineConfiguration;
+		private readonly VolatileProcessingPipelineConfiguration mProcessingPipelineConfiguration;
 		private List<LogWriterConfiguration> mLogWriterSettings;
 
 		/// <summary>

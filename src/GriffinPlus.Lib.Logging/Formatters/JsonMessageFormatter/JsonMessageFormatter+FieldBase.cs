@@ -50,7 +50,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// Gets the unescaped key in the JSON document the field is associated with.
 			/// </summary>
-			public string JsonKey { get; }
+			private string JsonKey { get; }
 
 			/// <summary>
 			/// Gets the escaped key in the JSON document the field is associated with.

@@ -33,12 +33,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="rawSetting">The corresponding raw setting in the configuration.</param>
 		/// <param name="valueFromStringConverter">Delegate that converts the setting value to a string.</param>
 		/// <param name="valueToStringConverter">Delegate that converts a string to the setting value.</param>
-		/// <param name="name">Name of the setting.</param>
 		internal VolatileProcessingPipelineStageSetting(
 			VolatileProcessingPipelineStageRawSetting rawSetting,
 			ProcessingPipelineStageConfigurationBase.ValueFromStringConverter<T> valueFromStringConverter,
-			ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T> valueToStringConverter,
-			string name)
+			ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T> valueToStringConverter)
 		{
 			mRawSetting = rawSetting;
 			mFromStringConverter = valueFromStringConverter;
@@ -106,8 +104,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ValueAsString
 		{
-			get { return mRawSetting.Value; }
-			set { mRawSetting.Value = value; }
+			get => mRawSetting.Value;
+			set => mRawSetting.Value = value;
 		}
 
 		/// <summary>

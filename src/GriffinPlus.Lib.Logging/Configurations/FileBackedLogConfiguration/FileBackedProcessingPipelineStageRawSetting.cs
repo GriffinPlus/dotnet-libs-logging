@@ -49,7 +49,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the name of the setting.
 		/// </summary>
-		public string Name { get; private set; } // immutable => no sync necessary
+		public string Name { get; } // immutable => no sync necessary
 
 		/// <summary>
 		/// Gets a value indicating whether the setting has valid value (true) or just its default value (false).
@@ -62,7 +62,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.TryGetValue(StageConfiguration.Name, out var settings))
 					{
-						if (settings.TryGetValue(Name, out var value))
+						if (settings.TryGetValue(Name, out _))
 						{
 							return true;
 						}

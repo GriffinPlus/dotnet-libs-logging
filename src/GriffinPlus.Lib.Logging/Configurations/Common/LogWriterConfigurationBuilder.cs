@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogWriterConfigurationBuilder
 	{
-		private LogWriterConfiguration mConfiguration = new LogWriterConfiguration();
+		private readonly LogWriterConfiguration mConfiguration = new LogWriterConfiguration();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogWriterConfigurationBuilder"/> class.
@@ -251,7 +251,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// add default pattern matching all log writer names
 			var copy = new LogWriterConfiguration(mConfiguration);
-			if (!copy.mPatterns.Any()) copy.mPatterns.Add(LogWriterConfiguration.sDefaultPattern);
+			if (!copy.mPatterns.Any()) copy.mPatterns.Add(LogWriterConfiguration.DefaultPattern);
 			return copy;
 		}
 

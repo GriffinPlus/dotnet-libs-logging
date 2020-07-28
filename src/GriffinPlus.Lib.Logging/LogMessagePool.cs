@@ -15,6 +15,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
+// ReSharper disable UnusedMember.Global
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -62,6 +64,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (mMessages.TryTake(out var message))
 			{
+				// ReSharper disable once RedundantAssignment
 				int refCount = message.AddRef();
 				Debug.Assert(refCount == 1);
 			}

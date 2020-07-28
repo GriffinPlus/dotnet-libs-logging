@@ -182,6 +182,17 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Writes a message using an internal log writer bypassing configured source filters
+		/// (should be used by components of the logging subsystem only to report important conditions).
+		/// </summary>
+		/// <param name="level">Log level to use.</param>
+		/// <param name="text">Text of the message to write.</param>
+		public void WriteLoggingMessage(LogLevel level, string text)
+		{
+			sLog.ForceWrite(level, text);
+		}
+
+		/// <summary>
 		/// Writes the specified log message using the specified log writer at the specified level.
 		/// </summary>
 		/// <param name="writer">Log writer to use.</param>
@@ -351,8 +362,8 @@ namespace GriffinPlus.Lib.Logging
 			// link configuration to all stages
 			foreach (var stage in allStages)
 			{
-				var stageConfiguration = configuration.ProcessingPipeline.Stages.Where(x => x.Name == stage.Name).FirstOrDefault();
-				if (stageConfiguration == null) stageConfiguration = configuration.ProcessingPipeline.Stages.AddNew(stage.Name);
+				var stageConfiguration = configuration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == stage.Name)
+				                         ?? configuration.ProcessingPipeline.Stages.AddNew(stage.Name);
 				stage.Settings = stageConfiguration;
 			}
 		}

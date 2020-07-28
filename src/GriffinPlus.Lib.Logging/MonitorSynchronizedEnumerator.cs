@@ -106,18 +106,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the element the enumerator points to.
 		/// </summary>
-		public T Current
-		{
-			get { return mInner.Current; }
-		}
+		public T Current => mInner.Current;
 
 		/// <summary>
 		/// Gets the element the enumerator points to.
 		/// </summary>
-		object IEnumerator.Current
-		{
-			get { return Current; }
-		}
-
+		object IEnumerator.Current => Current;
 	}
 }

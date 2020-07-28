@@ -30,7 +30,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <typeparam name="T">Type of the object to convert.</typeparam>
 		/// <param name="obj">Object to convert to its string representation.</param>
 		/// <returns>String representation of the specified object.</returns>
-		protected internal delegate string ValueToStringConverter<T>(T obj);
+		protected internal delegate string ValueToStringConverter<in T>(T obj);
 
 		/// <summary>
 		/// Delegate to a method that converts a string to an object of the specified type.
@@ -38,22 +38,22 @@ namespace GriffinPlus.Lib.Logging
 		/// <typeparam name="T">Type of the object to convert the string to.</typeparam>
 		/// <param name="s">String to convert to the specified object.</param>
 		/// <returns>The object.</returns>
-		protected internal delegate T ValueFromStringConverter<T>(string s);
+		protected internal delegate T ValueFromStringConverter<out T>(string s);
 
 		/// <summary>
 		/// Mapping of methods for converting objects of a specific type to string.
 		/// </summary>
-		protected static readonly Dictionary<Type, Delegate> sValueFromStringConverters = new Dictionary<Type, Delegate>();
+		protected static readonly Dictionary<Type, Delegate> ValueFromStringConverters = new Dictionary<Type, Delegate>();
 
 		/// <summary>
 		/// Mapping of methods for converting strings to an object of the specified type.
 		/// </summary>
-		protected static readonly Dictionary<Type, Delegate> sValueToStringConverters = new Dictionary<Type, Delegate>();
+		protected static readonly Dictionary<Type, Delegate> ValueToStringConverters = new Dictionary<Type, Delegate>();
 
 		/// <summary>
 		/// Regex matching valid setting names.
 		/// </summary>
-		private static Regex sValidSettingNameRegex = new Regex("^[a-zA-Z0-9\\[\\]\\.]+$", RegexOptions.Compiled);
+		private static readonly Regex sValidSettingNameRegex = new Regex("^[a-zA-Z0-9\\[\\]\\.]+$", RegexOptions.Compiled);
 
 		/// <summary>
 		/// Initializes the <see cref="ProcessingPipelineStageConfigurationBase"/> class.
@@ -63,38 +63,38 @@ namespace GriffinPlus.Lib.Logging
 			var culture = CultureInfo.InvariantCulture;
 
 			// signed integers
-			sValueFromStringConverters[typeof(sbyte)] = new ValueFromStringConverter<sbyte>(s => Convert.ToSByte(s, culture));
-			sValueToStringConverters[typeof(sbyte)] = new ValueToStringConverter<sbyte>(v => Convert.ToString(v, culture));
-			sValueFromStringConverters[typeof(short)] = new ValueFromStringConverter<short>(s => Convert.ToInt16(s, culture));
-			sValueToStringConverters[typeof(short)] = new ValueToStringConverter<short>(v => Convert.ToString(v, culture));
-			sValueFromStringConverters[typeof(int)] = new ValueFromStringConverter<int>(s => Convert.ToInt32(s, culture));
-			sValueToStringConverters[typeof(int)] = new ValueToStringConverter<int>(v => Convert.ToString(v, culture));
-			sValueFromStringConverters[typeof(long)] = new ValueFromStringConverter<long>(s => Convert.ToInt64(s, culture));
-			sValueToStringConverters[typeof(long)] = new ValueToStringConverter<long>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(sbyte)] = new ValueFromStringConverter<sbyte>(s => Convert.ToSByte(s, culture));
+			ValueToStringConverters[typeof(sbyte)] = new ValueToStringConverter<sbyte>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(short)] = new ValueFromStringConverter<short>(s => Convert.ToInt16(s, culture));
+			ValueToStringConverters[typeof(short)] = new ValueToStringConverter<short>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(int)] = new ValueFromStringConverter<int>(s => Convert.ToInt32(s, culture));
+			ValueToStringConverters[typeof(int)] = new ValueToStringConverter<int>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(long)] = new ValueFromStringConverter<long>(s => Convert.ToInt64(s, culture));
+			ValueToStringConverters[typeof(long)] = new ValueToStringConverter<long>(v => Convert.ToString(v, culture));
 
 			// unsigned integers
-			sValueFromStringConverters[typeof(byte)] = new ValueFromStringConverter<byte>(s => Convert.ToByte(s, culture));
-			sValueToStringConverters[typeof(byte)] = new ValueToStringConverter<byte>(v => Convert.ToString(v, culture));
-			sValueFromStringConverters[typeof(ushort)] = new ValueFromStringConverter<ushort>(s => Convert.ToUInt16(s, culture));
-			sValueToStringConverters[typeof(ushort)] = new ValueToStringConverter<ushort>(v => Convert.ToString(v, culture));
-			sValueFromStringConverters[typeof(uint)] = new ValueFromStringConverter<uint>(s => Convert.ToUInt32(s, culture));
-			sValueToStringConverters[typeof(uint)] = new ValueToStringConverter<uint>(v => Convert.ToString(v, culture));
-			sValueFromStringConverters[typeof(ulong)] = new ValueFromStringConverter<ulong>(s => Convert.ToUInt64(s, culture));
-			sValueToStringConverters[typeof(ulong)] = new ValueToStringConverter<ulong>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(byte)] = new ValueFromStringConverter<byte>(s => Convert.ToByte(s, culture));
+			ValueToStringConverters[typeof(byte)] = new ValueToStringConverter<byte>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(ushort)] = new ValueFromStringConverter<ushort>(s => Convert.ToUInt16(s, culture));
+			ValueToStringConverters[typeof(ushort)] = new ValueToStringConverter<ushort>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(uint)] = new ValueFromStringConverter<uint>(s => Convert.ToUInt32(s, culture));
+			ValueToStringConverters[typeof(uint)] = new ValueToStringConverter<uint>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(ulong)] = new ValueFromStringConverter<ulong>(s => Convert.ToUInt64(s, culture));
+			ValueToStringConverters[typeof(ulong)] = new ValueToStringConverter<ulong>(v => Convert.ToString(v, culture));
 
 			// floating point numbers
-			sValueFromStringConverters[typeof(float)] = new ValueFromStringConverter<float>(s => Convert.ToSingle(s, culture));
-			sValueToStringConverters[typeof(float)] = new ValueToStringConverter<float>(v => Convert.ToString(v, culture));
-			sValueFromStringConverters[typeof(double)] = new ValueFromStringConverter<double>(s => Convert.ToDouble(s, culture));
-			sValueToStringConverters[typeof(double)] = new ValueToStringConverter<double>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(float)] = new ValueFromStringConverter<float>(s => Convert.ToSingle(s, culture));
+			ValueToStringConverters[typeof(float)] = new ValueToStringConverter<float>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(double)] = new ValueFromStringConverter<double>(s => Convert.ToDouble(s, culture));
+			ValueToStringConverters[typeof(double)] = new ValueToStringConverter<double>(v => Convert.ToString(v, culture));
 
 			// decimal numbers
-			sValueFromStringConverters[typeof(decimal)] = new ValueFromStringConverter<decimal>(s => Convert.ToDecimal(s, culture));
-			sValueToStringConverters[typeof(decimal)] = new ValueToStringConverter<decimal>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(decimal)] = new ValueFromStringConverter<decimal>(s => Convert.ToDecimal(s, culture));
+			ValueToStringConverters[typeof(decimal)] = new ValueToStringConverter<decimal>(v => Convert.ToString(v, culture));
 
 			// strings
-			sValueFromStringConverters[typeof(string)] = new ValueFromStringConverter<string>(s => s);
-			sValueToStringConverters[typeof(string)] = new ValueToStringConverter<string>(v => v);
+			ValueFromStringConverters[typeof(string)] = new ValueFromStringConverter<string>(s => s);
+			ValueToStringConverters[typeof(string)] = new ValueToStringConverter<string>(v => v);
 
 			// enumerations are handled in a generic way, see below...
 		}
@@ -106,7 +106,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The configuration lock used to synchronize access to the configuration.
 		/// Specify <c>null</c> to create a new lock.
 		/// </param>
-		public ProcessingPipelineStageConfigurationBase(object sync)
+		protected ProcessingPipelineStageConfigurationBase(object sync)
 		{
 			Sync = sync ?? new object();
 		}
@@ -167,7 +167,7 @@ namespace GriffinPlus.Lib.Logging
 		public abstract bool ContainsKey(string key);
 
 		/// <summary>
-		/// Trys to get the setting with the specified name.
+		/// Tries to get the setting with the specified name.
 		/// </summary>
 		/// <param name="key">Name of the setting to get.</param>
 		/// <param name="value">Receives the setting, if it exists.</param>
@@ -214,7 +214,7 @@ namespace GriffinPlus.Lib.Logging
 		protected static void CheckSettingTypeIsSupported(Type type)
 		{
 			if (type.IsEnum) return;
-			if (!sValueFromStringConverters.ContainsKey(type)) throw new NotSupportedException($"The specified setting type ({type.FullName}) is not supported.");
+			if (!ValueFromStringConverters.ContainsKey(type)) throw new NotSupportedException($"The specified setting type ({type.FullName}) is not supported.");
 		}
 
 		#endregion

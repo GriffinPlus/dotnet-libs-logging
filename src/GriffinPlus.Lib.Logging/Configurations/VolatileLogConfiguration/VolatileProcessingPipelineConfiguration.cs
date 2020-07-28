@@ -11,7 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -20,22 +19,19 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class VolatileProcessingPipelineConfiguration : IProcessingPipelineConfiguration
 	{
-		private readonly VolatileLogConfiguration mLogConfiguration;
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineConfiguration"/> class.
 		/// </summary>
 		/// <param name="configuration">The log configuration the processing pipeline configuration belongs to.</param>
 		internal VolatileProcessingPipelineConfiguration(VolatileLogConfiguration configuration)
 		{
-			mLogConfiguration = configuration;
 			Stages = new VolatileProcessingPipelineStageConfigurations(configuration);
 		}
 
 		/// <summary>
 		/// Gets the configurations for pipeline stages.
 		/// </summary>
-		public VolatileProcessingPipelineStageConfigurations Stages { get; private set; }
+		public VolatileProcessingPipelineStageConfigurations Stages { get; }
 
 		/// <summary>
 		/// Gets the configurations for pipeline stages.

@@ -26,7 +26,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// The base class for log configurations.
 	/// </summary>
-	public abstract partial class LogConfiguration<CONFIGURATION> : ILogConfiguration
+	public abstract class LogConfiguration<CONFIGURATION> : ILogConfiguration
 		where CONFIGURATION: LogConfiguration<CONFIGURATION>
 	{
 		/// <summary>
@@ -160,8 +160,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="writer">Log writer configuration to append to the log configuration.</param>
 		private void AppendLogWriterConfiguration(LogWriterConfiguration writer)
 		{
-			List<LogWriterConfiguration> settings = new List<LogWriterConfiguration>(GetLogWriterSettings().Where(x => !x.IsDefault));
-			settings.Add(writer);
+			List<LogWriterConfiguration> settings = new List<LogWriterConfiguration>(GetLogWriterSettings().Where(x => !x.IsDefault)) { writer };
 			SetLogWriterSettings(settings);
 		}
 

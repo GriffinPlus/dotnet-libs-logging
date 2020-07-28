@@ -12,9 +12,12 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
+
+// ReSharper disable RedundantAssignment
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -76,7 +79,7 @@ namespace GriffinPlus.Lib.Logging
 					var waiterTask = mAsyncHead;
 					RemoveAsyncWaiter(waiterTask); // ensures waiterTask.Next/Prev are null
 					bool ok = waiterTask.TrySetResult(true);
-					Contract.Assert(ok);
+					Debug.Assert(ok);
 					mSet = false;
 				}
 			}

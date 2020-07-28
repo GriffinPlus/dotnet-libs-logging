@@ -26,7 +26,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private static readonly IFormatProvider sDefaultFormatProvider = CultureInfo.InvariantCulture;
 		private static readonly ThreadLocal<StringBuilder> sBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder());
-		private static int sNextId = 0;
+		private static int sNextId;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogWriter"/> class.
@@ -1250,11 +1250,9 @@ namespace GriffinPlus.Lib.Logging
 			Exception current = exception;
 			while (current != null)
 			{
-				if (innerExceptionLevel == 0) {
-					builder.Append("--- Exception ---------------------------------------------------------------------------------------------\r\n");
-				} else {
-					builder.Append("--- Inner Exception ---------------------------------------------------------------------------------------\r\n");
-				}
+				builder.Append(innerExceptionLevel == 0
+					? "--- Exception ---------------------------------------------------------------------------------------------\r\n"
+					: "--- Inner Exception ---------------------------------------------------------------------------------------\r\n");
 				builder.AppendFormat("--- Exception Type: {0}\r\n", exception.GetType().FullName);
 				builder.AppendFormat("--- Message: {0}\r\n", current.Message);
 				builder.AppendFormat("--- Stacktrace:\r\n{0}", current.StackTrace);

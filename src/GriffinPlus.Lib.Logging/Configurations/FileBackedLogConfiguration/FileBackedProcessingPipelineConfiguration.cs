@@ -18,22 +18,19 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class FileBackedProcessingPipelineConfiguration : IProcessingPipelineConfiguration
 	{
-		private readonly FileBackedLogConfiguration mLogConfiguration;
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineConfiguration"/> class.
 		/// </summary>
 		/// <param name="configuration">The log configuration the processing pipeline configuration belongs to.</param>
 		internal FileBackedProcessingPipelineConfiguration(FileBackedLogConfiguration configuration)
 		{
-			mLogConfiguration = configuration;
-			Stages = new FileBackedProcessingPipelineStageConfigurations(mLogConfiguration);
+			Stages = new FileBackedProcessingPipelineStageConfigurations(configuration);
 		}
 
 		/// <summary>
 		/// Gets the configuration of the pipeline stages.
 		/// </summary>
-		public FileBackedProcessingPipelineStageConfigurations Stages { get; private set; }
+		public FileBackedProcessingPipelineStageConfigurations Stages { get; }
 
 		/// <summary>
 		/// Gets the configuration of the pipeline stages.

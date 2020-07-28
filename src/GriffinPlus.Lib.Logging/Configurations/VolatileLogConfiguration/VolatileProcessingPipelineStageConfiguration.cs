@@ -21,8 +21,8 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class VolatileProcessingPipelineStageConfiguration : ProcessingPipelineStageConfigurationBase
 	{
-		private Dictionary<string, VolatileProcessingPipelineStageRawSetting> mRawSettings = new Dictionary<string, VolatileProcessingPipelineStageRawSetting>();
-		private Dictionary<string, IUntypedProcessingPipelineStageSetting> mSettings = new Dictionary<string, IUntypedProcessingPipelineStageSetting>();
+		private readonly Dictionary<string, VolatileProcessingPipelineStageRawSetting> mRawSettings = new Dictionary<string, VolatileProcessingPipelineStageRawSetting>();
+		private readonly Dictionary<string, IUntypedProcessingPipelineStageSetting> mSettings = new Dictionary<string, IUntypedProcessingPipelineStageSetting>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class.
@@ -70,12 +70,12 @@ namespace GriffinPlus.Lib.Logging
 					if (typeof(T).IsEnum)
 					{
 						fromConverter = ConvertStringToEnum<T>;
-						toConverter = ConvertEnumToString<T>;
+						toConverter = ConvertEnumToString;
 					}
 					else
 					{
-						fromConverter = sValueFromStringConverters[typeof(T)] as ValueFromStringConverter<T>;
-						toConverter = sValueToStringConverters[typeof(T)] as ValueToStringConverter<T>;
+						fromConverter = (ValueFromStringConverter<T>)ValueFromStringConverters[typeof(T)];
+						toConverter = (ValueToStringConverter<T>)ValueToStringConverters[typeof(T)];
 					}
 
 					if (!mRawSettings.TryGetValue(name, out var rawSetting))
@@ -91,8 +91,7 @@ namespace GriffinPlus.Lib.Logging
 					var newSetting = new VolatileProcessingPipelineStageSetting<T>(
 						rawSetting,
 						fromConverter,
-						toConverter,
-						name);
+						toConverter);
 
 					mSettings.Add(name, newSetting);
 
@@ -193,7 +192,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Trys to get the setting with the specified name.
+		/// Tries to get the setting with the specified name.
 		/// </summary>
 		/// <param name="key">Name of the setting to get.</param>
 		/// <param name="value">Receives the setting, if it exists.</param>
@@ -213,7 +212,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>An enumerator for iterating over the settings in the configuration.</returns>
 		public override IEnumerator<KeyValuePair<string, IUntypedProcessingPipelineStageSetting>> GetEnumerator()
 		{
-			return new MonitorSynchronizedEnumerator<KeyValuePair<string, IUntypedProcessingPipelineStageSetting>>(mSettings.GetEnumerator(), Sync);
+			lock (Sync)
+			{
+				return new MonitorSynchronizedEnumerator<KeyValuePair<string, IUntypedProcessingPipelineStageSetting>>(mSettings.GetEnumerator(), Sync);
+			}
 		}
 
 		#endregion

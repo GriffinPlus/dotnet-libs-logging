@@ -24,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 	public class FileBackedProcessingPipelineStageConfigurations : IProcessingPipelineStageConfigurations
 	{
 		private readonly FileBackedLogConfiguration mLogConfiguration;
-		private List<IProcessingPipelineStageConfiguration> mStageConfigurations = new List<IProcessingPipelineStageConfiguration>();
+		private readonly List<IProcessingPipelineStageConfiguration> mStageConfigurations = new List<IProcessingPipelineStageConfiguration>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class.
@@ -69,7 +69,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>An enumerator for iterating over the pipeline stage configurations.</returns>
 		public IEnumerator<IProcessingPipelineStageConfiguration> GetEnumerator()
 		{
-			return new MonitorSynchronizedEnumerator<IProcessingPipelineStageConfiguration>(mStageConfigurations.GetEnumerator(), mLogConfiguration.Sync);
+			lock (mLogConfiguration.Sync)
+			{
+				return new MonitorSynchronizedEnumerator<IProcessingPipelineStageConfiguration>(mStageConfigurations.GetEnumerator(), mLogConfiguration.Sync);
+			}
 		}
 
 		/// <summary>
@@ -79,7 +82,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>An enumerator for iterating over the pipeline stage configurations.</returns>
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return new MonitorSynchronizedEnumerator<IProcessingPipelineStageConfiguration>(mStageConfigurations.GetEnumerator(), mLogConfiguration.Sync);
+			lock (mLogConfiguration.Sync)
+			{
+				return new MonitorSynchronizedEnumerator<IProcessingPipelineStageConfiguration>(mStageConfigurations.GetEnumerator(), mLogConfiguration.Sync);
+			}
 		}
 
 		/// <summary>
@@ -93,7 +99,7 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (mLogConfiguration.Sync)
 			{
-				var stage = mStageConfigurations.Where(x => x.Name == name).FirstOrDefault();
+				var stage = mStageConfigurations.FirstOrDefault(x => x.Name == name);
 				if (stage != null) throw new ArgumentException($"The collection already contains a configuration for the pipeline stage with the specified name ({name}).", nameof(name));
 				stage = new FileBackedProcessingPipelineStageConfiguration(mLogConfiguration, name);
 				mStageConfigurations.Add(stage);

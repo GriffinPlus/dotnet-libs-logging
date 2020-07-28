@@ -15,6 +15,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// ReSharper disable NonReadonlyMemberInGetHashCode
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -22,11 +24,11 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public sealed partial class LogWriterConfiguration
 	{
-		internal static readonly WildcardLogWriterPattern sDefaultPattern = new WildcardLogWriterPattern("*");
+		internal static readonly WildcardLogWriterPattern DefaultPattern = new WildcardLogWriterPattern("*");
 		internal string mBaseLevel = LogLevel.Note.Name;
-		internal List<ILogWriterPattern> mPatterns = new List<ILogWriterPattern>();
-		internal List<string> mIncludes = new List<string>();
-		internal List<string> mExcludes = new List<string>();
+		internal readonly List<ILogWriterPattern> mPatterns = new List<ILogWriterPattern>();
+		internal readonly List<string> mIncludes = new List<string>();
+		internal readonly List<string> mExcludes = new List<string>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class (for internal use only).
@@ -195,33 +197,34 @@ namespace GriffinPlus.Lib.Logging
 		internal bool IsDefault { get; set; }
 
 		/// <summary>
-		/// Gets the hash code of the object.
+		/// Gets the hash code of the object
+		/// (does not take the <see cref="IsDefault"/> property into account).
 		/// </summary>
-		/// <returns>Hash code of the object.</returns>
+		/// <returns></returns>
 		public override int GetHashCode()
 		{
-			return base.GetHashCode();
+			unchecked
+			{
+				var hashCode = mBaseLevel.GetHashCode();
+				foreach (var pattern in mPatterns) hashCode = (hashCode * 397) ^ pattern.GetHashCode();
+				foreach (var include in mIncludes) hashCode = (hashCode * 397) ^ include.GetHashCode();
+				foreach (var exclude in mExcludes) hashCode = (hashCode * 397) ^ exclude.GetHashCode();
+				return hashCode;
+			}
 		}
 
 		/// <summary>
-		/// Checks whether the specified object equals the current one.
+		/// Checks whether the specified object equals the current one
+		/// (does not take the <see cref="IsDefault"/> property into account).
 		/// </summary>
-		/// <param name="obj">Object to compare with.</param>
+		/// <param name="other">Object to compare with.</param>
 		/// <returns>true, if the specified object equals the current one; otherwise false.</returns>
-		public override bool Equals(object obj)
+		public bool Equals(LogWriterConfiguration other)
 		{
-			if (obj is LogWriterConfiguration other)
-			{
-				if (!Patterns.SequenceEqual(other.Patterns)) return false;
-				if (BaseLevel != other.BaseLevel) return false;
-				if (IsDefault != other.IsDefault) return false;
-				if (!Includes.SequenceEqual(other.Includes)) return false;
-				if (!Excludes.SequenceEqual(other.Excludes)) return false;
-				return true;
-			}
-
-			return false;
+			return mBaseLevel == other.mBaseLevel &&
+			       Patterns.SequenceEqual(other.Patterns) &&
+			       Includes.SequenceEqual(other.Includes) &&
+			       Excludes.SequenceEqual(other.Excludes);
 		}
-
 	}
 }

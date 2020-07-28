@@ -31,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
 		internal FileBackedProcessingPipelineStageConfiguration(FileBackedLogConfiguration configuration, string name) : base(configuration.Sync)
 		{
-			LogConfiguration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+			LogConfiguration = configuration;
 			Name = name ?? throw new ArgumentNullException(nameof(name));
 		}
 
@@ -73,12 +73,12 @@ namespace GriffinPlus.Lib.Logging
 					if (typeof(T).IsEnum)
 					{
 						fromConverter = ConvertStringToEnum<T>;
-						toConverter = ConvertEnumToString<T>;
+						toConverter = ConvertEnumToString;
 					}
 					else
 					{
-						fromConverter = sValueFromStringConverters[typeof(T)] as ValueFromStringConverter<T>;
-						toConverter = sValueToStringConverters[typeof(T)] as ValueToStringConverter<T>;
+						fromConverter = (ValueFromStringConverter <T>)ValueFromStringConverters[typeof(T)];
+						toConverter = (ValueToStringConverter <T>)ValueToStringConverters[typeof(T)];
 					}
 
 					FileBackedProcessingPipelineStageRawSetting rawSetting = new FileBackedProcessingPipelineStageRawSetting(
@@ -89,8 +89,7 @@ namespace GriffinPlus.Lib.Logging
 					var newSetting = new FileBackedProcessingPipelineStageSetting<T>(
 						rawSetting,
 						fromConverter,
-						toConverter,
-						name);
+						toConverter);
 
 					mSettings.Add(name, newSetting);
 
@@ -191,7 +190,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Trys to get the setting with the specified name.
+		/// Tries to get the setting with the specified name.
 		/// </summary>
 		/// <param name="key">Name of the setting to get.</param>
 		/// <param name="value">Receives the setting, if it exists.</param>
@@ -211,7 +210,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>An enumerator for iterating over the settings in the configuration.</returns>
 		public override IEnumerator<KeyValuePair<string, IUntypedProcessingPipelineStageSetting>> GetEnumerator()
 		{
-			return new MonitorSynchronizedEnumerator<KeyValuePair<string, IUntypedProcessingPipelineStageSetting>>(mSettings.GetEnumerator(), Sync);
+			lock (Sync)
+			{
+				return new MonitorSynchronizedEnumerator<KeyValuePair<string, IUntypedProcessingPipelineStageSetting>>(mSettings.GetEnumerator(), Sync);
+			}
 		}
 
 		#endregion

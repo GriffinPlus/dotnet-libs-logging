@@ -352,7 +352,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (writer.mPatterns.Count == 0)
 				{
-					writer.mPatterns.Add(LogWriterConfiguration.sDefaultPattern);
+					writer.mPatterns.Add(LogWriterConfiguration.DefaultPattern);
 				}
 			}
 

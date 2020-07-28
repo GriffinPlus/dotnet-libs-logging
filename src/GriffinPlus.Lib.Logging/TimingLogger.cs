@@ -16,6 +16,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 
+// ReSharper disable UnusedMember.Global
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -26,7 +28,7 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly ConcurrentBag<TimingLogger> sPool = new ConcurrentBag<TimingLogger>();
 		private static readonly LogWriter sDefaultLogWriter = Log.GetWriter("Timing");
 		private static readonly LogLevel sDefaultLogLevel = LogLevel.Timing;
-		private static int sNextTimingLoggerId = 0;
+		private static int sNextTimingLoggerId;
 		private long mTimestamp;
 		private LogWriter mLogWriter;
 		private LogLevel mLogLevel;

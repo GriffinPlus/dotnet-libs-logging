@@ -15,6 +15,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+// ReSharper disable UnusedMember.Global
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -170,7 +172,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highAccuracyTimestamp">
 		/// Timestamp for relative time measurements with high accuracy
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
+		/// (in ns, the actual accuracy depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="processId">Id of the process emitting the log message.</param>
 		/// <param name="processName">Name of the process emitting the log message.</param>

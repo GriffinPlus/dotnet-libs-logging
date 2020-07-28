@@ -32,7 +32,7 @@ namespace GriffinPlus.Lib.Logging
 
 		private static readonly LogWriter sLog = Log.GetWriter("Logging");
 
-		private FileBackedProcessingPipelineConfiguration mProcessingPipelineConfiguration;
+		private readonly FileBackedProcessingPipelineConfiguration mProcessingPipelineConfiguration;
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
 		private readonly string mFilePath;
@@ -120,9 +120,11 @@ namespace GriffinPlus.Lib.Logging
 				// set up the file system watcher to get notified of changes to the file
 				// (notifications about the creation of files with zero-length do not contain
 				// valuable information, so renaming/deleting is sufficient)
-				mFileSystemWatcher = new FileSystemWatcher();
-				mFileSystemWatcher.Path = Path.GetDirectoryName(path);
-				mFileSystemWatcher.Filter = "*" + Path.GetExtension(mFileName);
+				mFileSystemWatcher = new FileSystemWatcher
+				{
+					Path = Path.GetDirectoryName(path),
+					Filter = "*" + Path.GetExtension(mFileName)
+				};
 				mFileSystemWatcher.Changed += EH_FileSystemWatcher_Changed;
 				mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Removed;
 				mFileSystemWatcher.Renamed += EH_FileSystemWatcher_Renamed;
