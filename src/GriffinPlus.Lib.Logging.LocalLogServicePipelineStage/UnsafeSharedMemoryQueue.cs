@@ -300,9 +300,6 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Begins writing a block.
 		/// </summary>
-		/// <param name="bufferSize">
-		/// Receives the maximum number of bytes the buffer can keep.
-		/// </param>
 		/// <returns>
 		/// Pointer to the data buffer within the retrieved block;
 		/// null, if no block is available for writing.
@@ -313,7 +310,7 @@ namespace GriffinPlus.Lib.Logging
 		/// buffer within the block. You must either call EndWriting() to push this block onto the 'used
 		/// block stack' or AbortWriting() to push it back onto the 'free block stack'.
 		/// </remarks>
-		public void* BeginWriting(out int bufferSize)
+		public void* BeginWriting()
 		{
 			// abort, if the queue is not initialized
 			if (!mInitialized) throw new InvalidOperationException("Queue is not initialized, call Create() or Open() to initialize it.");
@@ -323,11 +320,9 @@ namespace GriffinPlus.Lib.Logging
 			if (block == null)
 			{
 				// no free block left
-				bufferSize = 0;
 				return null;
 			}
 
-			bufferSize = mBufferSize;
 			return (byte*)block + sizeof(QueueBlock);
 		}
 

@@ -338,7 +338,7 @@ namespace GriffinPlus.Lib.Logging
 				// create a new cancellation token source
 				// (it is necessary to pull the token out of mAutoReconnectTaskCancellationTokenSource to ensure it is not overwritten by replacing mAutoReconnectTaskCancellationTokenSource)
 				mAutoReconnectTaskCancellationTokenSource = new CancellationTokenSource();
-				CancellationToken cts = mAutoReconnectTaskCancellationTokenSource.Token; 
+				CancellationToken cts = mAutoReconnectTaskCancellationTokenSource.Token;
 
 				// schedule a new task to retry to connect to the local log service
 				mAutoReconnectTask = Task
@@ -686,6 +686,7 @@ namespace GriffinPlus.Lib.Logging
 					pipe.Connect(0);
 					pipe.ReadMode = PipeTransmissionMode.Message;
 
+					// TODO: configure timeout for writing and reading struct
 					// send the request to the local log service
 					writer.WriteStruct(request);
 
@@ -1349,7 +1350,7 @@ namespace GriffinPlus.Lib.Logging
 						block->ClearLogViewer.Timestamp = Log.GetTimestamp().ToUniversalTime().ToFileTime();
 						block->ClearLogViewer.HighPrecisionTimestamp = (Log.GetHighAccuracyTimestamp() + 500) / 1000; // ns => µs
 						block->ClearLogViewer.ProcessId = sCurrentProcessId;
-						
+
 						// enqueue command
 						if (defer)
 						{
@@ -1481,7 +1482,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// try to get a free block from the queue
 				// (suppress the overflow indication, if explicitly specified and on the first run only to avoid counting the condition multiple times)
-				LogEntryBlock* pBlock = (LogEntryBlock*) mSharedMemoryQueue.BeginWriting(out _);
+				LogEntryBlock* pBlock = (LogEntryBlock*) mSharedMemoryQueue.BeginWriting();
 				if (pBlock != null) return pBlock;
 
 				// no free block in the queue
