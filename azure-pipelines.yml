@@ -48,13 +48,22 @@ steps:
     nobuild: true
     arguments: '--configuration $(buildConfiguration)'
 
-- task: NuGetCommand@2
+- task: PowerShell@2
   displayName: 'Pack'
   inputs:
-    command: pack
-    packagesToPack: '**/*.nuspec'
-    packDestination: '$(Build.ArtifactStagingDirectory)'
-    buildProperties: 'version=$(GitVersion.NuGetVersion)'
+    targetType: 'inline'
+    script: |
+      foreach ( $file in Get-ChildItem -Include *.nuspec -Recurse ) {
+        Write-Host "Processing file $($file.FullName)..."
+        nuget.exe pack `
+           "$($file.FullName)" `
+           -Symbols `
+           -SymbolPackageFormat snupkg `
+           -Properties version=$(GitVersion.NuGetVersion) `
+           -OutputDirectory "$(Build.ArtifactStagingDirectory)" `
+           -Verbosity detailed
+        if ($lastexitcode -ne 0) { throw("Creating nuget package failed.") }
+      }
 
 - task: NuGetCommand@2
   displayName: 'Publish'

@@ -1,25 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
-    <AssemblyName>GriffinPlus.Lib.Logging.LocalLogServicePipelineStage</AssemblyName>
-    <RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
+		<AssemblyName>GriffinPlus.Lib.Logging.LocalLogServicePipelineStage</AssemblyName>
+		<RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net461|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net461|AnyCPU'">
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="NuGet\" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+	</ItemGroup>
 
 </Project>
