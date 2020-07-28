@@ -114,5 +114,18 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string DefaultValue { get; }
 
+		/// <summary>
+		/// Gets the string representation of the setting.
+		/// </summary>
+		/// <returns>String representation of the setting.</returns>
+		public override string ToString()
+		{
+			lock (StageConfiguration.Sync)
+			{
+				return HasValue
+					? $"Name: '{Name}', Value: '{Value}'"
+					: $"Name: '{Name}', Value: <no value> (defaults to: '{DefaultValue}'";
+			}
+		}
 	}
 }

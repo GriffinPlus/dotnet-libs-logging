@@ -118,6 +118,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		object IUntypedProcessingPipelineStageSetting.DefaultValue => mFromStringConverter(mRawSetting.DefaultValue);
 
+		/// <summary>
+		/// Gets the string representation of the setting.
+		/// </summary>
+		/// <returns>String representation of the setting.</returns>
+		public override string ToString()
+		{
+			return mRawSetting.ToString();
+		}
 	}
 
 }
