@@ -7,7 +7,7 @@
 		<copyright>Copyright (c) 2020 Sascha Falk</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>A pipeline stage for the Griffin+ logging subsystem that forwards log messages to the local log service (proprietary, Windows only).</description>
-		<license type="expression">	Apache-2.0</license>
+		<license type="expression">Apache-2.0</license>
 		<projectUrl>https://github.com/GriffinPlus/dotnet-libs-logging</projectUrl>
 		<icon>images/nuget-icon.png</icon>
 		<tags>logging</tags>
