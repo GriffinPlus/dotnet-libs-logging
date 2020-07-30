@@ -1,4 +1,6 @@
-﻿namespace GriffinPlus.Lib.Logging
+﻿// ReSharper disable UnusedMemberInSuper.Global
+
+namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
 	/// Interface for a setting in the configuration of a pipeline specific stage.

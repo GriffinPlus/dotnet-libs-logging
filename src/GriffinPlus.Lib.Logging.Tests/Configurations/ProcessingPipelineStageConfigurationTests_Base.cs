@@ -16,6 +16,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
 
+// ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
+// ReSharper disable PossibleNullReferenceException
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -126,25 +129,25 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var method = typeof(ProcessingPipelineStageConfigurationBase).GetMethod("GetSetting").MakeGenericMethod(type);
 			var configuration = CreateConfiguration("Stage");
-			var setting11 = method.Invoke(configuration, new object[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
-			var setting21 = method.Invoke(configuration, new object[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			var setting11 = method.Invoke(configuration, new[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			var setting21 = method.Invoke(configuration, new[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 
 			// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
 			GetSetting_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
 
 			// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
 			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION>).GetMethod(nameof(GetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(type);
-			typedTestMethod.Invoke(this, new object[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
+			typedTestMethod.Invoke(this, new[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
 
 			// test getting the same setting once again (should succeed, if default value is the same)
-			var setting12 = method.Invoke(configuration, new object[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
-			var setting22 = method.Invoke(configuration, new object[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			var setting12 = method.Invoke(configuration, new[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			var setting22 = method.Invoke(configuration, new[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 			Assert.Same(setting11, setting12);
 			Assert.Same(setting21, setting22);
 
 			// test whether getting the same setting with different default values fails as expected
-			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new object[] { "Setting1", value})).InnerException);
-			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new object[] { "Setting2", value })).InnerException);
+			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting1", value})).InnerException);
+			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting2", value })).InnerException);
 		}
 
 		private void GetSetting_UntypedInterface(

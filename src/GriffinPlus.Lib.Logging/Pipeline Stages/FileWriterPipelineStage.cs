@@ -112,7 +112,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// get the current stream position
-			long position = -1;
+			long position;
 			try
 			{
 				position = mFile.Position;

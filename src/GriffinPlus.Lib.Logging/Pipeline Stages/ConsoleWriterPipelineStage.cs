@@ -61,10 +61,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public ConsoleOutputStream DefaultStream
 		{
-			get
-			{
-				return mDefaultStreamSetting.Value;
-			}
+			get => mDefaultStreamSetting.Value;
 
 			set
 			{
@@ -78,7 +75,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the explicit mapping overrides of log levels to output streams.
-		/// A message written using an explictly mapped log level will go out on the defined steam.
+		/// A message written using an explicitly mapped log level will go out on the defined steam.
 		/// Others will be emitted using the streams defined by the <see cref="DefaultStream"/> property.
 		/// </summary>
 		public IReadOnlyDictionary<LogLevel, ConsoleOutputStream> StreamByLevelOverrides

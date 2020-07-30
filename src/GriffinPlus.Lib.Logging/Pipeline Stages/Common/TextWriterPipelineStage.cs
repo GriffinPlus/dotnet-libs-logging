@@ -24,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 	public abstract class TextWriterPipelineStage<STAGE> : AsyncProcessingPipelineStage<STAGE>
 		where STAGE: TextWriterPipelineStage<STAGE>
 	{
-		private Queue<FormattedMessage> mFormattedMessageQueue = new Queue<FormattedMessage>();
+		private readonly Queue<FormattedMessage> mFormattedMessageQueue = new Queue<FormattedMessage>();
 
 		/// <summary>
 		/// A message and its formatted output.
@@ -89,14 +89,19 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// enqueue messages to process
 			// (helps to defer messages that could not be processed successfully)
+			// ReSharper disable once ForCanBeConvertedToForeach
 			for (int i = 0; i < messages.Length; i++)
 			{
 				var message = messages[i];
 				message.AddRef();
 
-				var formattedMessage = new FormattedMessage();
-				formattedMessage.Message = messages[i];
-				formattedMessage.Output = mFormatter.Format(messages[i]);
+				var formattedMessage = new FormattedMessage
+				{
+					Message = messages[i],
+					// ReSharper disable once InconsistentlySynchronizedField
+					Output = mFormatter.Format(messages[i])
+				};
+
 				mFormattedMessageQueue.Enqueue(formattedMessage);
 			}
 

@@ -11,6 +11,8 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// ReSharper disable UnusedMemberInSuper.Global
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>

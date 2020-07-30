@@ -11,10 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -45,7 +41,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether invoking the constructor taking a synchronization object to synchonize access to the configuration succeeds.
+		/// Tests whether invoking the constructor taking a synchronization object to synchronize access to the configuration succeeds.
 		/// </summary>
 		[Fact]
 		public void Create_WithSyncObject()

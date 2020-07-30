@@ -16,10 +16,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Win32.SafeHandles;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -345,8 +343,6 @@ namespace GriffinPlus.Lib.Logging
 					.Delay(mAutoReconnectRetryInterval, cts)
 					.ContinueWith(x =>
 					{
-						cts.ThrowIfCancellationRequested();
-
 						lock (mSync)
 						{
 							cts.ThrowIfCancellationRequested();
@@ -587,7 +583,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
-				// cancel reconnect task
+				// cancel reconnect task, but do not wait for the task to complete
+				// (could cause a dead lock in rare cases)
 				mAutoReconnectTaskCancellationTokenSource?.Cancel();
 				mAutoReconnectTaskCancellationTokenSource = null;
 
@@ -687,6 +684,8 @@ namespace GriffinPlus.Lib.Logging
 					pipe.ReadMode = PipeTransmissionMode.Message;
 
 					// TODO: configure timeout for writing and reading struct
+					//       (at the moment the pipe does not support setting ReadTimeout and WriteTimeout)
+
 					// send the request to the local log service
 					writer.WriteStruct(request);
 
@@ -732,6 +731,7 @@ namespace GriffinPlus.Lib.Logging
 					// got a free block
 					// => put command into it and return
 					block->Type = LogEntryBlockType.StartMarker;
+					block->StartMarker.MaxLogLevelCount = -1; // unlimited
 					mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
 					mLostMessageCount = 0;
 				}

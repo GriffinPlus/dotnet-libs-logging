@@ -28,7 +28,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<ConsoleWriterPipelineStage>
 	{
-		private static Dictionary<string, object> sDefaultSettings = new Dictionary<string, object>()
+		private static readonly Dictionary<string, object> sDefaultSettings = new Dictionary<string, object>()
 		{
 			{ "DefaultStream", ConsoleOutputStream.Stdout },
 		};

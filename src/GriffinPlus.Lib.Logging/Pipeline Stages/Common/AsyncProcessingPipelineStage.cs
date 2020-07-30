@@ -57,7 +57,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the name of the processing pipeline stage identifying the stage
 		/// (unique throughout the entire processing pipeline).
 		/// </summary>
-		public string Name { get; private set; }
+		public string Name { get; }
 
 		/// <summary>
 		/// Gets the object to use for synchronization of changes to the pipeline stage using a monitor.
@@ -274,7 +274,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (mSettings != value)
 					{
-						var newConfiguration = value != null ? value : new VolatileProcessingPipelineStageConfiguration(Name, null);
+						var newConfiguration = value ?? new VolatileProcessingPipelineStageConfiguration(Name, null);
 						mSettings = newConfiguration;
 						BindSettings();
 					}

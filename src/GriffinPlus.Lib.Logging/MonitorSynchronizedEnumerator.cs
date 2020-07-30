@@ -69,9 +69,7 @@ namespace GriffinPlus.Lib.Logging
 				else
 				{
 					// enumerator is finalized, it was not disposed explicitly before
-					Debug.Fail(
-						"The {0} was not disposed. The collection the enumerator is associated with was not unblocked!",
-						typeof(MonitorSynchronizedEnumerator<T>).FullName);
+					Debug.Fail($"The {typeof(MonitorSynchronizedEnumerator<T>).FullName} was not disposed. The collection the enumerator is associated with was not unblocked!");
 				}
 			}
 		}

@@ -11,7 +11,6 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
 using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
@@ -78,10 +77,13 @@ namespace GriffinPlus.Lib.Logging
 			[FieldOffset(8)] public LogEntryBlock_MessageExtension MessageExtension;
 		}
 
-		[StructLayout(LayoutKind.Sequential)]
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 		struct LogEntryBlock_StartMarker
 		{
-			// empty
+			/// <summary>
+			/// The maximum number of log levels the logging subsystem can have (-1 for unlimited).
+			/// </summary>
+			public int MaxLogLevelCount;
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]

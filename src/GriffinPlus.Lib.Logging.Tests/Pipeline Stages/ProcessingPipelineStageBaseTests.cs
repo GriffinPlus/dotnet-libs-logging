@@ -66,9 +66,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var stage1 = CreateStage("Stage1");
 			var stage2 = CreateStage("Stage2");
-			var stages12 = new HashSet<STAGE>();
-			stages12.Add(stage1);
-			stages12.Add(stage2);
+			var stages12 = new HashSet<STAGE> { stage1, stage2 };
 
 			// add stage 2 as follower of stage 1
 			stage1.AddNextStage(stage2);

@@ -13,6 +13,8 @@
 
 using System;
 
+// ReSharper disable UnusedMemberInSuper.Global
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>

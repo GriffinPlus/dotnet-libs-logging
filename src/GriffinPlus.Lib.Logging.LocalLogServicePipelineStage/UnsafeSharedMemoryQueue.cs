@@ -346,7 +346,7 @@ namespace GriffinPlus.Lib.Logging
 			if (numberOfBytesWritten < 0) throw new ArgumentOutOfRangeException(nameof(numberOfBytesWritten), "The number of written bytes must be positive.");
 			if (numberOfBytesWritten > mBufferSize) throw new ArgumentOutOfRangeException(nameof(numberOfBytesWritten), "The number of written bytes must not exceed the queue's buffer size.");
 			QueueBlock* block = (QueueBlock*)((byte*)buffer - sizeof(QueueBlock));
-			if (block->MagicNumber != QueueBlock.MagicNumberValue) throw new ArgumentException($"The block of the buffer does not have a valid magic number.", nameof(buffer));
+			if (block->MagicNumber != QueueBlock.MagicNumberValue) throw new ArgumentException("The block of the buffer does not have a valid magic number.", nameof(buffer));
 
 			// append block to the end of the 'used block stack'
 			block->DataSize = numberOfBytesWritten;
@@ -428,9 +428,9 @@ namespace GriffinPlus.Lib.Logging
 			PushFreeBlock(block);
 		}
 
-#endregion
+		#endregion
 
-#region Reading
+		#region Reading
 
 		/// <summary>
 		/// Begins reading a new block.
@@ -562,9 +562,9 @@ namespace GriffinPlus.Lib.Logging
 			PushFreeBlock(block);
 		}
 
-#endregion
+		#endregion
 
-#region Internal Management
+		#region Internal Management
 
 		/// <summary>
 		/// Initializes the the queue structure in shared memory.
@@ -575,7 +575,7 @@ namespace GriffinPlus.Lib.Logging
 			mQueueHeader->Signature[0] = (byte)'A';         // Why 'ALVA'? - 'Alvarium' is latin for 'bee-hive'.
 			mQueueHeader->Signature[1] = (byte)'L';         // The log messages are the bees flying through the queue at high speed.
 			mQueueHeader->Signature[2] = (byte)'V';         // The rest is up to your imagination...
-			mQueueHeader->Signature[3] = (byte)'A';         // Ooook, we just needed a handy signature with four characters ;)
+			mQueueHeader->Signature[3] = (byte)'A';         // Ok, we just needed a handy signature with four characters ;)
 			mQueueHeader->NumberOfBlocks = mNumberOfBlocks;
 			mQueueHeader->BufferSize = mBufferSize;
 			mQueueHeader->BlockSize = mBlockSize;
