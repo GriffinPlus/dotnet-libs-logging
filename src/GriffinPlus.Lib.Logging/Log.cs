@@ -37,7 +37,6 @@ namespace GriffinPlus.Lib.Logging
 		private static ILogConfiguration sLogConfiguration;
 		private static volatile IProcessingPipelineStage sProcessingPipeline;
 		private static readonly LogWriter sLog = GetWriter("Logging");
-		private static readonly long sTimerTickStart = Stopwatch.GetTimestamp();
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
@@ -178,7 +177,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The current high precision timestamp.</returns>
 		public static long GetHighPrecisionTimestamp()
 		{
-			return unchecked((long)((decimal)(Stopwatch.GetTimestamp() - sTimerTickStart) * 1000000000L / Stopwatch.Frequency)); // in ns
+			return unchecked((long)((decimal)Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency)); // in ns
 		}
 
 		/// <summary>
