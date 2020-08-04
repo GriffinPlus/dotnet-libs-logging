@@ -40,7 +40,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly Queue<LogEntryBlock> mPeakBufferQueue = new Queue<LogEntryBlock>();
 		private int mLostMessageCount = 0;
 		private bool mAutoReconnect = true;
-		private TimeSpan mAutoReconnectRetryInterval = TimeSpan.FromSeconds(5);
+		private TimeSpan mAutoReconnectRetryInterval = TimeSpan.FromSeconds(15);
 		private Task mAutoReconnectTask;
 		private CancellationTokenSource mAutoReconnectTaskCancellationTokenSource;
 		private bool mLosslessMode;
