@@ -21,6 +21,12 @@ namespace GriffinPlus.Lib.Logging
 	public interface ILogConfiguration
 	{
 		/// <summary>
+		/// Gets a value indicating whether the configuration is the default configuration that was created
+		/// by the logging subsystem at start.
+		/// </summary>
+		bool IsDefaultConfiguration { get; }
+
+		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
 		string ApplicationName { get; set; }

@@ -35,6 +35,12 @@ namespace GriffinPlus.Lib.Logging
 		protected internal object Sync { get; } = new object();
 
 		/// <summary>
+		/// Gets a value indicating whether the configuration is the default configuration that was created
+		/// by the logging subsystem at start.
+		/// </summary>
+		public bool IsDefaultConfiguration { get; internal set; }
+
+		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
 		public abstract string ApplicationName { get; set; }

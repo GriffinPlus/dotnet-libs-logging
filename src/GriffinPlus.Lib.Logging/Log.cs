@@ -48,7 +48,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync) // just to prevent assertions from firing...
 			{
 				InitDefaultConfiguration();
-				ProcessingPipeline = new ConsoleWriterPipelineStage("Console");
+				ProcessingPipeline = new ConsoleWriterPipelineStage("Console") { IsDefaultStage = true };
 			}
 		}
 
@@ -342,6 +342,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// create and init default configuration
 				VolatileLogConfiguration configuration = new VolatileLogConfiguration();
+				configuration.IsDefaultConfiguration = true;
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 				sLogConfiguration = configuration;
 

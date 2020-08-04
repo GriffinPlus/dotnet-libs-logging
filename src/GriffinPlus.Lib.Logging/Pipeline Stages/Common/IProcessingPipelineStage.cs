@@ -21,6 +21,11 @@ namespace GriffinPlus.Lib.Logging
 	public interface IProcessingPipelineStage
 	{
 		/// <summary>
+		/// Gets a value indicating whether the stage is the default stage that was created by the logging subsystem at start.
+		/// </summary>
+		bool IsDefaultStage { get; }
+
+		/// <summary>
 		/// Gets the name of the processing pipeline stage identifying the stage throughout the entire pipeline (must be unique).
 		/// </summary>
 		string Name { get; }

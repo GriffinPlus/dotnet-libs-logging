@@ -60,6 +60,11 @@ namespace GriffinPlus.Lib.Logging
 		public string Name { get; }
 
 		/// <summary>
+		/// Gets a value indicating whether the stage is the default stage that was created by the logging subsystem at start.
+		/// </summary>
+		public bool IsDefaultStage { get; internal set; }
+
+		/// <summary>
 		/// Gets the object to use for synchronization of changes to the pipeline stage using a monitor.
 		/// </summary>
 		protected object Sync { get; } = new object();
