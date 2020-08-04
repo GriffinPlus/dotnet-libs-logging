@@ -298,59 +298,6 @@ namespace GriffinPlus.Lib.Logging.Demo
 		{
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------
-			// Configure the log message pipeline
-			// -----------------------------------------------------------------------------------------------------------------
-			// -----------------------------------------------------------------------------------------------------------------
-
-			// Create log message formatter that prints log messages in a tabular fashion
-			var tableFormatter = new TableMessageFormatter();
-			tableFormatter.AddTimestampColumn("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
-			tableFormatter.AddProcessIdColumn();
-			tableFormatter.AddProcessNameColumn();
-			tableFormatter.AddApplicationNameColumn();
-			tableFormatter.AddLogWriterColumn();
-			tableFormatter.AddLogLevelColumn();
-			tableFormatter.AddTextColumn();
-
-			// Create log message formatter that prints log messages as JSON
-			var jsonFormatter = new JsonMessageFormatter();
-			jsonFormatter.Style = JsonMessageFormatterStyle.Beautified;
-			jsonFormatter.AddTimestampField("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
-			jsonFormatter.AddProcessIdField();
-			jsonFormatter.AddProcessNameField();
-			jsonFormatter.AddApplicationNameField();
-			jsonFormatter.AddLogWriterField();
-			jsonFormatter.AddLogLevelField();
-			jsonFormatter.AddTextField();
-
-			// Create pipeline stage for printing to the console
-			var consoleStage = new ConsoleWriterPipelineStage();
-			consoleStage.MessageQueueSize = 500;                                            // buffer up to 500 messages (default)
-			consoleStage.DiscardMessagesIfQueueFull = false;                                // block if the queue is full (default)
-			consoleStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                 // wait up to 5000ms for the stage to shut down (default)
-			consoleStage.Formatter = tableFormatter;                                        // use specific formatter
-			consoleStage.DefaultStream = ConsoleOutputStream.Stdout;                        // print to stdout by default (default)
-			consoleStage.MapLogLevelToStream(LogLevel.Failure, ConsoleOutputStream.Stderr); // print failures to stderr
-			consoleStage.MapLogLevelToStream(LogLevel.Error, ConsoleOutputStream.Stderr);   // print errors to stderr
-
-			// Create pipeline stage for writing to a file
-			var fileStage = new FileWriterPipelineStage("mylog.log", false);
-			fileStage.MessageQueueSize = 500;                                               // buffer up to 500 messages (default)
-			fileStage.DiscardMessagesIfQueueFull = false;                                   // block if the queue is full (default)
-			fileStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                    // wait up to 5000ms for the stage to shut down (default)
-			fileStage.Formatter = jsonFormatter;                                            // use specific formatter
-			fileStage.AutoFlush = false;                                                    // do not flush the file after writing a log message (default)
-
-			// Create splitter pipeline stage to unconditionally feed log messages into both pipelines stages
-			var splitterStage = new SplitterPipelineStage();
-			splitterStage.AddNextStage(consoleStage);
-			splitterStage.AddNextStage(fileStage);
-
-			// Activate the stages
-			Log.ProcessingPipeline = splitterStage;
-
-			// -----------------------------------------------------------------------------------------------------------------
-			// -----------------------------------------------------------------------------------------------------------------
 			// Set up the volatile (in-memory) or persistent (file-backed) configuration
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------
@@ -435,10 +382,63 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// activate the configuration
 			Log.Configuration = config;
 
-			// Save configuration file, if it was initialized programmatically
+			// -----------------------------------------------------------------------------------------------------------------
+			// -----------------------------------------------------------------------------------------------------------------
+			// Configure the log message pipeline
+			// -----------------------------------------------------------------------------------------------------------------
+			// -----------------------------------------------------------------------------------------------------------------
+
+			// Create log message formatter that prints log messages in a tabular fashion
+			var tableFormatter = new TableMessageFormatter();
+			tableFormatter.AddTimestampColumn("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
+			tableFormatter.AddProcessIdColumn();
+			tableFormatter.AddProcessNameColumn();
+			tableFormatter.AddApplicationNameColumn();
+			tableFormatter.AddLogWriterColumn();
+			tableFormatter.AddLogLevelColumn();
+			tableFormatter.AddTextColumn();
+
+			// Create log message formatter that prints log messages as JSON
+			var jsonFormatter = new JsonMessageFormatter();
+			jsonFormatter.Style = JsonMessageFormatterStyle.Beautified;
+			jsonFormatter.AddTimestampField("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
+			jsonFormatter.AddProcessIdField();
+			jsonFormatter.AddProcessNameField();
+			jsonFormatter.AddApplicationNameField();
+			jsonFormatter.AddLogWriterField();
+			jsonFormatter.AddLogLevelField();
+			jsonFormatter.AddTextField();
+
+			// Create pipeline stage for printing to the console
+			var consoleStage = new ConsoleWriterPipelineStage("Console");
+			consoleStage.MessageQueueSize = 500;                                            // buffer up to 500 messages (default)
+			consoleStage.DiscardMessagesIfQueueFull = false;                                // block if the queue is full (default)
+			consoleStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                 // wait up to 5000ms for the stage to shut down (default)
+			consoleStage.Formatter = tableFormatter;                                        // use specific formatter
+			consoleStage.DefaultStream = ConsoleOutputStream.Stdout;                        // print to stdout by default (default)
+			consoleStage.MapLogLevelToStream(LogLevel.Failure, ConsoleOutputStream.Stderr); // print failures to stderr
+			consoleStage.MapLogLevelToStream(LogLevel.Error, ConsoleOutputStream.Stderr);   // print errors to stderr
+
+			// Create pipeline stage for writing to a file
+			var fileStage = new FileWriterPipelineStage("File", "mylog.log", false);
+			fileStage.MessageQueueSize = 500;                                               // buffer up to 500 messages (default)
+			fileStage.DiscardMessagesIfQueueFull = false;                                   // block if the queue is full (default)
+			fileStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                    // wait up to 5000ms for the stage to shut down (default)
+			fileStage.Formatter = jsonFormatter;                                            // use specific formatter
+			fileStage.AutoFlush = false;                                                    // do not flush the file after writing a log message (default)
+
+			// Create splitter pipeline stage to unconditionally feed log messages into both pipelines stages
+			var splitterStage = new SplitterPipelineStage("Splitter");
+			splitterStage.AddNextStage(consoleStage);
+			splitterStage.AddNextStage(fileStage);
+
+			// Activate the stages
+			Log.ProcessingPipeline = splitterStage;
+
+			// Save configuration, if it was initialized programmatically
 			// (It is important that Log.ProcessingPipeline and Log.Configuration are set at this point, so the
 			// pipeline stages can persist their settings in the configuration)
-			if (initConfig) config.Save();
+			if (initConfig) config.Save(true);
 
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------
