@@ -36,6 +36,8 @@ namespace GriffinPlus.Lib.Logging
 		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
 		private static ILogConfiguration sLogConfiguration;
 		private static volatile IProcessingPipelineStage sProcessingPipeline;
+		private static readonly AsyncLocal<uint> sAsyncId = new AsyncLocal<uint>();
+		private static int sAsyncIdCounter = 0;
 		private static readonly LogWriter sLog = GetWriter("Logging");
 
 		/// <summary>
@@ -64,6 +66,30 @@ namespace GriffinPlus.Lib.Logging
 		/// The index of the log writer in the list corresponds to <see cref="LogWriter.Id"/>.
 		/// </summary>
 		public static IReadOnlyList<LogWriter> KnownWriters => sLogWritersById;
+
+		/// <summary>
+		/// Gets an id that is valid for the entire asynchronous control flow.
+		/// It should be queried the first time where the asynchronous path starts.
+		/// </summary>
+		public static uint AsyncId
+		{
+			get
+			{
+				unchecked
+				{
+					uint id = sAsyncId.Value;
+
+					if (id == 0)
+					{
+						id = (uint)Interlocked.Increment(ref sAsyncIdCounter);
+						if (id == 0) id = (uint)Interlocked.Increment(ref sAsyncIdCounter); // handles overflow
+						sAsyncId.Value = id;
+					}
+
+					return id;
+				}
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the log configuration that determines the behavior of the log
