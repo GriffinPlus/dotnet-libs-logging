@@ -1083,6 +1083,8 @@ namespace GriffinPlus.Lib.Logging
 							mSharedMemoryQueue.EndWritingSequence((void**) blocks, bytesWritten, requiredExtensionMessages + 1, mLostMessageCount);
 							mLostMessageCount = 0;
 						}
+
+						return true;
 					}
 				}
 
