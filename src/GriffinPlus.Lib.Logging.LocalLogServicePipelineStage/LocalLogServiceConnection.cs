@@ -938,35 +938,35 @@ namespace GriffinPlus.Lib.Logging
 				if (defer || mServiceProcess != null)
 				{
 					// get an empty block
-					LogEntryBlock* block;
+					LogEntryBlock* firstBlock;
 					if (defer)
 					{
 						LogEntryBlock* b = stackalloc LogEntryBlock[1];
-						block = b;
+						firstBlock = b;
 					}
 					else
 					{
-						block = GetLogEntryBlock();
+						firstBlock = GetLogEntryBlock();
 					}
 
-					if (block != null)
+					if (firstBlock != null)
 					{
 						// write the first part of the message (and in most cases the only one...)
-						block->Type = LogEntryBlockType.Message;
-						block->Reserved = 0;
-						block->Message.Timestamp = timestamp;
-						block->Message.HighPrecisionTimestamp = highPrecisionTimestamp;
-						block->Message.LogLevelNameId = message.LogLevel.Id;
-						block->Message.SourceNameId = message.LogWriter.Id;
-						block->Message.ProcessId = sCurrentProcessId;
-						block->Message.MessageExtensionCount = 0;
+						firstBlock->Type = LogEntryBlockType.Message;
+						firstBlock->Reserved = 0;
+						firstBlock->Message.Timestamp = timestamp;
+						firstBlock->Message.HighPrecisionTimestamp = highPrecisionTimestamp;
+						firstBlock->Message.LogLevelNameId = message.LogLevel.Id;
+						firstBlock->Message.SourceNameId = message.LogWriter.Id;
+						firstBlock->Message.ProcessId = sCurrentProcessId;
+						firstBlock->Message.MessageExtensionCount = 0;
 						int charsToCopy = Math.Min(message.Text.Length, LogEntryBlock_Message.MessageSize);
 
 						fixed (char* pMessage = message.Text)
 						{
 							Buffer.MemoryCopy(
 								pMessage,
-								block->Message.Message,
+								firstBlock->Message.Message,
 								LogEntryBlock_Message.MessageSize * sizeof(char),
 								charsToCopy * sizeof(char));
 						}
@@ -974,7 +974,7 @@ namespace GriffinPlus.Lib.Logging
 						// terminate the message, if it is shorter than the buffer
 						if (charsToCopy < LogEntryBlock_Message.MessageSize)
 						{
-							block->Message.Message[charsToCopy] = (char) 0;
+							firstBlock->Message.Message[charsToCopy] = (char) 0;
 						}
 
 						if (message.Text.Length <= LogEntryBlock_Message.MessageSize)
@@ -983,11 +983,11 @@ namespace GriffinPlus.Lib.Logging
 							// => enqueue block
 							if (defer)
 							{
-								mPeakBufferQueue.Enqueue(*block);
+								mPeakBufferQueue.Enqueue(*firstBlock);
 							}
 							else
 							{
-								mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
+								mSharedMemoryQueue.EndWriting(firstBlock, sizeof(LogEntryBlock), mLostMessageCount);
 								mLostMessageCount = 0;
 							}
 
@@ -1004,12 +1004,12 @@ namespace GriffinPlus.Lib.Logging
 
 						// update the first log entry block to store the correct amount of following messages
 						// extending the first one
-						block->Message.MessageExtensionCount = requiredExtensionMessages;
+						firstBlock->Message.MessageExtensionCount = requiredExtensionMessages;
 
 						// get enough blocks to store the resulting message
 						LogEntryBlock** blocks = stackalloc LogEntryBlock*[requiredExtensionMessages + 1];
 						int* bytesWritten = stackalloc int[requiredExtensionMessages + 1];
-						blocks[0] = block;
+						blocks[0] = firstBlock;
 						bytesWritten[0] = sizeof(LogEntryBlock);
 
 						if (defer)
@@ -1056,13 +1056,13 @@ namespace GriffinPlus.Lib.Logging
 
 								Buffer.MemoryCopy(
 									pMessage + offset,
-									block->MessageExtension.Message,
+									blocks[i]->MessageExtension.Message,
 									LogEntryBlock_MessageExtension.MessageSize * sizeof(char),
 									charsToCopy * sizeof(char));
 
 								if (charsToCopy < LogEntryBlock_MessageExtension.MessageSize)
 								{
-									block->MessageExtension.Message[charsToCopy] = (char) 0;
+									blocks[i]->MessageExtension.Message[charsToCopy] = (char) 0;
 								}
 
 								offset += charsToCopy;
