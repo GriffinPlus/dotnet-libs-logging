@@ -37,6 +37,11 @@ namespace GriffinPlus.Lib.Logging
 		void Initialize();
 
 		/// <summary>
+		/// Gets a value indicating whether the pipeline stage is initialized, i.e. it is attached to the logging subsystem.
+		/// </summary>
+		bool IsInitialized { get; }
+
+		/// <summary>
 		/// Shuts the processing pipeline stage and all following stages down gracefully.
 		/// This method is called by the logging subsystem and should not be called explicitly.
 		/// This method must not throw exceptions.
