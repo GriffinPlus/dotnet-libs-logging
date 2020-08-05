@@ -49,6 +49,28 @@ namespace GriffinPlus.Lib.Logging
 		void Shutdown();
 
 		/// <summary>
+		/// Gets or sets processing pipeline stages that are called after the current stage has completed processing.
+		/// </summary>
+		IProcessingPipelineStage[] NextStages { get; }
+
+		/// <summary>
+		/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
+		/// its <see cref="IProcessingPipelineStage.ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
+		/// </summary>
+		/// <param name="stage">The pipeline stage that should follow the current stage.</param>
+		void AddNextStage(IProcessingPipelineStage stage);
+
+		/// <summary>
+		/// Removes the specified pipeline stage from the list of following pipeline stages.
+		/// </summary>
+		/// <param name="stage">Pipeline stage to remove.</param>
+		/// <returns>
+		/// true, if the specified pipeline stage was removed successfully;
+		/// false, if the specified pipeline stage is not one of the following pipeline stages of the current stage.
+		/// </returns>
+		bool RemoveNextStage(IProcessingPipelineStage stage);
+
+		/// <summary>
 		/// Gets all pipeline stages following the current stage (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
