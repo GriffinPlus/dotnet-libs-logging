@@ -977,7 +977,7 @@ namespace GriffinPlus.Lib.Logging
 							block->Message.Message[charsToCopy] = (char) 0;
 						}
 
-						if (charsToCopy <= LogEntryBlock_Message.MessageSize / sizeof(char))
+						if (charsToCopy <= LogEntryBlock_Message.MessageSize)
 						{
 							// message fits into a single buffer
 							// => enqueue block
@@ -1052,7 +1052,7 @@ namespace GriffinPlus.Lib.Logging
 								blocks[i]->Type = LogEntryBlockType.MessageExtension;
 								blocks[i]->Reserved = 0;
 
-								charsToCopy = Math.Min(charsRemaining, LogEntryBlock_MessageExtension.MessageSize / sizeof(char));
+								charsToCopy = Math.Min(LogEntryBlock_MessageExtension.MessageSize, charsRemaining);
 
 								Buffer.MemoryCopy(
 									pMessage + offset,
@@ -1060,7 +1060,7 @@ namespace GriffinPlus.Lib.Logging
 									LogEntryBlock_MessageExtension.MessageSize * sizeof(char),
 									charsToCopy * sizeof(char));
 
-								if (charsToCopy < LogEntryBlock_MessageExtension.MessageSize / sizeof(char))
+								if (charsToCopy < LogEntryBlock_MessageExtension.MessageSize)
 								{
 									block->MessageExtension.Message[charsToCopy] = (char) 0;
 								}
