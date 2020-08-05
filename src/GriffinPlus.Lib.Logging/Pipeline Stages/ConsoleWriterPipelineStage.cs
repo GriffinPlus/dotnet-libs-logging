@@ -117,8 +117,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Is called to allow a derived stage bind its settings when the <see cref="AsyncProcessingPipelineStage{STAGE}.Settings"/> property has changed
-		/// (the pipeline stage lock <see cref="AsyncProcessingPipelineStage{STAGE}.Sync"/> is acquired when this method is called).
+		/// Is called to allow a derived stage bind its settings when the <see cref="ProcessingPipelineBaseStage.Settings"/> property has changed
+		/// (the pipeline stage lock <see cref="ProcessingPipelineBaseStage.Sync"/> is acquired when this method is called).
 		/// </summary>
 		protected override void BindSettings()
 		{
