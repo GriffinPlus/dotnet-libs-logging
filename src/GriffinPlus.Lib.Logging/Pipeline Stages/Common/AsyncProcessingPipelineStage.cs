@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 	/// that might block should be done asynchronously only to ensure that the thread writing a message is
 	/// not blocked.
 	/// </summary>
-	public abstract class AsyncProcessingPipelineStage<STAGE> : ProcessingPipelineBaseStage, IProcessingPipelineStage
+	public abstract class AsyncProcessingPipelineStage<STAGE> : ProcessingPipelineBaseStage
 		where STAGE: AsyncProcessingPipelineStage<STAGE>
 	{
 		private Task mAsyncProcessingTask;

@@ -36,7 +36,7 @@ namespace GriffinPlus.Lib.Logging
 		/// (only non-default stuff is checked, the rest is done by the base test class).
 		/// </summary>
 		[Fact]
-		void Create()
+		private void Create()
 		{
 			var stage = new SplitterPipelineStage("Splitter"); // do not use CreateStage() to emphasize that the constructor is tested
 			Assert.Empty(stage.Settings);

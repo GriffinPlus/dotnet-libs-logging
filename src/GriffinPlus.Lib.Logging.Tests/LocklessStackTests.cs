@@ -140,7 +140,7 @@ namespace GriffinPlus.Lib.Logging
 			PopulateStack(stack, capacity, capacity);
 
 			// pushing another item should fail
-			int[] data = new[] { 42 };
+			int[] data = { 42 };
 			Assert.False(stack.PushMany(data));
 		}
 
@@ -160,7 +160,7 @@ namespace GriffinPlus.Lib.Logging
 			PopulateStack(stack, capacity, capacity);
 
 			// pushing another item should let the stack grow
-			int[] data = new[] { 42 };
+			int[] data = { 42 };
 			Assert.Equal(capacity, stack.Capacity);
 			Assert.Equal(0, stack.FreeItemCount);
 			Assert.Equal(capacity, stack.UsedItemCount);

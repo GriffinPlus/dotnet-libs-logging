@@ -28,9 +28,9 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<ConsoleWriterPipelineStage>
 	{
-		private static readonly Dictionary<string, object> sDefaultSettings = new Dictionary<string, object>()
+		private static readonly Dictionary<string, object> sDefaultSettings = new Dictionary<string, object>
 		{
-			{ "DefaultStream", ConsoleOutputStream.Stdout },
+			{ "DefaultStream", ConsoleOutputStream.Stdout }
 		};
 
 		/// <summary>
@@ -195,17 +195,20 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var defaultStream in new[] { ConsoleOutputStream.Stdout, ConsoleOutputStream.Stderr })
-				{
-					foreach (var args in LogLevelToStreamMapping_TestData)
+				return from defaultStream in new[]
 					{
-						var mappings = (List<Tuple<LogLevel, ConsoleOutputStream>>)args[0];
-						foreach (var messages in TestData.LocalLogMessageSet)
-						{
-							yield return new object[] { defaultStream, mappings, messages };
-						}
+						ConsoleOutputStream.Stdout,
+						ConsoleOutputStream.Stderr
 					}
-				}
+					from args in LogLevelToStreamMapping_TestData
+					let mappings = (List<Tuple<LogLevel, ConsoleOutputStream>>) args[0]
+					from messages in TestData.LocalLogMessageSet
+					select new object[]
+					{
+						defaultStream,
+						mappings,
+						messages
+					};
 			}
 		}
 

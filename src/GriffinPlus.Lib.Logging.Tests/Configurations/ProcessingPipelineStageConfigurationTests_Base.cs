@@ -136,7 +136,7 @@ namespace GriffinPlus.Lib.Logging
 			GetSetting_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
 
 			// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION>).GetMethod(nameof(GetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(type);
+			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION>).GetMethod(nameof(GetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(type);
 			typedTestMethod.Invoke(this, new[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
 
 			// test getting the same setting once again (should succeed, if default value is the same)
@@ -150,7 +150,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting2", value })).InnerException);
 		}
 
-		private void GetSetting_UntypedInterface(
+		private static void GetSetting_UntypedInterface(
 			IUntypedProcessingPipelineStageSetting setting,
 			object defaultValue,
 			string defaultValueAsString,
@@ -170,7 +170,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(valueAsString, setting.ValueAsString);
 		}
 
-		private void GetSetting_TypedInterface<T>(
+		private static void GetSetting_TypedInterface<T>(
 			IProcessingPipelineStageSetting<T> setting,
 			object defaultValue,
 			string defaultValueAsString,

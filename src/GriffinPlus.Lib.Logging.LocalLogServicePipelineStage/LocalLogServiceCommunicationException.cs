@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Exception that is thrown when there is a problem communicating with the local log service.
 	/// </summary>
-	class LocalLogServiceCommunicationException : LoggingException
+	public class LocalLogServiceCommunicationException : LoggingException
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogServiceCommunicationException"/> class.

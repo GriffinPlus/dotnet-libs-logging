@@ -66,7 +66,7 @@ namespace GriffinPlus.Lib.Logging
 				else
 				{
 					var sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
-					var sg2 = (codepoint % 0x400) + 0xDC00;
+					var sg2 = codepoint % 0x400 + 0xDC00;
 					unescaped.Append((char)sg1);
 					unescaped.Append((char)sg2);
 				}
@@ -95,7 +95,7 @@ namespace GriffinPlus.Lib.Logging
 					else
 					{
 						var sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
-						var sg2 = (codepoint % 0x400) + 0xDC00;
+						var sg2 = codepoint % 0x400 + 0xDC00;
 						escaped_WithSolidus.Append((char)sg1);
 						escaped_WithSolidus.Append((char)sg2);
 						escaped_WithoutSolidus.Append((char)sg1);
@@ -134,7 +134,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				var message = new LogMessage()
+				var message = new LogMessage
 				{
 					Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
 					HighPrecisionTimestamp = 123,
@@ -505,9 +505,18 @@ namespace GriffinPlus.Lib.Logging
 
 			// prepare regex to match output
 			string pattern;
-			if (style == JsonMessageFormatterStyle.Compact) pattern = "^{\"(.+)\":.+}$";
-			else if (style == JsonMessageFormatterStyle.OneLine) pattern = "^{ \"(.+)\" : .+ }$";
-			else pattern = "^{\r\n    \"(.+)\" : .+\r\n}$";
+			switch (style)
+			{
+				case JsonMessageFormatterStyle.Compact:
+					pattern = "^{\"(.+)\":.+}$";
+					break;
+				case JsonMessageFormatterStyle.OneLine:
+					pattern = "^{ \"(.+)\" : .+ }$";
+					break;
+				default:
+					pattern = "^{\r\n    \"(.+)\" : .+\r\n}$";
+					break;
+			}
 			var regex = new Regex(pattern);
 
 			// check whether the key has been escaped properly (without escaping the solidus)
@@ -590,9 +599,18 @@ namespace GriffinPlus.Lib.Logging
 
 			// prepare regex to match output
 			string pattern;
-			if (style == JsonMessageFormatterStyle.Compact) pattern = "^{\"(.+)\":\"(.+)\"}$";
-			else if (style == JsonMessageFormatterStyle.OneLine) pattern = "^{ \"(.+)\" : \"(.+)\" }$";
-			else pattern = "^{\r\n    \"(.+)\" : \"(.+)\"\r\n}$";
+			switch (style)
+			{
+				case JsonMessageFormatterStyle.Compact:
+					pattern = "^{\"(.+)\":\"(.+)\"}$";
+					break;
+				case JsonMessageFormatterStyle.OneLine:
+					pattern = "^{ \"(.+)\" : \"(.+)\" }$";
+					break;
+				default:
+					pattern = "^{\r\n    \"(.+)\" : \"(.+)\"\r\n}$";
+					break;
+			}
 			var regex = new Regex(pattern);
 
 			// check whether the key has been escaped properly (without escaping the solidus)
@@ -620,20 +638,20 @@ namespace GriffinPlus.Lib.Logging
 		public void AllFields()
 		{
 			var formatter = JsonMessageFormatter.AllFields;
-			var expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
+			const LogMessageField expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
 			Assert.Equal(expectedFields, formatter.FormattedFields);
 			var message = GetTestMessage();
 			formatter.Style = JsonMessageFormatterStyle.OneLine;
 			var output = formatter.Format(message);
-			var expected = "{" +
-				" \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
-				" \"LogWriter\" : \"MyWriter\"," +
-				" \"LogLevel\" : \"MyLevel\"," +
-				" \"ApplicationName\" : \"MyApp\"," +
-				" \"ProcessName\" : \"MyProcess\"," +
-				" \"ProcessId\" : 42," +
-				" \"Text\" : \"MyText\"" +
-				" }";
+			const string expected = "{" +
+			                        " \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
+			                        " \"LogWriter\" : \"MyWriter\"," +
+			                        " \"LogLevel\" : \"MyLevel\"," +
+			                        " \"ApplicationName\" : \"MyApp\"," +
+			                        " \"ProcessName\" : \"MyProcess\"," +
+			                        " \"ProcessId\" : 42," +
+			                        " \"Text\" : \"MyText\"" +
+			                        " }";
 			Assert.Equal(expected, output);
 		}
 
@@ -644,7 +662,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>A log message with test data.</returns>
 		private static LogMessage GetTestMessage()
 		{
-			return new LogMessage()
+			return new LogMessage
 			{
 				Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
 				HighPrecisionTimestamp = 123,

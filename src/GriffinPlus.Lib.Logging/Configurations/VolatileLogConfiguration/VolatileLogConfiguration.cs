@@ -114,12 +114,10 @@ namespace GriffinPlus.Lib.Logging
 
 					return mask;
 				}
-				else
-				{
-					// no matching settings found
-					// => disable all log levels...
-					return new LogLevelBitMask(0, false, false);
-				}
+
+				// no matching settings found
+				// => disable all log levels...
+				return new LogLevelBitMask(0, false, false);
 			}
 		}
 

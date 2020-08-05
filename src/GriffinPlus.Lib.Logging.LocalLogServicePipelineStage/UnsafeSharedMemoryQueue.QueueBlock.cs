@@ -15,13 +15,13 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class UnsafeSharedMemoryQueue
+	internal partial class UnsafeSharedMemoryQueue
 	{
 		/// <summary>
 		/// A block of data in the shared memory queue.
 		/// </summary>
 		[StructLayout(LayoutKind.Sequential)]
-		struct QueueBlock
+		private struct QueueBlock
 		{
 			public const uint MagicNumberValue = 0x11223344;
 

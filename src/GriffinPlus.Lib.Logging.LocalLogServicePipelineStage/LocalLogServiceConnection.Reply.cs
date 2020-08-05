@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class LocalLogServiceConnection
+	internal partial class LocalLogServiceConnection
 	{
 		/// <summary>
 		/// A request sent via the named pipe.

@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Some helper methods around working with regular expressions.
 	/// </summary>
-	static class RegexHelpers
+	internal static class RegexHelpers
 	{
 		/// <summary>
 		/// Checks whether the specified string is a wildcard expression

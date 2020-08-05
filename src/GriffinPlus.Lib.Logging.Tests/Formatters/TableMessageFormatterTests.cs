@@ -138,7 +138,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AllColumns()
 		{
 			var formatter = TableMessageFormatter.AllColumns;
-			var expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
+			const LogMessageField expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
 			Assert.Equal(expectedFields, formatter.FormattedFields);
 			var message = GetTestMessage();
 			var output = formatter.Format(message);
@@ -151,7 +151,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>A log message with test data.</returns>
 		private static LogMessage GetTestMessage()
 		{
-			return new LogMessage()
+			return new LogMessage
 			{
 				Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
 				HighPrecisionTimestamp = 123,

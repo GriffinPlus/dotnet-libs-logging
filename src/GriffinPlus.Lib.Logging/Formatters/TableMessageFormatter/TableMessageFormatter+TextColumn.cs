@@ -22,7 +22,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The message text column.
 		/// </summary>
-		sealed class TextColumn : ColumnBase
+		private sealed class TextColumn : ColumnBase
 		{
 			private string[] mBuffer;
 

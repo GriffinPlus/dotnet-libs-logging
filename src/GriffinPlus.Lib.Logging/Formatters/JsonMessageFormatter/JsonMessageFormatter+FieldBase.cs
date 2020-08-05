@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Base class for field definitions
 		/// (derived classes should be immutable to avoid threading issues).
 		/// </summary>
-		abstract class FieldBase
+		private abstract class FieldBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="FieldBase"/> class.

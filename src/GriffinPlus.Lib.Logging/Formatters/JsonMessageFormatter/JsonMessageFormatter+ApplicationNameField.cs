@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The application name field (immutable).
 		/// </summary>
-		sealed class ApplicationNameField : FieldBase
+		private sealed class ApplicationNameField : FieldBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ApplicationNameField"/> class.

@@ -36,9 +36,9 @@ namespace GriffinPlus.Lib.Logging
 		private readonly string mLocalQueueName;
 		private readonly UnsafeSharedMemoryQueue mSharedMemoryQueue = new UnsafeSharedMemoryQueue();
 		private bool mInitialized;
-		private int mPeakBufferCapacity = 0;
+		private int mPeakBufferCapacity;
 		private readonly Queue<LogEntryBlock> mPeakBufferQueue = new Queue<LogEntryBlock>();
-		private int mLostMessageCount = 0;
+		private int mLostMessageCount;
 		private bool mAutoReconnect = true;
 		private TimeSpan mAutoReconnectRetryInterval = TimeSpan.FromSeconds(15);
 		private Task mAutoReconnectTask;
@@ -91,13 +91,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mAutoReconnect != value)
+					if (mAutoReconnect == value) return;
+					mAutoReconnect = value;
+					if (mInitialized && !IsLogSinkAlive())
 					{
-						mAutoReconnect = value;
-						if (mInitialized && !IsLogSinkAlive())
-						{
-							StartAutoReconnectTask();
-						}
+						StartAutoReconnectTask();
 					}
 				}
 			}
@@ -1000,7 +998,7 @@ namespace GriffinPlus.Lib.Logging
 
 						// determine the amount of space needed
 						int requiredLength = message.Text.Length;
-						int maxExtensionMessageLength = LogEntryBlock_MessageExtension.MessageSize;
+						const int maxExtensionMessageLength = LogEntryBlock_MessageExtension.MessageSize;
 						int requiredExtensionMessages = (requiredLength - LogEntryBlock_Message.MessageSize + maxExtensionMessageLength - 1) / maxExtensionMessageLength;
 						Debug.Assert(requiredExtensionMessages > 0);
 

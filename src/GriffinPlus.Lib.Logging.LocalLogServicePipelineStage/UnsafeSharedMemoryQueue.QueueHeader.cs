@@ -15,13 +15,13 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class UnsafeSharedMemoryQueue
+	internal partial class UnsafeSharedMemoryQueue
 	{
 		/// <summary>
 		/// The header of the shared memory queue.
 		/// </summary>
 		[StructLayout(LayoutKind.Sequential)]
-		unsafe struct QueueHeader
+		private unsafe struct QueueHeader
 		{
 			/// <summary>
 			/// The signature (used to recognize the shared memory queue).

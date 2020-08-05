@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Base class for column definitions.
 		/// </summary>
-		abstract class ColumnBase
+		private abstract class ColumnBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ColumnBase"/> class.

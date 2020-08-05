@@ -97,7 +97,7 @@ namespace GriffinPlus.Lib.Logging
 		/// (only non-default stuff is checked, the rest is done by the base test class).
 		/// </summary>
 		[Fact]
-		void Create_WithBothCallbacks()
+		private void Create_WithBothCallbacks()
 		{
 			var callback = new Callback();
 			var stage = new AsyncCallbackPipelineStage("Callback", callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
@@ -108,7 +108,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests whether creating a new instance of the pipeline stage succeeds, if only the synchronous processing callback is specified.
 		/// </summary>
 		[Fact]
-		void Create_WithSyncCallbackOnly()
+		private void Create_WithSyncCallbackOnly()
 		{
 			var callback = new Callback();
 			var stage = new AsyncCallbackPipelineStage("Callback", callback.ProcessSyncCallback, null);
@@ -119,7 +119,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests whether creating a new instance of the pipeline stage succeeds, if only the asynchronous processing callback is specified.
 		/// </summary>
 		[Fact]
-		void Create_WithAsyncCallbackOnly()
+		private void Create_WithAsyncCallbackOnly()
 		{
 			var callback = new Callback();
 			var stage = new AsyncCallbackPipelineStage("Callback", null, callback.ProcessAsyncCallback);
@@ -136,7 +136,8 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(true, true)]
 		public void Process_Standalone(bool processSyncReturnValue, bool queueForAsyncProcessing)
 		{
-			var callback = new Callback() {
+			var callback = new Callback
+			{
 				ProcessSyncCallbackReturnValue = processSyncReturnValue,
 				ProcessSyncCallbackQueueForAsyncProcessing = queueForAsyncProcessing
 			};
@@ -183,11 +184,13 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(true, true)]
 		public void Process_WithFollowingStage(bool processSyncReturnValue, bool queueForAsyncProcessing)
 		{
-			var callback1 = new Callback() {
+			var callback1 = new Callback
+			{
 				ProcessSyncCallbackReturnValue = processSyncReturnValue,
 				ProcessSyncCallbackQueueForAsyncProcessing = queueForAsyncProcessing
 			};
-			var callback2 = new Callback() {
+			var callback2 = new Callback
+			{
 				ProcessSyncCallbackReturnValue = processSyncReturnValue,
 				ProcessSyncCallbackQueueForAsyncProcessing = queueForAsyncProcessing
 			};

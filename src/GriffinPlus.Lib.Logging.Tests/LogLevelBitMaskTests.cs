@@ -81,7 +81,7 @@ namespace GriffinPlus.Lib.Logging
 			LogLevelBitMask mask = new LogLevelBitMask(size, initialBitValue, paddingValue);
 
 			// check the actual size of the mask in bits
-			int effectiveSize = ((size + 31) / 32) * 32;
+			int effectiveSize = (size + 31) & ~31;
 			Assert.Equal(effectiveSize, mask.Size);
 
 			// check padding value
@@ -110,7 +110,7 @@ namespace GriffinPlus.Lib.Logging
 			LogLevelBitMask mask = new LogLevelBitMask(size, false, false);
 
 			// check the actual size of the mask in bits
-			int effectiveSize = ((size + 31) / 32) * 32;
+			int effectiveSize = (size + 31) & ~31;
 			Assert.Equal(effectiveSize, mask.Size);
 
 			// clear bit
@@ -145,7 +145,7 @@ namespace GriffinPlus.Lib.Logging
 			LogLevelBitMask mask = new LogLevelBitMask(size, true, false);
 
 			// check the actual size of the mask in bits
-			int effectiveSize = ((size + 31) / 32) * 32;
+			int effectiveSize = (size + 31) & ~31;
 			Assert.Equal(effectiveSize, mask.Size);
 
 			// clear bit
@@ -200,7 +200,7 @@ namespace GriffinPlus.Lib.Logging
 			LogLevelBitMask mask = new LogLevelBitMask(size, false, false);
 
 			// check the actual size of the mask in bits
-			int effectiveSize = ((size + 31) / 32) * 32;
+			int effectiveSize = (size + 31) & ~31;
 			Assert.Equal(effectiveSize, mask.Size);
 
 			// clear bit
@@ -241,7 +241,7 @@ namespace GriffinPlus.Lib.Logging
 			LogLevelBitMask mask = new LogLevelBitMask(size, true, false);
 
 			// check the actual size of the mask in bits
-			int effectiveSize = ((size + 31) / 32) * 32;
+			int effectiveSize = (size + 31) & ~31;
 			Assert.Equal(effectiveSize, mask.Size);
 
 			// clear bit

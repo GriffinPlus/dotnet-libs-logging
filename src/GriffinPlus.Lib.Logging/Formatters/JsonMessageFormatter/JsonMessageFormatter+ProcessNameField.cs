@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The process name field (immutable).
 		/// </summary>
-		sealed class ProcessNameField : FieldBase
+		private sealed class ProcessNameField : FieldBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ProcessNameField"/> class.

@@ -17,15 +17,19 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
+	internal class MyClass1 { }
 
-	class MyClass1 { }
-	class MyClass2 { }
-	class MyClass3 { }
-	class MyClass4 { }
-	class MyClassA { }
-	class MyClassB { }
+	internal class MyClass2 { }
 
-	class Program
+	internal class MyClass3 { }
+
+	internal class MyClass4 { }
+
+	internal class MyClassA { }
+
+	internal class MyClassB { }
+
+	internal class Program
 	{
 		// Register log writers using types.
 		private static readonly LogWriter sLog1 = Log.GetWriter<MyClass1>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass1
@@ -38,7 +42,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 		// Register a log writer using a custom name.
 		private static readonly LogWriter sLog7 = Log.GetWriter("My Fancy Writer");
 
-		static void Main(string[] args)
+		private static void Main(string[] args)
 		{
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------

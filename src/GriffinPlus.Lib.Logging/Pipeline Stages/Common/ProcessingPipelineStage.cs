@@ -24,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Messages are always processed in the context of the thread writing the message.
 	/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
 	/// </summary>
-	public abstract class ProcessingPipelineStage<STAGE> : ProcessingPipelineBaseStage, IProcessingPipelineStage
+	public abstract class ProcessingPipelineStage<STAGE> : ProcessingPipelineBaseStage
 		where STAGE: ProcessingPipelineStage<STAGE>
 	{
 		/// <summary>

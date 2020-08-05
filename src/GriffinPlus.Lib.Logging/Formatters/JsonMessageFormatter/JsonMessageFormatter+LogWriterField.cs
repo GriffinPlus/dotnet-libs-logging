@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The log writer field (immutable).
 		/// </summary>
-		sealed class LogWriterField : FieldBase
+		private sealed class LogWriterField : FieldBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="LogWriterField"/> class.

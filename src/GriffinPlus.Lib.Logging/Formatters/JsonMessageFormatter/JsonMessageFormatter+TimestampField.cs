@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The timestamp field (immutable).
 		/// </summary>
-		sealed class TimestampField : FieldBase
+		private sealed class TimestampField : FieldBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="TimestampField"/> class.

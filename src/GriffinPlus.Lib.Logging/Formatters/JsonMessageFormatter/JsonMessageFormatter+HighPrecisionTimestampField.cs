@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The high precision timestamp field (immutable).
 		/// </summary>
-		sealed class HighPrecisionTimestampField : FieldBase
+		private sealed class HighPrecisionTimestampField : FieldBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="HighPrecisionTimestampField"/> class.

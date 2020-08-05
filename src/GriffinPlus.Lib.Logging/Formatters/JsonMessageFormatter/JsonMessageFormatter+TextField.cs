@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The message text field (immutable).
 		/// </summary>
-		sealed class TextField : FieldBase
+		private sealed class TextField : FieldBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="TextField"/> class.

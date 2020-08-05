@@ -64,7 +64,7 @@ namespace GriffinPlus.Lib.Logging
 		protected override bool ProcessSync(LocalLogMessage message)
 		{
 			if (mProcessingCallback != null) return mProcessingCallback(message);
-			else                             return base.ProcessSync(message);
+			return base.ProcessSync(message);
 		}
 
 	}

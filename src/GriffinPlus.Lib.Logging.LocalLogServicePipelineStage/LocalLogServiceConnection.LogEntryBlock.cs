@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class LocalLogServiceConnection
+	internal partial class LocalLogServiceConnection
 	{
 		/// <summary>
 		/// A log entry block within the shared memory queue (496 bytes in size).
@@ -24,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 		/// This structure is designed to produce 512 byte blocks when put into a block of the <see cref="UnsafeSharedMemoryQueue"/>.
 		/// </remarks>
 		[StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode)]
-		struct LogEntryBlock
+		private struct LogEntryBlock
 		{
 			/// <summary>
 			/// Type specifying the kind of log block entry (command/message).
@@ -78,7 +78,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		struct LogEntryBlock_StartMarker
+		private struct LogEntryBlock_StartMarker
 		{
 			/// <summary>
 			/// The maximum number of log levels the logging subsystem can have (-1 for unlimited).
@@ -87,7 +87,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		unsafe struct LogEntryBlock_SetApplicationName
+		private unsafe struct LogEntryBlock_SetApplicationName
 		{
 			public const int ApplicationNameSize = 244;
 
@@ -98,7 +98,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		unsafe struct LogEntryBlock_AddSourceName
+		private unsafe struct LogEntryBlock_AddSourceName
 		{
 			public const int SourceNameSize = 242;
 
@@ -114,7 +114,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		unsafe struct LogEntryBlock_AddLogLevelName
+		private unsafe struct LogEntryBlock_AddLogLevelName
 		{
 			public const int LogLevelNameSize = 242;
 
@@ -130,7 +130,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		struct LogEntryBlock_ClearLogViewer
+		private struct LogEntryBlock_ClearLogViewer
 		{
 			/// <summary>
 			/// Time the message was put into the queue.
@@ -149,7 +149,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		struct LogEntryBlock_SaveSnapshot
+		private struct LogEntryBlock_SaveSnapshot
 		{
 			/// <summary>
 			/// Time the message was put into the queue.
@@ -168,7 +168,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		unsafe struct LogEntryBlock_Message
+		private unsafe struct LogEntryBlock_Message
 		{
 			public const int MessageSize = 224;
 
@@ -209,7 +209,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-		unsafe struct LogEntryBlock_MessageExtension
+		private unsafe struct LogEntryBlock_MessageExtension
 		{
 			public const int MessageSize = 244;
 

@@ -33,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The standard error stream.
 		/// </summary>
 		Stderr
-	};
+	}
 
 	/// <summary>
 	/// A log message processing pipeline stage that writes log messages to stdout/stderr (thread-safe).
@@ -135,6 +135,7 @@ namespace GriffinPlus.Lib.Logging
 			mStdoutBuilder.Clear();
 			mStderrBuilder.Clear();
 
+			// ReSharper disable once ForCanBeConvertedToForeach
 			for (int i = 0; i < messages.Length; i++)
 			{
 				var message = messages[i];

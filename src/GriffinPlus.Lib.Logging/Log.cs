@@ -37,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 		private static ILogConfiguration sLogConfiguration;
 		private static volatile IProcessingPipelineStage sProcessingPipeline;
 		private static readonly AsyncLocal<uint> sAsyncId = new AsyncLocal<uint>();
-		private static int sAsyncIdCounter = 0;
+		private static int sAsyncIdCounter;
 		private static readonly LogWriter sLog = GetWriter("Logging");
 
 		/// <summary>
@@ -203,7 +203,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The current high precision timestamp.</returns>
 		public static long GetHighPrecisionTimestamp()
 		{
-			return unchecked((long)((decimal)Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency)); // in ns
+			return (long)((decimal)Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency); // in ns
 		}
 
 		/// <summary>
@@ -341,8 +341,7 @@ namespace GriffinPlus.Lib.Logging
 			if (sLogConfiguration == null)
 			{
 				// create and init default configuration
-				VolatileLogConfiguration configuration = new VolatileLogConfiguration();
-				configuration.IsDefaultConfiguration = true;
+				VolatileLogConfiguration configuration = new VolatileLogConfiguration { IsDefaultConfiguration = true };
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 				sLogConfiguration = configuration;
 

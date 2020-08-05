@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The timestamp column.
 		/// </summary>
-		sealed class TimestampColumn : ColumnBase
+		private sealed class TimestampColumn : ColumnBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="TimestampColumn"/> class.

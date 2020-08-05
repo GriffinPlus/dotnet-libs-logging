@@ -98,7 +98,7 @@ namespace GriffinPlus.Lib.Logging
 		protected override bool ProcessSync(LocalLogMessage message, out bool queueForAsyncProcessing)
 		{
 			if (mSynchronousProcessingCallback != null) return mSynchronousProcessingCallback(message, out queueForAsyncProcessing);
-			else                                        return base.ProcessSync(message, out queueForAsyncProcessing);
+			return base.ProcessSync(message, out queueForAsyncProcessing);
 		}
 
 		/// <summary>
@@ -115,7 +115,7 @@ namespace GriffinPlus.Lib.Logging
 		protected override Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)
 		{
 			if (mAsynchronousProcessingCallback != null) return mAsynchronousProcessingCallback(messages, cancellationToken);
-			else                                         return base.ProcessAsync(messages, cancellationToken);
+			return base.ProcessAsync(messages, cancellationToken);
 		}
 	}
 }

@@ -35,7 +35,6 @@ namespace GriffinPlus.Lib.Logging
 		private readonly FileBackedProcessingPipelineConfiguration mProcessingPipelineConfiguration;
 		private FileSystemWatcher mFileSystemWatcher;
 		private Timer mReloadingTimer;
-		private readonly string mFilePath;
 		private readonly string mFileName;
 
 		/// <summary>
@@ -78,7 +77,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (Sync)
 			{
-				mFilePath = Path.GetFullPath(path);
+				FullPath = Path.GetFullPath(path);
 				mFileName = Path.GetFileName(path);
 
 				// load configuration file
@@ -87,7 +86,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					try
 					{
-						File = LogConfigurationFile.LoadFrom(mFilePath);
+						File = LogConfigurationFile.LoadFrom(FullPath);
 						break;
 					}
 					catch (FileNotFoundException)
@@ -111,7 +110,7 @@ namespace GriffinPlus.Lib.Logging
 						sLog.ForceWrite(
 							LogLevel.Failure,
 							"Loading log configuration file ({0}) failed. Exception: {1}",
-							mFilePath, ex);
+							FullPath, ex);
 
 						throw;
 					}
@@ -174,7 +173,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the full path of the configuration file.
 		/// </summary>
-		public string FullPath => mFilePath;
+		public string FullPath { get; }
 
 		/// <summary>
 		/// Gets the wrapped log configuration file.
@@ -287,12 +286,10 @@ namespace GriffinPlus.Lib.Logging
 
 					return mask;
 				}
-				else
-				{
-					// no matching settings found
-					// => disable all log levels...
-					return new LogLevelBitMask(0, false, false);
-				}
+
+				// no matching settings found
+				// => disable all log levels...
+				return new LogLevelBitMask(0, false, false);
 			}
 		}
 
@@ -334,7 +331,7 @@ namespace GriffinPlus.Lib.Logging
 					{
 						try
 						{
-							File.Save(mFilePath);
+							File.Save(FullPath);
 						}
 						catch (IOException)
 						{
@@ -350,7 +347,7 @@ namespace GriffinPlus.Lib.Logging
 							sLog.ForceWrite(
 								LogLevel.Failure,
 								"Loading log configuration file ({0}) failed. Exception: {1}",
-								mFilePath, ex);
+								FullPath, ex);
 
 							throw;
 						}
@@ -464,7 +461,7 @@ namespace GriffinPlus.Lib.Logging
 				try
 				{
 					// load file (always replace mFile, do not modify existing instance for threading reasons)
-					File = LogConfigurationFile.LoadFrom(mFilePath);
+					File = LogConfigurationFile.LoadFrom(FullPath);
 				}
 				catch (FileNotFoundException)
 				{

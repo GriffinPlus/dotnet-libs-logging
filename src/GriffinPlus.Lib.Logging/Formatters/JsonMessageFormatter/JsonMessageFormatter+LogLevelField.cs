@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The log level field (immutable).
 		/// </summary>
-		sealed class LogLevelField : FieldBase
+		private sealed class LogLevelField : FieldBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="LogLevelField"/> class.

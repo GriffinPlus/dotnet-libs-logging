@@ -69,7 +69,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// All fields.
 		/// </summary>
-		All = Timestamp | HighPrecisionTimestamp | LogWriterName | LogLevelName | ApplicationName | ProcessName | ProcessId | Text,
+		All = Timestamp | HighPrecisionTimestamp | LogWriterName | LogLevelName | ApplicationName | ProcessName | ProcessId | Text
 
 	}
 }

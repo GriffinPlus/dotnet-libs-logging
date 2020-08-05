@@ -48,7 +48,7 @@ namespace GriffinPlus.Lib.Logging
 			"; similar to an ini-file, i.e. it consists of sections and properties. A section",
 			"; defines a configuration scope while properties contain the actual settings",
 			"; within a section.",
-			"; ------------------------------------------------------------------------------",
+			"; ------------------------------------------------------------------------------"
 		};
 
 		private static readonly string[] sGlobalSettingsComment =
@@ -109,7 +109,7 @@ namespace GriffinPlus.Lib.Logging
 			"; keep log messages with a certain log level out of the log. Multiple log",
 			"; levels can be separated by commas. Alternatively multiple 'Exclude' properties",
 			"; can be used.",
-			"; ------------------------------------------------------------------------------",
+			"; ------------------------------------------------------------------------------"
 		};
 
 		private static readonly Regex sCommentRegex = new Regex(
@@ -245,18 +245,17 @@ namespace GriffinPlus.Lib.Logging
 					logWriter = null;
 					currentSettings = null;
 
-					if (section == Section_Name_Settings)
+					switch (section)
 					{
-						// the [Settings] section
-						currentSettings = mGlobalSettings;
-						continue;
-					}
-					else if (section == Section_Name_Log_Writer)
-					{
-						// a [LogWriter] section
-						logWriter = new LogWriterConfiguration() { IsDefault = true };
-						LogWriterSettings.Add(logWriter);
-						continue;
+						case Section_Name_Settings:
+							// the [Settings] section
+							currentSettings = mGlobalSettings;
+							continue;
+						case Section_Name_Log_Writer:
+							// a [LogWriter] section
+							logWriter = new LogWriterConfiguration { IsDefault = true };
+							LogWriterSettings.Add(logWriter);
+							continue;
 					}
 
 					// settings for a pipeline stage?
@@ -288,46 +287,40 @@ namespace GriffinPlus.Lib.Logging
 
 					if (logWriter != null)
 					{
-						// setting belongs to a log writer configuration
-						// (Name, WildcardPattern, RegexPattern, Level, Include, Exclude)
-						if (key == Property_Name_LogWriter_Name)
+						switch (key)
 						{
-							logWriter.mPatterns.Add(new LogWriterConfiguration.ExactNameLogWriterPattern(value));
-							continue;
-						}
-						else if (key == Property_Name_LogWriter_Wildcard_Pattern)
-						{
-							logWriter.mPatterns.Add(new LogWriterConfiguration.WildcardLogWriterPattern(value));
-							continue;
-						}
-						else if (key == Property_Name_LogWriter_Regex_Pattern)
-						{
-							logWriter.mPatterns.Add(new LogWriterConfiguration.RegexLogWriterPattern(value));
-							continue;
-						}
-						else if (key == Property_Name_LogWriter_Level)
-						{
-							logWriter.mBaseLevel = value;
-							continue;
-						}
-						else if (key == Property_Name_LogWriter_Include)
-						{
-							string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
-							logWriter.mIncludes.AddRange(levels);
-							continue;
-						}
-						else if (key == Property_Name_LogWriter_Exclude)
-						{
-							string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
-							logWriter.mExcludes.AddRange(levels);
-							continue;
-						}
-						else
-						{
-							throw new LoggingException($"Unexpected property name in section '{section}' (line: {lineNumber}).");
+							// setting belongs to a log writer configuration
+							// (Name, WildcardPattern, RegexPattern, Level, Include, Exclude)
+							case Property_Name_LogWriter_Name:
+								logWriter.mPatterns.Add(new LogWriterConfiguration.ExactNameLogWriterPattern(value));
+								continue;
+							case Property_Name_LogWriter_Wildcard_Pattern:
+								logWriter.mPatterns.Add(new LogWriterConfiguration.WildcardLogWriterPattern(value));
+								continue;
+							case Property_Name_LogWriter_Regex_Pattern:
+								logWriter.mPatterns.Add(new LogWriterConfiguration.RegexLogWriterPattern(value));
+								continue;
+							case Property_Name_LogWriter_Level:
+								logWriter.mBaseLevel = value;
+								continue;
+							case Property_Name_LogWriter_Include:
+							{
+								string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
+								logWriter.mIncludes.AddRange(levels);
+								continue;
+							}
+							case Property_Name_LogWriter_Exclude:
+							{
+								string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
+								logWriter.mExcludes.AddRange(levels);
+								continue;
+							}
+							default:
+								throw new LoggingException($"Unexpected property name in section '{section}' (line: {lineNumber}).");
 						}
 					}
-					else if (currentSettings != null)
+
+					if (currentSettings != null)
 					{
 						// dictionary backed settings
 						currentSettings[key] = value;
@@ -348,12 +341,9 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// add default log writer name pattern, if there is no pattern configured
-			foreach (var writer in LogWriterSettings)
+			foreach (var writer in LogWriterSettings.Where(writer => writer.mPatterns.Count == 0))
 			{
-				if (writer.mPatterns.Count == 0)
-				{
-					writer.mPatterns.Add(LogWriterConfiguration.DefaultPattern);
-				}
+				writer.mPatterns.Add(LogWriterConfiguration.DefaultPattern);
 			}
 
 			// add default log writer configuration, if there is no configuration
@@ -434,17 +424,17 @@ namespace GriffinPlus.Lib.Logging
 
 					foreach (var pattern in logWriter.Patterns)
 					{
-						if (pattern is LogWriterConfiguration.ExactNameLogWriterPattern)
+						switch (pattern)
 						{
-							writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Name, pattern.Pattern);
-						}
-						else if (pattern is LogWriterConfiguration.WildcardLogWriterPattern)
-						{
-							writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Wildcard_Pattern, pattern.Pattern);
-						}
-						else if (pattern is LogWriterConfiguration.RegexLogWriterPattern)
-						{
-							writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Regex_Pattern, pattern.Pattern);
+							case LogWriterConfiguration.ExactNameLogWriterPattern _:
+								writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Name, pattern.Pattern);
+								break;
+							case LogWriterConfiguration.WildcardLogWriterPattern _:
+								writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Wildcard_Pattern, pattern.Pattern);
+								break;
+							case LogWriterConfiguration.RegexLogWriterPattern _:
+								writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Regex_Pattern, pattern.Pattern);
+								break;
 						}
 					}
 

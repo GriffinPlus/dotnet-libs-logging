@@ -25,9 +25,9 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public abstract class LogConfigurationTests_Base<CONFIGURATION> where CONFIGURATION: LogConfiguration<CONFIGURATION>, new()
 	{
-		const string Aspect1Name = "Aspect1";
-		const string Aspect2Name = "Aspect2";
-		const string Aspect3Name = "Aspect3";
+		private const string Aspect1Name = "Aspect1";
+		private const string Aspect2Name = "Aspect2";
+		private const string Aspect3Name = "Aspect3";
 
 		protected LogConfigurationTests_Base()
 		{
@@ -234,7 +234,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddLogWriter_WithWildcardPattern(bool useConfigurationCallback)
 		{
 			CONFIGURATION configuration = GetDefaultConfiguration();
-			string wildcard = "MyDemo*";
+			const string wildcard = "MyDemo*";
 
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
@@ -268,7 +268,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddLogWriter_WithRegexPattern(bool useConfigurationCallback)
 		{
 			CONFIGURATION configuration = GetDefaultConfiguration();
-			string regex = "^[a-z][A-Z][0-9]$";
+			const string regex = "^[a-z][A-Z][0-9]$";
 
 			LogWriterConfiguration writer;
 			if (useConfigurationCallback)
@@ -355,8 +355,8 @@ namespace GriffinPlus.Lib.Logging
 
 			CONFIGURATION configuration = GetDefaultConfiguration();
 
-			string wildcard = "MyDemo*";
-			string regex = "^[a-z][A-Z][0-9]$";
+			const string wildcard = "MyDemo*";
+			const string regex = "^[a-z][A-Z][0-9]$";
 
 			configuration.AddLogWriter<CONFIGURATION>();
 			configuration.AddLogWriter(typeof(CONFIGURATION));
@@ -428,7 +428,7 @@ namespace GriffinPlus.Lib.Logging
 
 		#region Helpers
 
-		private CONFIGURATION GetDefaultConfiguration()
+		private static CONFIGURATION GetDefaultConfiguration()
 		{
 			CONFIGURATION configuration = new CONFIGURATION();
 			var writers = configuration.GetLogWriterSettings().ToArray();

@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The high precision timestamp column.
 		/// </summary>
-		sealed class HighPrecisionTimestampColumn : ColumnBase
+		private sealed class HighPrecisionTimestampColumn : ColumnBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="HighPrecisionTimestampColumn"/> class.

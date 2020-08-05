@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="LogMessage"/> class copying the specified one.
 		/// </summary>
 		/// <param name="other">Message to copy.</param>
-		public LogMessage(LogMessage other)
+		public LogMessage(ILogMessage other)
 		{
 			Timestamp = other.Timestamp;
 			HighPrecisionTimestamp = other.HighPrecisionTimestamp;

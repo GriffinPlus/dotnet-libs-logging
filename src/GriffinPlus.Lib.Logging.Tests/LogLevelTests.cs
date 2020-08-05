@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		#region Expected Results
 
-		struct LogLevelItem
+		private struct LogLevelItem
 		{
 			public readonly int Id;
 			public readonly string Name;
@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 
-		private static readonly LogLevelItem[] sExpectedPredefinedLogLevels = new[]
+		private static readonly LogLevelItem[] sExpectedPredefinedLogLevels =
 		{
 			new LogLevelItem( 0, "Failure"),
 			new LogLevelItem( 1, "Error"),
@@ -61,7 +61,7 @@ namespace GriffinPlus.Lib.Logging
 			new LogLevelItem(21, "Trace16"),
 			new LogLevelItem(22, "Trace17"),
 			new LogLevelItem(23, "Trace18"),
-			new LogLevelItem(24, "Trace19"),
+			new LogLevelItem(24, "Trace19")
 		};
 
 		#endregion

@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 	/// An auto-reset event with async/await capability.
 	/// This implementation is tailored to its use in the logging subsystem.
 	/// </summary>
-	class AsyncAutoResetEvent
+	internal class AsyncAutoResetEvent
 	{
 		#region TaskNode
 
@@ -118,10 +118,10 @@ namespace GriffinPlus.Lib.Logging
 				var asyncWaiter = CreateAndAddAsyncWaiter();
 				if (timeout == Timeout.Infinite && !cancellationToken.CanBeCanceled) {
 					return asyncWaiter.Task;
-				} else {
-					cancellationToken.Register(WaitCancellationCallback, asyncWaiter, false);
-					return WaitUntilCountOrTimeoutAsync(asyncWaiter, timeout, cancellationToken);
 				}
+
+				cancellationToken.Register(WaitCancellationCallback, asyncWaiter, false);
+				return WaitUntilCountOrTimeoutAsync(asyncWaiter, timeout, cancellationToken);
 			}
 		}
 
@@ -129,7 +129,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Callback that is invoked when an asynchronous wait operation is canceled.
 		/// </summary>
 		/// <param name="state">The <see cref="TaskNode"/> associated with the wait operation.</param>
-		private void WaitCancellationCallback(object state)
+		private static void WaitCancellationCallback(object state)
 		{
 			TaskNode node = (TaskNode) state;
 			bool success = node.TrySetCanceled();

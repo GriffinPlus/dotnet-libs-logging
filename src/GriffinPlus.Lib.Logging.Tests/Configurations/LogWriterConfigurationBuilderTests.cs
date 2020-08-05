@@ -51,7 +51,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void MatchingWildcardPattern()
 		{
-			var wildcard = "MyLogWriter*";
+			const string wildcard = "MyLogWriter*";
 			var builder = LogWriterConfigurationBuilder.New.MatchingWildcardPattern(wildcard);
 			var writer = builder.Build();
 			Assert.Equal("Note", writer.BaseLevel);
@@ -74,7 +74,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void MatchingRegexPattern()
 		{
-			var regex = "^My.*LogWriter$";
+			const string regex = "^My.*LogWriter$";
 			var builder = LogWriterConfigurationBuilder.New.MatchingRegex(regex);
 			var writer = builder.Build();
 			Assert.Equal("Note", writer.BaseLevel);

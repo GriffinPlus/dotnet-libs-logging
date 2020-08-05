@@ -322,7 +322,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (i == endArrayIndex)
 				{
-					mask &= ~(0u) >> (32 - endBitIndex);
+					mask &= ~0u >> (32 - endBitIndex);
 				}
 
 				mBitField[i] |= mask;
@@ -353,7 +353,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (i == endArrayIndex)
 				{
-					mask &= ~(0u) >> (32 - endBitIndex);
+					mask &= ~0u >> (32 - endBitIndex);
 				}
 
 				mBitField[i] &= ~mask;
@@ -387,10 +387,8 @@ namespace GriffinPlus.Lib.Logging
 			unchecked
 			{
 				int hash = 0;
-				for (int i = 0; i < mBitField.Length; i++)
-				{
-					hash ^= (int)mBitField[i];
-				}
+				// ReSharper disable once ForCanBeConvertedToForeach
+				for (int i = 0; i < mBitField.Length; i++) hash ^= (int)mBitField[i];
 				return hash;
 			}
 		}

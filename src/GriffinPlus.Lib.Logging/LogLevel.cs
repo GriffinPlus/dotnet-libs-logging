@@ -203,7 +203,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// All predefined log levels (the index corresponds to the id of the log level).
 		/// </summary>
-		private static readonly LogLevel[] sPredefinedLogLevels = new LogLevel[] {
+		private static readonly LogLevel[] sPredefinedLogLevels = {
 			Failure, Error, Warning, Note, Developer,
 			Trace0, Trace1, Trace2, Trace3, Trace4, Trace5, Trace6, Trace7, Trace8, Trace9, Trace10, Trace11, Trace12, Trace13, Trace14, Trace15, Trace16, Trace17, Trace18, Trace19
 		};

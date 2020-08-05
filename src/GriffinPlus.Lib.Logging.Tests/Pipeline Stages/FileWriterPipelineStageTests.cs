@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Xunit;
 
@@ -58,7 +59,7 @@ namespace GriffinPlus.Lib.Logging
 		/// (only non-default stuff is checked, the rest is done by the base test class).
 		/// </summary>
 		[Fact]
-		void Create()
+		private void Create()
 		{
 			var stage = CreateStage("File");
 			Assert.Empty(stage.Settings);
@@ -68,10 +69,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var messages in TestData.LocalLogMessageSet)
-				{
-					yield return new object[] { messages };
-				}
+				return TestData.LocalLogMessageSet.Select(messages => new object[] { messages });
 			}
 		}
 

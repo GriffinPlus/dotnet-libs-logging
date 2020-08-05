@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The application name column.
 		/// </summary>
-		sealed class ApplicationNameColumn : ColumnBase
+		private sealed class ApplicationNameColumn : ColumnBase
 		{
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ApplicationNameColumn"/> class.

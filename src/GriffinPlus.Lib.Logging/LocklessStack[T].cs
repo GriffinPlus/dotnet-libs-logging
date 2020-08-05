@@ -19,7 +19,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A thread-safe implementation of a stack using non-blocking interlocked operations.
 	/// </summary>
-	class LocklessStack<T>
+	internal class LocklessStack<T>
 	{
 		private class Item
 		{
@@ -27,7 +27,6 @@ namespace GriffinPlus.Lib.Logging
 			public Item NextItem;
 		}
 
-		private readonly bool mCanGrow;
 		private Item mFreeStack;
 		private Item mUsedStack;
 		private int mCapacity;
@@ -51,7 +50,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			mCapacity = initialCapacity;
-			mCanGrow = growOnDemand;
+			CanGrow = growOnDemand;
 			mFreeItemCount = initialCapacity;
 			mUsedItemCount = 0;
 
@@ -78,7 +77,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets a value indicating whether the stack can grow, if necessary.
 		/// </summary>
-		public bool CanGrow => mCanGrow;
+		public bool CanGrow { get; }
 
 		/// <summary>
 		/// Gets the number of items the stack accepts before it rejects pushing an item or before it resizes its
@@ -113,7 +112,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// abort, if no free item left
 				item = Interlocked.CompareExchange(ref mFreeStack, null, null);
-				if (item == null && !mCanGrow)
+				if (item == null && !CanGrow)
 				{
 					return false;
 				}
@@ -254,7 +253,7 @@ namespace GriffinPlus.Lib.Logging
 				if (Interlocked.CompareExchange(ref mUsedStack, chainStart, firstItem) == firstItem)
 				{
 					for (int i = 0; i < elementCount; i++) Interlocked.Increment(ref mUsedItemCount);
-					first = (firstItem == null);
+					first = firstItem == null;
 					return true;
 				}
 			}
@@ -431,7 +430,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// no item on the free stack and growing is not allowed => abort
-			if (!mCanGrow)
+			if (!CanGrow)
 				return null;
 
 			// create item
@@ -479,7 +478,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// no item on the free stack and resizing is not allowed
 					// => abort
-					if (!mCanGrow)
+					if (!CanGrow)
 					{
 						// push already fetched items back onto the free stack
 						if (chainEnd != null)
