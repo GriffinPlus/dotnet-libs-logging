@@ -250,7 +250,7 @@ namespace GriffinPlus.Lib.Logging
 				IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length + 1];
 				Array.Copy(mNextStages, copy, mNextStages.Length);
 				copy[copy.Length - 1] = stage;
-				NextStages = copy;
+				mNextStages = copy;
 
 				// initialize the added stage, if this stage is initialized
 				if (mInitialized)
