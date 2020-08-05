@@ -977,7 +977,7 @@ namespace GriffinPlus.Lib.Logging
 							block->Message.Message[charsToCopy] = (char) 0;
 						}
 
-						if (charsToCopy <= LogEntryBlock_Message.MessageSize)
+						if (message.Text.Length <= LogEntryBlock_Message.MessageSize)
 						{
 							// message fits into a single buffer
 							// => enqueue block
