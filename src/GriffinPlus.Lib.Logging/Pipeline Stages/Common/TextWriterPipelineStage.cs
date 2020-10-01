@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 			public string Output;
 		}
 
-		private ILogMessageFormatter mFormatter = new TableMessageFormatter();
+		private ILogMessageFormatter mFormatter = TableMessageFormatter.AllColumns;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TextWriterPipelineStage{STAGE}"/> class.
