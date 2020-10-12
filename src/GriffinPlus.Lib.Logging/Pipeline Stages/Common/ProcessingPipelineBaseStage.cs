@@ -297,7 +297,7 @@ namespace GriffinPlus.Lib.Logging
 					if (mNextStages[i] == stage)
 					{
 						// found the stage
-						
+
 						// shut the stage down, if necessary
 						if (mInitialized)
 						{
@@ -314,7 +314,7 @@ namespace GriffinPlus.Lib.Logging
 
 						// remove the stage
 						IProcessingPipelineStage[] copy = new IProcessingPipelineStage[mNextStages.Length - 1];
-						for (int j = 0, k = 0; i < mNextStages.Length; j++, k++)
+						for (int j = 0, k = 0; j < mNextStages.Length; j++, k++)
 						{
 							if (mNextStages[j] == stage)
 							{
