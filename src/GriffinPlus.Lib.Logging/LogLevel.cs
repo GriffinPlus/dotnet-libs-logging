@@ -208,9 +208,6 @@ namespace GriffinPlus.Lib.Logging
 			Trace0, Trace1, Trace2, Trace3, Trace4, Trace5, Trace6, Trace7, Trace8, Trace9, Trace10, Trace11, Trace12, Trace13, Trace14, Trace15, Trace16, Trace17, Trace18, Trace19
 		};
 
-		internal readonly int mId;
-		internal readonly string mName;
-
 		/// <summary>
 		/// Initializes the <see cref="LogLevel"/> class.
 		/// </summary>
@@ -240,8 +237,8 @@ namespace GriffinPlus.Lib.Logging
 		private LogLevel(string name) 
 		{
 			// global logging lock is acquired here...
-			mName = name;
-			mId = sNextId++;
+			Name = name;
+			Id = sNextId++;
 		}
 
 		/// <summary>
@@ -251,19 +248,19 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="id">Id of the log level.</param>
 		private LogLevel(string name, int id) 
 		{
-			mName = name;
-			mId = id;
+			Name = name;
+			Id = id;
 		}
 
 		/// <summary>
 		/// Gets the name of the log level.
 		/// </summary>
-		public string Name => mName;
+		public string Name { get; }
 
 		/// <summary>
 		/// Gets the id of the log level.
 		/// </summary>
-		public int Id => mId;
+		public int Id { get; }
 
 		/// <summary>
 		/// Gets predefined log levels (all log levels that are not an aspect).
@@ -330,7 +327,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>String representation of the current log level.</returns>
 		public override string ToString()
 		{
-			return $"{mName} ({mId})";
+			return $"{Name} ({Id})";
 		}
 
 	}

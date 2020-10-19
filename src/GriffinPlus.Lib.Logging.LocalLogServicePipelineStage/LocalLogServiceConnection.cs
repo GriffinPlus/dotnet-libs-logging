@@ -19,6 +19,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+// ReSharper disable RedundantCaseLabel
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -1541,6 +1543,7 @@ namespace GriffinPlus.Lib.Logging
 						if (!SendDeferredItems_SingleBlock()) return false;
 						break;
 
+					case LogEntryBlockType.MessageExtension:
 					default:
 						Debug.Fail($"Item of type '{block.Type}' is not expected.");
 						break;

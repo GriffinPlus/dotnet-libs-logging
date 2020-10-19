@@ -44,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the configuration the setting belongs to.
 		/// </summary>
-		IProcessingPipelineStageConfiguration IProcessingPipelineStageRawSetting.Configuration { get; }
+		IProcessingPipelineStageConfiguration IProcessingPipelineStageRawSetting.Configuration => StageConfiguration;
 
 		/// <summary>
 		/// Gets the name of the setting.

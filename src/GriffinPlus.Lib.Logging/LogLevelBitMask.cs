@@ -388,6 +388,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				int hash = 0;
 				// ReSharper disable once ForCanBeConvertedToForeach
+				// ReSharper disable once LoopCanBeConvertedToQuery
 				for (int i = 0; i < mBitField.Length; i++) hash ^= (int)mBitField[i];
 				return hash;
 			}

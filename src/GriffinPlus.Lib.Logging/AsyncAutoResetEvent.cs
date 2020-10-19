@@ -182,7 +182,7 @@ namespace GriffinPlus.Lib.Logging
 			if (task.Prev != null) task.Prev.Next = task.Next;
 			if (mAsyncHead == task) mAsyncHead = task.Next;
 			if (mAsyncTail == task) mAsyncTail = task.Prev;
-			Contract.Assert((mAsyncHead == null) == (mAsyncTail == null), "Head is null if tail is null");
+			Contract.Assert(mAsyncHead == null == (mAsyncTail == null), "Head is null if tail is null");
 
 			// Make sure not to leak
 			task.Next = task.Prev = null;

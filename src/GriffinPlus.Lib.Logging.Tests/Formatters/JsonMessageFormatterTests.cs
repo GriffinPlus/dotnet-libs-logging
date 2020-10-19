@@ -18,6 +18,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Xunit;
 
+// ReSharper disable RedundantCaseLabel
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
@@ -513,6 +515,7 @@ namespace GriffinPlus.Lib.Logging
 				case JsonMessageFormatterStyle.OneLine:
 					pattern = "^{ \"(.+)\" : .+ }$";
 					break;
+				case JsonMessageFormatterStyle.Beautified:
 				default:
 					pattern = "^{\r\n    \"(.+)\" : .+\r\n}$";
 					break;
@@ -607,6 +610,7 @@ namespace GriffinPlus.Lib.Logging
 				case JsonMessageFormatterStyle.OneLine:
 					pattern = "^{ \"(.+)\" : \"(.+)\" }$";
 					break;
+				case JsonMessageFormatterStyle.Beautified:
 				default:
 					pattern = "^{\r\n    \"(.+)\" : \"(.+)\"\r\n}$";
 					break;

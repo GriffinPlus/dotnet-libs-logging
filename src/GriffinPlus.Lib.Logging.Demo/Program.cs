@@ -1,4 +1,5 @@
-﻿///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿// ReSharper disable RedundantUsingDirective
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This file is part of the Griffin+ common library suite (https://github.com/griffinplus/dotnet-libs-logging)
 //
 // Copyright 2018-2020 Sascha Falk <sascha@falk-online.eu>
@@ -14,6 +15,13 @@
 using System;
 using System.IO;
 using System.Threading;
+
+// ReSharper disable StringLiteralTypo
+// ReSharper disable UnusedParameter.Local
+// ReSharper disable ConvertToConstant.Local
+// ReSharper disable ConditionIsAlwaysTrueOrFalse
+// ReSharper disable UnusedVariable
+// ReSharper disable UseObjectOrCollectionInitializer
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
@@ -96,7 +104,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 					.WithLevelRange(LogLevel.Trace10, LogLevel.Trace15));
 
 				// Add configuration for log writers matching wildcard pattern
-				// - applys to 'GriffinPlus.Lib.Logging.Demo.MyClass4' only
+				// - applies to 'GriffinPlus.Lib.Logging.Demo.MyClass4' only
 				//   (other writers are handled by preceding steps)
 				// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
 				// - include log level 'Trace15'
