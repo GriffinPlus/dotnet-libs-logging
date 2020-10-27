@@ -47,29 +47,33 @@ namespace GriffinPlus.Lib.Logging
 		LogLevelName = 1 << 3,
 
 		/// <summary>
+		/// The <see cref="ILogMessage.Tags"/> field.
+		/// </summary>
+		Tags = 1 << 4,
+
+		/// <summary>
 		/// The <see cref="ILogMessage.ApplicationName"/> field.
 		/// </summary>
-		ApplicationName = 1 << 4,
+		ApplicationName = 1 << 5,
 
 		/// <summary>
 		/// The <see cref="ILogMessage.ProcessName"/> field.
 		/// </summary>
-		ProcessName = 1 << 5,
+		ProcessName = 1 << 6,
 
 		/// <summary>
 		/// The <see cref="ILogMessage.ProcessId"/> field.
 		/// </summary>
-		ProcessId = 1 << 6,
+		ProcessId = 1 << 7,
 
 		/// <summary>
 		/// The <see cref="ILogMessage.Text"/> field.
 		/// </summary>
-		Text = 1 << 7,
+		Text = 1 << 8,
 
 		/// <summary>
 		/// All fields.
 		/// </summary>
-		All = Timestamp | HighPrecisionTimestamp | LogWriterName | LogLevelName | ApplicationName | ProcessName | ProcessId | Text
-
+		All = Timestamp | HighPrecisionTimestamp | LogWriterName | LogLevelName | Tags | ApplicationName | ProcessName | ProcessId | Text
 	}
 }

@@ -12,6 +12,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -27,21 +29,41 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly IFormatProvider sDefaultFormatProvider = CultureInfo.InvariantCulture;
 		private static readonly ThreadLocal<StringBuilder> sBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder());
 		private static int sNextId;
+		private readonly List<WeakReference<LogWriter>> mSecondaryWriters;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriter"/> class.
+		/// Initializes a new instance of the <see cref="LogWriter"/> class (for primary writers).
 		/// </summary>
 		/// <param name="name">Name of the log writer.</param>
 		internal LogWriter(string name)
 		{
 			// global logging lock is acquired here...
+			mSecondaryWriters = new List<WeakReference<LogWriter>>();
+			PrimaryWriter = this;
 			Id = sNextId++;
 			Name = name;
 			ActiveLogLevelMask = LogLevelBitMask.Zeros;
+			Tags = TagSet.Empty;
+			
 		}
 
 		/// <summary>
-		/// Gets the id of the log level.
+		/// Initializes a new instance of the <see cref="LogWriter"/> class (for secondary writers).
+		/// </summary>
+		/// <param name="writer">The original (non-tagging) log writer.</param>
+		/// <param name="tags">Tags the tagging log writer should attach to written messages.</param>
+		internal LogWriter(LogWriter writer, TagSet tags)
+		{
+			// global logging lock is acquired here...
+			PrimaryWriter = writer.PrimaryWriter;
+			Id = PrimaryWriter.Id;
+			Name = PrimaryWriter.Name;
+			ActiveLogLevelMask = LogLevelBitMask.Zeros;
+			Tags = tags;
+		}
+
+		/// <summary>
+		/// Gets the id of the log writer.
 		/// </summary>
 		public int Id { get; }
 
@@ -49,6 +71,17 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the name of the log writer.
 		/// </summary>
 		public string Name { get; }
+
+		/// <summary>
+		/// Gets the tags the log writer attaches to a written message.
+		/// </summary>
+		public TagSet Tags { get; }
+
+		/// <summary>
+		/// Gets the primary log writer
+		/// (the initial log writer with the same name that does not modify messages when writing them).
+		/// </summary>
+		public LogWriter PrimaryWriter { get; }
 
 		/// <summary>
 		/// Gets or sets the bit mask indicating which log levels are active for the log writer.
@@ -78,6 +111,87 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Creates a new log writer that attaches the specified tag to written log messages.
+		/// </summary>
+		/// <param name="tag">Tag the new log writer should attach to written log messages (may be null).</param>
+		/// <returns>A log writer that attaches the specified tag to written log messages.</returns>
+		public LogWriter WithTag(string tag)
+		{
+			if (tag == null) return this;
+			var newTags = Tags + tag;
+			if (newTags.Count == Tags.Count) return this;
+			lock (Log.Sync)
+			{
+				RemoveCollectedSecondaryWriters();
+				LogWriter newWriter = new LogWriter(PrimaryWriter, newTags);
+				PrimaryWriter.mSecondaryWriters.Add(new WeakReference<LogWriter>(newWriter));
+				return newWriter;
+			}
+		}
+
+		/// <summary>
+		/// Creates a new log writer that attaches the specified tags to written log messages.
+		/// </summary>
+		/// <param name="tags">Tags the new log writer should attach to written log messages (may be null).</param>
+		/// <returns>A log writer that attaches the specified tags to written log messages.</returns>
+		public LogWriter WithTags(params string[] tags)
+		{
+			if (tags == null) return this;
+			var newTags = Tags + tags;
+			if (newTags.Count == Tags.Count) return this;
+			lock (Log.Sync)
+			{
+				RemoveCollectedSecondaryWriters();
+				LogWriter newWriter = new LogWriter(PrimaryWriter, newTags);
+				PrimaryWriter.mSecondaryWriters.Add(new WeakReference<LogWriter>(newWriter));
+				return newWriter;
+			}
+		}
+
+		/// <summary>
+		/// Updates the log writer and associated secondary log writers.
+		/// </summary>
+		/// <param name="configuration">The log configuration.</param>
+		internal void Update(ILogConfiguration configuration)
+		{
+			Debug.Assert(Monitor.IsEntered(Log.Sync));
+			ActiveLogLevelMask = configuration.GetActiveLogLevelMask(this);
+			if (mSecondaryWriters != null)
+			{
+				for (int i = mSecondaryWriters.Count - 1; i >= 0; i--)
+				{
+					if (mSecondaryWriters[i].TryGetTarget(out var writer))
+					{
+						writer.Update(configuration);
+					}
+					else
+					{
+						// the secondary log writer was collected
+						// => remove it from the list
+						mSecondaryWriters.RemoveAt(i);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Removes secondary log writers that have been collected meanwhile.
+		/// </summary>
+		private void RemoveCollectedSecondaryWriters()
+		{
+			if (mSecondaryWriters != null)
+			{
+				for (int i = mSecondaryWriters.Count - 1; i >= 0; i--)
+				{
+					if (!mSecondaryWriters[i].TryGetTarget(out var writer))
+					{
+						mSecondaryWriters.RemoveAt(i);
+					}
+				}
+			}
+		}
+
+		/// <summary>
 		/// Writes a message to the log.
 		/// </summary>
 		/// <param name="level">Log level to write the message to.</param>
@@ -85,7 +199,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Write(LogLevel level, string message)
 		{
 			if (IsLogLevelActive(level)) {
-				Log.WriteMessage(this, level, message);
+				Log.WriteMessage(this, level, Tags, message);
 			}
 		}
 
@@ -528,7 +642,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, args);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -559,7 +673,7 @@ namespace GriffinPlus.Lib.Logging
 			StringBuilder builder = sBuilder.Value;
 			builder.Clear();
 			builder.AppendFormat(provider, format, args);
-			Log.WriteMessage(this, level, builder.ToString());
+			Log.WriteMessage(this, level, Tags, builder.ToString());
 		}
 
 		/// <summary>
@@ -581,7 +695,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -607,7 +721,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -636,7 +750,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -668,7 +782,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -703,7 +817,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -741,7 +855,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -782,7 +896,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -826,7 +940,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -873,7 +987,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -923,7 +1037,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -976,7 +1090,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -1032,7 +1146,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -1091,7 +1205,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -1153,7 +1267,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 
@@ -1218,7 +1332,7 @@ namespace GriffinPlus.Lib.Logging
 				StringBuilder builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13, carg14);
-				Log.WriteMessage(this, level, builder.ToString());
+				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
 

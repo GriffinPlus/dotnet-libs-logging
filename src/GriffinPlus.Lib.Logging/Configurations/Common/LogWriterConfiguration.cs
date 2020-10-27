@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// ReSharper disable PossibleMultipleEnumeration
 // ReSharper disable InconsistentNaming
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
@@ -25,9 +26,11 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public sealed partial class LogWriterConfiguration
 	{
-		internal static readonly WildcardLogWriterPattern DefaultPattern = new WildcardLogWriterPattern("*");
+		internal static readonly WildcardNamePattern DefaultPattern = new WildcardNamePattern("*");
+		internal static readonly INamePattern[] NoPatterns = new INamePattern[0];
 		internal string mBaseLevel = LogLevel.Note.Name;
-		internal readonly List<ILogWriterPattern> mPatterns = new List<ILogWriterPattern>();
+		internal readonly List<INamePattern> mNamePatterns = new List<INamePattern>();
+		internal readonly List<INamePattern> mTagPatterns = new List<INamePattern>();
 		internal readonly List<string> mIncludes = new List<string>();
 		internal readonly List<string> mExcludes = new List<string>();
 
@@ -46,29 +49,36 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="other">Instance to copy.</param>
 		internal LogWriterConfiguration(LogWriterConfiguration other)
 		{
-			mPatterns.AddRange(other.mPatterns);       // the patterns are immutable
-			mBaseLevel = other.BaseLevel;              // immutable
-			IsDefault = other.IsDefault;               // immutable
-			mIncludes.AddRange(other.mIncludes);       // the log levels are immutable
-			mExcludes.AddRange(other.mExcludes);       // the log levels are immutable
+			mNamePatterns.AddRange(other.mNamePatterns);     // the patterns are immutable
+			mTagPatterns.AddRange(other.mTagPatterns);       // the patterns are immutable
+			mBaseLevel = other.BaseLevel;                    // immutable
+			IsDefault = other.IsDefault;                     // immutable
+			mIncludes.AddRange(other.mIncludes);             // the log levels are immutable
+			mExcludes.AddRange(other.mExcludes);             // the log levels are immutable
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class.
 		/// </summary>
-		/// <param name="pattern">Pattern that determines for which log writers the settings apply.</param>
+		/// <param name="namePattern">Pattern that determines for which log writers names the settings apply.</param>
+		/// <param name="tagPatterns">Pattern that determines for which message tags the settings apply.</param>
 		/// <param name="baseLevel">Name of the log level a message must be associated with at minimum to get processed.</param>
 		/// <param name="includes">Names of log levels (or aspects) that should be included in addition to the base level.</param>
 		/// <param name="excludes">Names of log levels (or aspects) that should be excluded although covered by the base level.</param>
 		internal LogWriterConfiguration(
-			ILogWriterPattern pattern,
+			INamePattern namePattern,
+			IEnumerable<INamePattern> tagPatterns,
 			string baseLevel,
 			IEnumerable<string> includes = null,
 			IEnumerable<string> excludes = null)
 		{
 			if (string.IsNullOrWhiteSpace(baseLevel)) throw new ArgumentException("The base level must not be null or whitespace only.", nameof(baseLevel));
+			if (namePattern == null) throw new ArgumentNullException(nameof(namePattern));
+			if (tagPatterns == null) throw new ArgumentNullException(nameof(tagPatterns));
+			if (tagPatterns.Any(x => x == null)) throw new ArgumentException("The list of tag patterns must not contain a null reference.");
 
-			mPatterns.Add(pattern ?? throw new ArgumentNullException(nameof(pattern)));
+			mNamePatterns.Add(namePattern);
+			mTagPatterns.AddRange(tagPatterns);
 			mBaseLevel = baseLevel;
 
 			if (includes != null)
@@ -112,7 +122,8 @@ namespace GriffinPlus.Lib.Logging
 			IEnumerable<string> excludes = null)
 		{
 			return new LogWriterConfiguration(
-				new ExactNameLogWriterPattern(name),
+				new ExactNamePattern(name),
+				NoPatterns,
 				baseLevel,
 				includes,
 				excludes);
@@ -133,7 +144,8 @@ namespace GriffinPlus.Lib.Logging
 			IEnumerable<string> excludes = null)
 		{
 			return new LogWriterConfiguration(
-				new WildcardLogWriterPattern(pattern),
+				new WildcardNamePattern(pattern),
+				NoPatterns,
 				baseLevel,
 				includes,
 				excludes);
@@ -154,7 +166,8 @@ namespace GriffinPlus.Lib.Logging
 			IEnumerable<string> excludes = null)
 		{
 			return new LogWriterConfiguration(
-				new RegexLogWriterPattern(regex),
+				new RegexNamePattern(regex),
+				NoPatterns,
 				baseLevel,
 				includes,
 				excludes);
@@ -174,7 +187,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the list of patterns used to match the name of log writers the configuration should apply to.
 		/// </summary>
-		public IEnumerable<ILogWriterPattern> Patterns => mPatterns;
+		public IEnumerable<INamePattern> NamePatterns => mNamePatterns;
+
+		/// <summary>
+		/// Gets the list of patterns used to match the tags of log writers the configuration should apply to.
+		/// </summary>
+		public IEnumerable<INamePattern> TagPatterns => mTagPatterns;
 
 		/// <summary>
 		/// Gets the log level a message must be associated with at minimum to get processed.
@@ -207,7 +225,8 @@ namespace GriffinPlus.Lib.Logging
 			unchecked
 			{
 				var hashCode = mBaseLevel.GetHashCode();
-				foreach (var pattern in mPatterns) hashCode = (hashCode * 397) ^ pattern.GetHashCode();
+				foreach (var pattern in mNamePatterns) hashCode = (hashCode * 397) ^ pattern.GetHashCode();
+				foreach (var pattern in mTagPatterns) hashCode = (hashCode * 397) ^ pattern.GetHashCode();
 				foreach (var include in mIncludes) hashCode = (hashCode * 397) ^ include.GetHashCode();
 				foreach (var exclude in mExcludes) hashCode = (hashCode * 397) ^ exclude.GetHashCode();
 				return hashCode;
@@ -223,7 +242,8 @@ namespace GriffinPlus.Lib.Logging
 		public bool Equals(LogWriterConfiguration other)
 		{
 			return mBaseLevel == other.mBaseLevel &&
-			       Patterns.SequenceEqual(other.Patterns) &&
+			       NamePatterns.SequenceEqual(other.NamePatterns) &&
+			       TagPatterns.SequenceEqual(other.TagPatterns) &&
 			       Includes.SequenceEqual(other.Includes) &&
 			       Excludes.SequenceEqual(other.Excludes);
 		}

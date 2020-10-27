@@ -56,8 +56,8 @@ namespace GriffinPlus.Lib.Logging
 			// build strings that contains all unicode characters and their escaped equivalents
 			// ---------------------------------------------------------------------------------------------
 			StringBuilder unescaped = new StringBuilder();
-			StringBuilder escaped_WithSolidus = new StringBuilder();
-			StringBuilder escaped_WithoutSolidus = new StringBuilder();
+			StringBuilder escaped_withSolidus = new StringBuilder();
+			StringBuilder escaped_withoutSolidus = new StringBuilder();
 			for (int codepoint = 0; codepoint <= 0x10FFFF; codepoint++)
 			{
 				// add codepoint to the buffer with the input string
@@ -76,39 +76,39 @@ namespace GriffinPlus.Lib.Logging
 				// handle solidus separately
 				if (codepoint == 0x002F)
 				{
-					escaped_WithSolidus.Append("\\/");
-					escaped_WithoutSolidus.Append('/');
+					escaped_withSolidus.Append("\\/");
+					escaped_withoutSolidus.Append('/');
 					continue;
 				}
 
 				// add codepoint to buffer with the expected string
 				if (sEscapedCodePoints.TryGetValue(codepoint, out var sequence))
 				{
-					escaped_WithSolidus.Append(sequence);
-					escaped_WithoutSolidus.Append(sequence);
+					escaped_withSolidus.Append(sequence);
+					escaped_withoutSolidus.Append(sequence);
 				}
 				else
 				{
 					if (codepoint < 0x10000)
 					{
-						escaped_WithSolidus.Append((char)codepoint);
-						escaped_WithoutSolidus.Append((char)codepoint);
+						escaped_withSolidus.Append((char)codepoint);
+						escaped_withoutSolidus.Append((char)codepoint);
 					}
 					else
 					{
 						var sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
 						var sg2 = codepoint % 0x400 + 0xDC00;
-						escaped_WithSolidus.Append((char)sg1);
-						escaped_WithSolidus.Append((char)sg2);
-						escaped_WithoutSolidus.Append((char)sg1);
-						escaped_WithoutSolidus.Append((char)sg2);
+						escaped_withSolidus.Append((char)sg1);
+						escaped_withSolidus.Append((char)sg2);
+						escaped_withoutSolidus.Append((char)sg1);
+						escaped_withoutSolidus.Append((char)sg2);
 					}
 				}
 			}
 
 			sUnescapedString = unescaped.ToString();
-			sEscapedString_WithSolidus = escaped_WithSolidus.ToString();
-			sEscapedString_WithoutSolidus = escaped_WithoutSolidus.ToString();
+			sEscapedString_WithSolidus = escaped_withSolidus.ToString();
+			sEscapedString_WithoutSolidus = escaped_withoutSolidus.ToString();
 		}
 
 
@@ -140,11 +140,12 @@ namespace GriffinPlus.Lib.Logging
 				{
 					Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
 					HighPrecisionTimestamp = 123,
+					LogWriterName = "MyWriter",
+					LogLevelName = "MyLevel",
+					Tags = new TagSet("Tag1", "Tag2"),
+					ApplicationName = "MyApp",
 					ProcessName = "MyProcess",
 					ProcessId = 42,
-					ApplicationName = "MyApp",
-					LogLevelName = "MyLevel",
-					LogWriterName = "MyWriter",
 					Text = "MyText"
 				};
 
@@ -175,13 +176,6 @@ namespace GriffinPlus.Lib.Logging
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.Compact,
-					LogMessageField.LogLevelName,
-					message,
-					"{\"LogLevel\":\"MyLevel\"}"
-				};
-
-				yield return new object[] {
-					JsonMessageFormatterStyle.Compact,
 					LogMessageField.LogWriterName,
 					message,
 					"{\"LogWriter\":\"MyWriter\"}"
@@ -189,9 +183,37 @@ namespace GriffinPlus.Lib.Logging
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.Compact,
-					LogMessageField.ProcessId,
+					LogMessageField.LogLevelName,
 					message,
-					"{\"ProcessId\":42}"
+					"{\"LogLevel\":\"MyLevel\"}"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.Compact,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet() }, 
+					"{\"Tags\":[]}"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.Compact,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet("Tag") },
+					"{\"Tags\":[\"Tag\"]}"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.Compact,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
+					"{\"Tags\":[\"Tag1\",\"Tag2\"]}"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.Compact,
+					LogMessageField.ApplicationName,
+					message,
+					"{\"ApplicationName\":\"MyApp\"}"
 				};
 
 				yield return new object[] {
@@ -203,9 +225,9 @@ namespace GriffinPlus.Lib.Logging
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.Compact,
-					LogMessageField.ApplicationName,
+					LogMessageField.ProcessId,
 					message,
-					"{\"ApplicationName\":\"MyApp\"}"
+					"{\"ProcessId\":42}"
 				};
 
 				yield return new object[] {
@@ -224,6 +246,7 @@ namespace GriffinPlus.Lib.Logging
 					"\"HighPrecisionTimestamp\":123," +
 					"\"LogWriter\":\"MyWriter\"," +
 					"\"LogLevel\":\"MyLevel\"," +
+					"\"Tags\":[\"Tag1\",\"Tag2\"]," +
 					"\"ApplicationName\":\"MyApp\"," +
 					"\"ProcessName\":\"MyProcess\"," +
 					"\"ProcessId\":42," +
@@ -258,13 +281,6 @@ namespace GriffinPlus.Lib.Logging
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.OneLine,
-					LogMessageField.LogLevelName,
-					message,
-					"{ \"LogLevel\" : \"MyLevel\" }"
-				};
-
-				yield return new object[] {
-					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.LogWriterName,
 					message,
 					"{ \"LogWriter\" : \"MyWriter\" }"
@@ -272,9 +288,37 @@ namespace GriffinPlus.Lib.Logging
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.OneLine,
-					LogMessageField.ProcessId,
+					LogMessageField.LogLevelName,
 					message,
-					"{ \"ProcessId\" : 42 }"
+					"{ \"LogLevel\" : \"MyLevel\" }"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.OneLine,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet() },
+					"{ \"Tags\" : [] }"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.OneLine,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet("Tag") },
+					"{ \"Tags\" : [ \"Tag\" ] }"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.OneLine,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
+					"{ \"Tags\" : [ \"Tag1\", \"Tag2\" ] }"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.OneLine,
+					LogMessageField.ApplicationName,
+					message,
+					"{ \"ApplicationName\" : \"MyApp\" }"
 				};
 
 				yield return new object[] {
@@ -286,9 +330,9 @@ namespace GriffinPlus.Lib.Logging
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.OneLine,
-					LogMessageField.ApplicationName,
+					LogMessageField.ProcessId,
 					message,
-					"{ \"ApplicationName\" : \"MyApp\" }"
+					"{ \"ProcessId\" : 42 }"
 				};
 
 				yield return new object[] {
@@ -307,6 +351,7 @@ namespace GriffinPlus.Lib.Logging
 					" \"HighPrecisionTimestamp\" : 123," +
 					" \"LogWriter\" : \"MyWriter\"," +
 					" \"LogLevel\" : \"MyLevel\"," +
+					" \"Tags\" : [ \"Tag1\", \"Tag2\" ]," +
 					" \"ApplicationName\" : \"MyApp\"," +
 					" \"ProcessName\" : \"MyProcess\"," +
 					" \"ProcessId\" : 42," +
@@ -346,15 +391,6 @@ namespace GriffinPlus.Lib.Logging
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.LogLevelName,
-					message,
-					"{\r\n" + 
-					"    \"LogLevel\" : \"MyLevel\"\r\n" +
-					"}"
-				};
-
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.LogWriterName,
 					message,
 					"{\r\n" +
@@ -364,10 +400,46 @@ namespace GriffinPlus.Lib.Logging
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.ProcessId,
+					LogMessageField.LogLevelName,
 					message,
 					"{\r\n" + 
-					"    \"ProcessId\" : 42\r\n" +
+					"    \"LogLevel\" : \"MyLevel\"\r\n" +
+					"}"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.Beautified,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet() },
+					"{\r\n" +
+					"    \"Tags\" : []\r\n" +
+					"}"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.Beautified,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet("Tag") },
+					"{\r\n" +
+					"    \"Tags\" : [ \"Tag\" ]\r\n" +
+					"}"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.Beautified,
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
+					"{\r\n" +
+					"    \"Tags\" : [ \"Tag1\", \"Tag2\" ]\r\n" +
+					"}"
+				};
+
+				yield return new object[] {
+					JsonMessageFormatterStyle.Beautified,
+					LogMessageField.ApplicationName,
+					message,
+					"{\r\n" + 
+					"    \"ApplicationName\" : \"MyApp\"\r\n" +
 					"}"
 				};
 
@@ -379,13 +451,13 @@ namespace GriffinPlus.Lib.Logging
 					"    \"ProcessName\" : \"MyProcess\"\r\n" +
 					"}"
 				};
-
+				
 				yield return new object[] {
 					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.ApplicationName,
+					LogMessageField.ProcessId,
 					message,
 					"{\r\n" + 
-					"    \"ApplicationName\" : \"MyApp\"\r\n" +
+					"    \"ProcessId\" : 42\r\n" +
 					"}"
 				};
 
@@ -407,13 +479,13 @@ namespace GriffinPlus.Lib.Logging
 					"    \"HighPrecisionTimestamp\" : 123,\r\n" +
 					"    \"LogWriter\"              : \"MyWriter\",\r\n" +
 					"    \"LogLevel\"               : \"MyLevel\",\r\n" +
+					"    \"Tags\"                   : [ \"Tag1\", \"Tag2\" ],\r\n" +
 					"    \"ApplicationName\"        : \"MyApp\",\r\n" +
 					"    \"ProcessName\"            : \"MyProcess\",\r\n" +
 					"    \"ProcessId\"              : 42,\r\n" +
 					"    \"Text\"                   : \"MyText\"\r\n" +
 					"}"
 				};
-
 			}
 		}
 
@@ -430,6 +502,7 @@ namespace GriffinPlus.Lib.Logging
 			if (fields.HasFlag(LogMessageField.HighPrecisionTimestamp)) formatter.AddHighPrecisionTimestampField();
 			if (fields.HasFlag(LogMessageField.LogWriterName)) formatter.AddLogWriterField();
 			if (fields.HasFlag(LogMessageField.LogLevelName)) formatter.AddLogLevelField();
+			if (fields.HasFlag(LogMessageField.Tags)) formatter.AddTagsField();
 			if (fields.HasFlag(LogMessageField.ApplicationName)) formatter.AddApplicationNameField();
 			if (fields.HasFlag(LogMessageField.ProcessName)) formatter.AddProcessNameField();
 			if (fields.HasFlag(LogMessageField.ProcessId)) formatter.AddProcessIdField();
@@ -469,6 +542,7 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.HighPrecisionTimestamp)]
 		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.LogWriterName)]
 		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.Tags)]
 		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.ApplicationName)]
 		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.ProcessName)]
 		[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.ProcessId)]
@@ -477,6 +551,7 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.HighPrecisionTimestamp)]
 		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.LogWriterName)]
 		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.Tags)]
 		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.ApplicationName)]
 		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.ProcessName)]
 		[InlineData(JsonMessageFormatterStyle.OneLine, LogMessageField.ProcessId)]
@@ -485,6 +560,7 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.HighPrecisionTimestamp)]
 		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.LogWriterName)]
 		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.LogLevelName)]
+		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.Tags)]
 		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.ApplicationName)]
 		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.ProcessName)]
 		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.ProcessId)]
@@ -498,6 +574,7 @@ namespace GriffinPlus.Lib.Logging
 			if (fields.HasFlag(LogMessageField.HighPrecisionTimestamp)) formatter.AddHighPrecisionTimestampField(sUnescapedString);
 			if (fields.HasFlag(LogMessageField.LogWriterName)) formatter.AddLogWriterField(sUnescapedString);
 			if (fields.HasFlag(LogMessageField.LogLevelName)) formatter.AddLogLevelField(sUnescapedString);
+			if (fields.HasFlag(LogMessageField.Tags)) formatter.AddTagsField(sUnescapedString);
 			if (fields.HasFlag(LogMessageField.ApplicationName)) formatter.AddApplicationNameField(sUnescapedString);
 			if (fields.HasFlag(LogMessageField.ProcessName)) formatter.AddProcessNameField(sUnescapedString);
 			if (fields.HasFlag(LogMessageField.ProcessId)) formatter.AddProcessIdField(sUnescapedString);
@@ -642,7 +719,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AllFields()
 		{
 			var formatter = JsonMessageFormatter.AllFields;
-			const LogMessageField expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
+			const LogMessageField expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.Tags | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
 			Assert.Equal(expectedFields, formatter.FormattedFields);
 			var message = GetTestMessage();
 			formatter.Style = JsonMessageFormatterStyle.OneLine;
@@ -651,6 +728,7 @@ namespace GriffinPlus.Lib.Logging
 			                        " \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
 			                        " \"LogWriter\" : \"MyWriter\"," +
 			                        " \"LogLevel\" : \"MyLevel\"," +
+			                        " \"Tags\" : [ \"Tag1\", \"Tag2\" ]," +
 			                        " \"ApplicationName\" : \"MyApp\"," +
 			                        " \"ProcessName\" : \"MyProcess\"," +
 			                        " \"ProcessId\" : 42," +
@@ -670,11 +748,12 @@ namespace GriffinPlus.Lib.Logging
 			{
 				Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
 				HighPrecisionTimestamp = 123,
+				LogWriterName = "MyWriter",
+				LogLevelName = "MyLevel",
+				Tags = new TagSet("Tag1", "Tag2"),
+				ApplicationName = "MyApp",
 				ProcessName = "MyProcess",
 				ProcessId = 42,
-				ApplicationName = "MyApp",
-				LogLevelName = "MyLevel",
-				LogWriterName = "MyWriter",
 				Text = "MyText"
 			};
 		}

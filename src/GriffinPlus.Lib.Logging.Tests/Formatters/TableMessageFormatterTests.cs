@@ -43,7 +43,18 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				var message = GetTestMessage();
+				var message = new LogMessage
+				{
+					Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
+					HighPrecisionTimestamp = 123,
+					LogWriterName = "MyWriter",
+					Tags = new TagSet("Tag1", "Tag2"),
+					LogLevelName = "MyLevel",
+					ApplicationName = "MyApp",
+					ProcessName = "MyProcess",
+					ProcessId = 42,
+					Text = "MyText"
+				};
 
 				yield return new object[] {
 					LogMessageField.None,
@@ -76,6 +87,26 @@ namespace GriffinPlus.Lib.Logging
 				};
 
 				yield return new object[] {
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet() },
+					"",
+				};
+
+				message.Tags = new TagSet("Tag");
+				yield return new object[] {
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet("Tag") },
+					"Tag",
+				};
+
+				message.Tags = new TagSet("Tag1", "Tag2");
+				yield return new object[] {
+					LogMessageField.Tags,
+					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
+					"Tag1, Tag2",
+				};
+
+				yield return new object[] {
 					LogMessageField.ApplicationName,
 					message,
 					"MyApp"
@@ -102,7 +133,7 @@ namespace GriffinPlus.Lib.Logging
 				yield return new object[] {
 					LogMessageField.All,
 					message,
-					"2000-01-01 00:00:00Z | 123 | MyWriter | MyLevel | MyApp | MyProcess | 42 | MyText"
+					"2000-01-01 00:00:00Z | 123 | MyWriter | MyLevel | Tag1, Tag2 | MyApp | MyProcess | 42 | MyText"
 				};
 
 			}
@@ -120,6 +151,7 @@ namespace GriffinPlus.Lib.Logging
 			if (fields.HasFlag(LogMessageField.HighPrecisionTimestamp)) formatter.AddHighPrecisionTimestampColumn();
 			if (fields.HasFlag(LogMessageField.LogWriterName)) formatter.AddLogWriterColumn();
 			if (fields.HasFlag(LogMessageField.LogLevelName)) formatter.AddLogLevelColumn();
+			if (fields.HasFlag(LogMessageField.Tags)) formatter.AddTagsColumn();
 			if (fields.HasFlag(LogMessageField.ApplicationName)) formatter.AddApplicationNameColumn();
 			if (fields.HasFlag(LogMessageField.ProcessName)) formatter.AddProcessNameColumn();
 			if (fields.HasFlag(LogMessageField.ProcessId)) formatter.AddProcessIdColumn();
@@ -138,11 +170,11 @@ namespace GriffinPlus.Lib.Logging
 		public void AllColumns()
 		{
 			var formatter = TableMessageFormatter.AllColumns;
-			const LogMessageField expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
+			const LogMessageField expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.Tags | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
 			Assert.Equal(expectedFields, formatter.FormattedFields);
 			var message = GetTestMessage();
 			var output = formatter.Format(message);
-			Assert.Equal("2000-01-01 00:00:00Z | MyWriter | MyLevel | MyApp | MyProcess | 42 | MyText", output);
+			Assert.Equal("2000-01-01 00:00:00Z | MyWriter | MyLevel | Tag1, Tag2 | MyApp | MyProcess | 42 | MyText", output);
 		}
 
 		/// <summary>
@@ -155,11 +187,12 @@ namespace GriffinPlus.Lib.Logging
 			{
 				Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
 				HighPrecisionTimestamp = 123,
+				LogWriterName = "MyWriter",
+				LogLevelName = "MyLevel",
+				Tags = new TagSet("Tag1", "Tag2"),
+				ApplicationName = "MyApp",
 				ProcessName = "MyProcess",
 				ProcessId = 42,
-				ApplicationName = "MyApp",
-				LogLevelName = "MyLevel",
-				LogWriterName = "MyWriter",
 				Text = "MyText"
 			};
 		}

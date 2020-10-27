@@ -30,14 +30,15 @@ namespace GriffinPlus.Lib.Logging
 			StringBuilder builder = new StringBuilder();
 
 			builder.AppendFormat(
-				"{0} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7}",
+				"{0} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7} ### {8}",
 				message.Timestamp,
 				message.HighPrecisionTimestamp,
-				message.LogLevelName,
 				message.LogWriterName,
-				message.ProcessId,
-				message.ProcessName,
+				message.LogLevelName,
+				string.Join(",", message.Tags),
 				message.ApplicationName,
+				message.ProcessName,
+				message.ProcessId,
 				message.Text);
 
 			return builder.ToString();

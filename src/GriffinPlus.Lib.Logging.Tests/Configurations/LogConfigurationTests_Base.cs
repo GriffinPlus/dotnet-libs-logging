@@ -64,10 +64,11 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal("Note", logWriterSetting.BaseLevel);
 			Assert.Empty(logWriterSetting.Includes);
 			Assert.Empty(logWriterSetting.Excludes);
-			Assert.Single(logWriterSetting.Patterns);
-			var pattern = logWriterSetting.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Single(logWriterSetting.NamePatterns);
+			var pattern = logWriterSetting.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Equal("*", pattern.Pattern);
+			Assert.Empty(logWriterSetting.TagPatterns);
 		}
 
 		[Fact]
@@ -184,10 +185,11 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 			Assert.Equal($"{typeof(CONFIGURATION).FullName}", pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -218,10 +220,11 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 			Assert.Equal($"{type.FullName}", pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -252,10 +255,11 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Equal(wildcard, pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -286,10 +290,11 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.RegexNamePattern>(pattern);
 			Assert.Equal(regex, pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -304,10 +309,11 @@ namespace GriffinPlus.Lib.Logging
 			var writers = configuration.GetLogWriterSettings().ToArray();
 			Assert.Single(writers);
 			var writer = writers[0];
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 			Assert.Equal("Timing", pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("None", writer.BaseLevel);
 			Assert.Single(writer.Includes, "Timing");
 			Assert.Empty(writer.Excludes);
@@ -337,10 +343,11 @@ namespace GriffinPlus.Lib.Logging
 				writer = writers[0];
 			}
 
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Equal("*", pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
@@ -371,38 +378,38 @@ namespace GriffinPlus.Lib.Logging
 			for (int i = 0; i < writers.Length; i++)
 			{
 				var writer = writers[i];
-				Assert.Single(writer.Patterns);
-				var pattern = writer.Patterns.First();
+				Assert.Single(writer.NamePatterns);
+				var pattern = writer.NamePatterns.First();
 
 				switch (i)
 				{
 					// effect of .WithLogWriter<T>()
 					case 0:
-						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 						Assert.Equal($"{typeof(CONFIGURATION).FullName}", pattern.Pattern);
 						break;
 
 					// effect of .WithLogWriter(typeof(T))
 					case 1:
-						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 						Assert.Equal($"{typeof(CONFIGURATION).FullName}", pattern.Pattern);
 						break;
 
 					// effect of .WithLogWritersByWildcard(wildcard)
 					case 2:
-						Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+						Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 						Assert.Equal(wildcard, pattern.Pattern);
 						break;
 
 					// effect of WithLogWritersByRegex(regex)
 					case 3:
-						Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(pattern);
+						Assert.IsType<LogWriterConfiguration.RegexNamePattern>(pattern);
 						Assert.Equal(regex, pattern.Pattern);
 						break;
 
 					// effect of .WithLogWriterTiming()
 					case 4:
-						Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+						Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 						Assert.Equal("Timing", pattern.Pattern);
 						Assert.Equal("None", writers[i].BaseLevel);
 						Assert.Single(writers[i].Includes, "Timing");
@@ -412,11 +419,12 @@ namespace GriffinPlus.Lib.Logging
 
 					// effect of .WithLogWriterDefault()
 					case 5:
-						Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+						Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 						Assert.Equal("*", pattern.Pattern);
 						break;
 				}
 
+				Assert.Empty(writer.TagPatterns);
 				Assert.Equal("Note", writer.BaseLevel);
 				Assert.Empty(writer.Includes);
 				Assert.Empty(writer.Excludes);
@@ -434,9 +442,10 @@ namespace GriffinPlus.Lib.Logging
 			var writers = configuration.GetLogWriterSettings().ToArray();
 			Assert.Single(writers);
 			var writer = writers[0];
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
 			Assert.Equal("Wildcard: *", pattern.ToString());
+			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("Note", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);

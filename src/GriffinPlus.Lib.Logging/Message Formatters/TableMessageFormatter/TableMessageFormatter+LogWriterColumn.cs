@@ -19,7 +19,7 @@ namespace GriffinPlus.Lib.Logging
 	partial class TableMessageFormatter
 	{
 		/// <summary>
-		/// The log writer column.
+		/// The log writer name column.
 		/// </summary>
 		private sealed class LogWriterColumn : ColumnBase
 		{

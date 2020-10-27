@@ -222,8 +222,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">Log writer to use.</param>
 		/// <param name="level">Log level to use.</param>
+		/// <param name="tags">Tags attached to the message.</param>
 		/// <param name="text">Text of the log message.</param>
-		internal static void WriteMessage(LogWriter writer, LogLevel level, string text)
+		internal static void WriteMessage(LogWriter writer, LogLevel level, TagSet tags, string text)
 		{
 			// remove preceding and trailing line breaks
 			text = text.Trim('\r', '\n');
@@ -243,11 +244,12 @@ namespace GriffinPlus.Lib.Logging
 						message.Init(
 							GetTimestamp(),
 							highPrecisionTimestamp,
-							sProcessId,
-							sProcessName,
-							ApplicationName,
 							writer,
 							level,
+							tags,
+							ApplicationName,
+							sProcessName,
+							sProcessId,
 							text);
 
 						pipeline.ProcessMessage(message);
@@ -357,11 +359,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
-
-			foreach (var kvp in sLogWritersByName)
-			{
-				kvp.Value.ActiveLogLevelMask = sLogConfiguration.GetActiveLogLevelMask(kvp.Value);
-			}
+			foreach (var writer in sLogWritersById) writer.Update(sLogConfiguration);
 		}
 
 		/// <summary>

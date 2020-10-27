@@ -42,24 +42,26 @@ namespace GriffinPlus.Lib.Logging
 		/// Timestamp for relative time measurements with high precision
 		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
-		/// <param name="processId">Id of the process emitting the log message.</param>
-		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
+		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
+		/// <param name="tags">Tags that are associated with the message.</param>
 		/// <param name="applicationName">
 		/// Name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </param>
-		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
-		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
+		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="processId">Id of the process emitting the log message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
 		/// <returns>The requested log message.</returns>
 		public LogMessage GetMessage(
 			DateTimeOffset timestamp,
 			long highPrecisionTimestamp,
-			int processId,
-			string processName,
-			string applicationName,
 			string logWriterName,
 			string logLevelName,
+			TagSet tags,
+			string applicationName,
+			string processName,
+			int processId,
 			string text)
 		{
 			if (mMessages.TryTake(out var message))
@@ -73,7 +75,7 @@ namespace GriffinPlus.Lib.Logging
 				message = new LogMessage(this);
 			}
 
-			message.Init(timestamp, highPrecisionTimestamp, processId, processName, applicationName, logWriterName, logLevelName, text);
+			message.Init(timestamp, highPrecisionTimestamp, logWriterName, logLevelName, tags, applicationName, processName, processId, text);
 			return message;
 		}
 

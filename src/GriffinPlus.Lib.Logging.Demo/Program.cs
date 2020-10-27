@@ -152,6 +152,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			tableFormatter.AddApplicationNameColumn();
 			tableFormatter.AddLogWriterColumn();
 			tableFormatter.AddLogLevelColumn();
+			tableFormatter.AddTagsColumn();
 			tableFormatter.AddTextColumn();
 
 			// Create log message formatter that prints log messages as JSON
@@ -163,6 +164,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			jsonFormatter.AddApplicationNameField();
 			jsonFormatter.AddLogWriterField();
 			jsonFormatter.AddLogLevelField();
+			jsonFormatter.AddTagsField();
 			jsonFormatter.AddTextField();
 
 			// Create pipeline stage for printing to the console

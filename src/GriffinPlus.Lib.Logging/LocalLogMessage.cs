@@ -51,11 +51,12 @@ namespace GriffinPlus.Lib.Logging
 			Context = new Dictionary<string, object>(other.Context);
 			Timestamp = other.Timestamp;
 			HighPrecisionTimestamp = other.HighPrecisionTimestamp;
-			ProcessId = other.ProcessId;
-			ProcessName = other.ProcessName;
-			ApplicationName = other.ApplicationName;
 			LogWriter = other.LogWriter;
 			LogLevel = other.LogLevel;
+			Tags = other.Tags;
+			ApplicationName = other.ApplicationName;
+			ProcessName = other.ProcessName;
+			ProcessId = other.ProcessId;
 			Text = other.Text;
 		}
 
@@ -79,16 +80,6 @@ namespace GriffinPlus.Lib.Logging
 		public long HighPrecisionTimestamp { get; private set; }
 
 		/// <summary>
-		/// Gets the log level associated with the log message.
-		/// </summary>
-		public LogLevel LogLevel { get; private set; }
-
-		/// <summary>
-		/// Gets the name of the log level associated with the log message.
-		/// </summary>
-		public string LogLevelName => LogLevel?.Name;
-
-		/// <summary>
 		/// Gets the log writer associated with the log message.
 		/// </summary>
 		public LogWriter LogWriter { get; private set; }
@@ -99,9 +90,25 @@ namespace GriffinPlus.Lib.Logging
 		public string LogWriterName => LogWriter?.Name;
 
 		/// <summary>
-		/// Gets the id of the process emitting the log message.
+		/// Gets the log level associated with the log message.
 		/// </summary>
-		public int ProcessId { get; private set; }
+		public LogLevel LogLevel { get; private set; }
+
+		/// <summary>
+		/// Gets the name of the log level associated with the log message.
+		/// </summary>
+		public string LogLevelName => LogLevel?.Name;
+
+		/// <summary>
+		/// Gets the tags attached to the log message.
+		/// </summary>
+		public TagSet Tags { get; private set; }
+
+		/// <summary>
+		/// Gets the name of the application emitting the log message
+		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// </summary>
+		public string ApplicationName { get; private set; }
 
 		/// <summary>
 		/// Gets the name of the process emitting the log message.
@@ -109,10 +116,9 @@ namespace GriffinPlus.Lib.Logging
 		public string ProcessName { get; private set; }
 
 		/// <summary>
-		/// Gets the name of the application emitting the log message
-		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// Gets the id of the process emitting the log message.
 		/// </summary>
-		public string ApplicationName { get; private set; }
+		public int ProcessId { get; private set; }
 
 		/// <summary>
 		/// Gets the actual text the log message is about.
@@ -174,32 +180,35 @@ namespace GriffinPlus.Lib.Logging
 		/// Timestamp for relative time measurements with high precision
 		/// (in ns, the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
-		/// <param name="processId">Id of the process emitting the log message.</param>
-		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="logWriter">Log writer that was used to emit the message.</param>
+		/// <param name="logLevel">Log level that is associated with the message.</param>
+		/// <param name="tags">Tags that are associated with the log message.</param>
 		/// <param name="applicationName">
 		/// Name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </param>
-		/// <param name="logWriter">Log writer that was used to emit the message.</param>
-		/// <param name="logLevel">Log level that is associated with the message.</param>
+		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="processId">Id of the process emitting the log message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
 		internal void Init(
 			DateTimeOffset timestamp,
 			long highPrecisionTimestamp,
-			int processId,
-			string processName,
-			string applicationName,
 			LogWriter logWriter,
 			LogLevel logLevel,
+			TagSet tags,
+			string applicationName,
+			string processName,
+			int processId,
 			string text)
 		{
 			Timestamp = timestamp;
 			HighPrecisionTimestamp = highPrecisionTimestamp;
-			ProcessId = processId;
-			ProcessName = processName;
-			ApplicationName = applicationName;
 			LogWriter = logWriter;
 			LogLevel = logLevel;
+			Tags = tags;
+			ApplicationName = applicationName;
+			ProcessName = processName;
+			ProcessId = processId;
 			Text = text;
 		}
 
@@ -209,11 +218,12 @@ namespace GriffinPlus.Lib.Logging
 		internal void Reset()
 		{
 			Context.Clear();
-			ProcessId = 0;
-			ProcessName = null;
-			ApplicationName = null;
 			LogWriter = null;
 			LogLevel = null;
+			Tags = null;
+			ApplicationName = null;
+			ProcessName = null;
+			ProcessId = 0;
 			Text = null;
 		}
 

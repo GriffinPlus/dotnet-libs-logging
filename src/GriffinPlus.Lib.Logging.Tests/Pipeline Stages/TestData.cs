@@ -24,56 +24,61 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly LocalLogMessagePool sMessagePool = new LocalLogMessagePool();
 
 		/// <summary>
-		/// Four different local log messages in lists of different size.
+		/// Four different local log messages using different log writers and tag sets in lists of different size.
 		/// </summary>
 		public static IEnumerable<IEnumerable<LocalLogMessage>> LocalLogMessageSet
 		{
 			get
 			{
-				var message1 = sMessagePool.GetMessage(
-					DateTimeOffset.Parse("2001-01-01 00:00:00Z"),
-					123,
-					42,
-					"MyProcess1",
-					"MyApp1",
-					Log.GetWriter("MyWriter1"),
-					LogLevel.Failure,
-					"MyText1");
+				var tagSets = new[] { null, new[] { "Tag" }, new [] { "Tag1", "Tag2" } };
 
-				var message2 = sMessagePool.GetMessage(
-					DateTimeOffset.Parse("2002-01-01 00:00:00Z"),
-					456,
-					43,
-					"MyProcess2",
-					"MyApp2",
-					Log.GetWriter("MyWriter2"),
-					LogLevel.Error,
-					"MyText2");
+				foreach (var tags in tagSets)
+				{
+					var message1 = sMessagePool.GetMessage(
+						DateTimeOffset.Parse("2001-01-01 00:00:00Z"),
+						123,
+						Log.GetWriter("MyWriter1").WithTags(tags),
+						LogLevel.Failure,
+						"MyApp1",
+						"MyProcess1",
+						42,
+						"MyText1");
 
-				var message3 = sMessagePool.GetMessage(
-					DateTimeOffset.Parse("2003-01-01 00:00:00Z"),
-					789,
-					44,
-					"MyProcess3",
-					"MyApp3",
-					Log.GetWriter("MyWriter3"),
-					LogLevel.Warning,
-					"MyText3");
+					var message2 = sMessagePool.GetMessage(
+						DateTimeOffset.Parse("2002-01-01 00:00:00Z"),
+						456,
+						Log.GetWriter("MyWriter2").WithTags(tags),
+						LogLevel.Error,
+						"MyApp2",
+						"MyProcess2",
+						43,
+						"MyText2");
 
-				var message4 = sMessagePool.GetMessage(
-					DateTimeOffset.Parse("2004-01-01 00:00:00Z"),
-					789,
-					44,
-					"MyProcess4",
-					"MyApp4",
-					Log.GetWriter("MyWriter4"),
-					LogLevel.Note,
-					"MyText4");
+					var message3 = sMessagePool.GetMessage(
+						DateTimeOffset.Parse("2003-01-01 00:00:00Z"),
+						789,
+						Log.GetWriter("MyWriter3").WithTags(tags),
+						LogLevel.Warning,
+						"MyApp3",
+						"MyProcess3",
+						44,
+						"MyText3");
 
-				yield return new[] { message1 };
-				yield return new[] { message1, message2 };
-				yield return new[] { message1, message2, message3 };
-				yield return new[] { message1, message2, message3, message4 };
+					var message4 = sMessagePool.GetMessage(
+						DateTimeOffset.Parse("2004-01-01 00:00:00Z"),
+						789,
+						Log.GetWriter("MyWriter4").WithTags(tags),
+						LogLevel.Note,
+						"MyApp4",
+						"MyProcess4",
+						44,
+						"MyText4");
+
+					yield return new[] { message1 };
+					yield return new[] { message1, message2 };
+					yield return new[] { message1, message2, message3 };
+					yield return new[] { message1, message2, message3, message4 };
+				}
 			}
 		}
 	}

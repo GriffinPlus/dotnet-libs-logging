@@ -11,39 +11,47 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
-	partial class JsonMessageFormatter
+	public partial class LogWriterConfiguration
 	{
 		/// <summary>
-		/// The log writer field (immutable).
+		/// A name pattern matching exactly (immutable).
 		/// </summary>
-		private sealed class LogWriterField : FieldBase
+		public class ExactNamePattern : INamePattern
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="LogWriterField"/> class.
+			/// Initializes a new instance of the <see cref="ExactNamePattern"/> class.
 			/// </summary>
-			/// <param name="formatter">The formatter the field belongs to.</param>
-			/// <param name="jsonKey">Key of the field in the JSON document.</param>
-			public LogWriterField(JsonMessageFormatter formatter, string jsonKey) :
-				base(formatter, LogMessageField.LogWriterName, jsonKey)
+			/// <param name="name">The name to match.</param>
+			public ExactNamePattern(string name)
 			{
-
+				Pattern = name;
+				var regex = $"^{Regex.Escape(name)}$";
+				Regex = new Regex(regex, RegexOptions.Singleline); // compilation is not needed as the regex matches only once against a log writer name and is then cached
 			}
 
 			/// <summary>
-			/// Appends the formatted value of the current field to the specified string builder.
+			/// Gets the original pattern.
 			/// </summary>
-			/// <param name="message">Message containing the field to format.</param>
-			/// <param name="builder">String builder to append the output of the current field to.</param>
-			public override void AppendFormattedValue(ILogMessage message, StringBuilder builder)
+			public string Pattern { get; }
+
+			/// <summary>
+			/// Gets the regular expression matching the specified pattern.
+			/// </summary>
+			public Regex Regex { get; }
+
+			/// <summary>
+			/// Gets the string representation of the pattern.
+			/// </summary>
+			/// <returns>The string representation of the pattern.</returns>
+			public override string ToString()
 			{
-				builder.Append('"');
-				if (message.LogWriterName != null) AppendEscapedStringToBuilder(builder, message.LogWriterName, Formatter.mEscapeSolidus);
-				builder.Append('"');
+				return "Exact: " + Pattern;
 			}
 		}
 	}
 }
+

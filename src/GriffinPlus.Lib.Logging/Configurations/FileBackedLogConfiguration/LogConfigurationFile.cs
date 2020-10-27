@@ -30,8 +30,9 @@ namespace GriffinPlus.Lib.Logging
 		private const string Section_Name_Log_Writer = "LogWriter";
 		private const string Property_Name_Application_Name = "ApplicationName";
 		private const string Property_Name_LogWriter_Name = "Name";
-		private const string Property_Name_LogWriter_Wildcard_Pattern = "WildcardPattern";
-		private const string Property_Name_LogWriter_Regex_Pattern = "RegexPattern";
+		private const string Property_Name_LogWriter_Wildcard_Pattern = "WildcardPattern"; // deprecated, kept for compatibility only
+		private const string Property_Name_LogWriter_Regex_Pattern = "RegexPattern"; // deprecated, kept for compatibility only
+		private const string Property_Name_LogWriter_Tag = "Tag";
 		private const string Property_Name_LogWriter_Level = "Level";
 		private const string Property_Name_LogWriter_Include = "Include";
 		private const string Property_Name_LogWriter_Exclude = "Exclude";
@@ -42,12 +43,9 @@ namespace GriffinPlus.Lib.Logging
 			"; Configuration of the Logging Subsystem",
 			"; ------------------------------------------------------------------------------",
 			"; This file configures the logging subsystem that is incorporated in the",
-			"; application concerned. Each and every executable that makes use of the logging",
-			"; subsystem has its own configuration file (extension: .logconf) that is usually",
-			"; located beside the application's executable. The configuration is structured",
-			"; similar to an ini-file, i.e. it consists of sections and properties. A section",
-			"; defines a configuration scope while properties contain the actual settings",
-			"; within a section.",
+			"; application concerned. The configuration is structured similar to an ini-file,",
+			"; i.e. it consists of sections and properties. A section defines a configuration",
+			"; scope while properties contain the actual settings within a section.",
 			"; ------------------------------------------------------------------------------"
 		};
 
@@ -72,11 +70,24 @@ namespace GriffinPlus.Lib.Logging
 			"; ------------------------------------------------------------------------------",
 			"; The log writer configuration may consist of multiple [LogWriter] sections",
 			"; defining active log levels for log writers with a name matching the specified",
-			"; pattern. The pattern can be expressed as a wildcard pattern ('WildcardPattern'",
-			"; property) or as a regular expression ('RegexPattern' property). Multiple",
-			"; [LogWriter] sections are evaluated top-down. The first matching section",
-			"; defines the behavior of the log writer. Therefore a default settings section",
-			"; matching all log writers should be specified last.",
+			"; pattern. The pattern can match exactly one log writer or a set of log writers",
+			"; using a wildcard pattern or a .NET style regular expression. The pattern can",
+			"; be specified using the 'Name' property. If an exact match is required, the",
+			"; pattern must start with an equality sign (=). If a regular expression should",
+			"; be used, the pattern must begin with a caret (^) and end with a dollar sign ($),",
+			"; the anchors for the beginning and the end of a line. Any other pattern is",
+			"; interpreted as a wildcard pattern.",
+			";",
+			"; Log writers can be configured to attach custom tags to written log messages.",
+			"; These log writers allow applications to split up the log writer configuration",
+			"; even further. The 'Tag' property can be used to match tagging writers. The",
+			"; 'Tag' property supports the same patterns as the 'Name' property (see above).",
+			"; If the 'Tag' property is not set, tag matching is disabled and only name",
+			"; matching is in effect.",
+			";",
+			"; Multiple [LogWriter] sections are evaluated top-down. The first matching",
+			"; section defines the behavior of the log writer. Therefore a default settings",
+			"; section matching all log writers should be specified last.",
 			";",
 			"; The logging module comes with a couple of predefined log levels expressing a",
 			"; wide range of severities:",
@@ -290,31 +301,55 @@ namespace GriffinPlus.Lib.Logging
 						switch (key)
 						{
 							// setting belongs to a log writer configuration
-							// (Name, WildcardPattern, RegexPattern, Level, Include, Exclude)
+							// (Name, WildcardPattern, RegexPattern, Tag, Level, Include, Exclude)
 							case Property_Name_LogWriter_Name:
-								logWriter.mPatterns.Add(new LogWriterConfiguration.ExactNameLogWriterPattern(value));
+								if (value.StartsWith("=")) {
+									logWriter.mNamePatterns.Add(new LogWriterConfiguration.ExactNamePattern(value.Substring(1)));
+								} else if (value.StartsWith("^") && value.EndsWith("$")) {
+									logWriter.mNamePatterns.Add(new LogWriterConfiguration.RegexNamePattern(value));
+								} else {
+									logWriter.mNamePatterns.Add(new LogWriterConfiguration.WildcardNamePattern(value));
+								}
 								continue;
+
+							// deprecated, kept for compatibility only
 							case Property_Name_LogWriter_Wildcard_Pattern:
-								logWriter.mPatterns.Add(new LogWriterConfiguration.WildcardLogWriterPattern(value));
+								logWriter.mNamePatterns.Add(new LogWriterConfiguration.WildcardNamePattern(value));
 								continue;
+
+							// deprecated, kept for compatibility only
 							case Property_Name_LogWriter_Regex_Pattern:
-								logWriter.mPatterns.Add(new LogWriterConfiguration.RegexLogWriterPattern(value));
+								logWriter.mNamePatterns.Add(new LogWriterConfiguration.RegexNamePattern(value));
 								continue;
+
+							case Property_Name_LogWriter_Tag:
+								if (value.StartsWith("=")) {
+									logWriter.mTagPatterns.Add(new LogWriterConfiguration.ExactNamePattern(value.Substring(1)));
+								} else if (value.StartsWith("^") && value.EndsWith("$")) {
+									logWriter.mTagPatterns.Add(new LogWriterConfiguration.RegexNamePattern(value));
+								} else {
+									logWriter.mTagPatterns.Add(new LogWriterConfiguration.WildcardNamePattern(value));
+								}
+								continue;
+
 							case Property_Name_LogWriter_Level:
 								logWriter.mBaseLevel = value;
 								continue;
+
 							case Property_Name_LogWriter_Include:
 							{
 								string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
 								logWriter.mIncludes.AddRange(levels);
 								continue;
 							}
+
 							case Property_Name_LogWriter_Exclude:
 							{
 								string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
 								logWriter.mExcludes.AddRange(levels);
 								continue;
 							}
+
 							default:
 								throw new LoggingException($"Unexpected property name in section '{section}' (line: {lineNumber}).");
 						}
@@ -341,9 +376,9 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// add default log writer name pattern, if there is no pattern configured
-			foreach (var writer in LogWriterSettings.Where(writer => writer.mPatterns.Count == 0))
+			foreach (var writer in LogWriterSettings.Where(writer => writer.mNamePatterns.Count == 0))
 			{
-				writer.mPatterns.Add(LogWriterConfiguration.DefaultPattern);
+				writer.mNamePatterns.Add(LogWriterConfiguration.DefaultPattern);
 			}
 
 			// add default log writer configuration, if there is no configuration
@@ -422,18 +457,34 @@ namespace GriffinPlus.Lib.Logging
 					writer.WriteLine();
 					writer.WriteLine("[{0}]", Section_Name_Log_Writer);
 
-					foreach (var pattern in logWriter.Patterns)
+					foreach (var pattern in logWriter.NamePatterns)
 					{
 						switch (pattern)
 						{
-							case LogWriterConfiguration.ExactNameLogWriterPattern _:
+							case LogWriterConfiguration.ExactNamePattern _:
+								writer.WriteLine("{0} = ={1}", Property_Name_LogWriter_Name, pattern.Pattern);
+								break;
+							case LogWriterConfiguration.WildcardNamePattern _:
+							case LogWriterConfiguration.RegexNamePattern _:
+								// regex patterns are enclosed by anchors (^regex$),
+								// everything else is interpreted as wildcard patterns
 								writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Name, pattern.Pattern);
 								break;
-							case LogWriterConfiguration.WildcardLogWriterPattern _:
-								writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Wildcard_Pattern, pattern.Pattern);
+						}
+					}
+
+					foreach (var pattern in logWriter.TagPatterns)
+					{
+						switch (pattern)
+						{
+							case LogWriterConfiguration.ExactNamePattern _:
+								writer.WriteLine("{0} = ={1}", Property_Name_LogWriter_Tag, pattern.Pattern);
 								break;
-							case LogWriterConfiguration.RegexLogWriterPattern _:
-								writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Regex_Pattern, pattern.Pattern);
+							case LogWriterConfiguration.WildcardNamePattern _:
+							case LogWriterConfiguration.RegexNamePattern _:
+								// regex patterns are enclosed by anchors (^regex$),
+								// everything else is interpreted as wildcard patterns
+								writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Tag, pattern.Pattern);
 								break;
 						}
 					}

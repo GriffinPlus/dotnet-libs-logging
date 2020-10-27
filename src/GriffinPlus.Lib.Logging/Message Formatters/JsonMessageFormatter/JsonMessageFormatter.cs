@@ -35,6 +35,7 @@ namespace GriffinPlus.Lib.Logging
 		private bool mEscapeSolidus;
 		private int mMaxEscapedJsonKeyLength;
 		private readonly object mSync = new object();
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="JsonMessageFormatter"/> class.
 		/// </summary>
@@ -45,7 +46,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a formatter that writes the following fields:
-		/// 'Timestamp', 'Log Writer', 'Log Level', 'Application Name', 'Process Name', 'Process Id', 'Text'.
+		/// 'Timestamp', 'Log Writer', 'Log Level', 'Tags', 'Application Name', 'Process Name', 'Process Id', 'Text'.
 		/// </summary>
 		public static JsonMessageFormatter AllFields
 		{
@@ -55,6 +56,7 @@ namespace GriffinPlus.Lib.Logging
 				formatter.AddTimestampField();
 				formatter.AddLogWriterField();
 				formatter.AddLogLevelField();
+				formatter.AddTagsField();
 				formatter.AddApplicationNameField();
 				formatter.AddProcessNameField();
 				formatter.AddProcessIdField();
@@ -202,10 +204,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="format">
 		/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx" for details).
 		/// </param>
-		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddTimestampField(string format = "u", string jsonKey = "Timestamp")
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddTimestampField(string format = "u", string jsonKey = null)
 		{
 			if (format == null) throw new ArgumentNullException(nameof(format));
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Timestamp;
 
 			// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
@@ -217,69 +220,87 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds the high precision timestamp field.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddHighPrecisionTimestampField(string jsonKey = "HighPrecisionTimestamp")
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddHighPrecisionTimestampField(string jsonKey = null)
 		{
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.HighPrecisionTimestamp;
 			HighPrecisionTimestampField field = new HighPrecisionTimestampField(this, jsonKey);
-			AppendField(field);
-		}
-
-		/// <summary>
-		/// Adds a field with the id of the process that has written a log message.
-		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddProcessIdField(string jsonKey = "ProcessId")
-		{
-			ProcessIdField field = new ProcessIdField(this, jsonKey);
-			AppendField(field);
-		}
-
-		/// <summary>
-		/// Adds a field with the name of the process that has written a log message.
-		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddProcessNameField(string jsonKey = "ProcessName")
-		{
-			ProcessNameField field = new ProcessNameField(this, jsonKey);
-			AppendField(field);
-		}
-
-		/// <summary>
-		/// Adds a field with the name of the application that has written a log message.
-		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddApplicationNameField(string jsonKey = "ApplicationName")
-		{
-			ApplicationNameField field = new ApplicationNameField(this, jsonKey);
 			AppendField(field);
 		}
 
 		/// <summary>
 		/// Adds a field with the name of the log writer that was used to write a log message.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddLogWriterField(string jsonKey = "LogWriter")
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddLogWriterField(string jsonKey = null)
 		{
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.LogWriter;
 			LogWriterField field = new LogWriterField(this, jsonKey);
+			AppendField(field);
+		}
+
+		/// <summary>
+		/// Adds a field with the tags the log writer attached when writing the log message.
+		/// </summary>
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddTagsField(string jsonKey = null)
+		{
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Tags;
+			TagsField field = new TagsField(this, jsonKey);
 			AppendField(field);
 		}
 
 		/// <summary>
 		/// Adds a field with the name of the log level that was used to write a log message.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddLogLevelField(string jsonKey = "LogLevel")
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddLogLevelField(string jsonKey = null)
 		{
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.LogLevel;
 			LogLevelField field = new LogLevelField(this, jsonKey);
+			AppendField(field);
+		}
+
+		/// <summary>
+		/// Adds a field with the name of the application that has written a log message.
+		/// </summary>
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddApplicationNameField(string jsonKey = null)
+		{
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ApplicationName;
+			ApplicationNameField field = new ApplicationNameField(this, jsonKey);
+			AppendField(field);
+		}
+
+		/// <summary>
+		/// Adds a field with the name of the process that has written a log message.
+		/// </summary>
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddProcessNameField(string jsonKey = null)
+		{
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ProcessName;
+			ProcessNameField field = new ProcessNameField(this, jsonKey);
+			AppendField(field);
+		}
+
+		/// <summary>
+		/// Adds a field with the id of the process that has written a log message.
+		/// </summary>
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddProcessIdField(string jsonKey = null)
+		{
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ProcessId;
+			ProcessIdField field = new ProcessIdField(this, jsonKey);
 			AppendField(field);
 		}
 
 		/// <summary>
 		/// Adds a field with the message text.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document.</param>
-		public void AddTextField(string jsonKey = "Text")
+		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		public void AddTextField(string jsonKey = null)
 		{
+			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Text;
 			TextField field = new TextField(this, jsonKey);
 			AppendField(field);
 		}

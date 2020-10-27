@@ -74,11 +74,16 @@ namespace GriffinPlus.Lib.Logging
 				LogWriterConfiguration settings = null;
 				foreach (var configuration in mLogWriterSettings)
 				{
-					var match = configuration.Patterns.FirstOrDefault(x => x.Regex.IsMatch(writer.Name));
-					if (match != null)
+					if (configuration.NamePatterns.Any(x => x.Regex.IsMatch(writer.Name)))
 					{
-						settings = configuration;
-						break;
+						// found match by log writer name, check tags now
+						// - if no tags are configured => match always
+						// - if tags are configured => match, if at least one tag matches
+						if (!configuration.TagPatterns.Any() || configuration.TagPatterns.Any(x => writer.Tags.Any(y => x.Regex.IsMatch(y))))
+						{
+							settings = configuration;
+							break;
+						}
 					}
 				}
 

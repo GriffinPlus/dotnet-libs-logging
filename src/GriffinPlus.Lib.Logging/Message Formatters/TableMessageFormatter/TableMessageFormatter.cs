@@ -44,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets a formatter writing all columns that are useful for user's eyes.
 		/// The columns are written in the following order:
-		/// 'Timestamp', 'Log Writer', 'Log Level', 'Application Name', 'Process Name', 'Process Id', 'Text'.
+		/// 'Timestamp', 'Log Writer', 'Log Level', 'Tags', 'Application Name', 'Process Name', 'Process Id', 'Text'.
 		/// </summary>
 		public static TableMessageFormatter AllColumns
 		{
@@ -54,6 +54,7 @@ namespace GriffinPlus.Lib.Logging
 				formatter.AddTimestampColumn();
 				formatter.AddLogWriterColumn();
 				formatter.AddLogLevelColumn();
+				formatter.AddTagsColumn();
 				formatter.AddApplicationNameColumn();
 				formatter.AddProcessNameColumn();
 				formatter.AddProcessIdColumn();
@@ -144,33 +145,6 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Adds a column showing the id of the process that has written a log message.
-		/// </summary>
-		public void AddProcessIdColumn()
-		{
-			ProcessIdColumn column = new ProcessIdColumn(this);
-			AppendColumn(column);
-		}
-
-		/// <summary>
-		/// Adds a column showing the name of the process that has written a log message.
-		/// </summary>
-		public void AddProcessNameColumn()
-		{
-			ProcessNameColumn column = new ProcessNameColumn(this);
-			AppendColumn(column);
-		}
-
-		/// <summary>
-		/// Adds a column showing the name of the application that has written a log message.
-		/// </summary>
-		public void AddApplicationNameColumn()
-		{
-			ApplicationNameColumn column = new ApplicationNameColumn(this);
-			AppendColumn(column);
-		}
-
-		/// <summary>
 		/// Adds a column showing the name of the log writer that was used to write a log message.
 		/// </summary>
 		public void AddLogWriterColumn()
@@ -185,6 +159,42 @@ namespace GriffinPlus.Lib.Logging
 		public void AddLogLevelColumn()
 		{
 			LogLevelColumn column = new LogLevelColumn(this);
+			AppendColumn(column);
+		}
+
+		/// <summary>
+		/// Adds a column showing the tags the log writer attached when writing the log message.
+		/// </summary>
+		public void AddTagsColumn()
+		{
+			TagsColumn column = new TagsColumn(this);
+			AppendColumn(column);
+		}
+
+		/// <summary>
+		/// Adds a column showing the name of the application that has written a log message.
+		/// </summary>
+		public void AddApplicationNameColumn()
+		{
+			ApplicationNameColumn column = new ApplicationNameColumn(this);
+			AppendColumn(column);
+		}
+
+		/// <summary>
+		/// Adds a column showing the name of the process that has written a log message.
+		/// </summary>
+		public void AddProcessNameColumn()
+		{
+			ProcessNameColumn column = new ProcessNameColumn(this);
+			AppendColumn(column);
+		}
+
+		/// <summary>
+		/// Adds a column showing the id of the process that has written a log message.
+		/// </summary>
+		public void AddProcessIdColumn()
+		{
+			ProcessIdColumn column = new ProcessIdColumn(this);
 			AppendColumn(column);
 		}
 

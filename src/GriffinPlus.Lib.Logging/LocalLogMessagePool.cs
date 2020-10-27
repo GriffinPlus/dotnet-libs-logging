@@ -34,7 +34,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
-		/// Call <see cref="LocalLogMessage.Init(DateTimeOffset, long, int, string, string, LogWriter, LogLevel, string)"/> to initialize it.
+		/// Call <see cref="LocalLogMessage.Init"/> to initialize it.
 		/// </summary>
 		/// <returns>The requested log message.</returns>
 		public LocalLogMessage GetUninitializedMessage()
@@ -60,28 +60,28 @@ namespace GriffinPlus.Lib.Logging
 		/// Timestamp for relative time measurements with high precision
 		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
-		/// <param name="processId">Id of the process emitting the log message.</param>
-		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="logWriter">Log writer that was used to emit the message.</param>
+		/// <param name="logLevel">Log level that is associated with the message.</param>
 		/// <param name="applicationName">
 		/// Name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </param>
-		/// <param name="logWriter">Log writer that was used to emit the message.</param>
-		/// <param name="logLevel">Log level that is associated with the message.</param>
+		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="processId">Id of the process emitting the log message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
 		/// <returns>The requested log message.</returns>
 		public LocalLogMessage GetMessage(
 			DateTimeOffset timestamp,
 			long highPrecisionTimestamp,
-			int processId,
-			string processName,
-			string applicationName,
 			LogWriter logWriter,
 			LogLevel logLevel,
+			string applicationName,
+			string processName,
+			int processId,
 			string text)
 		{
 			LocalLogMessage message = GetUninitializedMessage();
-			message.Init(timestamp, highPrecisionTimestamp, processId, processName, applicationName, logWriter, logLevel, text);
+			message.Init(timestamp, highPrecisionTimestamp, logWriter, logLevel, logWriter.Tags, applicationName, processName, processId, text);
 			return message;
 		}
 

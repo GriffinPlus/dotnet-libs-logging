@@ -44,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The log writer configuration builder.</returns>
 		public LogWriterConfigurationBuilder MatchingExactly(string name)
 		{
-			mConfiguration.mPatterns.Add(new LogWriterConfiguration.ExactNameLogWriterPattern(name));
+			mConfiguration.mNamePatterns.Add(new LogWriterConfiguration.ExactNamePattern(name));
 			return this;
 		}
 
@@ -55,7 +55,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The log writer configuration builder.</returns>
 		public LogWriterConfigurationBuilder MatchingWildcardPattern(string pattern)
 		{
-			mConfiguration.mPatterns.Add(new LogWriterConfiguration.WildcardLogWriterPattern(pattern));
+			mConfiguration.mNamePatterns.Add(new LogWriterConfiguration.WildcardNamePattern(pattern));
 			return this;
 		}
 
@@ -66,7 +66,40 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The log writer configuration builder.</returns>
 		public LogWriterConfigurationBuilder MatchingRegex(string regex)
 		{
-			mConfiguration.mPatterns.Add(new LogWriterConfiguration.RegexLogWriterPattern(regex));
+			mConfiguration.mNamePatterns.Add(new LogWriterConfiguration.RegexNamePattern(regex));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds the specified tag that must be attached to a log message to get processed by the log writer.
+		/// </summary>
+		/// <param name="tag">Tag that must be attached to a log message to get processed by the log writer.</param>
+		/// <returns>The log writer configuration builder.</returns>
+		public LogWriterConfigurationBuilder WithTag(string tag)
+		{
+			mConfiguration.mTagPatterns.Add(new LogWriterConfiguration.ExactNamePattern(tag));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds the specified wildcard pattern matching tags that must be attached to a log message to get processed by the log writer.
+		/// </summary>
+		/// <param name="pattern">A wildcard pattern matching tags that must be attached to a log message to get processed by the log writer.</param>
+		/// <returns>The log writer configuration builder.</returns>
+		public LogWriterConfigurationBuilder WithTagWildcardPattern(string pattern)
+		{
+			mConfiguration.mTagPatterns.Add(new LogWriterConfiguration.WildcardNamePattern(pattern));
+			return this;
+		}
+
+		/// <summary>
+		/// Adds the specified regular expression matching tags that must be attached to a log message to get processed by the log writer.
+		/// </summary>
+		/// <param name="regex">A regex pattern matching tags that must be attached to a log message to get processed by the log writer.</param>
+		/// <returns>The log writer configuration builder.</returns>
+		public LogWriterConfigurationBuilder WithTagRegex(string regex)
+		{
+			mConfiguration.mTagPatterns.Add(new LogWriterConfiguration.RegexNamePattern(regex));
 			return this;
 		}
 
@@ -249,9 +282,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The built log writer configuration.</returns>
 		public LogWriterConfiguration Build()
 		{
-			// add default pattern matching all log writer names
 			var copy = new LogWriterConfiguration(mConfiguration);
-			if (!copy.mPatterns.Any()) copy.mPatterns.Add(LogWriterConfiguration.DefaultPattern);
+			// add default pattern matching all log writer names, if no pattern was specified explicitly
+			if (!copy.mNamePatterns.Any()) copy.mNamePatterns.Add(LogWriterConfiguration.DefaultPattern);
+			// tags are only considered, if specified => no need to add a default pattern for them
 			return copy;
 		}
 

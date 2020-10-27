@@ -32,10 +32,11 @@ namespace GriffinPlus.Lib.Logging
 			var builder = LogWriterConfigurationBuilder.New.MatchingExactly("MyLogWriter");
 			var writer = builder.Build();
 			Assert.Equal("Note", writer.BaseLevel);
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.ExactNameLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 			Assert.Equal("MyLogWriter", pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.False(writer.IsDefault);
@@ -43,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region MatchingWildcardPattern
+		#region MatchingWildcardPattern()
 
 		/// <summary>
 		/// Tests adding a wildcard matching pattern using <see cref="LogWriterConfigurationBuilder.MatchingWildcardPattern(string)"/>.
@@ -55,10 +56,11 @@ namespace GriffinPlus.Lib.Logging
 			var builder = LogWriterConfigurationBuilder.New.MatchingWildcardPattern(wildcard);
 			var writer = builder.Build();
 			Assert.Equal("Note", writer.BaseLevel);
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Equal(wildcard, pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.False(writer.IsDefault);
@@ -72,16 +74,106 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests adding a regex pattern using <see cref="LogWriterConfigurationBuilder.MatchingRegex(string)"/>.
 		/// </summary>
 		[Fact]
-		public void MatchingRegexPattern()
+		public void MatchingRegex()
 		{
 			const string regex = "^My.*LogWriter$";
 			var builder = LogWriterConfigurationBuilder.New.MatchingRegex(regex);
 			var writer = builder.Build();
 			Assert.Equal("Note", writer.BaseLevel);
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.RegexLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.RegexNamePattern>(pattern);
 			Assert.Equal(regex, pattern.Pattern);
+			Assert.Empty(writer.TagPatterns);
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		#endregion
+
+		#region WithTag()
+
+		/// <summary>
+		/// Tests adding a matching pattern for an exact log writer name using <see cref="LogWriterConfigurationBuilder.WithTag(string)"/>.
+		/// </summary>
+		[Fact]
+		public void WithTag()
+		{
+			var builder = LogWriterConfigurationBuilder.New.WithTag("MyTag");
+			var writer = builder.Build();
+			Assert.Equal("Note", writer.BaseLevel);
+
+			Assert.Single(writer.NamePatterns);
+			var pattern1 = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern1);
+			Assert.Equal("*", pattern1.Pattern);
+
+			Assert.Single(writer.TagPatterns);
+			var pattern2 = writer.TagPatterns.First();
+			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern2);
+			Assert.Equal("MyTag", pattern2.Pattern);
+
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		#endregion
+
+		#region WithTagWildcardPattern()
+
+		/// <summary>
+		/// Tests adding a wildcard matching pattern using <see cref="LogWriterConfigurationBuilder.WithTagWildcardPattern(string)"/>.
+		/// </summary>
+		[Fact]
+		public void WithTagWildcardPattern()
+		{
+			const string wildcard = "My*";
+			var builder = LogWriterConfigurationBuilder.New.WithTagWildcardPattern(wildcard);
+			var writer = builder.Build();
+			Assert.Equal("Note", writer.BaseLevel);
+
+			Assert.Single(writer.NamePatterns);
+			var pattern1 = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern1);
+			Assert.Equal("*", pattern1.Pattern);
+
+			Assert.Single(writer.TagPatterns);
+			var pattern = writer.TagPatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
+			Assert.Equal(wildcard, pattern.Pattern);
+
+			Assert.Empty(writer.Includes);
+			Assert.Empty(writer.Excludes);
+			Assert.False(writer.IsDefault);
+		}
+
+		#endregion
+
+		#region WithTagRegex()
+
+		/// <summary>
+		/// Tests adding a regex pattern using <see cref="LogWriterConfigurationBuilder.WithTagRegex(string)"/>.
+		/// </summary>
+		[Fact]
+		public void WithTagRegex()
+		{
+			const string regex = "^My.*Tag$";
+			var builder = LogWriterConfigurationBuilder.New.WithTagRegex(regex);
+			var writer = builder.Build();
+			Assert.Equal("Note", writer.BaseLevel);
+
+			Assert.Single(writer.NamePatterns);
+			var pattern1 = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern1);
+			Assert.Equal("*", pattern1.Pattern);
+
+			Assert.Single(writer.TagPatterns);
+			var pattern2 = writer.TagPatterns.First();
+			Assert.IsType<LogWriterConfiguration.RegexNamePattern>(pattern2);
+			Assert.Equal(regex, pattern2.Pattern);
+
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.False(writer.IsDefault);
@@ -728,9 +820,10 @@ namespace GriffinPlus.Lib.Logging
 			var builder = LogWriterConfigurationBuilder.New;
 			var writer = builder.Build();
 			Assert.Equal("Note", writer.BaseLevel);
-			Assert.Single(writer.Patterns);
-			var pattern = writer.Patterns.First();
-			Assert.IsType<LogWriterConfiguration.WildcardLogWriterPattern>(pattern);
+			Assert.Single(writer.NamePatterns);
+			var pattern = writer.NamePatterns.First();
+			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
+			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("*", pattern.Pattern);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
