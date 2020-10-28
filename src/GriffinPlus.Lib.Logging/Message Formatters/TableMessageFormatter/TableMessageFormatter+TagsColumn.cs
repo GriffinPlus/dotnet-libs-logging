@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public override void UpdateWidth(ILogMessage message)
 			{
-				int length = message.LogWriterName.Length;
+				int length = GetOutputString(message).Length;
 				Width = Math.Max(Width, length);
 			}
 
@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (line == 0)
 				{
-					string s = string.Join(", ", message.Tags);
+					string s = GetOutputString(message);
 					builder.Append(s);
 					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
 				}
@@ -63,6 +63,16 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				return false; // last line
+			}
+
+			/// <summary>
+			/// Gets the formatted output printed in the column.
+			/// </summary>
+			/// <param name="message">Message containing the tags to format.</param>
+			/// <returns>The formatted tags field.</returns>
+			private string GetOutputString(ILogMessage message)
+			{
+				return string.Join(", ", message.Tags);
 			}
 		}
 	}
