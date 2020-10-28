@@ -11,6 +11,7 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
@@ -28,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="pattern">The wildcard pattern to use.</param>
 			public WildcardNamePattern(string pattern)
 			{
-				Pattern = pattern;
+				Pattern = pattern ?? throw new ArgumentNullException(nameof(pattern));
 				Regex = RegexHelpers.FromWildcardExpression(pattern);
 			}
 

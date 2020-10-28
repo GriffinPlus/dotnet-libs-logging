@@ -11,6 +11,7 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
@@ -25,9 +26,12 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// Initializes a new instance of the <see cref="RegexNamePattern"/> class.
 			/// </summary>
-			/// <param name="pattern">The regular expression to use.</param>
+			/// <param name="pattern">The regular expression to use (must start with the anchor '^' and end with '$').</param>
+			/// <exception cref="FormatException">The specified pattern does not start with '^' and end with '$'.</exception>
 			public RegexNamePattern(string pattern)
 			{
+				if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+				if (!pattern.StartsWith("^") || !pattern.EndsWith("$")) throw new FormatException($"The specified pattern ({pattern}) does not start with '^' and end with '$'.");
 				Pattern = pattern;
 				Regex = new Regex(pattern, RegexOptions.Singleline); // compilation is not needed as the regex matches only once against a log writer name and is then cached
 			}

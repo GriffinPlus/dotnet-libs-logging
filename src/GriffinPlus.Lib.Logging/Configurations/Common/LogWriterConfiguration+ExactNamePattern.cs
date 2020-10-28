@@ -11,6 +11,7 @@
 // the specific language governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
@@ -28,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="name">The name to match.</param>
 			public ExactNamePattern(string name)
 			{
-				Pattern = name;
+				Pattern = name ?? throw new ArgumentNullException(nameof(name));
 				var regex = $"^{Regex.Escape(name)}$";
 				Regex = new Regex(regex, RegexOptions.Singleline); // compilation is not needed as the regex matches only once against a log writer name and is then cached
 			}
