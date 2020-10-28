@@ -25,19 +25,19 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
-	internal class MyClass1 { }
+	class MyClass1 { }
 
-	internal class MyClass2 { }
+	class MyClass2 { }
 
-	internal class MyClass3 { }
+	class MyClass3 { }
 
-	internal class MyClass4 { }
+	class MyClass4 { }
 
-	internal class MyClassA { }
+	class MyClassA { }
 
-	internal class MyClassB { }
+	class MyClassB { }
 
-	internal class Program
+	class Program
 	{
 		// Register log writers using types.
 		private static readonly LogWriter sLog1 = Log.GetWriter<MyClass1>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass1
@@ -49,6 +49,11 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 		// Register a log writer using a custom name.
 		private static readonly LogWriter sLog7 = Log.GetWriter("My Fancy Writer");
+
+		// Create tagging log writers
+		private static readonly LogWriter sLog_TagA   = sLog7.WithTag("TagA");              // same as sLog7, but tags messages with 'TagA'
+		private static readonly LogWriter sLog_TagB   = sLog7.WithTag("TagB");              // same as sLog7, but tags messages with 'TagB'
+		private static readonly LogWriter sLog_TagBC  = sLog7.WithTags("TagB", "TagC");     // same as sLog7, but tags messages with 'TagB' and 'TagC'
 
 		private static void Main(string[] args)
 		{
@@ -69,10 +74,33 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			if (initConfig)
 			{
+				// Add configuration for log writers that attach 'TagA'
+				// - set base log level to 'None' effectively silencing the log writer
+				// - include log level 'Note'
+				// - no excluded log levels
+				// - tags must contain 'TagA'
+				// => enabled log levels: 'Note'
+				config.AddLogWritersByWildcard("*", x => x
+					.WithTag("TagA")
+					.WithBaseLevel(LogLevel.None)
+					.WithLevel(LogLevel.Note));
+
+				// Add configuration for log writers that attach 'TagB' and/or 'TagC'
+				// - set base log level to 'None' effectively silencing the log writer
+				// - include log level 'Warning'
+				// - no excluded log levels
+				// - tags must contain 'TagB' and/or 'TagC'
+				// => enabled log levels: 'Warning'
+				config.AddLogWritersByWildcard("*", x => x
+					.WithTagRegex("^Tag[BC]$")
+					.WithBaseLevel(LogLevel.None)
+					.WithLevel(LogLevel.Warning));
+
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass1' only
 				// - set base log level to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
 				// - include log level 'Trace0'
 				// - exclude log level 'Warning'
+				// - tags are not evaluated
 				// => enabled log levels: 'Failure', 'Error', 'Note', 'Trace0'
 				config.AddLogWriter<MyClass1>(x => x
 					.WithBaseLevel(LogLevel.Note)
@@ -82,6 +110,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass2' only
 				// - set base log level to 'None' effectively silencing the log writer
 				// - no included/excluded log levels
+				// - tags are not evaluated
 				// => no enabled log levels
 				config.AddLogWriter(typeof(MyClass2), x => x
 					.WithBaseLevel(LogLevel.None));
@@ -89,6 +118,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass3' only
 				// - set base log level to 'All' enabling all log levels (including aspects)
 				// - exclude all log levels from 'Trace10' up to 'Trace19'
+				// - tags are not evaluated
 				// => enabled log levels: All log levels, but 'Trace[10-19]'
 				config.AddLogWriter(typeof(MyClass3), x => x
 					.WithBaseLevel(LogLevel.All)
@@ -99,6 +129,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
 				// - include all log levels from 'Trace10' up to 'Trace15'
 				// - no excluded log levels
+				// - tags are not evaluated
 				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace0'
 				config.AddLogWritersByRegex("^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$", x => x
 					.WithLevelRange(LogLevel.Trace10, LogLevel.Trace15));
@@ -109,16 +140,20 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
 				// - include log level 'Trace15'
 				// - no excluded log levels
+				// - tags are not evaluated
 				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace15'
 				config.AddLogWritersByWildcard("GriffinPlus.Lib.Logging.Demo.MyClass*", x => x
 					.WithLevel(LogLevel.Trace15));
 
 				// Add configuration for log writer 'My Fancy Writer'
-				// - base level defaults to level 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
+				// (matches everything that was not handled explicitly before)
+				// - set base log level to 'None' effectively silencing the log writer
 				// - include aspect log level 'Demo Aspect'
 				// - no excluded log levels
-				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Demo Aspect'
+				// - tags are not evaluated
+				// => enabled log levels: 'Demo Aspect'
 				config.AddLogWriter("My Fancy Writer", x => x
+					.WithBaseLevel(LogLevel.None)
 					.WithLevel("Demo Aspect"));
 
 				// Add configuration for log writer 'Timing' to enable logging time measurements written by the internal
@@ -217,6 +252,9 @@ namespace GriffinPlus.Lib.Logging.Demo
 				sLog5.Write(level, "This is sLog5 writing using level '{0}'.", level.Name);
 				sLog6.Write(level, "This is sLog6 writing using level '{0}'.", level.Name);
 				sLog7.Write(level, "This is sLog7 writing using level '{0}'.", level.Name);
+				sLog_TagA.Write(level, "This is sLog_TagA writing using level '{0}'.", level.Name);
+				sLog_TagB.Write(level, "This is sLog_TagB writing using level '{0}'.", level.Name);
+				sLog_TagBC.Write(level, "This is sLog_TagBC writing using level '{0}'.", level.Name);
 			}
 
 			// Use a timing logger to determine how long an operation takes. It uses log level 'Timing' and log writer
