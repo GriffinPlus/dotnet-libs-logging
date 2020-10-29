@@ -58,7 +58,16 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
 		/// </summary>
 		/// <param name="tags">Tags to keep in the collection.</param>
-		public TagSet(params string[] tags)
+		public TagSet(params string[] tags) :
+			this((IEnumerable<string>)tags)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
+		/// </summary>
+		/// <param name="tags">Tags to keep in the collection.</param>
+		public TagSet(IEnumerable<string> tags)
 		{
 			if (tags == null) throw new ArgumentNullException(nameof(tags));
 			foreach (string tag in tags) CheckTag(tag);
