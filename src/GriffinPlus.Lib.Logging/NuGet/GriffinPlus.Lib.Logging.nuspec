@@ -7,7 +7,7 @@
 		<copyright>Copyright (c) 2020 Sascha Falk</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>A simple, but modular extensible logging facility that focuses on applications built on the .NET framework.</description>
-		<license type="expression">Apache-2.0</license>
+		<license type="expression">MIT</license>
 		<projectUrl>https://github.com/GriffinPlus/dotnet-libs-logging</projectUrl>
 		<icon>images/nuget-icon.png</icon>
 		<tags>logging</tags>
