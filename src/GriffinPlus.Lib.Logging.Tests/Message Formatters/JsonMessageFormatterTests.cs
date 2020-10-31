@@ -33,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly string sEscapedString_WithoutSolidus;
 
 		/// <summary>
-		/// Initializes the <see cref="JsonMessageFormatter"/> class.
+		/// Initializes the <see cref="JsonMessageFormatterTests"/> class.
 		/// </summary>
 		static JsonMessageFormatterTests()
 		{
