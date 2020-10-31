@@ -1,0 +1,36 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "ravenpride",
+      "name": "Sascha Falk",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/3209384?v=4",
+      "profile": "https://github.com/ravenpride",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "test",
+      ]
+    },
+    {
+      "login": "sepiel",
+      "name": "Sebastian Piel",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/42858881?v=4",
+      "profile": "https://github.com/sepiel",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "dotnet-libs-logging",
+  "projectOwner": "GriffinPlus",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
