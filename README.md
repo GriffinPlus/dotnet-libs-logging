@@ -567,10 +567,9 @@ Many thanks to the following people for their contribution to this project ([emo
 <table>
   <tr>
     <td align="center"><a href="https://github.com/ravenpride"><img src="https://avatars0.githubusercontent.com/u/3209384?v=4" width="100px;" alt=""/><br /><sub><b>Sascha Falk</b></sub></a><br /><a href="https://github.com/GriffinPlus/dotnet-libs-logging/commits?author=ravenpride" title="Code">💻</a> <a href="https://github.com/GriffinPlus/dotnet-libs-logging/commits?author=ravenpride" title="Documentation">📖</a> <a href="#example-ravenpride" title="Examples">💡</a> <a href="#infra-ravenpride" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-ravenpride" title="Maintenance">🚧</a> <a href="https://github.com/GriffinPlus/dotnet-libs-logging/commits?author=ravenpride" title="Tests">⚠️</a> <a href="https://github.com/GriffinPlus/dotnet-libs-logging/pulls?q=is%3Apr+reviewed-by%3Aravenpride" title="Reviewed Pull Requests">👀</a></td>
-    <td align="center"><a href="https://github.com/sepiel"><img src="https://avatars2.githubusercontent.com/u/42858881?v=4" width="100px;" alt=""/><br /><sub><b>Sebastian Piel</b></sub></a><br /><a href="https://github.com/GriffinPlus/dotnet-libs-logging/commits?author=sepiel" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/sepiel"><img src="https://avatars2.githubusercontent.com/u/42858881?v=4" width="100px;" alt=""/><br /><sub><b>Sebastian Piel</b></sub></a><br /><a href="https://github.com/GriffinPlus/dotnet-libs-logging/commits?author=sepiel" title="Code">💻</a> <a href="https://github.com/GriffinPlus/dotnet-libs-logging/pulls?q=is%3Apr+reviewed-by%3Asepiel" title="Reviewed Pull Requests">👀</a></td>
   </tr>
 </table>
-
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
