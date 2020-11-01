@@ -13,11 +13,9 @@
       "contributions": [
         "code",
         "doc",
-        "example",
-        "infra",
         "maintenance",
-        "test",
         "review"
+        "test",
       ]
     },
     {
