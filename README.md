@@ -5,7 +5,7 @@
 [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.svg?label=NuGet%20Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.svg?label=NuGet%20Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 ## Overview
@@ -567,6 +567,7 @@ Many thanks to the following people for their contribution to this project ([emo
 <table>
   <tr>
     <td align="center"><a href="https://github.com/sepiel"><img src="https://avatars2.githubusercontent.com/u/42858881?v=4" width="100px;" alt=""/><br /><sub><b>Sebastian Piel</b></sub></a><br /><a href="https://github.com/GriffinPlus/dotnet-libs-logging/commits?author=sepiel" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/ravenpride"><img src="https://avatars0.githubusercontent.com/u/3209384?v=4" width="100px;" alt=""/><br /><sub><b>Sascha Falk</b></sub></a><br /><a href="https://github.com/GriffinPlus/dotnet-libs-logging/commits?author=ravenpride" title="Code">💻</a> <a href="https://github.com/GriffinPlus/dotnet-libs-logging/commits?author=ravenpride" title="Tests">⚠️</a> <a href="#maintenance-ravenpride" title="Maintenance">🚧</a></td>
   </tr>
 </table>
 
