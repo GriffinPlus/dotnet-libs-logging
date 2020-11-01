@@ -5,7 +5,7 @@
   "imageSize": 100,
   "commit": false,
   "contributors": [
-      {
+    {
       "login": "ravenpride",
       "name": "Sascha Falk",
       "avatar_url": "https://avatars0.githubusercontent.com/u/3209384?v=4",
@@ -25,7 +25,8 @@
       "avatar_url": "https://avatars2.githubusercontent.com/u/42858881?v=4",
       "profile": "https://github.com/sepiel",
       "contributions": [
-        "code"
+        "code",
+        "review"
       ]
     }
   ],
