@@ -14,8 +14,7 @@
         "code",
         "doc",
         "maintenance",
-        "review"
-        "test",
+        "test"
       ]
     },
     {
@@ -24,8 +23,7 @@
       "avatar_url": "https://avatars2.githubusercontent.com/u/42858881?v=4",
       "profile": "https://github.com/sepiel",
       "contributions": [
-        "code",
-        "review"
+        "code"
       ]
     }
   ],
