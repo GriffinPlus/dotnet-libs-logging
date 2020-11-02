@@ -60,10 +60,10 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		private State mState;
-		private int mLastLineNumber;
-		private int mLastPosition;
-		private int mStartLineNumberOfAssembledIdentifier;
-		private int mStartPositionOfAssembledIdentifier;
+		private int mNextLineNumber;
+		private int mNextPosition;
+		private int mStartLineNumberOfAssembledToken;
+		private int mStartPositionOfAssembledToken;
 		private int mStartLineNumberOfAssembledEscapeSequence;
 		private int mStartPositionOfAssembledEscapeSequence;
 		private readonly StringBuilder mTokenBuilder = new StringBuilder();
@@ -100,12 +100,12 @@ namespace GriffinPlus.Lib.Logging
 		public Queue<JsonToken> Tokens { get; } = new Queue<JsonToken>();
 
 		/// <summary>
-		/// Gets the current line number where tokenizing stopped.
+		/// Gets the current line number where tokenizing stopped (starts at 1).
 		/// </summary>
 		public int CurrentLineNumber { get; private set; }
 
 		/// <summary>
-		/// Gets the current position in the line where tokenizing stopped.
+		/// Gets the current position in the line where tokenizing stopped (starts at 1).
 		/// </summary>
 		public int CurrentPosition { get; private set; }
 
@@ -128,12 +128,16 @@ namespace GriffinPlus.Lib.Logging
 			{
 				char c = data[i];
 
-				// adjust line number and position, if necessary
-				mLastPosition = CurrentPosition++;
+				// adjust line number and position
+				CurrentLineNumber = mNextLineNumber;
+				CurrentPosition = mNextPosition;
+
+				// determine the next line number and position
+				mNextPosition = CurrentPosition + 1;
 				if (sLineSeparators.IndexOf(c) >= 0)
 				{
-					mLastLineNumber = CurrentLineNumber++;
-					CurrentPosition = 0;
+					mNextLineNumber = CurrentLineNumber + 1;
+					mNextPosition = 1;
 				}
 
 				// handle reading a string
@@ -151,7 +155,7 @@ namespace GriffinPlus.Lib.Logging
 					// handle end of the string
 					if (c == '"')
 					{
-						Tokens.Enqueue(new JsonToken(JsonTokenType.String, mTokenBuilder.ToString()));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.String, mTokenBuilder.ToString(), mStartLineNumberOfAssembledToken, mStartPositionOfAssembledToken));
 						mState = State.Reading;
 						continue;
 					}
@@ -166,14 +170,14 @@ namespace GriffinPlus.Lib.Logging
 					if (sEndOfIdentifierChars.IndexOf(c) >= 0)
 					{
 						// detected end of the identifier
-						JsonToken token = new JsonToken(JsonTokenType.Identifier, mTokenBuilder.ToString());
+						JsonToken token = new JsonToken(JsonTokenType.Identifier, mTokenBuilder.ToString(), mStartLineNumberOfAssembledToken, mStartPositionOfAssembledToken);
 						TranslateIdentifier(ref token);
 						Tokens.Enqueue(token);
 						mState = State.Reading;
 
 						// character must be processed once again to generate the appropriate token, if necessary
-						CurrentLineNumber = mLastLineNumber;
-						CurrentPosition = mLastPosition;
+						mNextLineNumber = CurrentLineNumber;
+						mNextPosition = CurrentPosition;
 						i--;
 
 						continue;
@@ -221,8 +225,8 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					throw new TokenizingException(
-						mStartLineNumberOfAssembledIdentifier,
-						mStartPositionOfAssembledIdentifier,
+						mStartLineNumberOfAssembledToken,
+						mStartPositionOfAssembledToken,
 						$"Invalid escape sequence at ({mStartLineNumberOfAssembledEscapeSequence},{mStartPositionOfAssembledEscapeSequence}).");
 				}
 
@@ -239,8 +243,8 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					throw new TokenizingException(
-						mStartLineNumberOfAssembledIdentifier,
-						mStartPositionOfAssembledIdentifier,
+						mStartLineNumberOfAssembledToken,
+						mStartPositionOfAssembledToken,
 						$"Invalid escape sequence at ({mStartLineNumberOfAssembledEscapeSequence},{mStartPositionOfAssembledEscapeSequence}).");
 				}
 
@@ -253,6 +257,8 @@ namespace GriffinPlus.Lib.Logging
 				{
 					mTokenBuilder.Clear();
 					mState = State.ReadingString;
+					mStartLineNumberOfAssembledToken = CurrentLineNumber;
+					mStartPositionOfAssembledToken = CurrentPosition;
 					continue;
 				}
 
@@ -260,22 +266,22 @@ namespace GriffinPlus.Lib.Logging
 				switch (c)
 				{
 					case '{':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.LBracket));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.LBracket, CurrentLineNumber, CurrentPosition));
 						continue;
 					case '}':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.RBracket));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.RBracket, CurrentLineNumber, CurrentPosition));
 						continue;
 					case '[':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.LSquareBracket));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.LSquareBracket, CurrentLineNumber, CurrentPosition));
 						continue;
 					case ']':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.RSquareBracket));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.RSquareBracket, CurrentLineNumber, CurrentPosition));
 						continue;
 					case ':':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.Colon));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.Colon, CurrentLineNumber, CurrentPosition));
 						continue;
 					case ',':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.Comma));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.Comma, CurrentLineNumber, CurrentPosition));
 						continue;
 				}
 
@@ -284,8 +290,8 @@ namespace GriffinPlus.Lib.Logging
 				mTokenBuilder.Clear();
 				mTokenBuilder.Append(c);
 				mState = State.ReadingIdentifier;
-				mStartLineNumberOfAssembledIdentifier = mLastLineNumber;
-				mStartPositionOfAssembledIdentifier = mLastPosition;
+				mStartLineNumberOfAssembledToken = CurrentLineNumber;
+				mStartPositionOfAssembledToken = CurrentPosition;
 			}
 
 			if (complete) Flush();
@@ -303,17 +309,17 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// missing closing quotes of the string
 				throw new TokenizingException(
-					mStartLineNumberOfAssembledIdentifier,
-					mStartPositionOfAssembledIdentifier,
-					$"Missing closing quotes of string at ({mStartLineNumberOfAssembledIdentifier},{mStartPositionOfAssembledIdentifier}).");
+					mStartLineNumberOfAssembledToken,
+					mStartPositionOfAssembledToken,
+					$"Missing closing quotes of string at ({mStartLineNumberOfAssembledToken},{mStartPositionOfAssembledToken}).");
 			}
 
 			if (mState == State.ReadingEscapeSequence || mState == State.ReadingUnicodeEscapeSequence)
 			{
 				// incomplete escape sequence
 				throw new TokenizingException(
-					mStartLineNumberOfAssembledIdentifier,
-					mStartPositionOfAssembledIdentifier,
+					mStartLineNumberOfAssembledToken,
+					mStartPositionOfAssembledToken,
 					$"Escape sequence at ({mStartLineNumberOfAssembledEscapeSequence},{mStartPositionOfAssembledEscapeSequence}) is incomplete.");
 			}
 
@@ -321,7 +327,7 @@ namespace GriffinPlus.Lib.Logging
 			int tokenCountAtStart = Tokens.Count;
 			if (mState == State.ReadingIdentifier)
 			{
-				JsonToken token = new JsonToken(JsonTokenType.Identifier, mTokenBuilder.ToString());
+				JsonToken token = new JsonToken(JsonTokenType.Identifier, mTokenBuilder.ToString(), mStartLineNumberOfAssembledToken, mStartPositionOfAssembledToken);
 				TranslateIdentifier(ref token);
 				Tokens.Enqueue(token);
 			}
@@ -337,11 +343,11 @@ namespace GriffinPlus.Lib.Logging
 			Tokens.Clear();
 			mState = State.Reading;
 			CurrentLineNumber = 1;
-			CurrentPosition = 0;
-			mLastLineNumber = -1;
-			mLastPosition = -1;
-			mStartLineNumberOfAssembledIdentifier = -1;
-			mStartPositionOfAssembledIdentifier = -1;
+			CurrentPosition = 1;
+			mNextLineNumber = 1;
+			mNextLineNumber = 1;
+			mStartLineNumberOfAssembledToken = -1;
+			mStartPositionOfAssembledToken = -1;
 			mStartLineNumberOfAssembledEscapeSequence = -1;
 			mStartPositionOfAssembledEscapeSequence = -1;
 		}
@@ -374,9 +380,9 @@ namespace GriffinPlus.Lib.Logging
 
 			// current position points to end of identifier
 			throw new TokenizingException(
-				mStartLineNumberOfAssembledIdentifier,
-				mStartPositionOfAssembledIdentifier,
-				$"Unrecognized token '{token.Token}' at ({mStartLineNumberOfAssembledIdentifier},{mStartPositionOfAssembledIdentifier}).");
+				mStartLineNumberOfAssembledToken,
+				mStartPositionOfAssembledToken,
+				$"Unrecognized token '{token.Token}' at ({mStartLineNumberOfAssembledToken},{mStartPositionOfAssembledToken}).");
 		}
 	}
 }

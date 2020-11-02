@@ -41,7 +41,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var tokenizer = new JsonTokenizer();
 			Assert.Equal(1, tokenizer.CurrentLineNumber);
-			Assert.Equal(0, tokenizer.CurrentPosition);
+			Assert.Equal(1, tokenizer.CurrentPosition);
 			Assert.Empty(tokenizer.Tokens);
 		}
 

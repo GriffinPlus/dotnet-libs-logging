@@ -18,10 +18,14 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="JsonToken"/> struct.
 		/// </summary>
 		/// <param name="type">The token type.</param>
-		public JsonToken(JsonTokenType type)
+		/// <param name="lineNumber">Number of the line at which the token starts (starts at 1).</param>
+		/// <param name="position">Position in the line at which the token starts (starts at 1).</param>
+		public JsonToken(JsonTokenType type, int lineNumber = -1, int position = -1)
 		{
 			Type = type;
 			Token = null;
+			LineNumber = lineNumber;
+			Position = position;
 		}
 
 		/// <summary>
@@ -29,10 +33,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="type">The token type.</param>
 		/// <param name="token">The token itself (as extracted from the JSON document).</param>
-		public JsonToken(JsonTokenType type, string token)
+		/// <param name="lineNumber">Number of the line at which the token starts (starts at 1).</param>
+		/// <param name="position">Position in the line at which the token starts (starts at 1).</param>
+		public JsonToken(JsonTokenType type, string token, int lineNumber = -1, int position = -1)
 		{
 			Type = type;
 			Token = token;
+			LineNumber = lineNumber;
+			Position = position;
 		}
 
 		/// <summary>
@@ -44,6 +52,16 @@ namespace GriffinPlus.Lib.Logging
 		/// The token itself (as extracted from the JSON document).
 		/// </summary>
 		public string Token;
+
+		/// <summary>
+		/// Gets the number of the line at which the token starts (starts at 1).
+		/// </summary>
+		public int LineNumber;
+
+		/// <summary>
+		/// Gets the position in the line at which the the token starts (starts at 1).
+		/// </summary>
+		public int Position;
 
 		/// <summary>
 		/// Checks whether the current token equals the specified one.
