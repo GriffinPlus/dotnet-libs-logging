@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class JsonTokenizerTests
 	{
-		private static readonly string sWhiteSpaceCharacters;
+		internal static readonly string WhiteSpaceCharacters;
 
 		/// <summary>
 		/// Initializes the <see cref="JsonTokenizerTests"/> class.
@@ -30,7 +30,7 @@ namespace GriffinPlus.Lib.Logging
 				if (char.IsWhiteSpace(c)) builder.Append(c);
 			}
 
-			sWhiteSpaceCharacters = builder.ToString();
+			WhiteSpaceCharacters = builder.ToString();
 		}
 
 		/// <summary>
@@ -51,9 +51,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var preWhite in new[] { "", sWhiteSpaceCharacters }) // preceding whitespaces
+				foreach (var preWhite in new[] { "", WhiteSpaceCharacters }) // preceding whitespaces
 				{
-					foreach (var trailWhite in new[] { "", sWhiteSpaceCharacters }) // trailing whitespaces
+					foreach (var trailWhite in new[] { "", WhiteSpaceCharacters }) // trailing whitespaces
 					{
 						var input = preWhite + "{" + trailWhite;
 						yield return new object[]
@@ -319,7 +319,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					int selectedTokenIndex = random.Next(0, data.Length - 1);
 					json.Append(data[selectedTokenIndex].Item1);
-					json.Append(sWhiteSpaceCharacters[random.Next(0, sWhiteSpaceCharacters.Length - 1)]);
+					json.Append(WhiteSpaceCharacters[random.Next(0, WhiteSpaceCharacters.Length - 1)]);
 					tokens.Add(data[selectedTokenIndex].Item2);
 				}
 
