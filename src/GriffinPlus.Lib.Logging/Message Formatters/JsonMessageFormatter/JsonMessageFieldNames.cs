@@ -59,5 +59,23 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the name of the field for <see cref="ILogMessage.Text"/>.
 		/// </summary>
 		public string Text { get; set; } = "Text";
+
+		/// <summary>
+		/// Checks whether the specified name is one of the defined field names.
+		/// </summary>
+		/// <param name="name">Name to check.</param>
+		/// <returns>true, if the name is a defined field name; otherwise false.</returns>
+		public bool IsFieldName(string name)
+		{
+			return Timestamp == name ||
+			       HighPrecisionTimestamp == name ||
+			       LogWriter == name ||
+			       LogLevel == name ||
+			       Tags == name ||
+			       ApplicationName == name ||
+			       ProcessName == name ||
+			       ProcessId == name ||
+			       Text == name;
+		}
 	}
 }
