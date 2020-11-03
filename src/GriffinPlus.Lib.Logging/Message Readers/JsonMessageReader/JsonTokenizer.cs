@@ -266,22 +266,22 @@ namespace GriffinPlus.Lib.Logging
 				switch (c)
 				{
 					case '{':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.LBracket, CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.LBracket, "{", CurrentLineNumber, CurrentPosition));
 						continue;
 					case '}':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.RBracket, CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.RBracket, "}", CurrentLineNumber, CurrentPosition));
 						continue;
 					case '[':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.LSquareBracket, CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.LSquareBracket, "[", CurrentLineNumber, CurrentPosition));
 						continue;
 					case ']':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.RSquareBracket, CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.RSquareBracket, "]", CurrentLineNumber, CurrentPosition));
 						continue;
 					case ':':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.Colon, CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.Colon, ":", CurrentLineNumber, CurrentPosition));
 						continue;
 					case ',':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.Comma, CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.Comma, ",", CurrentLineNumber, CurrentPosition));
 						continue;
 				}
 

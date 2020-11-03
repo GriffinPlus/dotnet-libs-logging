@@ -18,20 +18,6 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="JsonToken"/> struct.
 		/// </summary>
 		/// <param name="type">The token type.</param>
-		/// <param name="lineNumber">Number of the line at which the token starts (starts at 1).</param>
-		/// <param name="position">Position in the line at which the token starts (starts at 1).</param>
-		public JsonToken(JsonTokenType type, int lineNumber = -1, int position = -1)
-		{
-			Type = type;
-			Token = null;
-			LineNumber = lineNumber;
-			Position = position;
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonToken"/> struct.
-		/// </summary>
-		/// <param name="type">The token type.</param>
 		/// <param name="token">The token itself (as extracted from the JSON document).</param>
 		/// <param name="lineNumber">Number of the line at which the token starts (starts at 1).</param>
 		/// <param name="position">Position in the line at which the token starts (starts at 1).</param>

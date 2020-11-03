@@ -59,42 +59,42 @@ namespace GriffinPlus.Lib.Logging
 						yield return new object[]
 						{
 							input,
-							new JsonToken(JsonTokenType.LBracket)
+							new JsonToken(JsonTokenType.LBracket, "{")
 						};
 
 						input = preWhite + "}" + trailWhite;
 						yield return new object[]
 						{
 							input,
-							new JsonToken(JsonTokenType.RBracket)
+							new JsonToken(JsonTokenType.RBracket, "}")
 						};
 
 						input = preWhite + "[" + trailWhite;
 						yield return new object[]
 						{
 							input,
-							new JsonToken(JsonTokenType.LSquareBracket)
+							new JsonToken(JsonTokenType.LSquareBracket, "[")
 						};
 
 						input = preWhite + "]" + trailWhite;
 						yield return new object[]
 						{
 							input,
-							new JsonToken(JsonTokenType.RSquareBracket)
+							new JsonToken(JsonTokenType.RSquareBracket, "]")
 						};
 
 						input = preWhite + ":" + trailWhite;
 						yield return new object[]
 						{
 							input,
-							new JsonToken(JsonTokenType.Colon)
+							new JsonToken(JsonTokenType.Colon, ":")
 						};
 
 						input = preWhite + "," + trailWhite;
 						yield return new object[]
 						{
 							input,
-							new JsonToken(JsonTokenType.Comma)
+							new JsonToken(JsonTokenType.Comma, ",")
 						};
 
 						input = preWhite + "\"just a string\"" + trailWhite;
