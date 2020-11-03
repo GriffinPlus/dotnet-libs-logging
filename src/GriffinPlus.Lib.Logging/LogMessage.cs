@@ -6,12 +6,14 @@
 using System;
 using System.Threading;
 
+// ReSharper disable NonReadonlyMemberInGetHashCode
+
 namespace GriffinPlus.Lib.Logging
 {
 	/// <summary>
 	/// A log message for general purpose use.
 	/// </summary>
-	public sealed class LogMessage : ILogMessage
+	public sealed class LogMessage : ILogMessage, IEquatable<ILogMessage>
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessage"/> class.
@@ -198,5 +200,66 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		#endregion
+
+		#region Equality Check
+
+		/// <summary>
+		/// Checks whether the current log message equals the specified one.
+		/// </summary>
+		/// <param name="other">Log message to compare with.</param>
+		/// <returns>
+		/// true, if the current log message equals the specified one;
+		/// otherwise false.
+		/// </returns>
+		public bool Equals(ILogMessage other)
+		{
+			if (other == null) return false;
+			return Timestamp.Equals(other.Timestamp) &&
+			       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
+			       LogWriterName == other.LogWriterName &&
+			       LogLevelName == other.LogLevelName &&
+			       Equals(Tags, other.Tags) &&
+			       ApplicationName == other.ApplicationName &&
+			       ProcessName == other.ProcessName &&
+			       ProcessId == other.ProcessId &&
+			       Text == other.Text;
+		}
+
+		/// <summary>
+		/// Checks whether the current log message equals the specified one.
+		/// </summary>
+		/// <param name="obj">Log message to compare with.</param>
+		/// <returns>
+		/// true, if the current log message equals the specified one;
+		/// otherwise false.
+		/// </returns>
+		public override bool Equals(object obj)
+		{
+			return ReferenceEquals(this, obj) || obj is ILogMessage other && Equals(other);
+		}
+
+		/// <summary>
+		/// Gets the hash code of the log message.
+		/// </summary>
+		/// <returns>Hash code of the log message.</returns>
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				var hashCode = Timestamp.GetHashCode();
+				hashCode = (hashCode * 397) ^ HighPrecisionTimestamp.GetHashCode();
+				hashCode = (hashCode * 397) ^ (LogWriterName != null ? LogWriterName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (LogLevelName != null ? LogLevelName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (Tags != null ? Tags.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (ApplicationName != null ? ApplicationName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (ProcessName != null ? ProcessName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ ProcessId;
+				hashCode = (hashCode * 397) ^ (Text != null ? Text.GetHashCode() : 0);
+				return hashCode;
+			}
+		}
+
+		#endregion
+
 	}
 }
