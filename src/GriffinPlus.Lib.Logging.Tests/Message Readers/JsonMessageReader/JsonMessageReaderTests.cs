@@ -104,44 +104,76 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a test data set with JSON documents combined from data returned by <see cref="ProcessTestData_SingleMessage"/>.
+		/// </summary>
+		/// <param name="testSetCount">Number of test data sets.</param>
+		/// <param name="minMessageCount">Minimum number of messages in a test data set.</param>
+		/// <param name="maxMessageCount">Maximum number of messages in a test data set.</param>
+		/// <param name="injectWhiteSpaceBetweenMessages">true to inject a random whitespace between log messages.</param>
+		/// <returns>
+		/// The test data sets.
+		/// The tuples contain the combined JSON string and the log messages the string represents.
+		/// </returns>
+		public IEnumerable<Tuple<string, LogMessage[], HashSet<int>>> GetTestData(
+			int testSetCount = 100000,
+			int minMessageCount = 1,
+			int maxMessageCount = 30,
+			bool injectWhiteSpaceBetweenMessages = true)
+		{
+			var data = ProcessTestData_SingleMessage
+				.Select(x => new Tuple<string, LogMessage>((string)x[0], (LogMessage)x[1]))
+				.ToArray();
+
+			Random random = new Random(0);
+			StringBuilder json = new StringBuilder();
+			List<LogMessage> expectedMessages = new List<LogMessage>();
+			HashSet<int> endIndexOfLogMessages = new HashSet<int>();
+			for (int run = 0; run < testSetCount; run++)
+			{
+				json.Clear();
+				expectedMessages.Clear();
+				endIndexOfLogMessages.Clear();
+				int messageCount = random.Next(minMessageCount, maxMessageCount);
+				
+				for (int j = 0; j < messageCount; j++)
+				{
+					int selectedMessageIndex = random.Next(0, data.Length - 1);
+					json.Append(data[selectedMessageIndex].Item1);
+					endIndexOfLogMessages.Add(json.Length - 1);
+
+					if (injectWhiteSpaceBetweenMessages)
+					{
+						json.Append(JsonTokenizerTests.WhiteSpaceCharacters[random.Next(0, JsonTokenizerTests.WhiteSpaceCharacters.Length - 1)]);
+					}
+
+					expectedMessages.Add(data[selectedMessageIndex].Item2);
+				}
+
+				yield return new Tuple<string, LogMessage[], HashSet<int>>(
+					json.ToString(),
+					expectedMessages.ToArray(),
+					endIndexOfLogMessages);
+			}
+		}
+
+		/// <summary>
 		/// Tests processing multiple log messages that are passed to the reader at once.
 		/// </summary>
 		[Fact]
 		void Process_MultipleMessages_AllAtOnce()
 		{
-			const int iterations = 100000;
-
-			var data = ProcessTestData_SingleMessage
-				.Select(x => new Tuple<string, LogMessage>((string)x[0], (LogMessage)x[1]))
-				.ToArray();
-
 			JsonMessageReader reader = new JsonMessageReader();
-			Random random = new Random(0);
-			StringBuilder json = new StringBuilder();
-			List<LogMessage> expectedMessages = new List<LogMessage>();
-			for (int run = 0; run < iterations; run++)
+
+			foreach (var data in GetTestData(100000, 2, 30, true))
 			{
-				json.Clear();
-				expectedMessages.Clear();
-				int messageCount = random.Next(2, 30);
-				for (int j = 0; j < messageCount; j++)
-				{
-					int selectedMessageIndex = random.Next(0, data.Length - 1);
-					json.Append(data[selectedMessageIndex].Item1);
-					json.Append(JsonTokenizerTests.WhiteSpaceCharacters[random.Next(0, JsonTokenizerTests.WhiteSpaceCharacters.Length - 1)]); // some whitespace between log messages
-					expectedMessages.Add(data[selectedMessageIndex].Item2);
-				}
-
-				// --- actual test start ---
-
-				var messages = reader.Process(json.ToString());
-				Assert.Equal(expectedMessages.Count, messages.Length);
-				Assert.Equal(expectedMessages.ToArray(), messages);
-
-				// --- actual test end ---
-
-				reader.Reset();
+				string json = data.Item1;
+				LogMessage[] expectedMessages = data.Item2;
+				var messages = reader.Process(json);
+				Assert.Equal(expectedMessages.Length, messages.Length);
+				Assert.Equal(expectedMessages, messages);
 			}
+
+			reader.Reset();
 		}
 
 		/// <summary>
@@ -150,35 +182,13 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		void Process_MultipleMessages_CharWise()
 		{
-			const int iterations = 100000;
-
-			var data = ProcessTestData_SingleMessage
-				.Select(x => new Tuple<string, LogMessage>((string)x[0], (LogMessage)x[1]))
-				.ToArray();
-
 			JsonMessageReader reader = new JsonMessageReader();
-			Random random = new Random(0);
-			StringBuilder json = new StringBuilder();
-			List<LogMessage> expectedMessages = new List<LogMessage>();
-			HashSet<int> endIndexOfLogMessages = new HashSet<int>();
-			for (int run = 0; run < iterations; run++)
+
+			foreach (var data in GetTestData(100000, 2, 30, true))
 			{
-				json.Clear();
-				expectedMessages.Clear();
-				endIndexOfLogMessages.Clear();
-				int messageCount = random.Next(2, 30);
-				for (int j = 0; j < messageCount; j++)
-				{
-					int selectedMessageIndex = random.Next(0, data.Length - 1);
-					json.Append(data[selectedMessageIndex].Item1);
-					endIndexOfLogMessages.Add(json.Length - 1);
-					json.Append(JsonTokenizerTests.WhiteSpaceCharacters[random.Next(0, JsonTokenizerTests.WhiteSpaceCharacters.Length - 1)]); // some whitespace between log messages
-					expectedMessages.Add(data[selectedMessageIndex].Item2);
-				}
-
-				// --- actual test start ---
-
-				// pass json character-wise to the reader
+				string json = data.Item1;
+				LogMessage[] expectedMessages = data.Item2;
+				HashSet<int> endIndexOfLogMessages = data.Item3;
 				int messageNumber = 0;
 				for (int i = 0; i < json.Length; i++)
 				{
@@ -186,16 +196,16 @@ namespace GriffinPlus.Lib.Logging
 
 					if (endIndexOfLogMessages.Contains(i))
 					{
+						// message should have been read successfully at this point
 						Assert.Single(readMessages);
 						Assert.Equal(expectedMessages[messageNumber++], readMessages[0]);
 					}
 					else
 					{
+						// message is still incomplete
 						Assert.Empty(readMessages);
 					}
 				}
-
-				// --- actual test end ---
 
 				reader.Reset();
 			}
