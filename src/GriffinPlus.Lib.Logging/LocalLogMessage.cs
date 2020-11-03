@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 
 // ReSharper disable UnusedMember.Global
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -15,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 	/// A log message that was written by the current process (it therefore contains additional information
 	/// about the <see cref="LogWriter"/> object and the <see cref="LogLevel"/> object involved).
 	/// </summary>
-	public sealed class LocalLogMessage : ILogMessage
+	public sealed class LocalLogMessage : ILogMessage, IEquatable<ILogMessage>
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class.
@@ -217,6 +218,66 @@ namespace GriffinPlus.Lib.Logging
 			ProcessName = null;
 			ProcessId = 0;
 			Text = null;
+		}
+
+		#endregion
+
+		#region Equality Check
+
+		/// <summary>
+		/// Checks whether the current log message equals the specified one.
+		/// </summary>
+		/// <param name="other">Log message to compare with.</param>
+		/// <returns>
+		/// true, if the current log message equals the specified one;
+		/// otherwise false.
+		/// </returns>
+		public bool Equals(ILogMessage other)
+		{
+			if (other == null) return false;
+			return Timestamp.Equals(other.Timestamp) &&
+				   HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
+				   LogWriterName == other.LogWriterName &&
+				   LogLevelName == other.LogLevelName &&
+				   Equals(Tags, other.Tags) &&
+				   ApplicationName == other.ApplicationName &&
+				   ProcessName == other.ProcessName &&
+				   ProcessId == other.ProcessId &&
+				   Text == other.Text;
+		}
+
+		/// <summary>
+		/// Checks whether the current log message equals the specified one.
+		/// </summary>
+		/// <param name="obj">Log message to compare with.</param>
+		/// <returns>
+		/// true, if the current log message equals the specified one;
+		/// otherwise false.
+		/// </returns>
+		public override bool Equals(object obj)
+		{
+			return ReferenceEquals(this, obj) || obj is ILogMessage other && Equals(other);
+		}
+
+		/// <summary>
+		/// Gets the hash code of the log message.
+		/// </summary>
+		/// <returns>Hash code of the log message.</returns>
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				var hashCode = Timestamp.GetHashCode();
+				hashCode = (hashCode * 397) ^ HighPrecisionTimestamp.GetHashCode();
+				hashCode = (hashCode * 397) ^ (LogWriterName != null ? LogWriterName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (LogLevelName != null ? LogLevelName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (Tags != null ? Tags.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (ApplicationName != null ? ApplicationName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ (ProcessName != null ? ProcessName.GetHashCode() : 0);
+				hashCode = (hashCode * 397) ^ ProcessId;
+				hashCode = (hashCode * 397) ^ (Text != null ? Text.GetHashCode() : 0);
+				return hashCode;
+			}
 		}
 
 		#endregion
