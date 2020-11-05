@@ -149,6 +149,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.None,
 					message,
+					"\n", // not relevant
 					"{}"
 				};
 
@@ -156,6 +157,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Timestamp,
 					message,
+					"\n", // not relevant
 					"{\"Timestamp\":\"2000-01-01 00:00:00Z\"}"
 				};
 
@@ -163,6 +165,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.HighPrecisionTimestamp,
 					message,
+					"\n", // not relevant
 					"{\"HighPrecisionTimestamp\":123}"
 				};
 
@@ -170,6 +173,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.LogWriterName,
 					message,
+					"\n", // not relevant
 					"{\"LogWriter\":\"MyWriter\"}"
 				};
 
@@ -177,13 +181,15 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.LogLevelName,
 					message,
+					"\n", // not relevant
 					"{\"LogLevel\":\"MyLevel\"}"
 				};
 
 				yield return new object[] {
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
-					new LogMessage(message) { Tags = new TagSet() }, 
+					new LogMessage(message) { Tags = new TagSet() },
+					"\n", // not relevant
 					"{\"Tags\":[]}"
 				};
 
@@ -191,6 +197,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
+					"\n", // not relevant
 					"{\"Tags\":[\"Tag\"]}"
 				};
 
@@ -198,6 +205,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
+					"\n", // not relevant
 					"{\"Tags\":[\"Tag1\",\"Tag2\"]}"
 				};
 
@@ -205,6 +213,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ApplicationName,
 					message,
+					"\n", // not relevant
 					"{\"ApplicationName\":\"MyApp\"}"
 				};
 
@@ -212,6 +221,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ProcessName,
 					message,
+					"\n", // not relevant
 					"{\"ProcessName\":\"MyProcess\"}"
 				};
 
@@ -219,6 +229,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ProcessId,
 					message,
+					"\n", // not relevant
 					"{\"ProcessId\":42}"
 				};
 
@@ -226,6 +237,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Text,
 					message,
+					"\n", // not relevant
 					"{\"Text\":\"MyText\"}"
 				};
 
@@ -233,6 +245,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.All,
 					message,
+					"\n", // not relevant
 					"{" +
 					"\"Timestamp\":\"2000-01-01 00:00:00Z\"," +
 					"\"HighPrecisionTimestamp\":123," +
@@ -254,6 +267,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.None,
 					message,
+					"\n", // not relevant
 					"{ }"
 				};
 
@@ -261,6 +275,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Timestamp,
 					message,
+					"\n", // not relevant
 					"{ \"Timestamp\" : \"2000-01-01 00:00:00Z\" }"
 				};
 
@@ -268,6 +283,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.HighPrecisionTimestamp,
 					message,
+					"\n", // not relevant
 					"{ \"HighPrecisionTimestamp\" : 123 }"
 				};
 
@@ -275,6 +291,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.LogWriterName,
 					message,
+					"\n", // not relevant
 					"{ \"LogWriter\" : \"MyWriter\" }"
 				};
 
@@ -282,6 +299,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.LogLevelName,
 					message,
+					"\n", // not relevant
 					"{ \"LogLevel\" : \"MyLevel\" }"
 				};
 
@@ -289,6 +307,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet() },
+					"\n", // not relevant
 					"{ \"Tags\" : [] }"
 				};
 
@@ -296,6 +315,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
+					"\n", // not relevant
 					"{ \"Tags\" : [ \"Tag\" ] }"
 				};
 
@@ -303,6 +323,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
+					"\n", // not relevant
 					"{ \"Tags\" : [ \"Tag1\", \"Tag2\" ] }"
 				};
 
@@ -310,6 +331,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ApplicationName,
 					message,
+					"\n", // not relevant
 					"{ \"ApplicationName\" : \"MyApp\" }"
 				};
 
@@ -317,6 +339,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ProcessName,
 					message,
+					"\n", // not relevant
 					"{ \"ProcessName\" : \"MyProcess\" }"
 				};
 
@@ -324,6 +347,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ProcessId,
 					message,
+					"\n", // not relevant
 					"{ \"ProcessId\" : 42 }"
 				};
 
@@ -331,6 +355,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Text,
 					message,
+					"\n", // not relevant
 					"{ \"Text\" : \"MyText\" }"
 				};
 
@@ -338,6 +363,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.All,
 					message,
+					"\n", // not relevant
 					"{" +
 					" \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
 					" \"HighPrecisionTimestamp\" : 123," +
@@ -355,129 +381,158 @@ namespace GriffinPlus.Lib.Logging
 				// style: beautified
 				// ------------------------------------------------------------------------
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.None,
-					message,
-					"{\r\n" +
-					"}"
-				};
+				foreach (string newline in new[] { "\n", "\r\n" })
+				{
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.None,
+						message,
+						newline,
+						$"{{{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.Timestamp,
-					message,
-					"{\r\n" +
-					"    \"Timestamp\" : \"2000-01-01 00:00:00Z\"\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.Timestamp,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"Timestamp\" : \"2000-01-01 00:00:00Z\"{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.HighPrecisionTimestamp,
-					message,
-					"{\r\n" +
-					"    \"HighPrecisionTimestamp\" : 123\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.HighPrecisionTimestamp,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"HighPrecisionTimestamp\" : 123{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.LogWriterName,
-					message,
-					"{\r\n" +
-					"    \"LogWriter\" : \"MyWriter\"\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.LogWriterName,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"LogWriter\" : \"MyWriter\"{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.LogLevelName,
-					message,
-					"{\r\n" + 
-					"    \"LogLevel\" : \"MyLevel\"\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.LogLevelName,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"LogLevel\" : \"MyLevel\"{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.Tags,
-					new LogMessage(message) { Tags = new TagSet() },
-					"{\r\n" +
-					"    \"Tags\" : []\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.Tags,
+						new LogMessage(message) { Tags = new TagSet() },
+						newline,
+						$"{{{newline}" +
+						$"    \"Tags\" : []{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.Tags,
-					new LogMessage(message) { Tags = new TagSet("Tag") },
-					"{\r\n" +
-					"    \"Tags\" : [ \"Tag\" ]\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.Tags,
+						new LogMessage(message) { Tags = new TagSet("Tag") },
+						newline,
+						$"{{{newline}" +
+						$"    \"Tags\" : [ \"Tag\" ]{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.Tags,
-					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
-					"{\r\n" +
-					"    \"Tags\" : [ \"Tag1\", \"Tag2\" ]\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.Tags,
+						new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
+						newline,
+						$"{{{newline}" +
+						$"    \"Tags\" : [ \"Tag1\", \"Tag2\" ]{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.ApplicationName,
-					message,
-					"{\r\n" + 
-					"    \"ApplicationName\" : \"MyApp\"\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.ApplicationName,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"ApplicationName\" : \"MyApp\"{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.ProcessName,
-					message,
-					"{\r\n" +
-					"    \"ProcessName\" : \"MyProcess\"\r\n" +
-					"}"
-				};
-				
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.ProcessId,
-					message,
-					"{\r\n" + 
-					"    \"ProcessId\" : 42\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.ProcessName,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"ProcessName\" : \"MyProcess\"{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.Text,
-					message,
-					"{\r\n" +
-					"    \"Text\" : \"MyText\"\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.ProcessId,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"ProcessId\" : 42{newline}" +
+						"}"
+					};
 
-				yield return new object[] {
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.All,
-					message,
-					"{\r\n" +
-					"    \"Timestamp\"              : \"2000-01-01 00:00:00Z\",\r\n" +
-					"    \"HighPrecisionTimestamp\" : 123,\r\n" +
-					"    \"LogWriter\"              : \"MyWriter\",\r\n" +
-					"    \"LogLevel\"               : \"MyLevel\",\r\n" +
-					"    \"Tags\"                   : [ \"Tag1\", \"Tag2\" ],\r\n" +
-					"    \"ApplicationName\"        : \"MyApp\",\r\n" +
-					"    \"ProcessName\"            : \"MyProcess\",\r\n" +
-					"    \"ProcessId\"              : 42,\r\n" +
-					"    \"Text\"                   : \"MyText\"\r\n" +
-					"}"
-				};
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.Text,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"Text\" : \"MyText\"{newline}" +
+						"}"
+					};
+
+					yield return new object[]
+					{
+						JsonMessageFormatterStyle.Beautified,
+						LogMessageField.All,
+						message,
+						newline,
+						$"{{{newline}" +
+						$"    \"Timestamp\"              : \"2000-01-01 00:00:00Z\",{newline}" +
+						$"    \"HighPrecisionTimestamp\" : 123,{newline}" +
+						$"    \"LogWriter\"              : \"MyWriter\",{newline}" +
+						$"    \"LogLevel\"               : \"MyLevel\",{newline}" +
+						$"    \"Tags\"                   : [ \"Tag1\", \"Tag2\" ],{newline}" +
+						$"    \"ApplicationName\"        : \"MyApp\",{newline}" +
+						$"    \"ProcessName\"            : \"MyProcess\",{newline}" +
+						$"    \"ProcessId\"              : 42,{newline}" +
+						$"    \"Text\"                   : \"MyText\"{newline}" +
+						"}"
+					};
+				}
 			}
 		}
 
@@ -486,9 +541,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		[Theory]
 		[MemberData(nameof(FormatTestData))]
-		public void Format(JsonMessageFormatterStyle style, LogMessageField fields, LogMessage message, string expected)
+		public void Format(JsonMessageFormatterStyle style, LogMessageField fields, LogMessage message, string newline, string expected)
 		{
-			var formatter = new JsonMessageFormatter { Style = style };
+			var formatter = new JsonMessageFormatter { Style = style, Newline = newline };
 
 			if (fields.HasFlag(LogMessageField.Timestamp)) formatter.AddTimestampField();
 			if (fields.HasFlag(LogMessageField.HighPrecisionTimestamp)) formatter.AddHighPrecisionTimestampField();
@@ -560,7 +615,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Format_EscapingKeys(JsonMessageFormatterStyle style, LogMessageField fields)
 		{
 			var message = new LogMessage();
-			var formatter = new JsonMessageFormatter { Style = style };
+			var formatter = new JsonMessageFormatter { Style = style, Newline = "\n" };
 
 			if (fields.HasFlag(LogMessageField.Timestamp)) formatter.AddTimestampField("u", sUnescapedString);
 			if (fields.HasFlag(LogMessageField.HighPrecisionTimestamp)) formatter.AddHighPrecisionTimestampField(sUnescapedString);
@@ -586,7 +641,7 @@ namespace GriffinPlus.Lib.Logging
 					break;
 				case JsonMessageFormatterStyle.Beautified:
 				default:
-					pattern = "^{\r\n    \"(.+)\" : .+\r\n}$";
+					pattern = "^{\n    \"(.+)\" : .+\n}$";
 					break;
 			}
 			var regex = new Regex(pattern);
@@ -628,7 +683,7 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(JsonMessageFormatterStyle.Beautified, LogMessageField.Text)]
 		public void Format_EscapingValues(JsonMessageFormatterStyle style, LogMessageField fields)
 		{
-			var formatter = new JsonMessageFormatter { Style = style };
+			var formatter = new JsonMessageFormatter { Style = style, Newline = "\n" };
 
 			var key = "";
 			var message = new LogMessage();
@@ -681,7 +736,7 @@ namespace GriffinPlus.Lib.Logging
 					break;
 				case JsonMessageFormatterStyle.Beautified:
 				default:
-					pattern = "^{\r\n    \"(.+)\" : \"(.+)\"\r\n}$";
+					pattern = "^{\n    \"(.+)\" : \"(.+)\"\n}$";
 					break;
 			}
 			var regex = new Regex(pattern);

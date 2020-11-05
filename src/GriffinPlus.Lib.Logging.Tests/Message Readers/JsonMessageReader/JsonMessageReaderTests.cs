@@ -45,7 +45,7 @@ namespace GriffinPlus.Lib.Logging
 					// JsonMessageFormatterStyle style = (JsonMessageFormatterStyle) data[0];
 					LogMessageField field = (LogMessageField) data[1];
 					LogMessage message = (LogMessage) data[2];
-					string json = (string) data[3];
+					string json = (string) data[4];
 
 					LogMessage expected = new LogMessage();
 					if (field.HasFlag(LogMessageField.Timestamp)) expected.Timestamp = message.Timestamp;

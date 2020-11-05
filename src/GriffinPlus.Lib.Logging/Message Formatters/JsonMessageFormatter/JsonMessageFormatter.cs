@@ -24,6 +24,7 @@ namespace GriffinPlus.Lib.Logging
 		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
 		private JsonMessageFormatterStyle mStyle = JsonMessageFormatterStyle.OneLine;
 		private string mIndent = "    ";
+		private string mNewline = Environment.NewLine;
 		private bool mEscapeSolidus;
 		private int mMaxEscapedJsonKeyLength;
 		private readonly object mSync = new object();
@@ -115,6 +116,16 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets or sets the characters used to inject a line break.
+		/// By default it is the system's standard (CRLF on windows, LF on linux).
+		/// </summary>
+		public string Newline
+		{
+			get { lock (mSync) { return mNewline; } }
+			set { lock (mSync) { mNewline = value ?? throw new ArgumentNullException(nameof(value)); } }
+		}
+
+		/// <summary>
 		/// Formats the specified log message.
 		/// </summary>
 		/// <param name="message">Message to format.</param>
@@ -163,7 +174,8 @@ namespace GriffinPlus.Lib.Logging
 
 					case JsonMessageFormatterStyle.Beautified:
 						{
-							mOutputBuilder.AppendLine("{");
+							mOutputBuilder.Append("{");
+							mOutputBuilder.Append(mNewline);
 							for (int i = 0; i < mFields.Count; i++)
 							{
 								var field = mFields[i];
@@ -175,7 +187,7 @@ namespace GriffinPlus.Lib.Logging
 								mOutputBuilder.Append(" : ");
 								field.AppendFormattedValue(message, mOutputBuilder);
 								if (i + 1 < mFields.Count) mOutputBuilder.Append(",");
-								mOutputBuilder.AppendLine();
+								mOutputBuilder.Append(mNewline);
 							}
 							mOutputBuilder.Append("}");
 							break;
