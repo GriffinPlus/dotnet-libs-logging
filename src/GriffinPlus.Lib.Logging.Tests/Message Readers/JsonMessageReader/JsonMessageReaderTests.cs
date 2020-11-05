@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 				// use test data of the json message formatter to test reading log messages
 				foreach (var data in JsonMessageFormatterTests.FormatTestData)
 				{
-					JsonMessageFormatterStyle style = (JsonMessageFormatterStyle) data[0];
+					// JsonMessageFormatterStyle style = (JsonMessageFormatterStyle) data[0];
 					LogMessageField field = (LogMessageField) data[1];
 					LogMessage message = (LogMessage) data[2];
 					string json = (string) data[3];
@@ -88,7 +88,7 @@ namespace GriffinPlus.Lib.Logging
 		void Process_SingleMessage_CharWise(string json, LogMessage expected)
 		{
 			JsonMessageReader reader = new JsonMessageReader();
-			LogMessage[] messages;
+			ILogMessage[] messages;
 
 			// pass all characters except the last one (that would complete the message) to the reader
 			for (int i = 0; i < json.Length - 1; i++)
@@ -109,16 +109,19 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="testSetCount">Number of test data sets.</param>
 		/// <param name="minMessageCount">Minimum number of messages in a test data set.</param>
 		/// <param name="maxMessageCount">Maximum number of messages in a test data set.</param>
-		/// <param name="injectWhiteSpaceBetweenMessages">true to inject a random whitespace between log messages.</param>
+		/// <param name="injectRandomWhiteSpaceBetweenMessages">
+		/// true to inject a random whitespace between log messages;
+		/// false to inject a newline character only.
+		/// </param>
 		/// <returns>
 		/// The test data sets.
 		/// The tuples contain the combined JSON string and the log messages the string represents.
 		/// </returns>
-		public IEnumerable<Tuple<string, LogMessage[], HashSet<int>>> GetTestData(
+		public static IEnumerable<Tuple<string, ILogMessage[], HashSet<int>>> GetTestData(
 			int testSetCount = 100000,
 			int minMessageCount = 1,
 			int maxMessageCount = 30,
-			bool injectWhiteSpaceBetweenMessages = true)
+			bool injectRandomWhiteSpaceBetweenMessages = true)
 		{
 			var data = ProcessTestData_SingleMessage
 				.Select(x => new Tuple<string, LogMessage>((string)x[0], (LogMessage)x[1]))
@@ -141,17 +144,16 @@ namespace GriffinPlus.Lib.Logging
 					json.Append(data[selectedMessageIndex].Item1);
 					endIndexOfLogMessages.Add(json.Length - 1);
 
-					if (injectWhiteSpaceBetweenMessages)
-					{
-						json.Append(JsonTokenizerTests.WhiteSpaceCharacters[random.Next(0, JsonTokenizerTests.WhiteSpaceCharacters.Length - 1)]);
-					}
+					json.Append(injectRandomWhiteSpaceBetweenMessages
+						? JsonTokenizerTests.WhiteSpaceCharacters[random.Next(0, JsonTokenizerTests.WhiteSpaceCharacters.Length - 1)]
+						: '\n');
 
 					expectedMessages.Add(data[selectedMessageIndex].Item2);
 				}
 
-				yield return new Tuple<string, LogMessage[], HashSet<int>>(
+				yield return new Tuple<string, ILogMessage[], HashSet<int>>(
 					json.ToString(),
-					expectedMessages.ToArray(),
+					expectedMessages.Cast<ILogMessage>().ToArray(),
 					endIndexOfLogMessages);
 			}
 		}
@@ -167,7 +169,7 @@ namespace GriffinPlus.Lib.Logging
 			foreach (var data in GetTestData(100000, 2, 30, true))
 			{
 				string json = data.Item1;
-				LogMessage[] expectedMessages = data.Item2;
+				ILogMessage[] expectedMessages = data.Item2;
 				var messages = reader.Process(json);
 				Assert.Equal(expectedMessages.Length, messages.Length);
 				Assert.Equal(expectedMessages, messages);
@@ -187,7 +189,7 @@ namespace GriffinPlus.Lib.Logging
 			foreach (var data in GetTestData(100000, 2, 30, true))
 			{
 				string json = data.Item1;
-				LogMessage[] expectedMessages = data.Item2;
+				ILogMessage[] expectedMessages = data.Item2;
 				HashSet<int> endIndexOfLogMessages = data.Item3;
 				int messageNumber = 0;
 				for (int i = 0; i < json.Length; i++)

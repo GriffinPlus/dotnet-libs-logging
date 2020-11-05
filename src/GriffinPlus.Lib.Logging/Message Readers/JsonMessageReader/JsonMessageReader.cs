@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly Stack<State> mStateStack = new Stack<State>();
 		private State mState = State.Start;
 		private State mReadingValueState;
-		private readonly List<LogMessage> mCompletedLogMessages = new List<LogMessage>();
+		private readonly List<ILogMessage> mCompletedLogMessages = new List<ILogMessage>();
 		private LogMessage mLogMessage;
 
 		/// <summary>
@@ -66,7 +66,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="data">JSON string to process.</param>
 		/// <returns>The log messages read from the JSON stream.</returns>
 		/// <exception cref="JsonMessageReaderException">Reading the log message failed due to a tokenization, parsing or format error.</exception>
-		public LogMessage[] Process(string data)
+		public ILogMessage[] Process(string data)
 		{
 			mCompletedLogMessages.Clear();
 
