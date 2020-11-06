@@ -68,10 +68,14 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests processing single log messages that are passed to the reader at once.
 		/// </summary>
 		/// <param name="json">JSON document containing the log message to read.</param>
+		/// <param name="newline">
+		/// Character sequence that was used to inject line breaks (null, if that does not matter).
+		/// Not used by this test.
+		/// </param>
 		/// <param name="expected">The log message that is expected to be returned.</param>
 		[Theory]
 		[MemberData(nameof(ProcessTestData_SingleMessage))]
-		void Process_SingleMessage_AllAtOnce(string json, string _, LogMessage expected)
+		void Process_SingleMessage_AllAtOnce(string json, string newline, LogMessage expected)
 		{
 			var reader = new JsonMessageReader();
 			var messages = reader.Process(json);
@@ -83,10 +87,14 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests processing single log messages that are passed to the reader character wise.
 		/// </summary>
 		/// <param name="json">JSON document containing the log message to read.</param>
+		/// <param name="newline">
+		/// Character sequence that was used to inject line breaks (null, if that does not matter).
+		/// Not used by this test.
+		/// </param>
 		/// <param name="expected">The log message that is expected to be returned.</param>
 		[Theory]
 		[MemberData(nameof(ProcessTestData_SingleMessage))]
-		void Process_SingleMessage_CharWise(string json, string _, LogMessage expected)
+		void Process_SingleMessage_CharWise(string json, string newline, LogMessage expected)
 		{
 			JsonMessageReader reader = new JsonMessageReader();
 			ILogMessage[] messages;
