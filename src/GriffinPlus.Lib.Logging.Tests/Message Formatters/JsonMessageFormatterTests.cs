@@ -149,7 +149,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.None,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{}"
 				};
 
@@ -157,7 +157,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Timestamp,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"Timestamp\":\"2000-01-01 00:00:00Z\"}"
 				};
 
@@ -165,7 +165,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.HighPrecisionTimestamp,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"HighPrecisionTimestamp\":123}"
 				};
 
@@ -173,7 +173,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.LogWriterName,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"LogWriter\":\"MyWriter\"}"
 				};
 
@@ -181,7 +181,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.LogLevelName,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"LogLevel\":\"MyLevel\"}"
 				};
 
@@ -189,7 +189,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet() },
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"Tags\":[]}"
 				};
 
@@ -197,7 +197,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"Tags\":[\"Tag\"]}"
 				};
 
@@ -205,7 +205,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"Tags\":[\"Tag1\",\"Tag2\"]}"
 				};
 
@@ -213,7 +213,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ApplicationName,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"ApplicationName\":\"MyApp\"}"
 				};
 
@@ -221,7 +221,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ProcessName,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"ProcessName\":\"MyProcess\"}"
 				};
 
@@ -229,7 +229,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ProcessId,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"ProcessId\":42}"
 				};
 
@@ -237,7 +237,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Text,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{\"Text\":\"MyText\"}"
 				};
 
@@ -245,7 +245,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.All,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{" +
 					"\"Timestamp\":\"2000-01-01 00:00:00Z\"," +
 					"\"HighPrecisionTimestamp\":123," +
@@ -267,7 +267,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.None,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ }"
 				};
 
@@ -275,7 +275,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Timestamp,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"Timestamp\" : \"2000-01-01 00:00:00Z\" }"
 				};
 
@@ -283,7 +283,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.HighPrecisionTimestamp,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"HighPrecisionTimestamp\" : 123 }"
 				};
 
@@ -291,7 +291,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.LogWriterName,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"LogWriter\" : \"MyWriter\" }"
 				};
 
@@ -299,7 +299,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.LogLevelName,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"LogLevel\" : \"MyLevel\" }"
 				};
 
@@ -307,7 +307,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet() },
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"Tags\" : [] }"
 				};
 
@@ -315,7 +315,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"Tags\" : [ \"Tag\" ] }"
 				};
 
@@ -323,7 +323,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"Tags\" : [ \"Tag1\", \"Tag2\" ] }"
 				};
 
@@ -331,7 +331,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ApplicationName,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"ApplicationName\" : \"MyApp\" }"
 				};
 
@@ -339,7 +339,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ProcessName,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"ProcessName\" : \"MyProcess\" }"
 				};
 
@@ -347,7 +347,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ProcessId,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"ProcessId\" : 42 }"
 				};
 
@@ -355,7 +355,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Text,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{ \"Text\" : \"MyText\" }"
 				};
 
@@ -363,7 +363,7 @@ namespace GriffinPlus.Lib.Logging
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.All,
 					message,
-					"\n", // not relevant
+					null, // newline sequence is not relevant
 					"{" +
 					" \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
 					" \"HighPrecisionTimestamp\" : 123," +
@@ -543,6 +543,10 @@ namespace GriffinPlus.Lib.Logging
 		[MemberData(nameof(FormatTestData))]
 		public void Format(JsonMessageFormatterStyle style, LogMessageField fields, LogMessage message, string newline, string expected)
 		{
+			// test set knows that the newline character sequence is not relevant, if newline == null
+			// => set it explicitly to satisfy the formatter
+			if (newline == null) newline = "\n";
+
 			var formatter = new JsonMessageFormatter { Style = style, Newline = newline };
 
 			if (fields.HasFlag(LogMessageField.Timestamp)) formatter.AddTimestampField();

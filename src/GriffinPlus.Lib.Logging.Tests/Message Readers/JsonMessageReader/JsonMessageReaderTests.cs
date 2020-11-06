@@ -45,6 +45,7 @@ namespace GriffinPlus.Lib.Logging
 					// JsonMessageFormatterStyle style = (JsonMessageFormatterStyle) data[0];
 					LogMessageField field = (LogMessageField) data[1];
 					LogMessage message = (LogMessage) data[2];
+					string newline = (string) data[3]; // character sequence used to inject line breaks
 					string json = (string) data[4];
 
 					LogMessage expected = new LogMessage();
@@ -58,7 +59,7 @@ namespace GriffinPlus.Lib.Logging
 					if (field.HasFlag(LogMessageField.ProcessId)) expected.ProcessId = message.ProcessId;
 					if (field.HasFlag(LogMessageField.Text)) expected.Text = message.Text;
 
-					yield return new object[] { json, expected };
+					yield return new object[] { json, newline, expected };
 				}
 			}
 		}
@@ -70,7 +71,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="expected">The log message that is expected to be returned.</param>
 		[Theory]
 		[MemberData(nameof(ProcessTestData_SingleMessage))]
-		void Process_SingleMessage_AllAtOnce(string json, LogMessage expected)
+		void Process_SingleMessage_AllAtOnce(string json, string _, LogMessage expected)
 		{
 			var reader = new JsonMessageReader();
 			var messages = reader.Process(json);
@@ -85,7 +86,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="expected">The log message that is expected to be returned.</param>
 		[Theory]
 		[MemberData(nameof(ProcessTestData_SingleMessage))]
-		void Process_SingleMessage_CharWise(string json, LogMessage expected)
+		void Process_SingleMessage_CharWise(string json, string _, LogMessage expected)
 		{
 			JsonMessageReader reader = new JsonMessageReader();
 			ILogMessage[] messages;
@@ -109,9 +110,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="testSetCount">Number of test data sets.</param>
 		/// <param name="minMessageCount">Minimum number of messages in a test data set.</param>
 		/// <param name="maxMessageCount">Maximum number of messages in a test data set.</param>
+		/// <param name="newline">Character sequence to use for line breaks (null to allow everything in the test set).</param>
 		/// <param name="injectRandomWhiteSpaceBetweenMessages">
 		/// true to inject a random whitespace between log messages;
-		/// false to inject a newline character only.
+		/// false to inject a newline character sequence only.
 		/// </param>
 		/// <returns>
 		/// The test data sets.
@@ -121,10 +123,12 @@ namespace GriffinPlus.Lib.Logging
 			int testSetCount = 100000,
 			int minMessageCount = 1,
 			int maxMessageCount = 30,
+			string newline = null,
 			bool injectRandomWhiteSpaceBetweenMessages = true)
 		{
 			var data = ProcessTestData_SingleMessage
-				.Select(x => new Tuple<string, LogMessage>((string)x[0], (LogMessage)x[1]))
+				.Where(x => newline == null || (string)x[1] == null || (string)x[1] == newline) // get only test sets with the desired line break character sequence
+				.Select(x => new Tuple<string, LogMessage>((string)x[0], (LogMessage)x[2]))
 				.ToArray();
 
 			Random random = new Random(0);
@@ -144,9 +148,11 @@ namespace GriffinPlus.Lib.Logging
 					json.Append(data[selectedMessageIndex].Item1);
 					endIndexOfLogMessages.Add(json.Length - 1);
 
-					json.Append(injectRandomWhiteSpaceBetweenMessages
-						? JsonTokenizerTests.WhiteSpaceCharacters[random.Next(0, JsonTokenizerTests.WhiteSpaceCharacters.Length - 1)]
-						: '\n');
+					if (injectRandomWhiteSpaceBetweenMessages) {
+						json.Append(JsonTokenizerTests.WhiteSpaceCharacters[random.Next(0, JsonTokenizerTests.WhiteSpaceCharacters.Length - 1)]);
+					} else {
+						json.Append(newline ?? "\n");
+					}
 
 					expectedMessages.Add(data[selectedMessageIndex].Item2);
 				}
@@ -166,7 +172,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			JsonMessageReader reader = new JsonMessageReader();
 
-			foreach (var data in GetTestData(100000, 2, 30, true))
+			foreach (var data in GetTestData(100000, 2, 30, null, true))
 			{
 				string json = data.Item1;
 				ILogMessage[] expectedMessages = data.Item2;
@@ -186,7 +192,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			JsonMessageReader reader = new JsonMessageReader();
 
-			foreach (var data in GetTestData(100000, 2, 30, true))
+			foreach (var data in GetTestData(100000, 2, 30, null, true))
 			{
 				string json = data.Item1;
 				ILogMessage[] expectedMessages = data.Item2;

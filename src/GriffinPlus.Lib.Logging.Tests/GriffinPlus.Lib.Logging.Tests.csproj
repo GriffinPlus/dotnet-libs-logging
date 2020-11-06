@@ -4,12 +4,18 @@
     <TargetFrameworks>net461; netcoreapp2.1</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <OmitDocumentationFile>true</OmitDocumentationFile>
     <RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net461|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+    <NoWarn>1701;1702;xUnit1026</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+    <NoWarn>1701;1702;xUnit1026</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,5 +39,4 @@
   <ItemGroup>
     <ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
   </ItemGroup>
-
 </Project>

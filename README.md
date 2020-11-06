@@ -557,6 +557,33 @@ namespace GriffinPlus.Lib.Logging.Demo
     }
 ```
 
+### Helpers
+
+#### Process Integration
+
+*Griffin+ Logging* provides the `ProcessIntegration` class that assists with integrating an external process into the logging subsystem of the current process. This class configures a given `System.Diagnostics.Process` to redirect the standard output/error streams before the process is started. The redirected streams are read and logged (if desired). Furthermore the `ProcessIntegration` class provides events that are raised when the process writes to its streams. The events `OutputStreamReceivedText` and `ErrorStreamReceivedText` are raised line by line, while the events `OutputStreamReceivedMessage` and `ErrorStreamReceivedMessage` are raised as soon as a JSON formatted log message is recognized in the streams. The latter comes in handy, if the started process uses *Griffin+ Logging* as well and emits log messages using the `JsonMessageFormatter` class plugged into the `ConsoleWriterPipelineStage` class. The events are marshalled into the context of the thread registering the event, if the thread's synchronization context is initialized. Handler code can directly access elements that have thread affinity, e.g. UI elements.
+
+The following lines are sufficient to start a process and retrieve its output:
+
+```csharp
+// set up the process to run
+ProcessStartInfo startInfo = new ProcessStartInfo("my-app.exe", "<args>");
+Process process = new Process { StartInfo = startInfo };
+
+// integrate the process into the logging subsystem
+ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
+integration.OutputStreamReceivedText += (sender, args) => { /* your handler code */ };
+integration.OutputStreamReceivedMessage += (sender, args) => { /* your handler code */ };
+integration.ErrorStreamReceivedText += (sender, args) => { /* your handler code */ };
+integration.ErrorStreamReceivedMessage += (sender, args) => { /* your handler code */ };
+
+// start the process and wait for it to exit
+integration.StartProcess();
+process.WaitForExit();
+```
+
+By default, recognized log messages written by the started process are logged as well. This behavior can be disabled by setting the `IsLoggingMessagesEnabled` property to `false`.
+
 ## Contributors ✨
 
 Many thanks to the following people for their contribution to this project ([emoji keys](https://allcontributors.org/docs/en/emoji-key)):
