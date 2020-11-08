@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +38,8 @@ namespace GriffinPlus.Lib.Logging
 		private readonly StringBuilder mStdoutBuilder = new StringBuilder();
 		private readonly StringBuilder mStderrBuilder = new StringBuilder();
 		private IProcessingPipelineStageSetting<ConsoleOutputStream> mDefaultStreamSetting;
+		private TextWriter mOutputStream = Console.Out;
+		private TextWriter mErrorStream = Console.Error;
 		private const string SettingName_DefaultStream = "DefaultStream";
 
 		/// <summary>
@@ -46,6 +49,54 @@ namespace GriffinPlus.Lib.Logging
 		public ConsoleWriterPipelineStage(string name) : base(name)
 		{
 
+		}
+
+		/// <summary>
+		/// Gets or sets the stream data for the output stream is written to (defaults to <see cref="System.Console.Out"/>).
+		/// </summary>
+		public TextWriter OutputStream
+		{
+			get
+			{
+				lock (Sync)
+				{
+					return mOutputStream;
+				}
+			}
+
+			set
+			{
+				if (value == null) throw new ArgumentNullException(nameof(value));
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mOutputStream = value;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the stream data for the output stream is written to (defaults to <see cref="System.Console.Error"/>).
+		/// </summary>
+		public TextWriter ErrorStream
+		{
+			get
+			{
+				lock (Sync)
+				{
+					return mErrorStream;
+				}
+			}
+
+			set
+			{
+				if (value == null) throw new ArgumentNullException(nameof(value));
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+					mErrorStream = value;
+				}
+			}
 		}
 
 		/// <summary>
@@ -156,14 +207,14 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (mStdoutBuilder.Length > 0)
 				{
-					await Console.Out.WriteAsync(mStdoutBuilder.ToString()).ConfigureAwait(false);
-					await Console.Out.FlushAsync().ConfigureAwait(false);
+					await mOutputStream.WriteAsync(mStdoutBuilder.ToString()).ConfigureAwait(false);
+					await mOutputStream.FlushAsync().ConfigureAwait(false);
 				}
 
 				if (mStderrBuilder.Length > 0)
 				{
-					await Console.Error.WriteAsync(mStderrBuilder.ToString()).ConfigureAwait(false);
-					await Console.Error.FlushAsync().ConfigureAwait(false);
+					await mErrorStream.WriteAsync(mStderrBuilder.ToString()).ConfigureAwait(false);
+					await mErrorStream.FlushAsync().ConfigureAwait(false);
 				}
 			}
 			catch

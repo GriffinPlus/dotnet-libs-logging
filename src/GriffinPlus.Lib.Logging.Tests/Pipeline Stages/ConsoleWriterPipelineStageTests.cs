@@ -32,7 +32,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The created stage.</returns>
 		protected override ConsoleWriterPipelineStage CreateStage(string name)
 		{
-			return new ConsoleWriterPipelineStage(name);
+			ConsoleWriterPipelineStage stage = new ConsoleWriterPipelineStage(name);
+			stage.OutputStream = new StringWriter();
+			stage.ErrorStream = new StringWriter();
+			return stage;
 		}
 
 		/// <summary>
@@ -42,9 +45,11 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Create()
 		{
-			var stage = CreateStage("Console");
+			var stage = new ConsoleWriterPipelineStage("Console");
 			Assert.Equal(sDefaultSettings, stage.Settings.ToDictionary(x => x.Key, x => x.Value.Value));
 			Assert.Equal(ConsoleOutputStream.Stdout, stage.DefaultStream);
+			Assert.Same(Console.Out, stage.OutputStream);
+			Assert.Same(Console.Error, stage.ErrorStream);
 			Assert.Empty(stage.StreamByLevelOverrides);
 		}
 
@@ -214,19 +219,19 @@ namespace GriffinPlus.Lib.Logging
 		[MemberData(nameof(Process_TestData))]
 		public void Process(ConsoleOutputStream defaultStream, List<Tuple<LogLevel, ConsoleOutputStream>> mappings, IEnumerable<LocalLogMessage> messages)
 		{
-			// replace the stdout/stderr streams of the console
-			var stdoutStream = new MemoryStream();
-			var stderrStream = new MemoryStream();
-			var stdoutWriter = new StreamWriter(stdoutStream);
-			var stderrWriter = new StreamWriter(stderrStream);
-			Console.SetOut(stdoutWriter);
-			Console.SetError(stderrWriter);
-
 			// create a new pipeline stage
 			var formatter = new TestFormatter();
 			var stage = CreateStage("Console");
 			stage.DefaultStream = defaultStream;
 			stage.Formatter = formatter;
+
+			// replace i/o streams to avoid mixing up test output with regular console output
+			var stdoutStream = new MemoryStream();
+			var stderrStream = new MemoryStream();
+			var stdoutWriter = new StreamWriter(stdoutStream);
+			var stderrWriter = new StreamWriter(stderrStream);
+			stage.OutputStream = stdoutWriter;
+			stage.ErrorStream = stderrWriter;
 
 			// configure the stage
 			// build a dictionary that contains the mappings from log level to the corresponding console stream
