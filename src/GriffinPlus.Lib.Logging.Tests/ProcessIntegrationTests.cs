@@ -3,6 +3,7 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -43,12 +44,12 @@ namespace GriffinPlus.Lib.Logging
 
 			// run the console printer to emit the file over stdout/stderr
 #if NETCOREAPP
-			ProcessStartInfo startInfo = new ProcessStartInfo("dotnet.exe", $"ConsolePrinter.dll {stream} {testDataFile}");
+			string dotnetExecutable = Environment.OSVersion.Platform == PlatformID.Win32NT ? "dotnet.exe" : "dotnet";
+			ProcessStartInfo startInfo = new ProcessStartInfo(dotnetExecutable, $"ConsolePrinter.dll {stream} {testDataFile}");
 			Process process = new Process { StartInfo = startInfo };
 			var integration = ProcessIntegration.IntegrateIntoLogging(process);
-			Assert.Equal("External Process (dotnet.exe)", integration.LogWriter.Name);
-			Assert.True(integration.IsLoggingMessagesEnabled);
-#else
+			Assert.Equal($"External Process ({dotnetExecutable})", integration.LogWriter.Name);
+#elif NETFRAMEWORK
 			ProcessStartInfo startInfo = new ProcessStartInfo("ConsolePrinter.exe", $"{stream} {testDataFile}");
 			Process process = new Process { StartInfo = startInfo };
 			var integration = ProcessIntegration.IntegrateIntoLogging(process);
@@ -117,6 +118,7 @@ namespace GriffinPlus.Lib.Logging
 				stderrReceivedMessages.Add(args.Message);
 			};
 
+			integration.IsLoggingMessagesEnabled = false;
 			integration.StartProcess();
 			process.WaitForExit();
 
