@@ -204,7 +204,7 @@ namespace GriffinPlus.Lib.Logging
 			((IProcessingPipelineStage) stage1).ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
-			Thread.Sleep(50);
+			Thread.Sleep(1000);
 
 			// check where the message went to
 			if (processSyncReturnValue)
