@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461; netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net461; netcoreapp2.1; netcoreapp3.1</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GriffinPlus.Lib.Common" Version="0.6.2" />
+    <PackageReference Include="GriffinPlus.Lib.Common" Version="0.7.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.console" Version="2.4.1">
