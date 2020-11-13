@@ -10,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using GriffinPlus.Lib.Threading;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -19,143 +21,286 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class ProcessIntegrationTests
 	{
-		[Theory]
-		[InlineData("stdout")]
-		[InlineData("stderr")]
-		void IntegrateIntoLogging(string stream)
+		public static IEnumerable<object[]> IntegrateIntoLogging_TestData
 		{
-			const string testDataFile = "TestData_IntegrateIntoLogging.json";
+			get
+			{
+				foreach (string stream in new[] { "stdout", "stderr" })
+				{
+					// test waiting for process exit using the synchronous method:
+					// ProcessIntegration.WaitForExit() (wait infinitely)
+					yield return new object[]
+					{
+						stream,
+						"WaitForExit()",
+						new Func<ProcessIntegration, Task>(integration =>
+						{
+							return Task.Factory.StartNew(() => // needed to avoid blocking the only thread in the AsyncContext!
+							{
+								integration.WaitForExit();
+								Assert.True(integration.Process.HasExited);
+								return Task.CompletedTask;
+							}, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+						})
+					};
 
+					// test waiting for process exit using the synchronous method:
+					// ProcessIntegration.WaitForExit(int milliseconds) with milliseconds = 0 (do not wait)
+					yield return new object[]
+					{
+						stream,
+						"WaitForExit(0)",
+						new Func<ProcessIntegration, Task>(integration =>
+						{
+							bool success = integration.WaitForExit(0);
+							Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
+							Assert.False(integration.Process.HasExited);
+							return Task.CompletedTask;
+						})
+					};
+
+					// test waiting for process exit using the synchronous method:
+					// ProcessIntegration.WaitForExit(int milliseconds) with milliseconds = 100 (do not wait long enough)
+					yield return new object[]
+					{
+						stream,
+						"WaitForExit(100)",
+						new Func<ProcessIntegration, Task>(integration =>
+						{
+							return Task.Factory.StartNew(() => // needed to avoid blocking the only thread in the AsyncContext!
+							{
+								bool success = integration.WaitForExit(100);
+								Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
+								Assert.False(integration.Process.HasExited);
+							}, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+						})
+					};
+
+					// test waiting for process exit using the synchronous method:
+					// ProcessIntegration.WaitForExit(int milliseconds) with milliseconds = 2000 (time is sufficient to allow the process to exit)
+					yield return new object[]
+					{
+						stream,
+						"WaitForExit(2000)",
+						new Func<ProcessIntegration, Task>(integration =>
+						{
+							return Task.Factory.StartNew(() => // needed to avoid blocking the only thread in the AsyncContext!
+							{
+								bool success = integration.WaitForExit(10000);
+								Assert.True(success, "The process should have exited after 10000ms."); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
+								Assert.True(integration.Process.HasExited);
+							}, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+						})
+					};
+
+					// test waiting for process exit using the asynchronous method:
+					// ProcessIntegration.WaitForExitAsync(CancellationToken cancellationToken) (wait infinitely)
+					yield return new object[]
+					{
+						stream,
+						"WaitForExitAsync(ct) with ct = CancellationToken.None)",
+						new Func<ProcessIntegration, Task>(async integration =>
+						{
+							await integration
+								.WaitForExitAsync(CancellationToken.None)
+								.ConfigureAwait(false);
+
+							Assert.True(integration.Process.HasExited);
+						})
+					};
+
+					// test waiting for process exit using the asynchronous method:
+					// ProcessIntegration.WaitForExitAsync(CancellationToken cancellationToken) (cancel before process completes)
+					yield return new object[]
+					{
+						stream,
+						"WaitForExitAsync(ct) with ct signaled after 100ms",
+						new Func<ProcessIntegration, Task>(async integration =>
+						{
+							CancellationTokenSource cts = new CancellationTokenSource(100); // cancel after 100 ms
+							await Assert.ThrowsAsync<TaskCanceledException>(async () => await integration
+									.WaitForExitAsync(cts.Token)
+									.ConfigureAwait(false))
+								.ConfigureAwait(false);
+							Assert.False(integration.Process.HasExited);
+						})
+					};
+				}
+			}
+		}
+
+		[Theory]
+		[MemberData(nameof(IntegrateIntoLogging_TestData))]
+		void IntegrateIntoLogging(string stream, string description, Func<ProcessIntegration, Task> waitForExit)
+		{
 			// it is sufficient to test one newline character sequence as newlines are mangled when traveling from the executed process to this process
 			// (nevertheless it is necessary to use a deterministic character sequence to build up the test data to compare the output with)
-			const string newline = "\n"; 
-
-			// clear the synchronization context to avoid the XUnit synchronization context mix up the order of events
-			// fired when output/error stream data is passed to the client
-			SynchronizationContext.SetSynchronizationContext(null);
+			const string newline = "\n";
 
 			// create a file containing mix log messages as JSON
 			var data = JsonMessageReaderTests.GetTestData(
-				1,              // generate one test set only
+				1, // generate one test set only
 				100000, 100000, // the test set should contain 100000 log messages
-				newline,        // use specified newline character sequence only to make reconstruction possible when receiving data via stdout/stderr
+				newline, // use specified newline character sequence only to make reconstruction possible when receiving data via stdout/stderr
 				false).First(); // do not inject random whitespaces between log messages as these would screw up printing to the console and vice versa
-			File.WriteAllText(testDataFile, data.Item1, Encoding.UTF8);
 
-			// run the console printer to emit the file over stdout/stderr
+			// prepare unique file name to avoid issues with tests running in parallel
+			string testDataFile = $"TestData_IntegrateIntoLogging_{Guid.NewGuid():D}.json";
+
+			try
+			{
+				// write file containing the log messages in JSON format to feed into the Console Printer
+				File.WriteAllText(testDataFile, data.Item1, Encoding.UTF8);
+
+				// set up the process integration for running the console printer process
+				var integration = PrepareConsolePrinterIntegration(stream, testDataFile);
+				integration.IsLoggingMessagesEnabled = false;
+
+				StringBuilder stdoutReceivedText = new StringBuilder();
+				List<ILogMessage> stdoutReceivedMessages = new List<ILogMessage>();
+				AsyncManualResetEvent stdoutTextFinishedEvent = new AsyncManualResetEvent();
+				AsyncManualResetEvent stdoutMessageFinishedEvent = new AsyncManualResetEvent();
+
+				StringBuilder stderrReceivedText = new StringBuilder();
+				List<ILogMessage> stderrReceivedMessages = new List<ILogMessage>();
+				AsyncManualResetEvent stderrTextFinishedEvent = new AsyncManualResetEvent();
+				AsyncManualResetEvent stderrMessageFinishedEvent = new AsyncManualResetEvent();
+
+				// run processing in a thread that supports marshalling calls into it
+				// to avoid that event handlers are called out of order by pool threads
+				AsyncContextThread thread = new AsyncContextThread();
+				thread.Factory.Run(async () =>
+				{
+					integration.OutputStreamReceivedText += (sender, args) =>
+					{
+						// abort, if the process has exited
+						if (args.Line == null)
+						{
+							stdoutTextFinishedEvent.Set();
+							return;
+						}
+
+						stdoutReceivedText.Append(args.Line);
+						stdoutReceivedText.Append(newline);
+					};
+
+					integration.OutputStreamReceivedMessage += (sender, args) =>
+					{
+						// abort, if the process has exited
+						if (args.Message == null)
+						{
+							stdoutMessageFinishedEvent.Set();
+							return;
+						}
+
+						stdoutReceivedMessages.Add(args.Message);
+					};
+
+					integration.ErrorStreamReceivedText += (sender, args) =>
+					{
+						// abort, if the process has exited
+						if (args.Line == null)
+						{
+							stderrTextFinishedEvent.Set();
+							return;
+						}
+
+						stderrReceivedText.Append(args.Line);
+						stderrReceivedText.Append(newline);
+					};
+
+					integration.ErrorStreamReceivedMessage += (sender, args) =>
+					{
+						// abort, if the process has exited
+						if (args.Message == null)
+						{
+							stderrMessageFinishedEvent.Set();
+							return;
+						}
+
+						stderrReceivedMessages.Add(args.Message);
+					};
+
+					// start process
+					integration.StartProcess();
+
+					// run the various WaitForExit[Async] methods
+					// (some may return before the process has actually exited)
+					await waitForExit(integration);
+
+					// wait for all event handlers to receive the terminating event arguments
+					// (abort after 30 seconds)
+					CancellationTokenSource cts = new CancellationTokenSource(30000);
+					await stdoutTextFinishedEvent.WaitAsync(cts.Token);
+					await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
+					await stderrTextFinishedEvent.WaitAsync(cts.Token);
+					await stderrMessageFinishedEvent.WaitAsync(cts.Token);
+				}).WaitAndUnwrapException();
+
+				if (stream == "stdout")
+				{
+					// stderr should not have received anything
+					Assert.Equal(0, stderrReceivedText.Length);
+					Assert.Empty(stderrReceivedMessages);
+
+					// stdout should have received the text emitted by the console printer...
+					Assert.Equal(data.Item1.Length, stdoutReceivedText.Length);
+					Assert.Equal(data.Item1, stdoutReceivedText.ToString());
+
+					// ... and the text should have been parsed into log messages
+					Assert.Equal(data.Item2.Length, stdoutReceivedMessages.Count);
+					Assert.Equal(data.Item2, stdoutReceivedMessages.ToArray());
+				}
+				else
+				{
+					// stdout should not have received anything
+					Assert.Equal(0, stdoutReceivedText.Length);
+					Assert.Empty(stdoutReceivedMessages);
+
+					// stderr should have received the text emitted by the console printer...
+					Assert.Equal(data.Item1.Length, stderrReceivedText.Length);
+					Assert.Equal(data.Item1, stderrReceivedText.ToString());
+
+					// ... and the text should have been parsed into log messages
+					Assert.Equal(data.Item2.Length, stderrReceivedMessages.Count);
+					Assert.Equal(data.Item2, stderrReceivedMessages.ToArray());
+				}
+
+				// keep integration object alive to avoid premature collection
+				GC.KeepAlive(integration);
+			}
+			finally
+			{
+				if (File.Exists(testDataFile))
+				{
+					File.Delete(testDataFile);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Sets up running the ConsolePrinter process and integrates it with the logging subsystem.
+		/// </summary>
+		/// <param name="stream">Stream the ConsolePrinter is expected to write the file to (can be 'stdout' or 'stderr').</param>
+		/// <param name="testDataFile">File the ConsolePrinter should write to the output/error stream.</param>
+		/// <returns>The prepared process integration.</returns>
+		private static ProcessIntegration PrepareConsolePrinterIntegration(string stream, string testDataFile)
+		{
 #if NETCOREAPP
 			string dotnetExecutable = Environment.OSVersion.Platform == PlatformID.Win32NT ? "dotnet.exe" : "dotnet";
 			ProcessStartInfo startInfo = new ProcessStartInfo(dotnetExecutable, $"ConsolePrinter.dll {stream} {testDataFile}");
 			Process process = new Process { StartInfo = startInfo };
-			var integration = ProcessIntegration.IntegrateIntoLogging(process);
+			ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal($"External Process ({dotnetExecutable})", integration.LogWriter.Name);
 #elif NETFRAMEWORK
 			ProcessStartInfo startInfo = new ProcessStartInfo("ConsolePrinter.exe", $"{stream} {testDataFile}");
 			Process process = new Process { StartInfo = startInfo };
-			var integration = ProcessIntegration.IntegrateIntoLogging(process);
+			ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal("External Process (ConsolePrinter.exe)", integration.LogWriter.Name);
 #endif
 			Assert.Same(process, integration.Process);
 			Assert.True(integration.IsLoggingMessagesEnabled);
-
-			StringBuilder stdoutReceivedText = new StringBuilder();
-			List<ILogMessage> stdoutReceivedMessages = new List<ILogMessage>();
-			ManualResetEventSlim stdoutTextFinishedEvent = new ManualResetEventSlim();
-			ManualResetEventSlim stdoutMessageFinishedEvent = new ManualResetEventSlim();
-
-			StringBuilder stderrReceivedText = new StringBuilder();
-			List<ILogMessage> stderrReceivedMessages = new List<ILogMessage>();
-			ManualResetEventSlim stderrTextFinishedEvent = new ManualResetEventSlim();
-			ManualResetEventSlim stderrMessageFinishedEvent = new ManualResetEventSlim();
-
-			integration.OutputStreamReceivedText += (sender, args) =>
-			{
-				// abort, if the process has exited
-				if (args.Line == null)
-				{
-					stdoutTextFinishedEvent.Set();
-					return;
-				}
-
-				stdoutReceivedText.Append(args.Line);
-				stdoutReceivedText.Append(newline);
-			};
-
-			integration.OutputStreamReceivedMessage += (sender, args) =>
-			{
-				// abort, if the process has exited
-				if (args.Message == null)
-				{
-					stdoutMessageFinishedEvent.Set();
-					return;
-				}
-
-				stdoutReceivedMessages.Add(args.Message);
-			};
-
-			integration.ErrorStreamReceivedText += (sender, args) =>
-			{
-				// abort, if the process has exited
-				if (args.Line == null)
-				{
-					stderrTextFinishedEvent.Set();
-					return;
-				}
-
-				stderrReceivedText.Append(args.Line);
-				stderrReceivedText.Append(newline);
-			};
-
-			integration.ErrorStreamReceivedMessage += (sender, args) =>
-			{
-				// abort, if the process has exited
-				if (args.Message == null)
-				{
-					stderrMessageFinishedEvent.Set();
-					return;
-				}
-
-				stderrReceivedMessages.Add(args.Message);
-			};
-
-			integration.IsLoggingMessagesEnabled = false;
-			integration.StartProcess();
-			process.WaitForExit();
-
-			// wait for all event handlers to receive the terminating event arguments
-			Assert.True(stdoutTextFinishedEvent.Wait(5000), "Waiting for terminating event args for 'OutputStreamReceivedText' event timed out.");
-			Assert.True(stdoutMessageFinishedEvent.Wait(5000), "Waiting for terminating event args for 'OutputStreamReceivedMessage' event timed out.");
-			Assert.True(stderrTextFinishedEvent.Wait(5000), "Waiting for terminating event args for 'ErrorStreamReceivedText' event timed out.");
-			Assert.True(stderrMessageFinishedEvent.Wait(5000), "Waiting for terminating event args for 'ErrorStreamReceivedMessage' event timed out.");
-
-			if (stream == "stdout")
-			{
-				// stderr should not have received anything
-				Assert.Equal(0, stderrReceivedText.Length);
-				Assert.Empty(stderrReceivedMessages);
-
-				// stdout should have received the text emitted by the console printer...
-				Assert.Equal(data.Item1.Length, stdoutReceivedText.Length);
-				Assert.Equal(data.Item1, stdoutReceivedText.ToString());
-
-				// ... and the text should have been parsed into log messages
-				Assert.Equal(data.Item2.Length, stdoutReceivedMessages.Count);
-				Assert.Equal(data.Item2, stdoutReceivedMessages.ToArray());
-			}
-			else
-			{
-				// stdout should not have received anything
-				Assert.Equal(0, stdoutReceivedText.Length);
-				Assert.Empty(stdoutReceivedMessages);
-
-				// stderr should have received the text emitted by the console printer...
-				Assert.Equal(data.Item1.Length, stderrReceivedText.Length);
-				Assert.Equal(data.Item1, stderrReceivedText.ToString());
-
-				// ... and the text should have been parsed into log messages
-				Assert.Equal(data.Item2.Length, stderrReceivedMessages.Count);
-				Assert.Equal(data.Item2, stderrReceivedMessages.ToArray());
-			}
+			return integration;
 		}
 	}
 }

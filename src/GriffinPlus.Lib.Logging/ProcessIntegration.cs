@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 // ReSharper disable ForCanBeConvertedToForeach
 
@@ -102,6 +103,22 @@ namespace GriffinPlus.Lib.Logging
 		#region Integrating and Starting Process
 
 		/// <summary>
+		/// Gets the process.
+		/// </summary>
+		public Process Process { get; }
+
+		/// <summary>
+		/// Gets the log writer that is used to log received messages.
+		/// </summary>
+		public LogWriter LogWriter { get; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether log messages received via the standard output stream are logged
+		/// (requires the started process to emit JSON formatted log messages).
+		/// </summary>
+		public bool IsLoggingMessagesEnabled { get; set; } = true;
+
+		/// <summary>
 		/// Configures the specified process to redirect its output/error streams to the logging subsystem.
 		/// You can attach event handlers to <see cref="OutputStreamReceivedText"/> and <see cref="ErrorStreamReceivedText"/> to
 		/// get notified as soon as the integrated process writes a line to its output/error stream. The process
@@ -125,20 +142,62 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the process.
+		/// Waits for the process to exit.
 		/// </summary>
-		public Process Process { get; }
+		public void WaitForExit()
+		{
+			Process.WaitForExit();
+		}
 
 		/// <summary>
-		/// Gets the log writer that is used to log received messages.
+		/// Waits for the process to exit or the specified timeout.
 		/// </summary>
-		public LogWriter LogWriter { get; }
+		/// <param name="milliseconds">
+		/// The amount of time, in milliseconds, to wait for the associated process to exit.
+		/// The maximum is the largest possible value of a 32-bit integer, which represents infinity to the operating system.
+		/// </param>
+		/// <returns>
+		/// <c>true</c> if the associated process has exited;
+		/// otherwise, <c>false</c>.
+		/// </returns>
+		public bool WaitForExit(int milliseconds)
+		{
+			return Process.WaitForExit(milliseconds);
+		}
 
 		/// <summary>
-		/// Gets or sets a value indicating whether log messages received via the standard output stream are logged
-		/// (requires the started process to emit JSON formatted log messages).
+		/// Waits asynchronously for the process to exit.
 		/// </summary>
-		public bool IsLoggingMessagesEnabled { get; set; } = true;
+		/// <param name="cancellationToken">Cancellation token that can be signaled to cancel waiting.</param>
+		public async Task WaitForExitAsync(CancellationToken cancellationToken = default(CancellationToken))
+		{
+			var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+			void ProcessExited(object sender, EventArgs e)
+			{
+				tcs.TrySetResult(true);
+			}
+
+			try
+			{
+				Process.EnableRaisingEvents = true;
+				Process.Exited += ProcessExited;
+
+				if (Process.HasExited)
+				{
+					return;
+				}
+
+				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				{
+					await tcs.Task.ConfigureAwait(false);
+				}
+			}
+			finally
+			{
+				Process.Exited -= ProcessExited;
+			}
+		}
 
 		#endregion
 

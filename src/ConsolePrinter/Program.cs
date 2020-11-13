@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace ConsolePrinter
 {
@@ -32,15 +33,14 @@ namespace ConsolePrinter
 			else if (stream == "stderr") output = Console.Error;
 			else return PrintUsage();
 
+			// delay to allow tests to check for process exit
+			Thread.Sleep(1000);
+
 			try
 			{
 				var path = args[1];
-				using (FileStream fs = File.OpenRead(path))
-				using (StreamReader reader = new StreamReader(fs, Encoding.UTF8))
-				{
-					string data = reader.ReadToEnd();
-					output.Write(data);
-				}
+				string data = File.ReadAllText(path, Encoding.UTF8);
+				output.Write(data);
 			}
 			catch (Exception e)
 			{
