@@ -54,7 +54,11 @@ namespace GriffinPlus.Lib.Logging
 				mTriggerAsyncProcessingEvent = new AsyncAutoResetEvent(false);
 				mAsyncProcessingCancellationTokenSource = new CancellationTokenSource();
 				mTerminateProcessingTask = false;
-				mAsyncProcessingTask = Task.Factory.StartNew(ProcessingTask).Unwrap();
+				mAsyncProcessingTask = Task.Factory.StartNew(
+					ProcessingTask,
+					CancellationToken.None,
+					TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
+					TaskScheduler.Default).Unwrap();
 
 				// bind settings
 				BindSettings();
