@@ -226,8 +226,8 @@ namespace GriffinPlus.Lib.Logging
 			stage.Formatter = formatter;
 
 			// replace i/o streams to avoid mixing up test output with regular console output
-			var stdoutStream = new MemoryStream();
-			var stderrStream = new MemoryStream();
+			var stdoutStream = Stream.Synchronized(new MemoryStream()); // the stage writes to the stream asynchronously,
+			var stderrStream = Stream.Synchronized(new MemoryStream()); // so synchronize access to the stream
 			var stdoutWriter = new StreamWriter(stdoutStream);
 			var stderrWriter = new StreamWriter(stderrStream);
 			stage.OutputStream = stdoutWriter;
@@ -269,12 +269,18 @@ namespace GriffinPlus.Lib.Logging
 				}
 			}
 
-			// give the message some time to travel through the pipeline
-			Thread.Sleep(1000);
+			// give the messages some time to travel through the pipeline
+			Thread.Sleep(100);
 
 			// the streams should contain the output now
-			var stdoutReader = new StreamReader(new MemoryStream(stdoutStream.ToArray()));
-			var stderrReader = new StreamReader(new MemoryStream(stderrStream.ToArray()));
+			stdoutStream.Position = 0;
+			stderrStream.Position = 0;
+			var stdoutData = new byte[stdoutStream.Length];
+			var stderrData = new byte[stderrStream.Length];
+			stdoutStream.Read(stdoutData, 0, stdoutData.Length);
+			stderrStream.Read(stderrData, 0, stderrData.Length);
+			var stdoutReader = new StreamReader(new MemoryStream(stdoutData));
+			var stderrReader = new StreamReader(new MemoryStream(stderrData));
 			var stdoutOutput = stdoutReader.ReadToEnd();
 			var stderrOutput = stderrReader.ReadToEnd();
 			Assert.Equal(expectedStdout.ToString(), stdoutOutput);
