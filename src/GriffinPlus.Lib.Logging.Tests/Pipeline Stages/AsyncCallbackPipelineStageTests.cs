@@ -164,6 +164,10 @@ namespace GriffinPlus.Lib.Logging
 				Assert.False(callback.ProcessAsyncCallbackWasCalled);
 				Assert.Empty(callback.MessagesPassedToProcessAsyncCallback);
 			}
+
+			// shut the stage down
+			((IProcessingPipelineStage) stage).Shutdown();
+			Assert.False(stage.IsInitialized);
 		}
 
 		/// <summary>
@@ -260,6 +264,11 @@ namespace GriffinPlus.Lib.Logging
 					Assert.Empty(callback2.MessagesPassedToProcessAsyncCallback);
 				}
 			}
+
+			// shut the pipeline stages down
+			((IProcessingPipelineStage)stage1).Shutdown();
+			Assert.False(stage1.IsInitialized);
+			Assert.False(stage2.IsInitialized);
 		}
 
 	}

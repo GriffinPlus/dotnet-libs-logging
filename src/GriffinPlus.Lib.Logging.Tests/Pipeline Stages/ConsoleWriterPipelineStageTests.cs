@@ -243,7 +243,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// initialize the pipeline stage
-			((IProcessingPipelineStage) stage).Initialize();
+			((IProcessingPipelineStage)stage).Initialize();
 
 			// process the message and determine the expected output in stdout/stderr
 			StringBuilder expectedStdout = new StringBuilder();
@@ -270,7 +270,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// give the messages some time to travel through the pipeline
-			Thread.Sleep(100);
+			Thread.Sleep(1000);
 
 			// the streams should contain the output now
 			stdoutStream.Position = 0;
@@ -285,6 +285,10 @@ namespace GriffinPlus.Lib.Logging
 			var stderrOutput = stderrReader.ReadToEnd();
 			Assert.Equal(expectedStdout.ToString(), stdoutOutput);
 			Assert.Equal(expectedStderr.ToString(), stderrOutput);
+
+			// shut the pipeline stage down
+			((IProcessingPipelineStage)stage).Shutdown();
+			Assert.False(stage.IsInitialized);
 		}
 	}
 }

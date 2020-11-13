@@ -98,6 +98,10 @@ namespace GriffinPlus.Lib.Logging
 			((IProcessingPipelineStage) stage).ProcessMessage(message);
 			Assert.True(callback.ProcessSyncCallbackWasCalled);
 			Assert.Same(message, callback.MessagePassedToProcessSyncCallback);
+
+			// shut the stage down
+			((IProcessingPipelineStage)stage).Shutdown();
+			Assert.False(stage.IsInitialized);
 		}
 
 		/// <summary>
@@ -143,6 +147,11 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Same(message, callback1.MessagePassedToProcessSyncCallback);
 				Assert.Null(callback2.MessagePassedToProcessSyncCallback);
 			}
+
+			// shut the stages down
+			((IProcessingPipelineStage)stage1).Shutdown();
+			Assert.False(stage1.IsInitialized);
+			Assert.False(stage2.IsInitialized);
 		}
 
 	}
