@@ -40,19 +40,20 @@ namespace GriffinPlus.Lib.Logging
 		private State mReadingValueState;
 		private readonly List<ILogMessage> mCompletedLogMessages = new List<ILogMessage>();
 		private LogMessage mLogMessage;
+		private JsonMessageFieldNames mFieldNames;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="JsonMessageReader"/> class.
 		/// </summary>
 		public JsonMessageReader()
 		{
-			FieldNames = new JsonMessageFieldNames();
+			mFieldNames = new JsonMessageFieldNames();
 		}
 
 		/// <summary>
 		/// Gets the field names defining how to map JSON keys to fields in <see cref="ILogMessage"/>.
 		/// </summary>
-		public JsonMessageFieldNames FieldNames { get; }
+		public JsonMessageFieldNames FieldNames => mFieldNames;
 
 		/// <summary>
 		/// Gets or sets the format of the timestamp.
@@ -113,15 +114,15 @@ namespace GriffinPlus.Lib.Logging
 						if (token.Type == JsonTokenType.String)
 						{
 							// a JSON key
-							if (token.Token == FieldNames.Timestamp) mReadingValueState = State.ReadingTimestampValue;
-							else if (token.Token == FieldNames.HighPrecisionTimestamp) mReadingValueState = State.ReadingHighPrecisionTimestampValue;
-							else if (token.Token == FieldNames.LogWriter) mReadingValueState = State.ReadingLogWriterValue;
-							else if (token.Token == FieldNames.LogLevel) mReadingValueState = State.ReadingLogLevelValue;
-							else if (token.Token == FieldNames.Tags) mReadingValueState = State.ReadingTagsValue;
-							else if (token.Token == FieldNames.ApplicationName) mReadingValueState = State.ReadingApplicationNameValue;
-							else if (token.Token == FieldNames.ProcessName) mReadingValueState = State.ReadingProcessNameValue;
-							else if (token.Token == FieldNames.ProcessId) mReadingValueState = State.ReadingProcessIdValue;
-							else if (token.Token == FieldNames.Text) mReadingValueState = State.ReadingTextValue;
+							if (token.Token == mFieldNames.Timestamp) mReadingValueState = State.ReadingTimestampValue;
+							else if (token.Token == mFieldNames.HighPrecisionTimestamp) mReadingValueState = State.ReadingHighPrecisionTimestampValue;
+							else if (token.Token == mFieldNames.LogWriter) mReadingValueState = State.ReadingLogWriterValue;
+							else if (token.Token == mFieldNames.LogLevel) mReadingValueState = State.ReadingLogLevelValue;
+							else if (token.Token == mFieldNames.Tags) mReadingValueState = State.ReadingTagsValue;
+							else if (token.Token == mFieldNames.ApplicationName) mReadingValueState = State.ReadingApplicationNameValue;
+							else if (token.Token == mFieldNames.ProcessName) mReadingValueState = State.ReadingProcessNameValue;
+							else if (token.Token == mFieldNames.ProcessId) mReadingValueState = State.ReadingProcessIdValue;
+							else if (token.Token == mFieldNames.Text) mReadingValueState = State.ReadingTextValue;
 							else throw new JsonMessageReaderException(
 								token.LineNumber,
 								token.Position,

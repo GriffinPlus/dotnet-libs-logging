@@ -68,6 +68,8 @@ namespace GriffinPlus.Lib.Logging
 		private int mStartPositionOfAssembledEscapeSequence;
 		private readonly StringBuilder mTokenBuilder = new StringBuilder();
 		private readonly StringBuilder mEscapeSequenceBuilder = new StringBuilder();
+		private int mCurrentLineNumber;
+		private int mCurrentPosition;
 
 		/// <summary>
 		/// Initializes the <seealso cref="JsonTokenizer"/> class.
@@ -97,17 +99,17 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the extracted tokens.
 		/// </summary>
-		public Queue<JsonToken> Tokens { get; } = new Queue<JsonToken>();
+		public readonly Queue<JsonToken> Tokens = new Queue<JsonToken>();
 
 		/// <summary>
 		/// Gets the current line number where tokenizing stopped (starts at 1).
 		/// </summary>
-		public int CurrentLineNumber { get; private set; }
+		public int CurrentLineNumber => mCurrentLineNumber;
 
 		/// <summary>
 		/// Gets the current position in the line where tokenizing stopped (starts at 1).
 		/// </summary>
-		public int CurrentPosition { get; private set; }
+		public int CurrentPosition => mCurrentPosition;
 
 		/// <summary>
 		/// Processes the specified JSON string, extracts tokens and stores them in <see cref="Tokens"/>
@@ -129,14 +131,14 @@ namespace GriffinPlus.Lib.Logging
 				char c = data[i];
 
 				// adjust line number and position
-				CurrentLineNumber = mNextLineNumber;
-				CurrentPosition = mNextPosition;
+				mCurrentLineNumber = mNextLineNumber;
+				mCurrentPosition = mNextPosition;
 
 				// determine the next line number and position
-				mNextPosition = CurrentPosition + 1;
+				mNextPosition = mCurrentPosition + 1;
 				if (sLineSeparators.IndexOf(c) >= 0)
 				{
-					mNextLineNumber = CurrentLineNumber + 1;
+					mNextLineNumber = mCurrentLineNumber + 1;
 					mNextPosition = 1;
 				}
 
@@ -146,8 +148,8 @@ namespace GriffinPlus.Lib.Logging
 					// handle escaped characters
 					if (c == '\\')
 					{
-						mStartLineNumberOfAssembledEscapeSequence = CurrentLineNumber;
-						mStartPositionOfAssembledEscapeSequence = CurrentPosition;
+						mStartLineNumberOfAssembledEscapeSequence = mCurrentLineNumber;
+						mStartPositionOfAssembledEscapeSequence = mCurrentPosition;
 						mState = State.ReadingEscapeSequence;
 						continue;
 					}
@@ -176,8 +178,8 @@ namespace GriffinPlus.Lib.Logging
 						mState = State.Reading;
 
 						// character must be processed once again to generate the appropriate token, if necessary
-						mNextLineNumber = CurrentLineNumber;
-						mNextPosition = CurrentPosition;
+						mNextLineNumber = mCurrentLineNumber;
+						mNextPosition = mCurrentPosition;
 						i--;
 
 						continue;
@@ -257,8 +259,8 @@ namespace GriffinPlus.Lib.Logging
 				{
 					mTokenBuilder.Clear();
 					mState = State.ReadingString;
-					mStartLineNumberOfAssembledToken = CurrentLineNumber;
-					mStartPositionOfAssembledToken = CurrentPosition;
+					mStartLineNumberOfAssembledToken = mCurrentLineNumber;
+					mStartPositionOfAssembledToken = mCurrentPosition;
 					continue;
 				}
 
@@ -266,22 +268,22 @@ namespace GriffinPlus.Lib.Logging
 				switch (c)
 				{
 					case '{':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.LBracket, "{", CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.LBracket, "{", mCurrentLineNumber, mCurrentPosition));
 						continue;
 					case '}':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.RBracket, "}", CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.RBracket, "}", mCurrentLineNumber, mCurrentPosition));
 						continue;
 					case '[':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.LSquareBracket, "[", CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.LSquareBracket, "[", mCurrentLineNumber, mCurrentPosition));
 						continue;
 					case ']':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.RSquareBracket, "]", CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.RSquareBracket, "]", mCurrentLineNumber, mCurrentPosition));
 						continue;
 					case ':':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.Colon, ":", CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.Colon, ":", mCurrentLineNumber, mCurrentPosition));
 						continue;
 					case ',':
-						Tokens.Enqueue(new JsonToken(JsonTokenType.Comma, ",", CurrentLineNumber, CurrentPosition));
+						Tokens.Enqueue(new JsonToken(JsonTokenType.Comma, ",", mCurrentLineNumber, mCurrentPosition));
 						continue;
 				}
 
@@ -290,8 +292,8 @@ namespace GriffinPlus.Lib.Logging
 				mTokenBuilder.Clear();
 				mTokenBuilder.Append(c);
 				mState = State.ReadingIdentifier;
-				mStartLineNumberOfAssembledToken = CurrentLineNumber;
-				mStartPositionOfAssembledToken = CurrentPosition;
+				mStartLineNumberOfAssembledToken = mCurrentLineNumber;
+				mStartPositionOfAssembledToken = mCurrentPosition;
 			}
 
 			if (complete) Flush();
@@ -342,8 +344,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			Tokens.Clear();
 			mState = State.Reading;
-			CurrentLineNumber = 1;
-			CurrentPosition = 1;
+			mCurrentLineNumber = 1;
+			mCurrentPosition = 1;
 			mNextLineNumber = 1;
 			mNextLineNumber = 1;
 			mStartLineNumberOfAssembledToken = -1;
