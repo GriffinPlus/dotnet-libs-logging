@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net461; netcoreapp2.1; netcoreapp3.1</TargetFrameworks>
+		<TargetFrameworks>net461; netcoreapp2.1; netcoreapp3.1; net5.0</TargetFrameworks>
 		<!-- Workaround: Set the output path to the output path of the tests project to allow it to run the ConsolePrinter in tests -->
-		<OutputPath>..\..\_build\GriffinPlus.Lib.Logging.Tests\$(Configuration)\</OutputPath>
+		<OutputPath>..\..\_build\GriffinPlus.Lib.Logging.Tests\$(Platform).$(Configuration)\</OutputPath>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

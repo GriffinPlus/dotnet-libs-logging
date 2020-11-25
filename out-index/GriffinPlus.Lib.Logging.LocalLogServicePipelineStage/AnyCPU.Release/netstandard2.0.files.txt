@@ -1,0 +1,7 @@
+﻿.\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.deps.json
+.\GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.dll
+.\GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.pdb
+.\GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.xml
+.\GriffinPlus.Lib.Logging.pdb
+.\GriffinPlus.Lib.Logging.xml

@@ -1,0 +1,7 @@
+﻿.\GriffinPlus.Lib.Logging.Demo.exe
+.\GriffinPlus.Lib.Logging.Demo.exe.config
+.\GriffinPlus.Lib.Logging.Demo.pdb
+.\GriffinPlus.Lib.Logging.Demo.xml
+.\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.pdb
+.\GriffinPlus.Lib.Logging.xml
