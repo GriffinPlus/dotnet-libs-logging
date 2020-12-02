@@ -1,9 +1,8 @@
 # Griffin+ Logging
 
 [![Azure DevOps builds (branch)](https://img.shields.io/azure-devops/build/griffinplus/2f589a5e-e2ab-4c08-bee5-5356db2b2aeb/26/master?label=Build)](https://dev.azure.com/griffinplus/DotNET%20Libraries/_build/latest?definitionId=26&branchName=master)
-[![Tests (master)](https://img.shields.io/azure-devops/tests/griffinplus/DotNET%20Libraries/26/master?label=Tests)](https://dev.azure.com/griffinplus/DotNET%20Libraries/_build/latest?definitionId=26&branchName=master)
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+[![Tests (master)](https://img.shields.io/azure-devops/tests/griffinplus/DotNET%20Libraries/26/master?label=Tests)](https://dev.azure.com/griffinplus/DotNET%20Libraries/_build/latest?definitionId=26&branchName=master)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-round)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 | NuGet Package                                        |                                                                                             |
