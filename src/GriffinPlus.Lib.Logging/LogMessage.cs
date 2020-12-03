@@ -20,7 +20,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public LogMessage()
 		{
-
 		}
 
 		/// <summary>
@@ -38,6 +37,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="other">Message to copy.</param>
 		public LogMessage(ILogMessage other)
 		{
+			Id = other is LogMessage message ? message.Id : -1;
 			Timestamp = other.Timestamp;
 			HighPrecisionTimestamp = other.HighPrecisionTimestamp;
 			LogWriterName = other.LogWriterName;
@@ -50,6 +50,18 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		#region Message Properties
+
+		/// <summary>
+		/// Id uniquely identifying the message in a certain scope, e.g. a log file
+		/// (-1, if the id is invalid).
+		/// </summary>
+		public long Id { get; set; }
+
+		/// <summary>
+		/// Gets or sets the number of preceding messages that have been lost before this message
+		/// (useful when dealing with message streams).
+		/// </summary>
+		public int LostMessageCount { get; set; }
 
 		/// <summary>
 		/// Gets the date/time the message was written to the log.
@@ -123,12 +135,14 @@ namespace GriffinPlus.Lib.Logging
 		{
 			int refCount = Interlocked.Decrement(ref mRefCount);
 
-			if (refCount < 0) {
+			if (refCount < 0)
+			{
 				Interlocked.Increment(ref mRefCount);
 				throw new InvalidOperationException("The reference count is already 0.");
 			}
 
-			if (refCount == 0) {
+			if (refCount == 0)
+			{
 				Pool?.ReturnMessage(this);
 			}
 
@@ -190,6 +204,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		internal void Reset()
 		{
+			Id = 0;
+			LostMessageCount = 0;
 			LogWriterName = null;
 			LogLevelName = null;
 			Tags = null;
@@ -214,6 +230,7 @@ namespace GriffinPlus.Lib.Logging
 		public bool Equals(ILogMessage other)
 		{
 			if (other == null) return false;
+			if (other is LogMessage otherLogMessage) return Equals(otherLogMessage);
 			return Timestamp.Equals(other.Timestamp) &&
 			       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
 			       LogWriterName == other.LogWriterName &&
@@ -224,6 +241,31 @@ namespace GriffinPlus.Lib.Logging
 			       ProcessId == other.ProcessId &&
 			       Text == other.Text;
 		}
+
+		/// <summary>
+		/// Checks whether the current log message equals the specified one.
+		/// </summary>
+		/// <param name="other">Log message to compare with.</param>
+		/// <returns>
+		/// true, if the current log message equals the specified one;
+		/// otherwise false.
+		/// </returns>
+		public bool Equals(LogMessage other)
+		{
+			if (other == null) return false;
+			return Id                     == other.Id                     &&
+			       LostMessageCount       == other.LostMessageCount       &&
+			       Timestamp              == other.Timestamp              &&
+			       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
+			       LogWriterName          == other.LogWriterName          &&
+			       LogLevelName           == other.LogLevelName           &&
+			       ApplicationName        == other.ApplicationName        &&
+			       ProcessName            == other.ProcessName            &&
+			       ProcessId              == other.ProcessId              &&
+			       Text                   == other.Text                   &&
+			       Equals(Tags, other.Tags);
+		}
+
 
 		/// <summary>
 		/// Checks whether the current log message equals the specified one.
@@ -247,6 +289,8 @@ namespace GriffinPlus.Lib.Logging
 			unchecked
 			{
 				var hashCode = Timestamp.GetHashCode();
+				hashCode = (hashCode * 397) ^ Id.GetHashCode();
+				hashCode = (hashCode * 397) ^ LostMessageCount;
 				hashCode = (hashCode * 397) ^ HighPrecisionTimestamp.GetHashCode();
 				hashCode = (hashCode * 397) ^ (LogWriterName != null ? LogWriterName.GetHashCode() : 0);
 				hashCode = (hashCode * 397) ^ (LogLevelName != null ? LogLevelName.GetHashCode() : 0);
@@ -260,6 +304,5 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		#endregion
-
 	}
 }
