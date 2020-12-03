@@ -54,6 +54,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build.vs", "build.vs", "{A6
 		build.vs\UpdateOutputFileList.psm1 = build.vs\UpdateOutputFileList.psm1
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.LogFile", "src\GriffinPlus.Lib.Logging.LogFile\GriffinPlus.Lib.Logging.LogFile.csproj", "{EFCE565D-F313-4834-B2D6-AD5284E24464}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.LogFile.Tests", "src\GriffinPlus.Lib.Logging.LogFile.Tests\GriffinPlus.Lib.Logging.LogFile.Tests.csproj", "{0FD81A8E-8645-46AA-B1A0-AE55386514E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +84,14 @@ Global
 		{17D6FDE0-987A-4C78-BE7F-97757B0E8A64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17D6FDE0-987A-4C78-BE7F-97757B0E8A64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17D6FDE0-987A-4C78-BE7F-97757B0E8A64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFCE565D-F313-4834-B2D6-AD5284E24464}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFCE565D-F313-4834-B2D6-AD5284E24464}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFCE565D-F313-4834-B2D6-AD5284E24464}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFCE565D-F313-4834-B2D6-AD5284E24464}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FD81A8E-8645-46AA-B1A0-AE55386514E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FD81A8E-8645-46AA-B1A0-AE55386514E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FD81A8E-8645-46AA-B1A0-AE55386514E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FD81A8E-8645-46AA-B1A0-AE55386514E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
