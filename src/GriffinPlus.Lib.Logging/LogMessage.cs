@@ -52,7 +52,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Message Properties
 
 		/// <summary>
-		/// Id uniquely identifying the message in a certain scope, e.g. a log file
+		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file
 		/// (-1, if the id is invalid).
 		/// </summary>
 		public long Id { get; set; }
@@ -64,49 +64,49 @@ namespace GriffinPlus.Lib.Logging
 		public int LostMessageCount { get; set; }
 
 		/// <summary>
-		/// Gets the date/time the message was written to the log.
+		/// Gets or sets the date/time the message was written to the log.
 		/// </summary>
 		public DateTimeOffset Timestamp { get; set; }
 
 		/// <summary>
-		/// Gets the timestamp for relative time measurements with high precision
+		/// Gets or sets the timestamp for relative time measurements with high precision
 		/// (in nanoseconds, but the actual precision depends on the system timer).
 		/// </summary>
 		public long HighPrecisionTimestamp { get; set; }
 
 		/// <summary>
-		/// Gets the name of the log writer associated with the log message.
+		/// Gets or sets the name of the log writer associated with the log message.
 		/// </summary>
 		public string LogWriterName { get; set; }
 
 		/// <summary>
-		/// Gets the name of the log level associated with the log message.
+		/// Gets or sets the name of the log level associated with the log message.
 		/// </summary>
 		public string LogLevelName { get; set; }
 
 		/// <summary>
-		/// Gets tags attached to the log message.
+		/// Gets or sets tags attached to the log message.
 		/// </summary>
 		public TagSet Tags { get; set; }
 
 		/// <summary>
-		/// Gets the name of the application emitting the log message
+		/// Gets or sets the name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </summary>
 		public string ApplicationName { get; set; }
 
 		/// <summary>
-		/// Gets the name of the process emitting the log message.
+		/// Gets or sets the name of the process emitting the log message.
 		/// </summary>
 		public string ProcessName { get; set; }
 
 		/// <summary>
-		/// Gets the id of the process emitting the log message.
+		/// Gets or sets the id of the process emitting the log message.
 		/// </summary>
 		public int ProcessId { get; set; }
 
 		/// <summary>
-		/// Gets the actual text the log message is about.
+		/// Gets or sets the actual text the log message is about.
 		/// </summary>
 		public string Text { get; set; }
 
