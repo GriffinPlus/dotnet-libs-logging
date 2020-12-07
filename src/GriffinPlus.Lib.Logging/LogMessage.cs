@@ -160,12 +160,20 @@ namespace GriffinPlus.Lib.Logging
 		internal LogMessagePool Pool { get; }
 
 		/// <summary>
-		/// Initializes the log message.
+		/// Initializes the log message
 		/// </summary>
+		/// <param name="id">
+		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file;
+		/// -1, if the id is invalid.
+		/// </param>
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
 		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
+		/// </param>
+		/// <param name="lostMessageCount">
+		/// Gets or sets the number of preceding messages that have been lost before this message
+		/// (useful when dealing with message streams).
 		/// </param>
 		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
 		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
@@ -178,8 +186,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="processId">Id of the process emitting the log message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
 		public void Init(
+			long id,
 			DateTimeOffset timestamp,
 			long highPrecisionTimestamp,
+			int lostMessageCount,
 			string logWriterName,
 			string logLevelName,
 			TagSet tags,
@@ -188,8 +198,10 @@ namespace GriffinPlus.Lib.Logging
 			int processId,
 			string text)
 		{
+			Id = id;
 			Timestamp = timestamp;
 			HighPrecisionTimestamp = highPrecisionTimestamp;
+			LostMessageCount = lostMessageCount;
 			LogWriterName = logWriterName;
 			LogLevelName = logLevelName;
 			Tags = tags;
@@ -204,7 +216,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		internal void Reset()
 		{
-			Id = 0;
+			Id = -1;
+			Timestamp = default(DateTimeOffset);
+			HighPrecisionTimestamp = 0;
 			LostMessageCount = 0;
 			LogWriterName = null;
 			LogLevelName = null;

@@ -32,12 +32,41 @@ namespace GriffinPlus.Lib.Logging
 		public static LogMessagePool Default { get; } = new LogMessagePool();
 
 		/// <summary>
+		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
+		/// Call <see cref="LogMessage.Init"/> to initialize it.
+		/// </summary>
+		/// <returns>The requested log message.</returns>
+		public LogMessage GetUninitializedMessage()
+		{
+			if (mMessages.TryTake(out var message))
+			{
+				// ReSharper disable once RedundantAssignment
+				int refCount = message.AddRef();
+				Debug.Assert(refCount == 1);
+			}
+			else
+			{
+				message = new LogMessage(this);
+			}
+
+			return message;
+		}
+
+		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty.
 		/// </summary>
+		/// <param name="id">
+		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file;
+		/// -1, if the id is invalid.
+		/// </param>
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
 		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
+		/// </param>
+		/// <param name="lostMessageCount">
+		/// Gets or sets the number of preceding messages that have been lost before this message
+		/// (useful when dealing with message streams).
 		/// </param>
 		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
 		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
@@ -51,8 +80,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="text">The actual text the log message is about.</param>
 		/// <returns>The requested log message.</returns>
 		public LogMessage GetMessage(
+			long id,
 			DateTimeOffset timestamp,
 			long highPrecisionTimestamp,
+			int lostMessageCount,
 			string logWriterName,
 			string logLevelName,
 			TagSet tags,
@@ -72,7 +103,7 @@ namespace GriffinPlus.Lib.Logging
 				message = new LogMessage(this);
 			}
 
-			message.Init(timestamp, highPrecisionTimestamp, logWriterName, logLevelName, tags, applicationName, processName, processId, text);
+			message.Init(id, timestamp, highPrecisionTimestamp, lostMessageCount, logWriterName, logLevelName, tags, applicationName, processName, processId, text);
 			return message;
 		}
 
