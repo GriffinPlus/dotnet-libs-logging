@@ -27,6 +27,11 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the default log message pool.
+		/// </summary>
+		public static LogMessagePool Default { get; } = new LogMessagePool();
+
+		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty.
 		/// </summary>
 		/// <param name="timestamp">Time the message was written to the log.</param>

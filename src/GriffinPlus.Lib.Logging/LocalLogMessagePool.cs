@@ -25,6 +25,11 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the default log message pool.
+		/// </summary>
+		public static LocalLogMessagePool Default { get; } = new LocalLogMessagePool();
+
+		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
 		/// Call <see cref="LocalLogMessage.Init"/> to initialize it.
 		/// </summary>
