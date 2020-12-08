@@ -8,6 +8,7 @@
 | NuGet Package                                        |                                                                                             |
 |------------------------------------------------------|---------------------------------------------------------------------------------------------|
 | GriffinPlus.Lib.Logging                              | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging) |
+| GriffinPlus.Lib.Logging.LogFile                      | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LogFile.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LogFile.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) |
 | GriffinPlus.Lib.Logging.LocalLogServicePipelineStage | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) |
 
 ## Overview
