@@ -20,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Repository Files", "Reposit
 		src\Directory.Build.targets = src\Directory.Build.targets
 		LICENSE = LICENSE
 		README.md = README.md
+		src\tests.runsettings = src\tests.runsettings
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.LocalLogServicePipelineStage", "src\GriffinPlus.Lib.Logging.LocalLogServicePipelineStage\GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.csproj", "{EFB64517-A298-4BD1-864F-66B253EEBA7A}"

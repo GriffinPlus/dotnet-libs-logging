@@ -171,6 +171,7 @@ stages:
           **\*Tests.dll
           !**\.obj\**
         searchFolder: '$(Build.SourcesDirectory)/_build'
+        runSettingsFile: '$(Build.SourcesDirectory)/src/tests.runsettings'
         otherConsoleOptions: '/Framework:.NETFramework,Version=v4.6.1'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 2.1'
