@@ -233,7 +233,7 @@ namespace GriffinPlus.Lib.Logging
 					{
 						long highPrecisionTimestamp = GetHighPrecisionTimestamp();
 
-						message.Init(
+						message.InitWith(
 							GetTimestamp(),
 							highPrecisionTimestamp,
 							writer,

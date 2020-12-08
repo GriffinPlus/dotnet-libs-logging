@@ -33,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
-		/// Call <see cref="LogMessage.Init"/> to initialize it.
+		/// Call <see cref="LogMessage.InitWith"/> to initialize it.
 		/// </summary>
 		/// <returns>The requested log message.</returns>
 		public LogMessage GetUninitializedMessage()
@@ -103,7 +103,7 @@ namespace GriffinPlus.Lib.Logging
 				message = new LogMessage(this);
 			}
 
-			message.Init(id, timestamp, highPrecisionTimestamp, lostMessageCount, logWriterName, logLevelName, tags, applicationName, processName, processId, text);
+			message.InitWith(id, timestamp, highPrecisionTimestamp, lostMessageCount, logWriterName, logLevelName, tags, applicationName, processName, processId, text);
 			return message;
 		}
 

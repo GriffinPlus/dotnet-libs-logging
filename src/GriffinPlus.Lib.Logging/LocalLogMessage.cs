@@ -183,7 +183,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="processName">Name of the process emitting the log message.</param>
 		/// <param name="processId">Id of the process emitting the log message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
-		internal void Init(
+		/// <returns>The log message itself.</returns>
+		internal LocalLogMessage InitWith(
 			DateTimeOffset timestamp,
 			long highPrecisionTimestamp,
 			LogWriter logWriter,
@@ -203,6 +204,8 @@ namespace GriffinPlus.Lib.Logging
 			ProcessName = processName;
 			ProcessId = processId;
 			Text = text;
+
+			return this;
 		}
 
 		/// <summary>
