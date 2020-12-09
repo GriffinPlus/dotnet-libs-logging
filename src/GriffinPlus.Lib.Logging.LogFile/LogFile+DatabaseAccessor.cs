@@ -70,7 +70,6 @@ namespace GriffinPlus.Lib.Logging
 			private static readonly string[] sCreateDatabaseCommands_CommonStructure =
 			{
 				$"PRAGMA application_id = {LogFileApplicationId};",
-				"PRAGMA user_version = 1;", // <- 'recording' format
 				"PRAGMA encoding = 'UTF-8';",
 				"PRAGMA page_size = 65536;",
 				"CREATE TABLE levels (id INTEGER PRIMARY KEY, name TEXT);",

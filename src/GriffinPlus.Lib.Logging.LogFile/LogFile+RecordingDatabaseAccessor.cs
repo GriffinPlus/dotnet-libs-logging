@@ -46,6 +46,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			private static readonly string[] sCreateDatabaseCommands_SpecificStructure =
 			{
+				"PRAGMA user_version = 1;", // <- 'recording' format
 				"CREATE TABLE messages (id INTEGER PRIMARY KEY, timestamp INTEGER, timezone_offset INTEGER, high_precision_timestamp INTEGER, lost_message_count INTEGER, process_id INTEGER, process_name_id INTEGER, application_name_id INTEGER, writer_name_id INTEGER, level_name_id INTEGER, text TEXT);"
 			};
 
