@@ -369,7 +369,6 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>Number of messages written (should always be all messages).</returns>
 			public virtual long Write(IEnumerable<ILogMessage> messages)
 			{
-				long messageId = NewestMessageId;
 				long count = 0;
 
 				BeginTransaction();
@@ -377,7 +376,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					foreach (var message in messages)
 					{
-						WriteLogMessage(message, ++messageId);
+						WriteLogMessage(message, NewestMessageId + count + 1);
 						count++;
 					}
 
@@ -389,8 +388,8 @@ namespace GriffinPlus.Lib.Logging
 					throw;
 				}
 
-				if (OldestMessageId < 0) OldestMessageId = messageId;
-				NewestMessageId = messageId;
+				NewestMessageId = NewestMessageId + count;
+				if (OldestMessageId < 0) OldestMessageId = NewestMessageId - count + 1;
 				return count;
 			}
 
