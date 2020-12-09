@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Xunit;
 
@@ -84,13 +85,13 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests writing a single message to an empty log file.
+		/// Tests writing a single message to an empty log file and reading the message back.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		[Theory]
 		[MemberData(nameof(PurposeWriteModeMixTestData))]
-		private void SingleMessage(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		private void WriteFollowedByRead_SingleMessage(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			const string filename = "Test.gplog";
 			string       fullPath = Path.GetFullPath(filename);
@@ -99,7 +100,7 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(fullPath);
 
 			// generate a message to write into the file
-			LogMessage message = GetTestMessage();
+			LogMessage message = GetTestMessages(1)[0];
 
 			// create a new log file
 			using (LogFile file = new LogFile(filename, purpose, writeMode))
@@ -135,23 +136,107 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a well defined log message.
+		/// Tests writing multiple messages to an empty log file and reading the messages back.
 		/// </summary>
-		/// <returns></returns>
-		private LogMessage GetTestMessage()
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		[Theory]
+		[MemberData(nameof(PurposeWriteModeMixTestData))]
+		private void WriteFollowedByRead_MultipleMessages(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
-			return new LogMessage().InitWith(
-				-1,
-				DateTimeOffset.Parse("2020-01-01T01:02:03.456+01:00"),
-				123,
-				456,
-				"LogWriterName",
-				"LogLevelName",
-				null,
-				"ApplicationName",
-				"ProcessName",
-				42,
-				"The quick brown fox jumps over the lazy dog.");
+			const string filename = "Test.gplog";
+			string       fullPath = Path.GetFullPath(filename);
+
+			// ensure the log file does not exist
+			File.Delete(fullPath);
+
+			// generate messages to write into the file
+			LogMessage[] messages = GetTestMessages(100000);
+
+			// create a new log file
+			using (LogFile file = new LogFile(filename, purpose, writeMode))
+			{
+				// the state of an empty log file is already tested in CreateEmptyFile()
+				// => nothing to do here...
+
+				// write the message
+				file.Write(messages);
+
+				// the file should contain exactly the specified number of messages
+				Assert.Equal(messages.Length, file.MessageCount);
+				Assert.Equal(0, file.OldestMessageId);
+				Assert.Equal(messages.Length - 1, file.NewestMessageId);
+				LogMessage[] readMessages = file.Read(0, messages.Length + 1);
+				Assert.Equal(messages.Length, readMessages.Length);
+
+				// the messages returned by the log file should be the same as the inserted message
+				// (except the message id that is set by the log file)
+				long expectedId = 0;
+				for (int i = 0; i < messages.Length; i++)
+				{
+					Assert.Equal(expectedId++, readMessages[i].Id);
+					messages[i].Id = readMessages[i].Id;
+					Assert.Equal(messages[i], readMessages[i]);
+				}
+
+				// the wrapping collection should also reflect the change
+				var collection = file.Messages;
+				Assert.Equal(messages.Length, collection.Count);
+
+				// the messages returned by the collection should be the same as the inserted messages
+				// (except the message id that is set by the log file, message id was adjusted above)
+				Assert.Equal(messages, collection.ToArray());
+			}
+		}
+
+		/// <summary>
+		/// Gets a deterministic set of random log messages.
+		/// </summary>
+		/// <param name="count">Number of log messages to generate.</param>
+		/// <param name="maxDifferentWritersCount">Maximum number of different log writer names.</param>
+		/// <param name="maxDifferentLevelsCount">Maximum number of different log level names.</param>
+		/// <param name="maxDifferentApplicationsCount">Maximum number of different application names.</param>
+		/// <param name="maxDifferentProcessIdsCount">Maximum number of different process ids.</param>
+		/// <returns>The requested log message set.</returns>
+		private static LogMessage[] GetTestMessages(
+			int count,
+			int maxDifferentWritersCount = 50,
+			int maxDifferentLevelsCount = 50,
+			int maxDifferentApplicationsCount = 3,
+			int maxDifferentProcessIdsCount = 100000)
+		{
+			List<LogMessage> messages = new List<LogMessage>();
+
+			Random random = new Random(0);
+			DateTime utcTimestamp = DateTime.Parse("2020-01-01T01:02:03");
+			long highPrecisionTimestamp = 0;
+
+			for (int i = 0; i < count; i++)
+			{
+				var timezoneOffset = TimeSpan.FromHours(random.Next(-14,14));
+				var processId = random.Next(1, maxDifferentProcessIdsCount);
+				LogMessage message = new LogMessage().InitWith(
+					-1,
+					new DateTimeOffset(utcTimestamp + timezoneOffset, timezoneOffset),
+					highPrecisionTimestamp,
+					random.Next(0, 1),
+					$"Log Writer {random.Next(1, maxDifferentWritersCount)}",
+					$"Log Level {random.Next(1, maxDifferentLevelsCount)}",
+					null,
+					$"Application {random.Next(1, maxDifferentApplicationsCount)}",
+					$"Process {processId}",
+					processId,
+					$"Just a log message with some random content ({random.Next(0, 100000)})");
+
+				// move the timestamps up to 1 day into the future
+				var timeSkip = TimeSpan.FromMilliseconds(random.Next(1, 24 * 60 * 60 * 1000));
+				utcTimestamp += timeSkip;
+				highPrecisionTimestamp += timeSkip.Ticks * 10; // the high precision timestamp is in nanoseconds, ticks are in 100ps
+
+				messages.Add(message);
+			}
+
+			return messages.ToArray();
 		}
 	}
 }
