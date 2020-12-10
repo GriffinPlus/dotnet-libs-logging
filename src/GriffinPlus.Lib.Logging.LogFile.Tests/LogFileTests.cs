@@ -27,6 +27,8 @@ namespace GriffinPlus.Lib.Logging
 			mFixture = fixture;
 		}
 
+		#region GetSqliteVersion()
+
 		/// <summary>
 		/// Tests getting the <see cref="LogFile.SqliteVersion"/> property.
 		/// </summary>
@@ -40,6 +42,10 @@ namespace GriffinPlus.Lib.Logging
 			// TODO: Replace nuget package with fixed one and enable test again.
 			// Assert.Equal("3.32.1", LogFile.SqliteVersion);
 		}
+
+		#endregion
+
+		#region Construction
 
 		/// <summary>
 		/// Test data providing a mix of purpose and write modes.
@@ -93,6 +99,10 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(fullPath, collection.FilePath);
 			}
 		}
+
+		#endregion
+
+		#region Write()
 
 		/// <summary>
 		/// Tests writing a single message to an empty log file and reading the message back.
@@ -198,6 +208,10 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(messages, collection.ToArray());
 			}
 		}
+
+		#endregion
+
+		#region Read()
 
 		/// <summary>
 		/// Tests reading log messages in chunks from the log file returning an array of log messages at the end.
@@ -337,5 +351,7 @@ namespace GriffinPlus.Lib.Logging
 				File.Delete(path);
 			}
 		}
+
+		#endregion
 	}
 }
