@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -201,53 +200,142 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a deterministic set of random log messages.
+		/// Tests reading log messages in chunks from the log file returning an array of log messages at the end.
 		/// </summary>
-		/// <param name="count">Number of log messages to generate.</param>
-		/// <param name="maxDifferentWritersCount">Maximum number of different log writer names.</param>
-		/// <param name="maxDifferentLevelsCount">Maximum number of different log level names.</param>
-		/// <param name="maxDifferentApplicationsCount">Maximum number of different application names.</param>
-		/// <param name="maxDifferentProcessIdsCount">Maximum number of different process ids.</param>
-		/// <returns>The requested log message set.</returns>
-		private static LogMessage[] GetTestMessages(
-			int count,
-			int maxDifferentWritersCount = 50,
-			int maxDifferentLevelsCount = 50,
-			int maxDifferentApplicationsCount = 3,
-			int maxDifferentProcessIdsCount = 100000)
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		[Theory]
+		[MemberData(nameof(PurposeWriteModeMixTestData))]
+		private void Read_ReturnMessages(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
-			List<LogMessage> messages = new List<LogMessage>();
+			string path = purpose == LogFilePurpose.Recording
+				? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				: mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
-			Random random = new Random(0);
-			DateTime utcTimestamp = DateTime.Parse("2020-01-01T01:02:03");
-			long highPrecisionTimestamp = 0;
+			LogMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
 
-			for (int i = 0; i < count; i++)
+			try
 			{
-				var timezoneOffset = TimeSpan.FromHours(random.Next(-14,14));
-				var processId = random.Next(1, maxDifferentProcessIdsCount);
-				LogMessage message = new LogMessage().InitWith(
-					-1,
-					new DateTimeOffset(utcTimestamp + timezoneOffset, timezoneOffset),
-					highPrecisionTimestamp,
-					random.Next(0, 1),
-					$"Log Writer {random.Next(1, maxDifferentWritersCount)}",
-					$"Log Level {random.Next(1, maxDifferentLevelsCount)}",
-					null,
-					$"Application {random.Next(1, maxDifferentApplicationsCount)}",
-					$"Process {processId}",
-					processId,
-					$"Just a log message with some random content ({random.Next(0, 100000)})");
+				int              totalMessageCount = expectedMessages.Length;
+				List<LogMessage> readMessages      = new List<LogMessage>();
+				using (LogFile file = new LogFile(path, purpose, writeMode))
+				{
+					// check initial status
+					Assert.Equal(totalMessageCount,     file.MessageCount);
+					Assert.Equal(0,                     file.OldestMessageId);
+					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
 
-				// move the timestamps up to 1 day into the future
-				var timeSkip = TimeSpan.FromMilliseconds(random.Next(1, 24 * 60 * 60 * 1000));
-				utcTimestamp += timeSkip;
-				highPrecisionTimestamp += timeSkip.Ticks * 10; // the high precision timestamp is in nanoseconds, ticks are in 100ps
+					// read messages in chunks of 999, so the last chunk does not return a full set
+					// (covers reading full set and partial set)
+					int chunkSize = 999;
+					for (int readMessageCount = 0; readMessageCount < totalMessageCount;)
+					{
+						LogMessage[] messages = file.Read(file.OldestMessageId + readMessageCount, chunkSize);
 
-				messages.Add(message);
+						int expectedReadCount = Math.Min(chunkSize, totalMessageCount - readMessageCount);
+						Assert.Equal(expectedReadCount, messages.Length);
+						readMessages.AddRange(messages);
+						readMessageCount += messages.Length;
+					}
+				}
+
+				// the list of read messages should now equal the original test data set
+				Assert.Equal(expectedMessages.Length, readMessages.Count);
+				Assert.Equal(expectedMessages,        readMessages.ToArray());
 			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
+		}
 
-			return messages.ToArray();
+		/// <summary>
+		/// Test data providing a mix of purpose and write modes.
+		/// </summary>
+		public static IEnumerable<object[]> Read_WithCallbackTestData
+		{
+			get
+			{
+				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
+				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
+				{
+					yield return new object[] { purpose, writeMode, false };
+					yield return new object[] { purpose, writeMode, true };
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests reading log messages in chunks from the log file invoking a callback for each log message.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="cancelReading">
+		/// true to cancel reading at half of the expected log messages;
+		/// false to read to the end.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(Read_WithCallbackTestData))]
+		private void Read_PassMessagesToCallback(LogFilePurpose purpose, LogFileWriteMode writeMode, bool cancelReading)
+		{
+			string path = purpose == LogFilePurpose.Recording
+				? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				: mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			// get expected result set
+			// (when cancellation is requested, it is done after half the log messages)
+			LogMessage[] allMessages = mFixture.GetLogMessages_Random_10K();
+			LogMessage[] expectedMessages = cancelReading ? allMessages.Take(5000).ToArray() : allMessages;
+			int totalMessageCount = allMessages.Length;
+			int expectedMessageCount = expectedMessages.Length;
+
+			try
+			{
+				List<LogMessage> readMessages = new List<LogMessage>();
+				using (LogFile file = new LogFile(path, purpose, writeMode))
+				{
+					// check initial status
+					Assert.Equal(totalMessageCount,     file.MessageCount);
+					Assert.Equal(0,                     file.OldestMessageId);
+					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
+
+					// read messages in chunks of 999, so the last chunk does not return a full set
+					// (covers reading full set and partial set)
+					int chunkSize = 999;
+					for (int readMessageCount = 0; readMessageCount < totalMessageCount;)
+					{
+						int readMessagesInStep = 0;
+						bool ReadCallback(LogMessage message)
+						{
+							readMessages.Add(message);
+							readMessagesInStep++;
+
+							// if testing cancellation, cancel after half the number of log messages,
+							// otherwise proceed up to the end
+							if (cancelReading) return readMessages.Count < expectedMessageCount;
+							return true;
+						}
+
+						bool proceed = file.Read(file.OldestMessageId + readMessageCount, chunkSize, ReadCallback);
+
+						int expectedReadCount = Math.Min(chunkSize, expectedMessageCount - readMessageCount);
+						Assert.Equal(expectedReadCount, readMessagesInStep);
+						readMessageCount += readMessagesInStep;
+
+						if (!proceed) break;
+					}
+				}
+
+				// the list of read messages should now equal the original test data set
+				Assert.Equal(expectedMessages.Length, readMessages.Count);
+				Assert.Equal(expectedMessages,        readMessages.ToArray());
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
 		}
 	}
 }
