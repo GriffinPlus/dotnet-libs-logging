@@ -226,10 +226,10 @@ namespace GriffinPlus.Lib.Logging
 				? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
 				: mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
-			LogMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
-
 			try
 			{
+				LogMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
+
 				int              totalMessageCount = expectedMessages.Length;
 				List<LogMessage> readMessages      = new List<LogMessage>();
 				using (LogFile file = new LogFile(path, purpose, writeMode))
@@ -297,15 +297,15 @@ namespace GriffinPlus.Lib.Logging
 				? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
 				: mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
-			// get expected result set
-			// (when cancellation is requested, it is done after half the log messages)
-			LogMessage[] allMessages = mFixture.GetLogMessages_Random_10K();
-			LogMessage[] expectedMessages = cancelReading ? allMessages.Take(5000).ToArray() : allMessages;
-			int totalMessageCount = allMessages.Length;
-			int expectedMessageCount = expectedMessages.Length;
-
 			try
 			{
+				// get expected result set
+				// (when cancellation is requested, it is done after half the log messages)
+				LogMessage[] allMessages          = mFixture.GetLogMessages_Random_10K();
+				LogMessage[] expectedMessages     = cancelReading ? allMessages.Take(5000).ToArray() : allMessages;
+				int          totalMessageCount    = allMessages.Length;
+				int          expectedMessageCount = expectedMessages.Length;
+
 				List<LogMessage> readMessages = new List<LogMessage>();
 				using (LogFile file = new LogFile(path, purpose, writeMode))
 				{
@@ -320,6 +320,7 @@ namespace GriffinPlus.Lib.Logging
 					for (int readMessageCount = 0; readMessageCount < totalMessageCount;)
 					{
 						int readMessagesInStep = 0;
+
 						bool ReadCallback(LogMessage message)
 						{
 							readMessages.Add(message);
@@ -344,6 +345,63 @@ namespace GriffinPlus.Lib.Logging
 				// the list of read messages should now equal the original test data set
 				Assert.Equal(expectedMessages.Length, readMessages.Count);
 				Assert.Equal(expectedMessages,        readMessages.ToArray());
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
+		}
+
+		#endregion
+
+		#region Clear()
+
+		/// <summary>
+		/// Tests writing a single message to an empty log file and reading the message back.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		[Theory]
+		[MemberData(nameof(PurposeWriteModeMixTestData))]
+		private void Clear(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		{
+			string path = purpose == LogFilePurpose.Recording
+				? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				: mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			try
+			{
+				// get the initial size of the log file
+				long fileSizeAtStart = new FileInfo(path).Length;
+
+				// get test data set with log messages that should be in the file
+				LogMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
+
+				int totalMessageCount = expectedMessages.Length;
+				using (LogFile file = new LogFile(path, purpose, writeMode))
+				{
+					// check initial status of the file
+					Assert.Equal(totalMessageCount,     file.MessageCount);
+					Assert.Equal(0,                     file.OldestMessageId);
+					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
+
+					// clear log file
+					file.Clear();
+
+					// the file should be empty now
+					Assert.Equal(0,  file.MessageCount);
+					Assert.Equal(-1, file.OldestMessageId);
+					Assert.Equal(-1, file.NewestMessageId);
+
+					// the collection should reflect the change as well
+					Assert.Equal(0, file.Messages.Count);
+					Assert.Empty(file.Messages);
+				}
+
+				// the file should be smaller now as the database is vacuum'ed after clearing
+				long fileSizeAtEnd = new FileInfo(path).Length;
+				Assert.True(fileSizeAtEnd < fileSizeAtStart);
 			}
 			finally
 			{
