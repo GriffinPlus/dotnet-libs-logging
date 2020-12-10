@@ -15,8 +15,19 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Unit tests targeting the <see cref="LogFile"/> class.
 	/// </summary>
-	public class LogFileTests
+	public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	{
+		private readonly LogFileTestsFixture mFixture;
+
+		/// <summary>
+		/// Initializes an instance of the <see cref="LogFileTests"/> class.
+		/// </summary>
+		/// <param name="fixture">Fixture providing static test data.</param>
+		public LogFileTests(LogFileTestsFixture fixture)
+		{
+			mFixture = fixture;
+		}
+
 		/// <summary>
 		/// Tests getting the <see cref="LogFile.SqliteVersion"/> property.
 		/// </summary>
@@ -100,7 +111,7 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(fullPath);
 
 			// generate a message to write into the file
-			LogMessage message = GetTestMessages(1)[0];
+			LogMessage message = LogFileTestsFixture.GetTestMessages(1)[0];
 
 			// create a new log file
 			using (LogFile file = new LogFile(filename, purpose, writeMode))
@@ -111,7 +122,7 @@ namespace GriffinPlus.Lib.Logging
 				// write the message
 				file.Write(message);
 
-				// the file should contain exactly one message now
+				// the file should contain the written message only now
 				Assert.Equal(1, file.MessageCount);
 				Assert.Equal(0, file.OldestMessageId);
 				Assert.Equal(0, file.NewestMessageId);
@@ -151,7 +162,7 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(fullPath);
 
 			// generate messages to write into the file
-			LogMessage[] messages = GetTestMessages(100000);
+			LogMessage[] messages = mFixture.GetLogMessages_Random_10K();
 
 			// create a new log file
 			using (LogFile file = new LogFile(filename, purpose, writeMode))
@@ -162,12 +173,12 @@ namespace GriffinPlus.Lib.Logging
 				// write the message
 				file.Write(messages);
 
-				// the file should contain exactly the specified number of messages
-				Assert.Equal(messages.Length, file.MessageCount);
-				Assert.Equal(0, file.OldestMessageId);
-				Assert.Equal(messages.Length - 1, file.NewestMessageId);
+				// the file should now contain the written messages
 				LogMessage[] readMessages = file.Read(0, messages.Length + 1);
-				Assert.Equal(messages.Length, readMessages.Length);
+				Assert.Equal(messages.Length,     file.MessageCount);
+				Assert.Equal(0,                   file.OldestMessageId);
+				Assert.Equal(messages.Length - 1, file.NewestMessageId);
+				Assert.Equal(messages.Length,     readMessages.Length);
 
 				// the messages returned by the log file should be the same as the inserted message
 				// (except the message id that is set by the log file)
