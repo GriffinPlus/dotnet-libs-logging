@@ -222,7 +222,8 @@ namespace GriffinPlus.Lib.Logging
 							processId,
 							text);
 
-						callback(message);
+						if (!callback(message))
+							break;
 					}
 				}
 			}
