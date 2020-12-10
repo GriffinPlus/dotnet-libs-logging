@@ -146,7 +146,7 @@ namespace GriffinPlus.Lib.Logging
 			((IProcessingPipelineStage) stage).ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
-			Thread.Sleep(100);
+			Thread.Sleep(1000);
 
 			// check synchronous processing
 			Assert.True(callback.ProcessSyncCallbackWasCalled);
