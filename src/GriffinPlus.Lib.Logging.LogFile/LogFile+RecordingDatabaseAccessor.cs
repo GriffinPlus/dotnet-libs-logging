@@ -173,7 +173,12 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="fromId">Id of the message to start at.</param>
 			/// <param name="count">Number of log messages to get.</param>
 			/// <param name="callback">Callback to invoke for every read message</param>
-			public override void Read(long fromId, long count, ReadMessageCallback callback)
+			/// <returns>
+			/// true, if reading ran to completion;
+			/// false, if reading was cancelled.
+			/// </returns>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> or <paramref name="count"/> must be positive.</exception>
+			public override bool Read(long fromId, long count, ReadMessageCallback callback)
 			{
 				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
 				if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "The number of log messages must be positive.");
@@ -223,9 +228,11 @@ namespace GriffinPlus.Lib.Logging
 							text);
 
 						if (!callback(message))
-							break;
+							return false;
 					}
 				}
+
+				return true;
 			}
 
 			/// <summary>

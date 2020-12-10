@@ -277,15 +277,20 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="fromId">Id of the message to start at.</param>
 		/// <param name="count">Number of log messages to get.</param>
 		/// <param name="callback">Callback to invoke for every read message</param>
+		/// <returns>
+		/// true, if reading ran to completion;
+		/// false, if reading was cancelled.
+		/// </returns>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> or <paramref name="count"/> must be positive.</exception>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		/// <exception cref="LogFileException">Reading failed (see inner exception for details).</exception>
-		public void Read(long fromId, long count, ReadMessageCallback callback)
+		public bool Read(long fromId, long count, ReadMessageCallback callback)
 		{
 			CheckDisposed();
 
 			try
 			{
-				mDatabaseAccessor.Read(fromId, count, callback);
+				return mDatabaseAccessor.Read(fromId, count, callback);
 			}
 			catch (SQLiteException ex)
 			{

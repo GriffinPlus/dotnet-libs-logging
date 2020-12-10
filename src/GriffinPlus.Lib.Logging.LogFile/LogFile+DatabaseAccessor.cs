@@ -335,7 +335,11 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="fromId">Id of the message to start at.</param>
 			/// <param name="count">Number of log messages to get.</param>
 			/// <param name="callback">Callback to invoke for every read message</param>
-			public abstract void Read(long fromId, long count, ReadMessageCallback callback);
+			/// <returns>
+			/// true, if reading ran to completion;
+			/// false, if reading was cancelled.
+			/// </returns>
+			public abstract bool Read(long fromId, long count, ReadMessageCallback callback);
 
 			/// <summary>
 			/// Writes a log message into the log file.
