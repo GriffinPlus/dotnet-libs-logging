@@ -11,6 +11,7 @@ using System.Diagnostics;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A pool of log messages allowing log messages to be re-used to reduce garbage collection pressure (thread-safe).
 	/// </summary>
@@ -19,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly ConcurrentBag<LogMessage> mMessages;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessagePool"/> class.
+		/// Initializes a new instance of the <see cref="LogMessagePool" /> class.
 		/// </summary>
 		public LogMessagePool()
 		{
@@ -33,7 +34,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
-		/// Call <see cref="LogMessage.InitWith"/> to initialize it.
+		/// Call <see cref="LogMessage.InitWith" /> to initialize it.
 		/// </summary>
 		/// <returns>The requested log message.</returns>
 		public LogMessage GetUninitializedMessage()
@@ -62,7 +63,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
 		/// </param>
 		/// <param name="lostMessageCount">
 		/// Gets or sets the number of preceding messages that have been lost before this message
@@ -80,17 +81,17 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="text">The actual text the log message is about.</param>
 		/// <returns>The requested log message.</returns>
 		public LogMessage GetMessage(
-			long id,
+			long           id,
 			DateTimeOffset timestamp,
-			long highPrecisionTimestamp,
-			int lostMessageCount,
-			string logWriterName,
-			string logLevelName,
-			TagSet tags,
-			string applicationName,
-			string processName,
-			int processId,
-			string text)
+			long           highPrecisionTimestamp,
+			int            lostMessageCount,
+			string         logWriterName,
+			string         logLevelName,
+			TagSet         tags,
+			string         applicationName,
+			string         processName,
+			int            processId,
+			string         text)
 		{
 			if (mMessages.TryTake(out var message))
 			{
@@ -103,7 +104,18 @@ namespace GriffinPlus.Lib.Logging
 				message = new LogMessage(this);
 			}
 
-			message.InitWith(id, timestamp, highPrecisionTimestamp, lostMessageCount, logWriterName, logLevelName, tags, applicationName, processName, processId, text);
+			message.InitWith(
+				id,
+				timestamp,
+				highPrecisionTimestamp,
+				lostMessageCount,
+				logWriterName,
+				logLevelName,
+				tags,
+				applicationName,
+				processName,
+				processId,
+				text);
 			return message;
 		}
 
@@ -117,7 +129,6 @@ namespace GriffinPlus.Lib.Logging
 			message.Reset();
 			mMessages.Add(message);
 		}
-
 	}
 
 }

@@ -9,17 +9,18 @@ using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// The log configuration without persistence (purely in memory, thread-safe).
 	/// </summary>
 	public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguration>
 	{
-		private string mApplicationName;
+		private          string                                  mApplicationName;
 		private readonly VolatileProcessingPipelineConfiguration mProcessingPipelineConfiguration;
-		private List<LogWriterConfiguration> mLogWriterSettings;
+		private          List<LogWriterConfiguration>            mLogWriterSettings;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileLogConfiguration"/> class.
+		/// Initializes a new instance of the <see cref="VolatileLogConfiguration" /> class.
 		/// </summary>
 		public VolatileLogConfiguration()
 		{
@@ -84,7 +85,7 @@ namespace GriffinPlus.Lib.Logging
 					LogLevelBitMask mask;
 
 					// enable all log levels that are covered by the base level
-					LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
+					var level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
 					if (level == LogLevel.All)
 					{
 						mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
@@ -96,14 +97,14 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					// add log levels explicitly included
-					foreach (var include in settings.Includes)
+					foreach (string include in settings.Includes)
 					{
 						level = LogLevel.GetAspect(include);
 						mask.SetBit(level.Id);
 					}
 
 					// disable log levels explicitly excluded
-					foreach (var exclude in settings.Excludes)
+					foreach (string exclude in settings.Excludes)
 					{
 						level = LogLevel.GetAspect(exclude);
 						mask.ClearBit(level.Id);
@@ -155,8 +156,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		public override void Save(bool includeDefaults = false)
 		{
-
 		}
-
 	}
+
 }

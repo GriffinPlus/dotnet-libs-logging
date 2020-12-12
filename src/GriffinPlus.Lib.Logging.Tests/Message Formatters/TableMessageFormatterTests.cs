@@ -6,12 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="TableMessageFormatter"/> class.
+	/// Unit tests targeting the <see cref="TableMessageFormatter" /> class.
 	/// </summary>
 	public class TableMessageFormatterTests
 	{
@@ -27,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// the formatter should not contain any columns at start
 			// => the output should be an empty string
-			var output = formatter.Format(new LogMessage());
+			string output = formatter.Format(new LogMessage());
 			Assert.Equal("", output);
 		}
 
@@ -48,88 +50,101 @@ namespace GriffinPlus.Lib.Logging
 					Text = "MyText"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.None,
 					message,
 					""
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.Timestamp,
 					message,
 					"2000-01-01 00:00:00Z"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.HighPrecisionTimestamp,
 					message,
 					"123"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.LogWriterName,
 					message,
 					"MyWriter"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.LogLevelName,
 					message,
 					"MyLevel"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet() },
-					"",
+					""
 				};
 
 				message.Tags = new TagSet("Tag");
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
-					"Tag",
+					"Tag"
 				};
 
 				message.Tags = new TagSet("Tag1", "Tag2");
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
-					"Tag1, Tag2",
+					"Tag1, Tag2"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.ApplicationName,
 					message,
 					"MyApp"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.ProcessName,
 					message,
 					"MyProcess"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.ProcessId,
 					message,
 					"42"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.Text,
 					message,
 					"MyText"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					LogMessageField.All,
 					message,
 					"2000-01-01 00:00:00Z | 123 | MyWriter | MyLevel | Tag1, Tag2 | MyApp | MyProcess | 42 | MyText"
 				};
-
 			}
 		}
+
 		/// <summary>
 		/// Tests whether formatting specific fields works as expected.
 		/// </summary>
@@ -151,21 +166,28 @@ namespace GriffinPlus.Lib.Logging
 
 			Assert.Equal(fields, formatter.FormattedFields);
 
-			var output = formatter.Format(message);
+			string output = formatter.Format(message);
 			Assert.Equal(expected, output);
 		}
 
 		/// <summary>
-		/// Tests whether the <see cref="TableMessageFormatter.AllColumns"/> property returns the correct formatter.
+		/// Tests whether the <see cref="TableMessageFormatter.AllColumns" /> property returns the correct formatter.
 		/// </summary>
 		[Fact]
 		public void AllColumns()
 		{
 			var formatter = TableMessageFormatter.AllColumns;
-			const LogMessageField expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.Tags | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
+			const LogMessageField expectedFields = LogMessageField.Timestamp |
+			                                       LogMessageField.LogWriterName |
+			                                       LogMessageField.LogLevelName |
+			                                       LogMessageField.Tags |
+			                                       LogMessageField.ApplicationName |
+			                                       LogMessageField.ProcessName |
+			                                       LogMessageField.ProcessId |
+			                                       LogMessageField.Text;
 			Assert.Equal(expectedFields, formatter.FormattedFields);
 			var message = GetTestMessage();
-			var output = formatter.Format(message);
+			string output = formatter.Format(message);
 			Assert.Equal("2000-01-01 00:00:00Z | MyWriter | MyLevel | Tag1, Tag2 | MyApp | MyProcess | 42 | MyText", output);
 		}
 
@@ -189,4 +211,5 @@ namespace GriffinPlus.Lib.Logging
 			};
 		}
 	}
+
 }

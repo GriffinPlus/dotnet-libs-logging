@@ -4,12 +4,14 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System.Linq;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="LogLevel"/> class.
+	/// Unit tests targeting the <see cref="LogLevel" /> class.
 	/// </summary>
 	public class LogLevelTests
 	{
@@ -17,7 +19,7 @@ namespace GriffinPlus.Lib.Logging
 
 		private struct LogLevelItem
 		{
-			public readonly int Id;
+			public readonly int    Id;
 			public readonly string Name;
 
 			public LogLevelItem(int id, string name)
@@ -29,16 +31,16 @@ namespace GriffinPlus.Lib.Logging
 
 		private static readonly LogLevelItem[] sExpectedPredefinedLogLevels =
 		{
-			new LogLevelItem( 0, "Failure"),
-			new LogLevelItem( 1, "Error"),
-			new LogLevelItem( 2, "Warning"),
-			new LogLevelItem( 3, "Note"),
-			new LogLevelItem( 4, "Developer"),
-			new LogLevelItem( 5, "Trace0"),
-			new LogLevelItem( 6, "Trace1"),
-			new LogLevelItem( 7, "Trace2"),
-			new LogLevelItem( 8, "Trace3"),
-			new LogLevelItem( 9, "Trace4"),
+			new LogLevelItem(0, "Failure"),
+			new LogLevelItem(1, "Error"),
+			new LogLevelItem(2, "Warning"),
+			new LogLevelItem(3, "Note"),
+			new LogLevelItem(4, "Developer"),
+			new LogLevelItem(5, "Trace0"),
+			new LogLevelItem(6, "Trace1"),
+			new LogLevelItem(7, "Trace2"),
+			new LogLevelItem(8, "Trace3"),
+			new LogLevelItem(9, "Trace4"),
 			new LogLevelItem(10, "Trace5"),
 			new LogLevelItem(11, "Trace6"),
 			new LogLevelItem(12, "Trace7"),
@@ -85,16 +87,16 @@ namespace GriffinPlus.Lib.Logging
 		public void Check_Predefined_LogLevel_Fields()
 		{
 			// ensure that the log level id is as expected
-			Assert.Equal(sExpectedPredefinedLogLevels[ 0].Id, LogLevel.Failure.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 1].Id, LogLevel.Error.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 2].Id, LogLevel.Warning.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 3].Id, LogLevel.Note.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 4].Id, LogLevel.Developer.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 5].Id, LogLevel.Trace0.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 6].Id, LogLevel.Trace1.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 7].Id, LogLevel.Trace2.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 8].Id, LogLevel.Trace3.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 9].Id, LogLevel.Trace4.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[0].Id, LogLevel.Failure.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[1].Id, LogLevel.Error.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[2].Id, LogLevel.Warning.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[3].Id, LogLevel.Note.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[4].Id, LogLevel.Developer.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[5].Id, LogLevel.Trace0.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[6].Id, LogLevel.Trace1.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[7].Id, LogLevel.Trace2.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[8].Id, LogLevel.Trace3.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[9].Id, LogLevel.Trace4.Id);
 			Assert.Equal(sExpectedPredefinedLogLevels[10].Id, LogLevel.Trace5.Id);
 			Assert.Equal(sExpectedPredefinedLogLevels[11].Id, LogLevel.Trace6.Id);
 			Assert.Equal(sExpectedPredefinedLogLevels[12].Id, LogLevel.Trace7.Id);
@@ -112,16 +114,16 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(sExpectedPredefinedLogLevels[24].Id, LogLevel.Trace19.Id);
 
 			// ensure that the log level name is as expected
-			Assert.Equal(sExpectedPredefinedLogLevels[ 0].Name, LogLevel.Failure.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 1].Name, LogLevel.Error.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 2].Name, LogLevel.Warning.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 3].Name, LogLevel.Note.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 4].Name, LogLevel.Developer.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 5].Name, LogLevel.Trace0.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 6].Name, LogLevel.Trace1.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 7].Name, LogLevel.Trace2.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 8].Name, LogLevel.Trace3.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[ 9].Name, LogLevel.Trace4.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[0].Name, LogLevel.Failure.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[1].Name, LogLevel.Error.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[2].Name, LogLevel.Warning.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[3].Name, LogLevel.Note.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[4].Name, LogLevel.Developer.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[5].Name, LogLevel.Trace0.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[6].Name, LogLevel.Trace1.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[7].Name, LogLevel.Trace2.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[8].Name, LogLevel.Trace3.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[9].Name, LogLevel.Trace4.Name);
 			Assert.Equal(sExpectedPredefinedLogLevels[10].Name, LogLevel.Trace5.Name);
 			Assert.Equal(sExpectedPredefinedLogLevels[11].Name, LogLevel.Trace6.Name);
 			Assert.Equal(sExpectedPredefinedLogLevels[12].Name, LogLevel.Trace7.Name);
@@ -145,7 +147,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Check_Predefined_Log_Level_Enumeration()
 		{
-			LogLevel[] levels = LogLevel.PredefinedLogLevels.ToArray();
+			var levels = LogLevel.PredefinedLogLevels.ToArray();
 			Assert.Equal(sExpectedPredefinedLogLevels.Length, levels.Length);
 
 			for (int i = 0; i < levels.Length; i++)
@@ -155,4 +157,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

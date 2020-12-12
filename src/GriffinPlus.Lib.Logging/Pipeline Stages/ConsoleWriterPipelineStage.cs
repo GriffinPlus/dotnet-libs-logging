@@ -12,8 +12,9 @@ using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Output streams the <see cref="ConsoleWriterPipelineStage"/> can emit log messages to.
+	/// Output streams the <see cref="ConsoleWriterPipelineStage" /> can emit log messages to.
 	/// </summary>
 	public enum ConsoleOutputStream
 	{
@@ -34,25 +35,24 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class ConsoleWriterPipelineStage : TextWriterPipelineStage<ConsoleWriterPipelineStage>
 	{
-		private readonly Dictionary<LogLevel, ConsoleOutputStream> mStreamByLevel = new Dictionary<LogLevel, ConsoleOutputStream>();
-		private readonly StringBuilder mStdoutBuilder = new StringBuilder();
-		private readonly StringBuilder mStderrBuilder = new StringBuilder();
-		private IProcessingPipelineStageSetting<ConsoleOutputStream> mDefaultStreamSetting;
-		private TextWriter mOutputStream = Console.Out;
-		private TextWriter mErrorStream = Console.Error;
-		private const string SettingName_DefaultStream = "DefaultStream";
+		private readonly Dictionary<LogLevel, ConsoleOutputStream>            mStreamByLevel = new Dictionary<LogLevel, ConsoleOutputStream>();
+		private readonly StringBuilder                                        mStdoutBuilder = new StringBuilder();
+		private readonly StringBuilder                                        mStderrBuilder = new StringBuilder();
+		private          IProcessingPipelineStageSetting<ConsoleOutputStream> mDefaultStreamSetting;
+		private          TextWriter                                           mOutputStream             = Console.Out;
+		private          TextWriter                                           mErrorStream              = Console.Error;
+		private const    string                                               SettingName_DefaultStream = "DefaultStream";
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ConsoleWriterPipelineStage"/> class.
+		/// Initializes a new instance of the <see cref="ConsoleWriterPipelineStage" /> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		public ConsoleWriterPipelineStage(string name) : base(name)
 		{
-
 		}
 
 		/// <summary>
-		/// Gets or sets the stream data for the output stream is written to (defaults to <see cref="System.Console.Out"/>).
+		/// Gets or sets the stream data for the output stream is written to (defaults to <see cref="System.Console.Out" />).
 		/// </summary>
 		public TextWriter OutputStream
 		{
@@ -76,7 +76,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets or sets the stream data for the output stream is written to (defaults to <see cref="System.Console.Error"/>).
+		/// Gets or sets the stream data for the output stream is written to (defaults to <see cref="System.Console.Error" />).
 		/// </summary>
 		public TextWriter ErrorStream
 		{
@@ -119,7 +119,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the explicit mapping overrides of log levels to output streams.
 		/// A message written using an explicitly mapped log level will go out on the defined steam.
-		/// Others will be emitted using the streams defined by the <see cref="DefaultStream"/> property.
+		/// Others will be emitted using the streams defined by the <see cref="DefaultStream" /> property.
 		/// </summary>
 		public IReadOnlyDictionary<LogLevel, ConsoleOutputStream> StreamByLevelOverrides
 		{
@@ -146,7 +146,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Configures the console writer to emit log messages written using the specified log level to the specified stream.
-		/// Only necessary, if the stream is different from the default stream (<see cref="DefaultStream"/>).
+		/// Only necessary, if the stream is different from the default stream (<see cref="DefaultStream" />).
 		/// </summary>
 		/// <param name="level">Log level of messages to emit to the specified stream.</param>
 		/// <param name="stream">Output stream to emit log messages written using the specified log level to.</param>
@@ -160,8 +160,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Is called to allow a derived stage bind its settings when the <see cref="ProcessingPipelineBaseStage.Settings"/> property has changed
-		/// (the pipeline stage lock <see cref="ProcessingPipelineBaseStage.Sync"/> is acquired when this method is called).
+		/// Is called to allow a derived stage bind its settings when the <see cref="ProcessingPipelineBaseStage.Settings" /> property has changed
+		/// (the pipeline stage lock <see cref="ProcessingPipelineBaseStage.Sync" /> is acquired when this method is called).
 		/// </summary>
 		protected override void BindSettings()
 		{
@@ -184,7 +184,7 @@ namespace GriffinPlus.Lib.Logging
 				var message = messages[i];
 
 				// NOTE: After attaching the pipeline stage to the logging subsystem, mStreamByLevel will not change.
-				if (!mStreamByLevel.TryGetValue(message.Message.LogLevel, out ConsoleOutputStream stream))
+				if (!mStreamByLevel.TryGetValue(message.Message.LogLevel, out var stream))
 				{
 					stream = mDefaultStreamSetting.Value;
 				}
@@ -229,6 +229,6 @@ namespace GriffinPlus.Lib.Logging
 
 			return messages.Length;
 		}
-
 	}
+
 }

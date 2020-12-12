@@ -7,7 +7,8 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	internal partial class LocalLogServiceConnection
+
+	partial class LocalLogServiceConnection
 	{
 		/// <summary>
 		/// A request sent via the named pipe.
@@ -15,10 +16,10 @@ namespace GriffinPlus.Lib.Logging
 		[StructLayout(LayoutKind.Explicit)]
 		public struct Reply
 		{
-			[FieldOffset(0)] public uint Result;
-			[FieldOffset(4)] public Reply_RegisterLogSourceCommand RegisterLogSourceCommand;
+			[FieldOffset(0)] public uint                             Result;
+			[FieldOffset(4)] public Reply_RegisterLogSourceCommand   RegisterLogSourceCommand;
 			[FieldOffset(4)] public Reply_UnregisterLogSourceCommand UnregisterLogSourceCommand;
-			[FieldOffset(4)] public Reply_QueryProcessIdCommand QueryProcessIdCommand;
+			[FieldOffset(4)] public Reply_QueryProcessIdCommand      QueryProcessIdCommand;
 			[FieldOffset(4)] public Reply_SetWritingToLogFileCommand SetWritingToLogFileCommand;
 		}
 
@@ -48,6 +49,6 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// empty
 		}
-
 	}
+
 }

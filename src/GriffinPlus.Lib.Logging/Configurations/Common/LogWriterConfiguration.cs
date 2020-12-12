@@ -13,44 +13,44 @@ using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Configuration of a group of log writers matching specific patterns.
 	/// </summary>
 	public sealed partial class LogWriterConfiguration
 	{
 		internal static readonly WildcardNamePattern DefaultPattern = new WildcardNamePattern("*");
-		internal static readonly INamePattern[] NoPatterns = new INamePattern[0];
-		internal string mBaseLevel = LogLevel.Note.Name;
-		internal readonly List<INamePattern> mNamePatterns = new List<INamePattern>();
-		internal readonly List<INamePattern> mTagPatterns = new List<INamePattern>();
-		internal readonly List<string> mIncludes = new List<string>();
-		internal readonly List<string> mExcludes = new List<string>();
+		internal static readonly INamePattern[]      NoPatterns     = new INamePattern[0];
+		internal                 string              mBaseLevel     = LogLevel.Note.Name;
+		internal readonly        List<INamePattern>  mNamePatterns  = new List<INamePattern>();
+		internal readonly        List<INamePattern>  mTagPatterns   = new List<INamePattern>();
+		internal readonly        List<string>        mIncludes      = new List<string>();
+		internal readonly        List<string>        mExcludes      = new List<string>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class (for internal use only).
-		/// Please use <see cref="LogWriterConfigurationBuilder"/> instead.
+		/// Initializes a new instance of the <see cref="LogWriterConfiguration" /> class (for internal use only).
+		/// Please use <see cref="LogWriterConfigurationBuilder" /> instead.
 		/// </summary>
 		internal LogWriterConfiguration()
 		{
-
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class by copying another instance.
+		/// Initializes a new instance of the <see cref="LogWriterConfiguration" /> class by copying another instance.
 		/// </summary>
 		/// <param name="other">Instance to copy.</param>
 		internal LogWriterConfiguration(LogWriterConfiguration other)
 		{
-			mNamePatterns.AddRange(other.mNamePatterns);     // the patterns are immutable
-			mTagPatterns.AddRange(other.mTagPatterns);       // the patterns are immutable
-			mBaseLevel = other.BaseLevel;                    // immutable
-			IsDefault = other.IsDefault;                     // immutable
-			mIncludes.AddRange(other.mIncludes);             // the log levels are immutable
-			mExcludes.AddRange(other.mExcludes);             // the log levels are immutable
+			mNamePatterns.AddRange(other.mNamePatterns); // the patterns are immutable
+			mTagPatterns.AddRange(other.mTagPatterns);   // the patterns are immutable
+			mBaseLevel = other.BaseLevel;                // immutable
+			IsDefault = other.IsDefault;                 // immutable
+			mIncludes.AddRange(other.mIncludes);         // the log levels are immutable
+			mExcludes.AddRange(other.mExcludes);         // the log levels are immutable
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class.
+		/// Initializes a new instance of the <see cref="LogWriterConfiguration" /> class.
 		/// </summary>
 		/// <param name="namePattern">Pattern that determines for which log writers names the settings apply.</param>
 		/// <param name="tagPatterns">Pattern that determines for which message tags the settings apply.</param>
@@ -58,11 +58,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="includes">Names of log levels (or aspects) that should be included in addition to the base level.</param>
 		/// <param name="excludes">Names of log levels (or aspects) that should be excluded although covered by the base level.</param>
 		internal LogWriterConfiguration(
-			INamePattern namePattern,
+			INamePattern              namePattern,
 			IEnumerable<INamePattern> tagPatterns,
-			string baseLevel,
-			IEnumerable<string> includes = null,
-			IEnumerable<string> excludes = null)
+			string                    baseLevel,
+			IEnumerable<string>       includes = null,
+			IEnumerable<string>       excludes = null)
 		{
 			if (string.IsNullOrWhiteSpace(baseLevel)) throw new ArgumentException("The base level must not be null or whitespace only.", nameof(baseLevel));
 			if (namePattern == null) throw new ArgumentNullException(nameof(namePattern));
@@ -75,9 +75,10 @@ namespace GriffinPlus.Lib.Logging
 
 			if (includes != null)
 			{
-				foreach (var level in includes)
+				foreach (string level in includes)
 				{
-					if (string.IsNullOrWhiteSpace(level)) {
+					if (string.IsNullOrWhiteSpace(level))
+					{
 						throw new ArgumentException("The include list contains an invalid log level.");
 					}
 
@@ -87,7 +88,7 @@ namespace GriffinPlus.Lib.Logging
 
 			if (excludes != null)
 			{
-				foreach (var level in excludes)
+				foreach (string level in excludes)
 				{
 					if (string.IsNullOrWhiteSpace(level))
 					{
@@ -108,10 +109,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be null).</param>
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromName(
-			string name,
-			string baseLevel = "Note",
-			IEnumerable<string> includes = null,
-			IEnumerable<string> excludes = null)
+			string              name,
+			string              baseLevel = "Note",
+			IEnumerable<string> includes  = null,
+			IEnumerable<string> excludes  = null)
 		{
 			return new LogWriterConfiguration(
 				new ExactNamePattern(name),
@@ -130,10 +131,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be null).</param>
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromWildcardPattern(
-			string pattern,
-			string baseLevel = "Note",
-			IEnumerable<string> includes = null,
-			IEnumerable<string> excludes = null)
+			string              pattern,
+			string              baseLevel = "Note",
+			IEnumerable<string> includes  = null,
+			IEnumerable<string> excludes  = null)
 		{
 			return new LogWriterConfiguration(
 				new WildcardNamePattern(pattern),
@@ -152,10 +153,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be null).</param>
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromRegexPattern(
-			string regex,
-			string baseLevel = "Note",
-			IEnumerable<string> includes = null,
-			IEnumerable<string> excludes = null)
+			string              regex,
+			string              baseLevel = "Note",
+			IEnumerable<string> includes  = null,
+			IEnumerable<string> excludes  = null)
 		{
 			return new LogWriterConfiguration(
 				new RegexNamePattern(regex),
@@ -193,12 +194,12 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Get the list of names of log levels (or aspects) to include in addition to those already enabled
-		/// via <see cref="BaseLevel"/>.
+		/// via <see cref="BaseLevel" />.
 		/// </summary>
 		public IEnumerable<string> Includes => mIncludes;
 
 		/// <summary>
-		/// Get the list of names of log levels (or aspects) to exclude although covered by <see cref="BaseLevel"/>.
+		/// Get the list of names of log levels (or aspects) to exclude although covered by <see cref="BaseLevel" />.
 		/// </summary>
 		public IEnumerable<string> Excludes => mExcludes;
 
@@ -209,25 +210,25 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets the hash code of the object
-		/// (does not take the <see cref="IsDefault"/> property into account).
+		/// (does not take the <see cref="IsDefault" /> property into account).
 		/// </summary>
 		/// <returns></returns>
 		public override int GetHashCode()
 		{
 			unchecked
 			{
-				var hashCode = mBaseLevel.GetHashCode();
+				int hashCode = mBaseLevel.GetHashCode();
 				foreach (var pattern in mNamePatterns) hashCode = (hashCode * 397) ^ pattern.GetHashCode();
 				foreach (var pattern in mTagPatterns) hashCode = (hashCode * 397) ^ pattern.GetHashCode();
-				foreach (var include in mIncludes) hashCode = (hashCode * 397) ^ include.GetHashCode();
-				foreach (var exclude in mExcludes) hashCode = (hashCode * 397) ^ exclude.GetHashCode();
+				foreach (string include in mIncludes) hashCode = (hashCode * 397) ^ include.GetHashCode();
+				foreach (string exclude in mExcludes) hashCode = (hashCode * 397) ^ exclude.GetHashCode();
 				return hashCode;
 			}
 		}
 
 		/// <summary>
 		/// Checks whether the specified object equals the current one
-		/// (does not take the <see cref="IsDefault"/> property into account).
+		/// (does not take the <see cref="IsDefault" /> property into account).
 		/// </summary>
 		/// <param name="other">Object to compare with.</param>
 		/// <returns>true, if the specified object equals the current one; otherwise false.</returns>
@@ -240,4 +241,5 @@ namespace GriffinPlus.Lib.Logging
 			       Excludes.SequenceEqual(other.Excludes);
 		}
 	}
+
 }

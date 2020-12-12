@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	public partial class LogWriterConfiguration
 	{
 		/// <summary>
@@ -25,4 +26,5 @@ namespace GriffinPlus.Lib.Logging
 			Regex Regex { get; }
 		}
 	}
+
 }

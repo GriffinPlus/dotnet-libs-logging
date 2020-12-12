@@ -5,10 +5,11 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// JSON tokens emitted by the <see cref="JsonTokenizer"/>.
+	/// JSON tokens emitted by the <see cref="JsonTokenizer" />.
 	/// </summary>
-	internal enum JsonTokenType
+	enum JsonTokenType
 	{
 		/// <summary>
 		/// The '{' token.
@@ -66,6 +67,7 @@ namespace GriffinPlus.Lib.Logging
 		/// is determined at the parsing stage. This type should not be visible outside the
 		/// tokenizer as identifiers are translated to other, better fitting token types.
 		/// </summary>
-		Identifier,
+		Identifier
 	}
+
 }

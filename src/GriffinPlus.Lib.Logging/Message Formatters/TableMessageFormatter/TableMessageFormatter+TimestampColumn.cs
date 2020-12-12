@@ -8,6 +8,7 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class TableMessageFormatter
 	{
 		/// <summary>
@@ -16,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		private sealed class TimestampColumn : ColumnBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="TimestampColumn"/> class.
+			/// Initializes a new instance of the <see cref="TimestampColumn" /> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			/// <param name="format">Timestamp format to use.</param>
@@ -32,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 			private string TimestampFormat { get; }
 
 			/// <summary>
-			/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width"/> property.
+			/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width" /> property.
 			/// </summary>
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public override void UpdateWidth(ILogMessage message)
@@ -65,4 +66,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

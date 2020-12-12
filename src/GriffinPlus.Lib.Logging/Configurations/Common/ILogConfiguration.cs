@@ -7,6 +7,7 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Interface of a log configuration (must be implemented thread-safe).
 	/// </summary>

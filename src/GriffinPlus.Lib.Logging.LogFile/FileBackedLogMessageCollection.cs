@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log message collection that uses a log file to keep log entries that are currently not needed
 	/// (the most frequently used log messages are cached to reduce i/o load).
@@ -48,11 +49,11 @@ namespace GriffinPlus.Lib.Logging
 		#region Member Variables
 
 		private readonly LinkedList<CachePage> mCachePages = new LinkedList<CachePage>();
-		private readonly long mOldestMessageIdAtStartup;
-		private int mMaxCachePageCount = DefaultMaxCachePageCount;
-		private int mCachePageCapacity = DefaultCachePageCapacity;
-		private int mChangeCounter;
-		private bool mAutoDelete;
+		private readonly long                  mOldestMessageIdAtStartup;
+		private          int                   mMaxCachePageCount = DefaultMaxCachePageCount;
+		private          int                   mCachePageCapacity = DefaultCachePageCapacity;
+		private          int                   mChangeCounter;
+		private          bool                  mAutoDelete;
 
 		#endregion
 
@@ -73,15 +74,15 @@ namespace GriffinPlus.Lib.Logging
 		#region Construction and Disposal
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollection"/> class.
+		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollection" /> class.
 		/// </summary>
 		/// <param name="path">Path of the log file to open/create.</param>
 		/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 		/// <param name="mode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
 		public FileBackedLogMessageCollection(
-			string path,
-			LogFilePurpose purpose = LogFilePurpose.Analysis,
-			LogFileWriteMode mode = LogFileWriteMode.Fast)
+			string           path,
+			LogFilePurpose   purpose = LogFilePurpose.Analysis,
+			LogFileWriteMode mode    = LogFileWriteMode.Fast)
 		{
 			LogFile = new LogFile(path, purpose, mode, this);
 			FilePath = LogFile.FilePath;
@@ -90,7 +91,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollection"/> class.
+		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollection" /> class.
 		/// </summary>
 		/// <param name="file">Log file to work on.</param>
 		public FileBackedLogMessageCollection(LogFile file)
@@ -108,8 +109,13 @@ namespace GriffinPlus.Lib.Logging
 		{
 			LogFile.Dispose();
 			mCachePages.Clear();
-			if (mAutoDelete) {
-				try { File.Delete(LogFile.FilePath); } catch { /* swallow */ }
+			if (mAutoDelete)
+			{
+				try { File.Delete(LogFile.FilePath); }
+				catch
+				{
+					/* swallow */
+				}
 			}
 		}
 
@@ -118,7 +124,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Creating/Managing Temporary Collections
 
 		/// <summary>
-		/// Creates a new instance of the <see cref="FileBackedLogMessageCollection"/> with a file in the temporary directory
+		/// Creates a new instance of the <see cref="FileBackedLogMessageCollection" /> with a file in the temporary directory
 		/// optionally marking the file for auto-deletion.
 		/// </summary>
 		/// <param name="deleteAutomatically">
@@ -137,15 +143,13 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		/// <returns>The created collection.</returns>
 		public static FileBackedLogMessageCollection CreateTemporaryCollection(
-			bool deleteAutomatically,
-			string temporaryDirectoryPath = null,
-			LogFilePurpose purpose = LogFilePurpose.Analysis,
-			LogFileWriteMode mode = LogFileWriteMode.Fast)
+			bool             deleteAutomatically,
+			string           temporaryDirectoryPath = null,
+			LogFilePurpose   purpose                = LogFilePurpose.Analysis,
+			LogFileWriteMode mode                   = LogFileWriteMode.Fast)
 		{
 			// init temporary directory path, if not specified explicitly
-			if (temporaryDirectoryPath == null) {
-				temporaryDirectoryPath = Path.GetTempPath();
-			}
+			if (temporaryDirectoryPath == null) temporaryDirectoryPath = Path.GetTempPath();
 
 			// delete temporary files that are not needed any more
 			CleanupTemporaryDirectory(temporaryDirectoryPath);
@@ -153,7 +157,7 @@ namespace GriffinPlus.Lib.Logging
 			// create a collection with a temporary database backing the collection
 			string path = Path.Combine(temporaryDirectoryPath, "[LOG-BUFFER] " + Guid.NewGuid().ToString("D").ToUpper());
 			if (deleteAutomatically) path += " [AUTO DELETE]";
-			FileBackedLogMessageCollection collection = new FileBackedLogMessageCollection(path, purpose, mode) { mAutoDelete = deleteAutomatically };
+			var collection = new FileBackedLogMessageCollection(path, purpose, mode) { mAutoDelete = deleteAutomatically };
 			return collection;
 		}
 
@@ -168,10 +172,14 @@ namespace GriffinPlus.Lib.Logging
 				foreach (string filePath in Directory.GetFiles(directoryPath))
 				{
 					string fileName = Path.GetFileName(filePath);
-					Match match = sAutoDeleteFileRegex.Match(fileName);
+					var match = sAutoDeleteFileRegex.Match(fileName);
 					if (match.Success)
 					{
-						try { File.Delete(filePath); } catch { /* swallow */ }
+						try { File.Delete(filePath); }
+						catch
+						{
+							/* swallow */
+						}
 					}
 				}
 			}
@@ -250,7 +258,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="NotSupportedException">Setting a log message is not supported.</exception>
 		public LogMessage this[long index]
 		{
-			get {
+			get
+			{
 				long messageId = LogFile.OldestMessageId + index;
 				return GetMessage(messageId);
 			}
@@ -278,7 +287,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="LogFileTooLargeException">The log message contains too many messages to be handled as a regular collection..</exception>
 		int ICollection<LogMessage>.Count
 		{
-			get {
+			get
+			{
 				long count = LogFile.MessageCount;
 				if (count > int.MaxValue) ThrowLogFileTooLargeException();
 				return (int)count;
@@ -291,7 +301,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="LoggingException">The log message contains too many messages to be handled as a regular collection.</exception>
 		int ICollection.Count
 		{
-			get {
+			get
+			{
 				long count = LogFile.MessageCount;
 				if (count > int.MaxValue) ThrowLogFileTooLargeException();
 				return (int)count;
@@ -404,7 +415,7 @@ namespace GriffinPlus.Lib.Logging
 				mChangeCounter++;
 				mCachePages.Clear();
 
-				NotifyCollectionChangedEventHandler handler = CollectionChanged;
+				var handler = CollectionChanged;
 				handler?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 
 				OnPropertyChanged("Count");
@@ -434,7 +445,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="NotSupportedException">Setting a log message is not supported.</exception>
 		public LogMessage this[int index]
 		{
-			get {
+			get
+			{
 				long messageId = LogFile.OldestMessageId + index;
 				return GetMessage(messageId);
 			}
@@ -462,9 +474,8 @@ namespace GriffinPlus.Lib.Logging
 			if (item == null) return false;
 			long oldestMessageId = LogFile.OldestMessageId;
 			long newestMessageId = LogFile.NewestMessageId;
-			if (item.Id >= oldestMessageId && item.Id <= newestMessageId) {
+			if (item.Id >= oldestMessageId && item.Id <= newestMessageId)
 				return true;
-			}
 
 			return false;
 		}
@@ -527,15 +538,15 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arrayIndex">Index in the array to start copying to.</param>
 		public void CopyTo(LogMessage[] array, int arrayIndex)
 		{
-			if (Count > array.Length - arrayIndex) {
+			if (Count > array.Length - arrayIndex)
 				throw new ArgumentException("The specified array is too small to receive all log messages.");
-			}
 
 			int currentArrayIndex = arrayIndex;
 			long firstId = LogFile.OldestMessageId;
 			long lastId = LogFile.NewestMessageId;
 
-			for (long id = firstId; id <= lastId; id++) {
+			for (long id = firstId; id <= lastId; id++)
+			{
 				array[currentArrayIndex++] = GetMessage(id);
 			}
 		}
@@ -573,7 +584,7 @@ namespace GriffinPlus.Lib.Logging
 			while (index < firstIndex + count)
 			{
 				int copyCount = Math.Min(CopySliceSize, remaining);
-				LogMessage[] messages = LogFile.Read(LogFile.OldestMessageId + index, copyCount);
+				var messages = LogFile.Read(LogFile.OldestMessageId + index, copyCount);
 				destination.AddRange(messages);
 				index += copyCount;
 				remaining -= copyCount;
@@ -585,12 +596,12 @@ namespace GriffinPlus.Lib.Logging
 		#region Event Raiser
 
 		/// <summary>
-		/// Raises the <see cref="PropertyChanged"/> event.
+		/// Raises the <see cref="PropertyChanged" /> event.
 		/// </summary>
 		/// <param name="name">Name of the property that has changed.</param>
 		protected virtual void OnPropertyChanged(string name)
 		{
-			PropertyChangedEventHandler handler = PropertyChanged;
+			var handler = PropertyChanged;
 			handler?.Invoke(this, new PropertyChangedEventArgs(name));
 		}
 
@@ -605,7 +616,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			mChangeCounter++;
 
-			NotifyCollectionChangedEventHandler handler = CollectionChanged;
+			var handler = CollectionChanged;
 			handler?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 
 			OnPropertyChanged("Count");
@@ -619,16 +630,17 @@ namespace GriffinPlus.Lib.Logging
 		{
 			mChangeCounter++;
 
-			NotifyCollectionChangedEventHandler handler = CollectionChanged;
+			var handler = CollectionChanged;
 			if (handler != null)
 			{
-				LogMessage[] messages = LogFile.Read(LogFile.NewestMessageId - count + 1, count);
+				var messages = LogFile.Read(LogFile.NewestMessageId - count + 1, count);
 
 				// do not keep these messages in the cache
 				// (a continuous update would drop the performance since frequently requested messages are kicked out the cache)
 
 				// many WPF controls do not support multi-item adds, so adding messages one by one is necessary...
-				foreach (LogMessage message in messages) {
+				foreach (var message in messages)
+				{
 					handler(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, message));
 				}
 			}
@@ -650,7 +662,7 @@ namespace GriffinPlus.Lib.Logging
 			// Debug.WriteLine("Fetching message: {0}", id);
 
 			long firstMessageId;
-			LinkedListNode<CachePage> node = mCachePages.First;
+			var node = mCachePages.First;
 			while (node != null)
 			{
 				firstMessageId = node.Value.FirstMessageId;
@@ -669,7 +681,7 @@ namespace GriffinPlus.Lib.Logging
 					{
 						// message should be in the page, but page is not loaded entirely
 						// => update page and return message
-						LogMessage[] messages = LogFile.Read(firstMessageId + node.Value.Messages.Count, mCachePageCapacity - node.Value.Messages.Count);
+						var messages = LogFile.Read(firstMessageId + node.Value.Messages.Count, mCachePageCapacity - node.Value.Messages.Count);
 						node.Value.Messages.AddRange(messages);
 						mCachePages.Remove(node);
 						mCachePages.AddFirst(node);
@@ -698,7 +710,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// cache is not full, yet
 			// => add page...
-			CachePage page = new CachePage(firstMessageId, mCachePageCapacity);
+			var page = new CachePage(firstMessageId, mCachePageCapacity);
 			page.Messages.AddRange(LogFile.Read(firstMessageId, mCachePageCapacity));
 			mCachePages.AddFirst(page);
 			return page.Messages[(int)(id - firstMessageId)];
@@ -709,8 +721,8 @@ namespace GriffinPlus.Lib.Logging
 		#region Helpers
 
 		/// <summary>
-		/// Throws a <see cref="LogFileTooLargeException"/> indicating that the backing log file contains too many messages
-		/// to be handled as a regular .NET collection that supports up to <seealso cref="int.MaxValue"/> items only.
+		/// Throws a <see cref="LogFileTooLargeException" /> indicating that the backing log file contains too many messages
+		/// to be handled as a regular .NET collection that supports up to <seealso cref="int.MaxValue" /> items only.
 		/// </summary>
 		private void ThrowLogFileTooLargeException()
 		{
@@ -718,6 +730,6 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		#endregion
-
 	}
+
 }

@@ -10,13 +10,14 @@ using System.Diagnostics;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class LogFile
 	{
 		/// <summary>
 		/// The database accessor for the 'recording' file format.
 		/// The format is optimized for throughput of written log messages, not for analysis.
 		/// </summary>
-		class RecordingDatabaseAccessor : DatabaseAccessor
+		private class RecordingDatabaseAccessor : DatabaseAccessor
 		{
 			private readonly SQLiteCommand   mGetOldestMessageIdCommand;
 			private readonly SQLiteCommand   mGetNewestMessageIdCommand;
@@ -59,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 			};
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="RecordingDatabaseAccessor"/> class.
+			/// Initializes a new instance of the <see cref="RecordingDatabaseAccessor" /> class.
 			/// </summary>
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
@@ -177,7 +178,7 @@ namespace GriffinPlus.Lib.Logging
 			/// true, if reading ran to completion;
 			/// false, if reading was cancelled.
 			/// </returns>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> or <paramref name="count"/> must be positive.</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> or <paramref name="count" /> must be positive.</exception>
 			public override bool Read(long fromId, long count, ReadMessageCallback callback)
 			{
 				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
@@ -202,19 +203,19 @@ namespace GriffinPlus.Lib.Logging
 				{
 					while (reader.Read())
 					{
-						var messageId = reader.GetInt64(0);
+						long messageId = reader.GetInt64(0);
 						var timezoneOffset = TimeSpan.FromTicks(reader.GetInt64(2));
 						var timestamp = new DateTimeOffset(reader.GetInt64(1) + timezoneOffset.Ticks, timezoneOffset);
-						var highPrecisionTimestamp = reader.GetInt64(3);
-						var lostMessageCount = reader.GetInt32(4);
-						var processId = reader.GetInt32(5);
-						var processName = reader.GetString(6);
-						var applicationName = reader.GetString(7);
-						var logWriterName = reader.GetString(8);
-						var logLevelName = reader.GetString(9);
-						var text = reader.GetString(10);
+						long highPrecisionTimestamp = reader.GetInt64(3);
+						int lostMessageCount = reader.GetInt32(4);
+						int processId = reader.GetInt32(5);
+						string processName = reader.GetString(6);
+						string applicationName = reader.GetString(7);
+						string logWriterName = reader.GetString(8);
+						string logLevelName = reader.GetString(9);
+						string text = reader.GetString(10);
 
-						LogMessage message = LogMessagePool.Default.GetMessage(
+						var message = LogMessagePool.Default.GetMessage(
 							messageId,
 							timestamp,
 							highPrecisionTimestamp,
@@ -272,7 +273,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </param>
 			/// <param name="maximumMessageAge">
 			/// Maximum age of log messages to keep;
-			/// <seealso cref="TimeSpan.Zero"/> or a negative timespan to disable removing messages by age.
+			/// <seealso cref="TimeSpan.Zero" /> or a negative timespan to disable removing messages by age.
 			/// </param>
 			public override void Cleanup(long maximumMessageCount, TimeSpan maximumMessageAge)
 			{
@@ -327,4 +328,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

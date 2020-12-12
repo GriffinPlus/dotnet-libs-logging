@@ -5,25 +5,26 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// A raw setting in a <see cref="VolatileProcessingPipelineStageConfiguration"/>.
+	/// A raw setting in a <see cref="VolatileProcessingPipelineStageConfiguration" />.
 	/// </summary>
 	public class VolatileProcessingPipelineStageRawSetting : IProcessingPipelineStageRawSetting
 	{
 		private readonly string mDefaultValue;
-		private string mValue;
-		private bool mHasValue;
+		private          string mValue;
+		private          bool   mHasValue;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageRawSetting"/> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageRawSetting" /> class.
 		/// </summary>
 		/// <param name="configuration">The configuration the setting belongs to.</param>
 		/// <param name="name">Name of the setting.</param>
 		/// <param name="defaultValue">The default value of the setting.</param>
 		internal VolatileProcessingPipelineStageRawSetting(
 			VolatileProcessingPipelineStageConfiguration configuration,
-			string name,
-			string defaultValue)
+			string                                       name,
+			string                                       defaultValue)
 		{
 			StageConfiguration = configuration;
 			Name = name;
@@ -101,11 +102,10 @@ namespace GriffinPlus.Lib.Logging
 			lock (StageConfiguration.Sync)
 			{
 				return HasValue
-					? $"Name: '{Name}', Value: '{Value}'"
-					: $"Name: '{Name}', Value: <no value> (defaults to: '{DefaultValue}'";
+					       ? $"Name: '{Name}', Value: '{Value}'"
+					       : $"Name: '{Name}', Value: <no value> (defaults to: '{DefaultValue}'";
 			}
 		}
-
 	}
 
 }

@@ -10,16 +10,17 @@ using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A collection of volatile configurations for pipeline stages (thread-safe).
 	/// </summary>
 	public class VolatileProcessingPipelineStageConfigurations : IProcessingPipelineStageConfigurations
 	{
-		private readonly VolatileLogConfiguration mLogConfiguration;
+		private readonly VolatileLogConfiguration                    mLogConfiguration;
 		private readonly List<IProcessingPipelineStageConfiguration> mStageConfigurations = new List<IProcessingPipelineStageConfiguration>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfigurations"/> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfigurations" /> class.
 		/// </summary>
 		/// <param name="configuration">The log configuration the processing pipeline configuration belongs to.</param>
 		internal VolatileProcessingPipelineStageConfigurations(VolatileLogConfiguration configuration)
@@ -98,6 +99,6 @@ namespace GriffinPlus.Lib.Logging
 				return stage;
 			}
 		}
-
 	}
+
 }

@@ -7,34 +7,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="AsyncCallbackPipelineStage"/> class.
+	/// Unit tests targeting the <see cref="AsyncCallbackPipelineStage" /> class.
 	/// </summary>
 	public class AsyncCallbackPipelineStageTests : AsyncProcessingPipelineStageBaseTests<AsyncCallbackPipelineStage>
 	{
 		internal class Callback
 		{
 			/// <summary>
-			/// Gets or sets the value returned by <see cref="ProcessSyncCallback(LocalLogMessage, out bool)"/>.
+			/// Gets or sets the value returned by <see cref="ProcessSyncCallback(LocalLogMessage, out bool)" />.
 			/// </summary>
 			public bool ProcessSyncCallbackReturnValue { get; set; }
 
 			/// <summary>
-			/// Gets or sets the output value returned by <see cref="ProcessSyncCallback(LocalLogMessage, out bool)"/>.
+			/// Gets or sets the output value returned by <see cref="ProcessSyncCallback(LocalLogMessage, out bool)" />.
 			/// </summary>
 			public bool ProcessSyncCallbackQueueForAsyncProcessing { get; set; }
 
 			/// <summary>
-			/// Gets a value indicating whether <see cref="ProcessSyncCallback(LocalLogMessage, out bool)"/> was called.
+			/// Gets a value indicating whether <see cref="ProcessSyncCallback(LocalLogMessage, out bool)" /> was called.
 			/// </summary>
 			public bool ProcessSyncCallbackWasCalled { get; private set; }
 
 			/// <summary>
-			/// Gets the log message passed to <see cref="ProcessSyncCallback(LocalLogMessage, out bool)"/>.
+			/// Gets the log message passed to <see cref="ProcessSyncCallback(LocalLogMessage, out bool)" />.
 			/// </summary>
 			public LocalLogMessage MessagePassedToProcessSyncCallback { get; private set; }
 
@@ -51,12 +53,12 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Gets a value indicating whether <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)"/> was called.
+			/// Gets a value indicating whether <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)" /> was called.
 			/// </summary>
 			public bool ProcessAsyncCallbackWasCalled { get; private set; }
 
 			/// <summary>
-			/// Gets the log message passed to <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)"/>.
+			/// Gets the log message passed to <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)" />.
 			/// </summary>
 			public List<LocalLogMessage> MessagesPassedToProcessAsyncCallback { get; } = new List<LocalLogMessage>();
 
@@ -137,13 +139,13 @@ namespace GriffinPlus.Lib.Logging
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
-			((IProcessingPipelineStage) stage).Initialize();
+			((IProcessingPipelineStage)stage).Initialize();
 			Assert.True(stage.IsInitialized);
 
 			// process a log message
 			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback.ProcessSyncCallbackWasCalled);
-			((IProcessingPipelineStage) stage).ProcessMessage(message);
+			((IProcessingPipelineStage)stage).ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
 			Thread.Sleep(1000);
@@ -166,7 +168,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// shut the stage down
-			((IProcessingPipelineStage) stage).Shutdown();
+			((IProcessingPipelineStage)stage).Shutdown();
 			Assert.False(stage.IsInitialized);
 		}
 
@@ -197,7 +199,7 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			((IProcessingPipelineStage) stage1).Initialize();
+			((IProcessingPipelineStage)stage1).Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 
@@ -205,7 +207,7 @@ namespace GriffinPlus.Lib.Logging
 			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback1.ProcessSyncCallbackWasCalled);
 			Assert.False(callback2.ProcessSyncCallbackWasCalled);
-			((IProcessingPipelineStage) stage1).ProcessMessage(message);
+			((IProcessingPipelineStage)stage1).ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
 			Thread.Sleep(1000);
@@ -270,6 +272,6 @@ namespace GriffinPlus.Lib.Logging
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
 		}
-
 	}
+
 }

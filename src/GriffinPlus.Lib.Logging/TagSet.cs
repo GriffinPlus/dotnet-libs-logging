@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A sorted collection of tags (immutable, thread-safe).
 	/// 
@@ -27,10 +28,13 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public sealed class TagSet : IReadOnlyList<string>, IEquatable<TagSet>
 	{
-		private static readonly Regex sValidTagNameRegex = new Regex(@"^[a-zA-Z0-9\.\,\:\;\+\-\#\(\)\[\]\{\}\<\>]+$", RegexOptions.Compiled | RegexOptions.Singleline);
+		private static readonly Regex sValidTagNameRegex = new Regex(
+			@"^[a-zA-Z0-9\.\,\:\;\+\-\#\(\)\[\]\{\}\<\>]+$",
+			RegexOptions.Compiled | RegexOptions.Singleline);
+
 		private static readonly List<string> sEmpty = new List<string>();
-		private readonly List<string> mTags;
-		private readonly int mHashCode;
+		private readonly        List<string> mTags;
+		private readonly        int          mHashCode;
 
 		/// <summary>
 		/// Gets an empty tag set.
@@ -38,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 		public static TagSet Empty { get; } = new TagSet();
 
 		/// <summary>
-		/// Initializes a new empty instance of the <see cref="TagSet"/> class.
+		/// Initializes a new empty instance of the <see cref="TagSet" /> class.
 		/// </summary>
 		public TagSet()
 		{
@@ -47,7 +51,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
+		/// Initializes a new instance of the <see cref="TagSet" /> class with the specified tags.
 		/// </summary>
 		/// <param name="tags">Tags to keep in the collection.</param>
 		public TagSet(params string[] tags) :
@@ -56,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
+		/// Initializes a new instance of the <see cref="TagSet" /> class with the specified tags.
 		/// </summary>
 		/// <param name="tags">Tags to keep in the collection.</param>
 		public TagSet(IEnumerable<string> tags)
@@ -69,7 +73,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new empty instance of the <see cref="TagSet"/> class (for internal use only).
+		/// Initializes a new empty instance of the <see cref="TagSet" /> class (for internal use only).
 		/// </summary>
 		private TagSet(List<string> tags)
 		{
@@ -85,7 +89,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The tag at the specified index.</returns>
 		public string this[int index]
 		{
-			get {
+			get
+			{
 				if (index < 0 || index >= mTags.Count) throw new IndexOutOfRangeException("The specified index is out of bounds.");
 				return mTags[index];
 			}
@@ -245,9 +250,10 @@ namespace GriffinPlus.Lib.Logging
 			unchecked
 			{
 				int hash = 17;
-				foreach (var tag in tags) hash = hash * 23 + tag.GetHashCode();
+				foreach (string tag in tags) hash = hash * 23 + tag.GetHashCode();
 				return hash;
 			}
 		}
 	}
+
 }

@@ -10,21 +10,22 @@ using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log message processing pipeline stage that logs messages to a file (thread-safe).
 	/// </summary>
 	public class FileWriterPipelineStage : TextWriterPipelineStage<FileWriterPipelineStage>
 	{
 		private readonly StringBuilder mOutputBuilder = new StringBuilder();
-		private readonly string mPath;
-		private readonly bool mAppend;
-		private FileStream mFile;
-		private StreamWriter mWriter;
-		private bool mAutoFlush;
+		private readonly string        mPath;
+		private readonly bool          mAppend;
+		private          FileStream    mFile;
+		private          StreamWriter  mWriter;
+		private          bool          mAutoFlush;
 
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileWriterPipelineStage"/> class.
+		/// Initializes a new instance of the <see cref="FileWriterPipelineStage" /> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="path">Path of the file to write to.</param>
@@ -43,7 +44,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public bool AutoFlush
 		{
-			get { lock (Sync) return mAutoFlush; }
+			get
+			{
+				lock (Sync) return mAutoFlush;
+			}
 
 			set
 			{
@@ -60,12 +64,15 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string Path
 		{
-			get { lock (Sync) return mPath; }
+			get
+			{
+				lock (Sync) return mPath;
+			}
 		}
 
 		/// <summary>
 		/// Performs pipeline stage specific initialization tasks that must run when the pipeline stage is attached to the
-		/// logging subsystem. This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync"/>).
+		/// logging subsystem. This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync" />).
 		/// </summary>
 		protected override void OnInitialize()
 		{
@@ -77,7 +84,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Performs pipeline stage specific cleanup tasks that must run when the pipeline stage is about to be detached
-		/// from the logging subsystem. This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync"/>).
+		/// from the logging subsystem. This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync" />).
 		/// </summary>
 		protected internal override void OnShutdown()
 		{
@@ -142,7 +149,6 @@ namespace GriffinPlus.Lib.Logging
 
 			return messages.Length;
 		}
-
-
 	}
+
 }

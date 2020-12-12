@@ -10,6 +10,7 @@ using System.IO;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log file based on an SQLite database file with optimizations for recording and analysis scenarios.
 	/// </summary>
@@ -20,21 +21,21 @@ namespace GriffinPlus.Lib.Logging
 		private readonly FileBackedLogMessageCollection mMessageCollection;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogFile"/> class.
+		/// Initializes a new instance of the <see cref="LogFile" /> class.
 		/// </summary>
 		/// <param name="path">Log file to open/create.</param>
 		/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 		/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
 		public LogFile(
-			string path,
-			LogFilePurpose purpose,
+			string           path,
+			LogFilePurpose   purpose,
 			LogFileWriteMode writeMode = LogFileWriteMode.Robust) : this(path, purpose, writeMode, null)
 		{
 			mMessageCollection = new FileBackedLogMessageCollection(this);
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogFile"/> class.
+		/// Initializes a new instance of the <see cref="LogFile" /> class.
 		/// </summary>
 		/// <param name="path">Log file to open/create.</param>
 		/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
@@ -42,9 +43,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="collection">Collection that works upon the log file.</param>
 		/// <exception cref="LogFileException">Opening/Creating the log file failed.</exception>
 		internal LogFile(
-			string path,
-			LogFilePurpose purpose,
-			LogFileWriteMode writeMode,
+			string                         path,
+			LogFilePurpose                 purpose,
+			LogFileWriteMode               writeMode,
 			FileBackedLogMessageCollection collection)
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
@@ -59,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 			try
 			{
 				// open database file (creates a new one, if it does not exist)
-				SQLiteConnection connection = new SQLiteConnection($"Data Source={mFilePath};Version=3");
+				var connection = new SQLiteConnection($"Data Source={mFilePath};Version=3");
 				connection.Open();
 
 				// open/create the database
@@ -78,9 +79,11 @@ namespace GriffinPlus.Lib.Logging
 						case 1:
 							mDatabaseAccessor = new RecordingDatabaseAccessor(connection, writeMode, false);
 							break;
+
 						case 2:
 							mDatabaseAccessor = new AnalysisDatabaseAccessor(connection, writeMode, false);
 							break;
+
 						default:
 							throw new FileVersionNotSupportedException();
 					}
@@ -92,9 +95,11 @@ namespace GriffinPlus.Lib.Logging
 						case LogFilePurpose.Recording:
 							mDatabaseAccessor = new RecordingDatabaseAccessor(connection, writeMode, true);
 							break;
+
 						case LogFilePurpose.Analysis:
 							mDatabaseAccessor = new AnalysisDatabaseAccessor(connection, writeMode, true);
 							break;
+
 						default:
 							throw new NotSupportedException($"The specified purpose ({purpose}) is not supported.");
 					}
@@ -281,7 +286,7 @@ namespace GriffinPlus.Lib.Logging
 		/// true, if reading ran to completion;
 		/// false, if reading was cancelled.
 		/// </returns>
-		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> or <paramref name="count"/> must be positive.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> or <paramref name="count" /> must be positive.</exception>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		/// <exception cref="LogFileException">Reading failed (see inner exception for details).</exception>
 		public bool Read(long fromId, long count, ReadMessageCallback callback)
@@ -346,7 +351,7 @@ namespace GriffinPlus.Lib.Logging
 					ex);
 			}
 
-			mMessageCollection.ProcessMessageAdded((int) count);
+			mMessageCollection.ProcessMessageAdded((int)count);
 		}
 
 		/// <summary>
@@ -358,10 +363,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		/// <param name="maximumMessageAge">
 		/// Maximum age of log messages to keep;
-		/// <seealso cref="TimeSpan.Zero"/> to disable removing messages by age.
+		/// <seealso cref="TimeSpan.Zero" /> to disable removing messages by age.
 		/// </param>
-		/// <exception cref="ArgumentOutOfRangeException">The message limit must be > 0 to limit the number of message or -1 to disable the limit.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">The maximum message age must be positive to limit the number of messages or TimeSpan.Empty to disable the limit.</exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// The message limit must be > 0 to limit the number of message or -1 to disable the limit.
+		/// </exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// The maximum message age must be positive to limit the number of messages or TimeSpan.Empty to disable the limit.
+		/// </exception>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		/// <exception cref="LogFileException">Cleaning up failed (see inner exception for details).</exception>
 		public void Cleanup(long maximumMessageCount, TimeSpan maximumMessageAge)
@@ -431,4 +440,5 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 	}
+
 }

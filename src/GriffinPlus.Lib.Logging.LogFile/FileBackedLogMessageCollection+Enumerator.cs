@@ -9,19 +9,20 @@ using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	public partial class FileBackedLogMessageCollection
 	{
 		/// <summary>
-		/// Enumerator iterating over a <see cref="FileBackedLogMessageCollection"/>.
+		/// Enumerator iterating over a <see cref="FileBackedLogMessageCollection" />.
 		/// </summary>
 		private class Enumerator : IEnumerator<LogMessage>
 		{
 			private readonly FileBackedLogMessageCollection mCollection;
-			private readonly int mCollectionChangeCounter;
-			private long mIndex;
+			private readonly int                            mCollectionChangeCounter;
+			private          long                           mIndex;
 
 			/// <summary>
-			/// Creates a new instance of the <see cref="Enumerator"/> class.
+			/// Creates a new instance of the <see cref="Enumerator" /> class.
 			/// </summary>
 			/// <param name="collection">Collection the enumerator will iterate over.</param>
 			public Enumerator(FileBackedLogMessageCollection collection)
@@ -46,7 +47,6 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			public void Dispose()
 			{
-
 			}
 
 			/// <summary>
@@ -59,11 +59,13 @@ namespace GriffinPlus.Lib.Logging
 			/// <exception cref="InvalidOperationException">The collection was modified after the enumerator was created.</exception>
 			public bool MoveNext()
 			{
-				if (mCollectionChangeCounter != mCollection.mChangeCounter) {
+				if (mCollectionChangeCounter != mCollection.mChangeCounter)
+				{
 					throw new InvalidOperationException("The collection was modified after the enumerator was created.");
 				}
 
-				if (mIndex < mCollection.Count) {
+				if (mIndex < mCollection.Count)
+				{
 					mIndex++;
 					return mIndex < mCollection.Count;
 				}
@@ -77,7 +79,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <exception cref="InvalidOperationException">The collection was modified after the enumerator was created.</exception>
 			public void Reset()
 			{
-				if (mCollectionChangeCounter != mCollection.mChangeCounter) {
+				if (mCollectionChangeCounter != mCollection.mChangeCounter)
+				{
 					throw new InvalidOperationException("The collection was modified after the enumerator was created.");
 				}
 
@@ -85,4 +88,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

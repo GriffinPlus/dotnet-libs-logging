@@ -5,7 +5,8 @@
 
 namespace GriffinPlus.Lib.Logging
 {
-	internal partial class LocalLogServiceConnection
+
+	partial class LocalLogServiceConnection
 	{
 		/// <summary>
 		/// Types a log entry block in a the shared memory queue can contain.
@@ -53,4 +54,5 @@ namespace GriffinPlus.Lib.Logging
 			SaveSnapshot = 7
 		}
 	}
+
 }

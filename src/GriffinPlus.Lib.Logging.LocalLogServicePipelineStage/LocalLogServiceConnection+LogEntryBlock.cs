@@ -7,13 +7,14 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	internal partial class LocalLogServiceConnection
+
+	partial class LocalLogServiceConnection
 	{
 		/// <summary>
 		/// A log entry block within the shared memory queue (496 bytes in size).
 		/// </summary>
 		/// <remarks>
-		/// This structure is designed to produce 512 byte blocks when put into a block of the <see cref="UnsafeSharedMemoryQueue"/>.
+		/// This structure is designed to produce 512 byte blocks when put into a block of the <see cref="UnsafeSharedMemoryQueue" />.
 		/// </remarks>
 		[StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode)]
 		private struct LogEntryBlock
@@ -210,6 +211,6 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			public fixed char Message[MessageSize];
 		}
-
 	}
+
 }

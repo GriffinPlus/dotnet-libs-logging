@@ -12,22 +12,23 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// An ini-style configuration file that keeps the log configuration.
 	/// </summary>
 	public class LogConfigurationFile
 	{
-		private const string Section_Name_Settings = "Settings";
-		private const string Section_Name_Processing_Pipeline_Stage = "ProcessingPipelineStage";
-		private const string Section_Name_Log_Writer = "LogWriter";
-		private const string Property_Name_Application_Name = "ApplicationName";
-		private const string Property_Name_LogWriter_Name = "Name";
+		private const string Section_Name_Settings                    = "Settings";
+		private const string Section_Name_Processing_Pipeline_Stage   = "ProcessingPipelineStage";
+		private const string Section_Name_Log_Writer                  = "LogWriter";
+		private const string Property_Name_Application_Name           = "ApplicationName";
+		private const string Property_Name_LogWriter_Name             = "Name";
 		private const string Property_Name_LogWriter_Wildcard_Pattern = "WildcardPattern"; // deprecated, kept for compatibility only
-		private const string Property_Name_LogWriter_Regex_Pattern = "RegexPattern"; // deprecated, kept for compatibility only
-		private const string Property_Name_LogWriter_Tag = "Tag";
-		private const string Property_Name_LogWriter_Level = "Level";
-		private const string Property_Name_LogWriter_Include = "Include";
-		private const string Property_Name_LogWriter_Exclude = "Exclude";
+		private const string Property_Name_LogWriter_Regex_Pattern    = "RegexPattern";    // deprecated, kept for compatibility only
+		private const string Property_Name_LogWriter_Tag              = "Tag";
+		private const string Property_Name_LogWriter_Level            = "Level";
+		private const string Property_Name_LogWriter_Include          = "Include";
+		private const string Property_Name_LogWriter_Exclude          = "Exclude";
 
 		private static readonly string[] sHeaderComment =
 		{
@@ -134,19 +135,19 @@ namespace GriffinPlus.Lib.Logging
 		private readonly Dictionary<string, string> mGlobalSettings;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogConfigurationFile"/> class.
+		/// Initializes a new instance of the <see cref="LogConfigurationFile" /> class.
 		/// </summary>
 		public LogConfigurationFile()
 		{
 			mGlobalSettings = new Dictionary<string, string>();
 			ApplicationName = AppDomain.CurrentDomain.FriendlyName;
 			var writer = LogWriterConfiguration.Default;
-			writer.IsDefault = true;  // ensures that the log writer configuration is removed, if some other is added
-			LogWriterSettings.Add(writer); 
+			writer.IsDefault = true; // ensures that the log writer configuration is removed, if some other is added
+			LogWriterSettings.Add(writer);
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogConfigurationFile"/> by copying another instance.
+		/// Initializes a new instance of the <see cref="LogConfigurationFile" /> by copying another instance.
 		/// </summary>
 		/// <param name="other">Log configuration file to copy.</param>
 		public LogConfigurationFile(LogConfigurationFile other)
@@ -155,7 +156,7 @@ namespace GriffinPlus.Lib.Logging
 			mGlobalSettings = new Dictionary<string, string>(other.mGlobalSettings);
 			ApplicationName = other.ApplicationName;
 			LogWriterSettings.AddRange(other.LogWriterSettings); // log writer settings are immutable, so no copy needed
-			foreach (var kvp in other.ProcessingPipelineStageSettings) ProcessingPipelineStageSettings.Add(kvp.Key, new Dictionary<string,string>(kvp.Value));
+			foreach (var kvp in other.ProcessingPipelineStageSettings) ProcessingPipelineStageSettings.Add(kvp.Key, new Dictionary<string, string>(kvp.Value));
 		}
 
 		/// <summary>
@@ -197,11 +198,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="path">Path of the configuration file to load.</param>
 		public static LogConfigurationFile LoadFrom(string path)
 		{
-			LogConfigurationFile file = new LogConfigurationFile();
+			var file = new LogConfigurationFile();
 			file.Clear();
 
-			using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-			using (StreamReader reader = new StreamReader(fs, true))
+			using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+			using (var reader = new StreamReader(fs, true))
 			{
 				file.Read(reader);
 			}
@@ -254,6 +255,7 @@ namespace GriffinPlus.Lib.Logging
 							// the [Settings] section
 							currentSettings = mGlobalSettings;
 							continue;
+
 						case Section_Name_Log_Writer:
 							// a [LogWriter] section
 							logWriter = new LogWriterConfiguration { IsDefault = true };
@@ -295,13 +297,19 @@ namespace GriffinPlus.Lib.Logging
 							// setting belongs to a log writer configuration
 							// (Name, WildcardPattern, RegexPattern, Tag, Level, Include, Exclude)
 							case Property_Name_LogWriter_Name:
-								if (value.StartsWith("=")) {
+								if (value.StartsWith("="))
+								{
 									logWriter.mNamePatterns.Add(new LogWriterConfiguration.ExactNamePattern(value.Substring(1)));
-								} else if (value.StartsWith("^") && value.EndsWith("$")) {
+								}
+								else if (value.StartsWith("^") && value.EndsWith("$"))
+								{
 									logWriter.mNamePatterns.Add(new LogWriterConfiguration.RegexNamePattern(value));
-								} else {
+								}
+								else
+								{
 									logWriter.mNamePatterns.Add(new LogWriterConfiguration.WildcardNamePattern(value));
 								}
+
 								continue;
 
 							// deprecated, kept for compatibility only
@@ -315,13 +323,19 @@ namespace GriffinPlus.Lib.Logging
 								continue;
 
 							case Property_Name_LogWriter_Tag:
-								if (value.StartsWith("=")) {
+								if (value.StartsWith("="))
+								{
 									logWriter.mTagPatterns.Add(new LogWriterConfiguration.ExactNamePattern(value.Substring(1)));
-								} else if (value.StartsWith("^") && value.EndsWith("$")) {
+								}
+								else if (value.StartsWith("^") && value.EndsWith("$"))
+								{
 									logWriter.mTagPatterns.Add(new LogWriterConfiguration.RegexNamePattern(value));
-								} else {
+								}
+								else
+								{
 									logWriter.mTagPatterns.Add(new LogWriterConfiguration.WildcardNamePattern(value));
 								}
+
 								continue;
 
 							case Property_Name_LogWriter_Level:
@@ -330,14 +344,14 @@ namespace GriffinPlus.Lib.Logging
 
 							case Property_Name_LogWriter_Include:
 							{
-								string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
+								var levels = value.Split(',').Select(x => x.Trim()).ToArray();
 								logWriter.mIncludes.AddRange(levels);
 								continue;
 							}
 
 							case Property_Name_LogWriter_Exclude:
 							{
-								string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
+								var levels = value.Split(',').Select(x => x.Trim()).ToArray();
 								logWriter.mExcludes.AddRange(levels);
 								continue;
 							}
@@ -378,7 +392,6 @@ namespace GriffinPlus.Lib.Logging
 			{
 				LogWriterSettings.Add(LogWriterConfiguration.Default);
 			}
-			
 		}
 
 		/// <summary>
@@ -387,8 +400,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="path">Path of the configuration file to save.</param>
 		public void Save(string path)
 		{
-			using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
-			using (StreamWriter writer = new StreamWriter(fs, new UTF8Encoding(true)))
+			using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+			using (var writer = new StreamWriter(fs, new UTF8Encoding(true)))
 			{
 				Write(writer);
 			}
@@ -401,7 +414,8 @@ namespace GriffinPlus.Lib.Logging
 		private void Write(TextWriter writer)
 		{
 			// overview
-			foreach (string line in sHeaderComment) {
+			foreach (string line in sHeaderComment)
+			{
 				writer.WriteLine(line);
 			}
 
@@ -444,7 +458,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				writer.WriteLine();
 				foreach (string line in sLogWriterConfigurationComment) writer.WriteLine(line);
-				foreach (LogWriterConfiguration logWriter in LogWriterSettings)
+				foreach (var logWriter in LogWriterSettings)
 				{
 					writer.WriteLine();
 					writer.WriteLine("[{0}]", Section_Name_Log_Writer);
@@ -456,6 +470,7 @@ namespace GriffinPlus.Lib.Logging
 							case LogWriterConfiguration.ExactNamePattern _:
 								writer.WriteLine("{0} = ={1}", Property_Name_LogWriter_Name, pattern.Pattern);
 								break;
+
 							case LogWriterConfiguration.WildcardNamePattern _:
 							case LogWriterConfiguration.RegexNamePattern _:
 								// regex patterns are enclosed by anchors (^regex$),
@@ -472,6 +487,7 @@ namespace GriffinPlus.Lib.Logging
 							case LogWriterConfiguration.ExactNamePattern _:
 								writer.WriteLine("{0} = ={1}", Property_Name_LogWriter_Tag, pattern.Pattern);
 								break;
+
 							case LogWriterConfiguration.WildcardNamePattern _:
 							case LogWriterConfiguration.RegexNamePattern _:
 								// regex patterns are enclosed by anchors (^regex$),
@@ -498,4 +514,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

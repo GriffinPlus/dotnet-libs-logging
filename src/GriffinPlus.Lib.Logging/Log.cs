@@ -11,6 +11,7 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// The access point to the logging subsystem in the current application domain.
 	/// </summary>
@@ -21,19 +22,19 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		internal static readonly object Sync = new object();
 
-		private static readonly int sProcessId = Process.GetCurrentProcess().Id;
-		private static readonly string sProcessName = Process.GetCurrentProcess().ProcessName;
-		private static readonly LocalLogMessagePool sLogMessagePool = new LocalLogMessagePool();
-		private static List<LogWriter> sLogWritersById = new List<LogWriter>();
-		private static Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
-		private static ILogConfiguration sLogConfiguration;
-		private static volatile IProcessingPipelineStage sProcessingPipeline;
-		private static readonly AsyncLocal<uint> sAsyncId = new AsyncLocal<uint>();
-		private static int sAsyncIdCounter;
-		private static readonly LogWriter sLog = GetWriter("Logging");
+		private static readonly int                           sProcessId        = Process.GetCurrentProcess().Id;
+		private static readonly string                        sProcessName      = Process.GetCurrentProcess().ProcessName;
+		private static readonly LocalLogMessagePool           sLogMessagePool   = new LocalLogMessagePool();
+		private static          List<LogWriter>               sLogWritersById   = new List<LogWriter>();
+		private static          Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
+		private static          ILogConfiguration             sLogConfiguration;
+		private static volatile IProcessingPipelineStage      sProcessingPipeline;
+		private static readonly AsyncLocal<uint>              sAsyncId = new AsyncLocal<uint>();
+		private static          int                           sAsyncIdCounter;
+		private static readonly LogWriter                     sLog = GetWriter("Logging");
 
 		/// <summary>
-		/// Initializes the <see cref="Log"/> class.
+		/// Initializes the <see cref="Log" /> class.
 		/// </summary>
 		static Log()
 		{
@@ -54,8 +55,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets all log writers that have been registered using <see cref="GetWriter{T}"/> or <see cref="GetWriter(string)"/>.
-		/// The index of the log writer in the list corresponds to <see cref="LogWriter.Id"/>.
+		/// Gets all log writers that have been registered using <see cref="GetWriter{T}" /> or <see cref="GetWriter(string)" />.
+		/// The index of the log writer in the list corresponds to <see cref="LogWriter.Id" />.
 		/// </summary>
 		public static IReadOnlyList<LogWriter> KnownWriters => sLogWritersById;
 
@@ -216,12 +217,16 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="level">Log level to use.</param>
 		/// <param name="tags">Tags attached to the message.</param>
 		/// <param name="text">Text of the log message.</param>
-		internal static void WriteMessage(LogWriter writer, LogLevel level, TagSet tags, string text)
+		internal static void WriteMessage(
+			LogWriter writer,
+			LogLevel  level,
+			TagSet    tags,
+			string    text)
 		{
 			// remove preceding and trailing line breaks
 			text = text.Trim('\r', '\n');
 
-			IProcessingPipelineStage pipeline = ProcessingPipeline;
+			var pipeline = ProcessingPipeline;
 			if (pipeline != null)
 			{
 				LocalLogMessage message = null;
@@ -284,12 +289,12 @@ namespace GriffinPlus.Lib.Logging
 						}
 
 						// replace log writer list
-						List<LogWriter> newLogWritersById = new List<LogWriter>(sLogWritersById) { writer };
+						var newLogWritersById = new List<LogWriter>(sLogWritersById) { writer };
 						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 						sLogWritersById = newLogWritersById;
 
 						// replace log writer collection dictionary
-						Dictionary<string, LogWriter> newLogWritersByName = new Dictionary<string, LogWriter>(sLogWritersByName) { { writer.Name, writer } };
+						var newLogWritersByName = new Dictionary<string, LogWriter>(sLogWritersByName) { { writer.Name, writer } };
 						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 						sLogWritersByName = newLogWritersByName;
 
@@ -335,7 +340,7 @@ namespace GriffinPlus.Lib.Logging
 			if (sLogConfiguration == null)
 			{
 				// create and init default configuration
-				VolatileLogConfiguration configuration = new VolatileLogConfiguration { IsDefaultConfiguration = true };
+				var configuration = new VolatileLogConfiguration { IsDefaultConfiguration = true };
 				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
 				sLogConfiguration = configuration;
 
@@ -362,7 +367,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="configuration">The configuration to set.</param>
 		private static void LinkPipelineStagesToConfiguration(
 			IProcessingPipelineStage firstStage,
-			ILogConfiguration configuration)
+			ILogConfiguration        configuration)
 		{
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
@@ -371,14 +376,14 @@ namespace GriffinPlus.Lib.Logging
 			if (firstStage == null) return;
 
 			// get all stages of the processing pipeline recursively
-			HashSet<IProcessingPipelineStage> allStages = new HashSet<IProcessingPipelineStage>();
+			var allStages = new HashSet<IProcessingPipelineStage>();
 			firstStage.GetAllStages(allStages);
 
 			// link configuration to all stages
 			foreach (var stage in allStages)
 			{
-				var stageConfiguration = configuration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == stage.Name)
-				                         ?? configuration.ProcessingPipeline.Stages.AddNew(stage.Name);
+				var stageConfiguration = configuration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == stage.Name) ??
+				                         configuration.ProcessingPipeline.Stages.AddNew(stage.Name);
 				stage.Settings = stageConfiguration;
 			}
 		}
@@ -396,7 +401,7 @@ namespace GriffinPlus.Lib.Logging
 			if (firstStage == null) return;
 
 			// get all stages of the processing pipeline recursively
-			HashSet<IProcessingPipelineStage> allStages = new HashSet<IProcessingPipelineStage>();
+			var allStages = new HashSet<IProcessingPipelineStage>();
 			firstStage.GetAllStages(allStages);
 
 			// unlink configuration from all stages
@@ -433,7 +438,6 @@ namespace GriffinPlus.Lib.Logging
 			// notify log message processing pipeline stages
 			ProcessingPipeline?.ProcessLogWriterAdded(writer);
 		}
-
 	}
-}
 
+}

@@ -10,13 +10,14 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Tokenizes a JSON document.
 	/// </summary>
 	/// <remarks>
 	/// The tokenizer removes non-significant whitespaces.
 	/// </remarks>
-	internal class JsonTokenizer
+	class JsonTokenizer
 	{
 		/// <summary>
 		/// Characters creating a line break.
@@ -50,7 +51,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private static readonly Regex sNumberRegex = new Regex(@"^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$", RegexOptions.Compiled | RegexOptions.Singleline);
 
-		enum State
+		private enum State
 		{
 			Reading,
 			ReadingString,
@@ -59,37 +60,39 @@ namespace GriffinPlus.Lib.Logging
 			ReadingIdentifier
 		}
 
-		private State mState;
-		private int mNextLineNumber;
-		private int mNextPosition;
-		private int mStartLineNumberOfAssembledToken;
-		private int mStartPositionOfAssembledToken;
-		private int mStartLineNumberOfAssembledEscapeSequence;
-		private int mStartPositionOfAssembledEscapeSequence;
-		private readonly StringBuilder mTokenBuilder = new StringBuilder();
+		private          State         mState;
+		private          int           mNextLineNumber;
+		private          int           mNextPosition;
+		private          int           mStartLineNumberOfAssembledToken;
+		private          int           mStartPositionOfAssembledToken;
+		private          int           mStartLineNumberOfAssembledEscapeSequence;
+		private          int           mStartPositionOfAssembledEscapeSequence;
+		private readonly StringBuilder mTokenBuilder          = new StringBuilder();
 		private readonly StringBuilder mEscapeSequenceBuilder = new StringBuilder();
-		private int mCurrentLineNumber;
-		private int mCurrentPosition;
+		private          int           mCurrentLineNumber;
+		private          int           mCurrentPosition;
 
 		/// <summary>
-		/// Initializes the <seealso cref="JsonTokenizer"/> class.
+		/// Initializes the <seealso cref="JsonTokenizer" /> class.
 		/// </summary>
 		static JsonTokenizer()
 		{
 			// init a string with characters that should end an identifier
 			// - all whitespaces
 			// - characters with a special meaning in JSON
-			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i <= char.MaxValue; i++) {
-				char c = (char) i;
+			var builder = new StringBuilder();
+			for (int i = 0; i <= char.MaxValue; i++)
+			{
+				char c = (char)i;
 				if (char.IsWhiteSpace(c)) builder.Append(c);
 			}
+
 			sWhitespaceCharacters = builder.ToString();
 			sEndOfIdentifierChars = sWhitespaceCharacters + sSpecialCharacters;
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonTokenizer"/> class.
+		/// Initializes a new instance of the <see cref="JsonTokenizer" /> class.
 		/// </summary>
 		public JsonTokenizer()
 		{
@@ -112,13 +115,13 @@ namespace GriffinPlus.Lib.Logging
 		public int CurrentPosition => mCurrentPosition;
 
 		/// <summary>
-		/// Processes the specified JSON string, extracts tokens and stores them in <see cref="Tokens"/>
+		/// Processes the specified JSON string, extracts tokens and stores them in <see cref="Tokens" />
 		/// (the passed data may contain incomplete JSON documents and even tokens that are completed over multiple calls).
 		/// </summary>
 		/// <param name="data">JSON string to process.</param>
 		/// <param name="complete">
 		/// true, if the passed JSON string contains complete tokens;
-		/// false, if tokens may be split up over multiple calls if the method (<see cref="Flush"/> must be called explicitly at the end).
+		/// false, if tokens may be split up over multiple calls if the method (<see cref="Flush" /> must be called explicitly at the end).
 		/// </param>
 		/// <returns>Number of extracted tokens.</returns>
 		/// <exception cref="TokenizingException">The specified data contains an invalid token.</exception>
@@ -172,7 +175,7 @@ namespace GriffinPlus.Lib.Logging
 					if (sEndOfIdentifierChars.IndexOf(c) >= 0)
 					{
 						// detected end of the identifier
-						JsonToken token = new JsonToken(JsonTokenType.Identifier, mTokenBuilder.ToString(), mStartLineNumberOfAssembledToken, mStartPositionOfAssembledToken);
+						var token = new JsonToken(JsonTokenType.Identifier, mTokenBuilder.ToString(), mStartLineNumberOfAssembledToken, mStartPositionOfAssembledToken);
 						TranslateIdentifier(ref token);
 						Tokens.Enqueue(token);
 						mState = State.Reading;
@@ -198,28 +201,34 @@ namespace GriffinPlus.Lib.Logging
 							mEscapeSequenceBuilder.Clear();
 							mState = State.ReadingUnicodeEscapeSequence;
 							continue;
+
 						case '"':
 						case '/':
 						case '\\':
 							mTokenBuilder.Append(c);
 							mState = State.ReadingString;
 							continue;
+
 						case 't':
 							mTokenBuilder.Append('\t');
 							mState = State.ReadingString;
 							continue;
+
 						case 'n':
 							mTokenBuilder.Append('\n');
 							mState = State.ReadingString;
 							continue;
+
 						case 'r':
 							mTokenBuilder.Append('\r');
 							mState = State.ReadingString;
 							continue;
+
 						case 'f':
 							mTokenBuilder.Append('\f');
 							mState = State.ReadingString;
 							continue;
+
 						case 'b':
 							mTokenBuilder.Append('\b');
 							mState = State.ReadingString;
@@ -270,18 +279,23 @@ namespace GriffinPlus.Lib.Logging
 					case '{':
 						Tokens.Enqueue(new JsonToken(JsonTokenType.LBracket, "{", mCurrentLineNumber, mCurrentPosition));
 						continue;
+
 					case '}':
 						Tokens.Enqueue(new JsonToken(JsonTokenType.RBracket, "}", mCurrentLineNumber, mCurrentPosition));
 						continue;
+
 					case '[':
 						Tokens.Enqueue(new JsonToken(JsonTokenType.LSquareBracket, "[", mCurrentLineNumber, mCurrentPosition));
 						continue;
+
 					case ']':
 						Tokens.Enqueue(new JsonToken(JsonTokenType.RSquareBracket, "]", mCurrentLineNumber, mCurrentPosition));
 						continue;
+
 					case ':':
 						Tokens.Enqueue(new JsonToken(JsonTokenType.Colon, ":", mCurrentLineNumber, mCurrentPosition));
 						continue;
+
 					case ',':
 						Tokens.Enqueue(new JsonToken(JsonTokenType.Comma, ",", mCurrentLineNumber, mCurrentPosition));
 						continue;
@@ -329,7 +343,7 @@ namespace GriffinPlus.Lib.Logging
 			int tokenCountAtStart = Tokens.Count;
 			if (mState == State.ReadingIdentifier)
 			{
-				JsonToken token = new JsonToken(JsonTokenType.Identifier, mTokenBuilder.ToString(), mStartLineNumberOfAssembledToken, mStartPositionOfAssembledToken);
+				var token = new JsonToken(JsonTokenType.Identifier, mTokenBuilder.ToString(), mStartLineNumberOfAssembledToken, mStartPositionOfAssembledToken);
 				TranslateIdentifier(ref token);
 				Tokens.Enqueue(token);
 			}
@@ -368,6 +382,7 @@ namespace GriffinPlus.Lib.Logging
 				case "false":
 					token.Type = JsonTokenType.Boolean;
 					return;
+
 				case "null":
 					token.Type = JsonTokenType.Null;
 					return;
@@ -387,4 +402,5 @@ namespace GriffinPlus.Lib.Logging
 				$"Unrecognized token '{token.Token}' at ({mStartLineNumberOfAssembledToken},{mStartPositionOfAssembledToken}).");
 		}
 	}
+
 }

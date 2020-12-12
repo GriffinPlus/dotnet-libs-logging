@@ -12,22 +12,22 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log message that was written by the current process (it therefore contains additional information
-	/// about the <see cref="LogWriter"/> object and the <see cref="LogLevel"/> object involved).
+	/// about the <see cref="LogWriter" /> object and the <see cref="LogLevel" /> object involved).
 	/// </summary>
 	public sealed class LocalLogMessage : ILogMessage, IEquatable<ILogMessage>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class.
+		/// Initializes a new instance of the <see cref="LocalLogMessage" /> class.
 		/// </summary>
 		public LocalLogMessage()
 		{
-
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class.
+		/// Initializes a new instance of the <see cref="LocalLogMessage" /> class.
 		/// </summary>
 		/// <param name="pool">The pool the message belongs to.</param>
 		internal LocalLogMessage(LocalLogMessagePool pool)
@@ -36,7 +36,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class copying the specified one.
+		/// Initializes a new instance of the <see cref="LocalLogMessage" /> class copying the specified one.
 		/// </summary>
 		/// <param name="other">Message to copy.</param>
 		public LocalLogMessage(LocalLogMessage other)
@@ -59,7 +59,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the context of the log message
 		/// (transports custom information as the log message travels through the processing pipeline)
 		/// </summary>
-		public IDictionary<string,object> Context { get; } = new Dictionary<string, object>();
+		public IDictionary<string, object> Context { get; } = new Dictionary<string, object>();
 
 		/// <summary>
 		/// Gets the date/time the message was written to the log.
@@ -143,12 +143,14 @@ namespace GriffinPlus.Lib.Logging
 		{
 			int refCount = Interlocked.Decrement(ref mRefCount);
 
-			if (refCount < 0) {
+			if (refCount < 0)
+			{
 				Interlocked.Increment(ref mRefCount);
 				throw new InvalidOperationException("The reference count is already 0.");
 			}
 
-			if (refCount == 0) {
+			if (refCount == 0)
+			{
 				Pool?.ReturnMessage(this);
 			}
 
@@ -171,7 +173,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (in ns, the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
+		/// (in ns, the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
 		/// </param>
 		/// <param name="logWriter">Log writer that was used to emit the message.</param>
 		/// <param name="logLevel">Log level that is associated with the message.</param>
@@ -186,14 +188,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The log message itself.</returns>
 		internal LocalLogMessage InitWith(
 			DateTimeOffset timestamp,
-			long highPrecisionTimestamp,
-			LogWriter logWriter,
-			LogLevel logLevel,
-			TagSet tags,
-			string applicationName,
-			string processName,
-			int processId,
-			string text)
+			long           highPrecisionTimestamp,
+			LogWriter      logWriter,
+			LogLevel       logLevel,
+			TagSet         tags,
+			string         applicationName,
+			string         processName,
+			int            processId,
+			string         text)
 		{
 			Timestamp = timestamp;
 			HighPrecisionTimestamp = highPrecisionTimestamp;
@@ -239,14 +241,14 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (other == null) return false;
 			return Timestamp.Equals(other.Timestamp) &&
-				   HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
-				   LogWriterName == other.LogWriterName &&
-				   LogLevelName == other.LogLevelName &&
-				   Equals(Tags, other.Tags) &&
-				   ApplicationName == other.ApplicationName &&
-				   ProcessName == other.ProcessName &&
-				   ProcessId == other.ProcessId &&
-				   Text == other.Text;
+			       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
+			       LogWriterName == other.LogWriterName &&
+			       LogLevelName == other.LogLevelName &&
+			       Equals(Tags, other.Tags) &&
+			       ApplicationName == other.ApplicationName &&
+			       ProcessName == other.ProcessName &&
+			       ProcessId == other.ProcessId &&
+			       Text == other.Text;
 		}
 
 		/// <summary>
@@ -270,7 +272,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			unchecked
 			{
-				var hashCode = Timestamp.GetHashCode();
+				int hashCode = Timestamp.GetHashCode();
 				hashCode = (hashCode * 397) ^ HighPrecisionTimestamp.GetHashCode();
 				hashCode = (hashCode * 397) ^ (LogWriterName != null ? LogWriterName.GetHashCode() : 0);
 				hashCode = (hashCode * 397) ^ (LogLevelName != null ? LogLevelName.GetHashCode() : 0);
@@ -284,6 +286,6 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		#endregion
-
 	}
+
 }

@@ -8,48 +8,50 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+
 using Xunit;
 
 // ReSharper disable RedundantCaseLabel
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="JsonMessageFormatter"/> class.
+	/// Unit tests targeting the <see cref="JsonMessageFormatter" /> class.
 	/// </summary>
 	public class JsonMessageFormatterTests
 	{
 		private static readonly Dictionary<int, string> sEscapedCodePoints = new Dictionary<int, string>();
-		private static readonly string sUnescapedString;
-		private static readonly string sEscapedString_WithSolidus;
-		private static readonly string sEscapedString_WithoutSolidus;
+		private static readonly string                  sUnescapedString;
+		private static readonly string                  sEscapedString_WithSolidus;
+		private static readonly string                  sEscapedString_WithoutSolidus;
 
 		/// <summary>
-		/// Initializes the <see cref="JsonMessageFormatterTests"/> class.
+		/// Initializes the <see cref="JsonMessageFormatterTests" /> class.
 		/// </summary>
 		static JsonMessageFormatterTests()
 		{
 			// add dictionary with code points to escape
 			// ---------------------------------------------------------------------------------------------
 			for (int i = 0; i <= 0x1F; i++) sEscapedCodePoints[i] = $"\\u{i:X04}";
-			sEscapedCodePoints[0x0008] = "\\b";      // backspace
-			sEscapedCodePoints[0x0009] = "\\t";      // tab
-			sEscapedCodePoints[0x000D] = "\\r";      // carriage return
-			sEscapedCodePoints[0x000A] = "\\n";      // line feed
-			sEscapedCodePoints[0x000C] = "\\f";      // form feed
-			sEscapedCodePoints[0x0022] = "\\\"";     // quotation marks
-			sEscapedCodePoints[0x002F] = "\\/";      // solidus
-			sEscapedCodePoints[0x005C] = "\\\\";     // reverse solidus
-			sEscapedCodePoints[0x0085] = "\\u0085";  // next line
-			sEscapedCodePoints[0x0085] = "\\u0085";  // next line
-			sEscapedCodePoints[0x2028] = "\\u2028";  // line separator
-			sEscapedCodePoints[0x2029] = "\\u2029";  // paragraph separator
+			sEscapedCodePoints[0x0008] = "\\b";     // backspace
+			sEscapedCodePoints[0x0009] = "\\t";     // tab
+			sEscapedCodePoints[0x000D] = "\\r";     // carriage return
+			sEscapedCodePoints[0x000A] = "\\n";     // line feed
+			sEscapedCodePoints[0x000C] = "\\f";     // form feed
+			sEscapedCodePoints[0x0022] = "\\\"";    // quotation marks
+			sEscapedCodePoints[0x002F] = "\\/";     // solidus
+			sEscapedCodePoints[0x005C] = "\\\\";    // reverse solidus
+			sEscapedCodePoints[0x0085] = "\\u0085"; // next line
+			sEscapedCodePoints[0x0085] = "\\u0085"; // next line
+			sEscapedCodePoints[0x2028] = "\\u2028"; // line separator
+			sEscapedCodePoints[0x2029] = "\\u2029"; // paragraph separator
 
 			// build strings that contains all unicode characters and their escaped equivalents
 			// ---------------------------------------------------------------------------------------------
-			StringBuilder unescaped = new StringBuilder();
-			StringBuilder escaped_withSolidus = new StringBuilder();
-			StringBuilder escaped_withoutSolidus = new StringBuilder();
+			var unescaped = new StringBuilder();
+			var escaped_withSolidus = new StringBuilder();
+			var escaped_withoutSolidus = new StringBuilder();
 			for (int codepoint = 0; codepoint <= 0x10FFFF; codepoint++)
 			{
 				// add codepoint to the buffer with the input string
@@ -59,8 +61,8 @@ namespace GriffinPlus.Lib.Logging
 				}
 				else
 				{
-					var sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
-					var sg2 = codepoint % 0x400 + 0xDC00;
+					int sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
+					int sg2 = codepoint % 0x400 + 0xDC00;
 					unescaped.Append((char)sg1);
 					unescaped.Append((char)sg2);
 				}
@@ -74,7 +76,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				// add codepoint to buffer with the expected string
-				if (sEscapedCodePoints.TryGetValue(codepoint, out var sequence))
+				if (sEscapedCodePoints.TryGetValue(codepoint, out string sequence))
 				{
 					escaped_withSolidus.Append(sequence);
 					escaped_withoutSolidus.Append(sequence);
@@ -88,8 +90,8 @@ namespace GriffinPlus.Lib.Logging
 					}
 					else
 					{
-						var sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
-						var sg2 = codepoint % 0x400 + 0xDC00;
+						int sg1 = (codepoint - 0x10000) / 0x400 + 0xD800;
+						int sg2 = codepoint % 0x400 + 0xDC00;
 						escaped_withSolidus.Append((char)sg1);
 						escaped_withSolidus.Append((char)sg2);
 						escaped_withoutSolidus.Append((char)sg1);
@@ -119,7 +121,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// the formatter should not contain any fields at start
 			// => the output should be an empty JSON document
-			var output = formatter.Format(new LogMessage());
+			string output = formatter.Format(new LogMessage());
 			Assert.Equal("{ }", output);
 		}
 
@@ -145,7 +147,8 @@ namespace GriffinPlus.Lib.Logging
 				// style: compact
 				// ------------------------------------------------------------------------
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.None,
 					message,
@@ -153,7 +156,8 @@ namespace GriffinPlus.Lib.Logging
 					"{}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Timestamp,
 					message,
@@ -161,7 +165,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"Timestamp\":\"2000-01-01 00:00:00Z\"}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.HighPrecisionTimestamp,
 					message,
@@ -169,7 +174,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"HighPrecisionTimestamp\":123}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.LogWriterName,
 					message,
@@ -177,7 +183,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"LogWriter\":\"MyWriter\"}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.LogLevelName,
 					message,
@@ -185,7 +192,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"LogLevel\":\"MyLevel\"}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet() },
@@ -193,7 +201,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"Tags\":[]}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
@@ -201,7 +210,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"Tags\":[\"Tag\"]}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
@@ -209,7 +219,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"Tags\":[\"Tag1\",\"Tag2\"]}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ApplicationName,
 					message,
@@ -217,7 +228,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"ApplicationName\":\"MyApp\"}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ProcessName,
 					message,
@@ -225,7 +237,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"ProcessName\":\"MyProcess\"}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.ProcessId,
 					message,
@@ -233,7 +246,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"ProcessId\":42}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.Text,
 					message,
@@ -241,7 +255,8 @@ namespace GriffinPlus.Lib.Logging
 					"{\"Text\":\"MyText\"}"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.Compact,
 					LogMessageField.All,
 					message,
@@ -263,7 +278,8 @@ namespace GriffinPlus.Lib.Logging
 				// style: one line
 				// ------------------------------------------------------------------------
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.None,
 					message,
@@ -271,7 +287,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Timestamp,
 					message,
@@ -279,7 +296,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"Timestamp\" : \"2000-01-01 00:00:00Z\" }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.HighPrecisionTimestamp,
 					message,
@@ -287,7 +305,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"HighPrecisionTimestamp\" : 123 }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.LogWriterName,
 					message,
@@ -295,7 +314,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"LogWriter\" : \"MyWriter\" }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.LogLevelName,
 					message,
@@ -303,7 +323,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"LogLevel\" : \"MyLevel\" }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet() },
@@ -311,7 +332,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"Tags\" : [] }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
@@ -319,7 +341,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"Tags\" : [ \"Tag\" ] }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
@@ -327,7 +350,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"Tags\" : [ \"Tag1\", \"Tag2\" ] }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ApplicationName,
 					message,
@@ -335,7 +359,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"ApplicationName\" : \"MyApp\" }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ProcessName,
 					message,
@@ -343,7 +368,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"ProcessName\" : \"MyProcess\" }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.ProcessId,
 					message,
@@ -351,7 +377,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"ProcessId\" : 42 }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.Text,
 					message,
@@ -359,7 +386,8 @@ namespace GriffinPlus.Lib.Logging
 					"{ \"Text\" : \"MyText\" }"
 				};
 
-				yield return new object[] {
+				yield return new object[]
+				{
 					JsonMessageFormatterStyle.OneLine,
 					LogMessageField.All,
 					message,
@@ -541,7 +569,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		[Theory]
 		[MemberData(nameof(FormatTestData))]
-		public void Format(JsonMessageFormatterStyle style, LogMessageField fields, LogMessage message, string newline, string expected)
+		public void Format(
+			JsonMessageFormatterStyle style,
+			LogMessageField           fields,
+			LogMessage                message,
+			string                    newline,
+			string                    expected)
 		{
 			// test set knows that the newline character sequence is not relevant, if newline == null
 			// => set it explicitly to satisfy the formatter
@@ -561,25 +594,25 @@ namespace GriffinPlus.Lib.Logging
 
 			Assert.Equal(fields, formatter.FormattedFields);
 
-			var output = formatter.Format(message);
+			string output = formatter.Format(message);
 			Assert.Equal(expected, output);
 		}
 
 
 		/// <summary>
-		/// Tests whether the <see cref="JsonMessageFormatter.AppendEscapedStringToBuilder"/> method
+		/// Tests whether the <see cref="JsonMessageFormatter.AppendEscapedStringToBuilder" /> method
 		/// escapes all characters properly.
 		/// </summary>
 		[Fact]
 		public void AppendEscapedStringToBuilder()
 		{
 			// without escaping solidus
-			StringBuilder builder1 = new StringBuilder();
+			var builder1 = new StringBuilder();
 			JsonMessageFormatter.AppendEscapedStringToBuilder(builder1, sUnescapedString, false);
 			Assert.Equal(sEscapedString_WithoutSolidus, builder1.ToString());
 
 			// with escaping solidus
-			StringBuilder builder2 = new StringBuilder();
+			var builder2 = new StringBuilder();
 			JsonMessageFormatter.AppendEscapedStringToBuilder(builder2, sUnescapedString, true);
 			Assert.Equal(sEscapedString_WithSolidus, builder2.ToString());
 		}
@@ -640,26 +673,29 @@ namespace GriffinPlus.Lib.Logging
 				case JsonMessageFormatterStyle.Compact:
 					pattern = "^{\"(.+)\":.+}$";
 					break;
+
 				case JsonMessageFormatterStyle.OneLine:
 					pattern = "^{ \"(.+)\" : .+ }$";
 					break;
+
 				case JsonMessageFormatterStyle.Beautified:
 				default:
 					pattern = "^{\n    \"(.+)\" : .+\n}$";
 					break;
 			}
+
 			var regex = new Regex(pattern);
 
 			// check whether the key has been escaped properly (without escaping the solidus)
 			formatter.EscapeSolidus = false;
-			var output1 = formatter.Format(message);
+			string output1 = formatter.Format(message);
 			var match1 = regex.Match(output1);
 			Assert.True(match1.Success);
 			Assert.Equal(sEscapedString_WithoutSolidus, match1.Groups[1].Value);
 
 			// check whether the key has been escaped properly (with escaping the solidus)
 			formatter.EscapeSolidus = true;
-			var output2 = formatter.Format(message);
+			string output2 = formatter.Format(message);
 			var match2 = regex.Match(output2);
 			Assert.True(match2.Success);
 			Assert.Equal(sEscapedString_WithSolidus, match2.Groups[1].Value);
@@ -689,10 +725,11 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var formatter = new JsonMessageFormatter { Style = style, Newline = "\n" };
 
-			var key = "";
+			string key = "";
 			var message = new LogMessage();
 
-			if (fields.HasFlag(LogMessageField.LogWriterName)) {
+			if (fields.HasFlag(LogMessageField.LogWriterName))
+			{
 				key = "LogWriter";
 				formatter.AddLogWriterField(key);
 				message.LogWriterName = sUnescapedString;
@@ -735,19 +772,22 @@ namespace GriffinPlus.Lib.Logging
 				case JsonMessageFormatterStyle.Compact:
 					pattern = "^{\"(.+)\":\"(.+)\"}$";
 					break;
+
 				case JsonMessageFormatterStyle.OneLine:
 					pattern = "^{ \"(.+)\" : \"(.+)\" }$";
 					break;
+
 				case JsonMessageFormatterStyle.Beautified:
 				default:
 					pattern = "^{\n    \"(.+)\" : \"(.+)\"\n}$";
 					break;
 			}
+
 			var regex = new Regex(pattern);
 
 			// check whether the key has been escaped properly (without escaping the solidus)
 			formatter.EscapeSolidus = false;
-			var output1 = formatter.Format(message);
+			string output1 = formatter.Format(message);
 			var match1 = regex.Match(output1);
 			Assert.True(match1.Success);
 			Assert.Equal(key, match1.Groups[1].Value);
@@ -755,7 +795,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// check whether the key has been escaped properly (with escaping the solidus)
 			formatter.EscapeSolidus = true;
-			var output2 = formatter.Format(message);
+			string output2 = formatter.Format(message);
 			var match2 = regex.Match(output2);
 			Assert.True(match2.Success);
 			Assert.Equal(key, match2.Groups[1].Value);
@@ -764,17 +804,24 @@ namespace GriffinPlus.Lib.Logging
 
 
 		/// <summary>
-		/// Tests whether the <see cref="JsonMessageFormatter.AllFields"/> property returns the correct formatter.
+		/// Tests whether the <see cref="JsonMessageFormatter.AllFields" /> property returns the correct formatter.
 		/// </summary>
 		[Fact]
 		public void AllFields()
 		{
 			var formatter = JsonMessageFormatter.AllFields;
-			const LogMessageField expectedFields = LogMessageField.Timestamp | LogMessageField.LogWriterName | LogMessageField.LogLevelName | LogMessageField.Tags | LogMessageField.ApplicationName | LogMessageField.ProcessName | LogMessageField.ProcessId | LogMessageField.Text;
+			const LogMessageField expectedFields = LogMessageField.Timestamp |
+			                                       LogMessageField.LogWriterName |
+			                                       LogMessageField.LogLevelName |
+			                                       LogMessageField.Tags |
+			                                       LogMessageField.ApplicationName |
+			                                       LogMessageField.ProcessName |
+			                                       LogMessageField.ProcessId |
+			                                       LogMessageField.Text;
 			Assert.Equal(expectedFields, formatter.FormattedFields);
 			var message = GetTestMessage();
 			formatter.Style = JsonMessageFormatterStyle.OneLine;
-			var output = formatter.Format(message);
+			string output = formatter.Format(message);
 			const string expected = "{" +
 			                        " \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
 			                        " \"LogWriter\" : \"MyWriter\"," +
@@ -808,6 +855,6 @@ namespace GriffinPlus.Lib.Logging
 				Text = "MyText"
 			};
 		}
-
 	}
+
 }

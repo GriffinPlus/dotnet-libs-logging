@@ -9,6 +9,7 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class TableMessageFormatter
 	{
 		/// <summary>
@@ -19,16 +20,15 @@ namespace GriffinPlus.Lib.Logging
 			private string[] mBuffer;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="TextColumn"/> class.
+			/// Initializes a new instance of the <see cref="TextColumn" /> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			public TextColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.Text)
 			{
-
 			}
 
 			/// <summary>
-			/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width"/> property.
+			/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width" /> property.
 			/// </summary>
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public override void UpdateWidth(ILogMessage message)
@@ -52,9 +52,12 @@ namespace GriffinPlus.Lib.Logging
 
 				if (!IsLastColumn)
 				{
-					if (line == 0) {
+					if (line == 0)
+					{
 						if (s.Length < Width) builder.Append(' ', Width - s.Length);
-					} else {
+					}
+					else
+					{
 						builder.Append(' ', Width);
 					}
 				}
@@ -63,4 +66,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

@@ -5,6 +5,7 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class LogFile
 	{
 		/// <summary>
@@ -18,4 +19,5 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		public delegate bool ProgressCallback(float progress, bool canceled);
 	}
+
 }

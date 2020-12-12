@@ -8,12 +8,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="FileWriterPipelineStage"/> class.
+	/// Unit tests targeting the <see cref="FileWriterPipelineStage" /> class.
 	/// </summary>
 	public class FileWriterPipelineStageTests : TextWriterPipelineStageBaseTests<FileWriterPipelineStage>, IDisposable
 	{
@@ -28,9 +30,13 @@ namespace GriffinPlus.Lib.Logging
 			// => collect these stages and let finalizers release their files before deleting these files
 			GC.Collect();
 			GC.WaitForPendingFinalizers();
-			foreach (var path in mTemporaryFiles)
+			foreach (string path in mTemporaryFiles)
 			{
-				try { File.Delete(path); } catch { /* swallow */ }
+				try { File.Delete(path); }
+				catch
+				{
+					/* swallow */
+				}
 			}
 		}
 
@@ -59,10 +65,7 @@ namespace GriffinPlus.Lib.Logging
 
 		public static IEnumerable<object[]> Process_TestData
 		{
-			get
-			{
-				return TestData.LocalLogMessageSet.Select(messages => new object[] { messages });
-			}
+			get { return TestData.LocalLogMessageSet.Select(messages => new object[] { messages }); }
 		}
 
 		/// <summary>
@@ -79,28 +82,28 @@ namespace GriffinPlus.Lib.Logging
 			stage.Formatter = formatter;
 
 			// initialize the pipeline stage
-			((IProcessingPipelineStage) stage).Initialize();
+			((IProcessingPipelineStage)stage).Initialize();
 
 			// process the message and determine the expected output in stdout/stderr
-			StringBuilder expected = new StringBuilder();
+			var expected = new StringBuilder();
 			foreach (var message in messages)
 			{
-				((IProcessingPipelineStage) stage).ProcessMessage(message);
+				((IProcessingPipelineStage)stage).ProcessMessage(message);
 				expected.Append(formatter.Format(message));
 				expected.AppendLine(); // a newline is automatically added after a message
 			}
 
 			// shut the pipeline stage down to release the file
-			((IProcessingPipelineStage) stage).Shutdown();
+			((IProcessingPipelineStage)stage).Shutdown();
 
 			// the file should contain the expected output now
 			using (var fs = new FileStream(stage.Path, FileMode.Open, FileAccess.Read, FileShare.Read))
 			using (var reader = new StreamReader(fs))
 			{
-				var content = reader.ReadToEnd();
+				string content = reader.ReadToEnd();
 				Assert.Equal(expected.ToString(), content);
 			}
 		}
-
 	}
+
 }

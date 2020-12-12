@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
+		<ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Interface for the pipeline stage configuration collection (must be implemented thread-safe).
 	/// </summary>

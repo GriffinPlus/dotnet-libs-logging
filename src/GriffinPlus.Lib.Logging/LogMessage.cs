@@ -10,20 +10,21 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log message for general purpose use.
 	/// </summary>
 	public sealed class LogMessage : ILogMessage, IEquatable<ILogMessage>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessage"/> class.
+		/// Initializes a new instance of the <see cref="LogMessage" /> class.
 		/// </summary>
 		public LogMessage()
 		{
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessage"/> class.
+		/// Initializes a new instance of the <see cref="LogMessage" /> class.
 		/// </summary>
 		/// <param name="pool">The pool the message belongs to.</param>
 		internal LogMessage(LogMessagePool pool)
@@ -32,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessage"/> class copying the specified one.
+		/// Initializes a new instance of the <see cref="LogMessage" /> class copying the specified one.
 		/// </summary>
 		/// <param name="other">Message to copy.</param>
 		public LogMessage(ILogMessage other)
@@ -169,7 +170,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
 		/// </param>
 		/// <param name="lostMessageCount">
 		/// Gets or sets the number of preceding messages that have been lost before this message
@@ -187,17 +188,17 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="text">The actual text the log message is about.</param>
 		/// <returns>The log message itself.</returns>
 		public LogMessage InitWith(
-			long id,
+			long           id,
 			DateTimeOffset timestamp,
-			long highPrecisionTimestamp,
-			int lostMessageCount,
-			string logWriterName,
-			string logLevelName,
-			TagSet tags,
-			string applicationName,
-			string processName,
-			int processId,
-			string text)
+			long           highPrecisionTimestamp,
+			int            lostMessageCount,
+			string         logWriterName,
+			string         logLevelName,
+			TagSet         tags,
+			string         applicationName,
+			string         processName,
+			int            processId,
+			string         text)
 		{
 			Id = id;
 			Timestamp = timestamp;
@@ -219,7 +220,7 @@ namespace GriffinPlus.Lib.Logging
 		internal void Reset()
 		{
 			Id = -1;
-			Timestamp = default(DateTimeOffset);
+			Timestamp = default;
 			HighPrecisionTimestamp = 0;
 			LostMessageCount = 0;
 			LogWriterName = null;
@@ -269,16 +270,16 @@ namespace GriffinPlus.Lib.Logging
 		public bool Equals(LogMessage other)
 		{
 			if (other == null) return false;
-			return Id                     == other.Id                     &&
-			       LostMessageCount       == other.LostMessageCount       &&
-			       Timestamp              == other.Timestamp              &&
+			return Id == other.Id &&
+			       LostMessageCount == other.LostMessageCount &&
+			       Timestamp == other.Timestamp &&
 			       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
-			       LogWriterName          == other.LogWriterName          &&
-			       LogLevelName           == other.LogLevelName           &&
-			       ApplicationName        == other.ApplicationName        &&
-			       ProcessName            == other.ProcessName            &&
-			       ProcessId              == other.ProcessId              &&
-			       Text                   == other.Text                   &&
+			       LogWriterName == other.LogWriterName &&
+			       LogLevelName == other.LogLevelName &&
+			       ApplicationName == other.ApplicationName &&
+			       ProcessName == other.ProcessName &&
+			       ProcessId == other.ProcessId &&
+			       Text == other.Text &&
 			       Equals(Tags, other.Tags);
 		}
 
@@ -304,7 +305,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			unchecked
 			{
-				var hashCode = Timestamp.GetHashCode();
+				int hashCode = Timestamp.GetHashCode();
 				hashCode = (hashCode * 397) ^ Id.GetHashCode();
 				hashCode = (hashCode * 397) ^ LostMessageCount;
 				hashCode = (hashCode * 397) ^ HighPrecisionTimestamp.GetHashCode();
@@ -321,4 +322,5 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 	}
+
 }

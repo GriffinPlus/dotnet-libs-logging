@@ -5,6 +5,7 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Interface for log message formatters that convert a log message to a string.
 	/// </summary>

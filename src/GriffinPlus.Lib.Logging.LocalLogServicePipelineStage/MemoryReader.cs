@@ -8,13 +8,14 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A binary reader that is capable of reading plain structs.
 	/// </summary>
-	internal class MemoryReader : BinaryReader
+	class MemoryReader : BinaryReader
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryReader"/> class.
+		/// Initializes a new instance of the <see cref="MemoryReader" /> class.
 		/// </summary>
 		/// <param name="stream">Stream to read from.</param>
 		public MemoryReader(Stream stream) : base(stream)
@@ -28,13 +29,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The read struct.</returns>
 		public T ReadStruct<T>()
 		{
-			var byteLength = Marshal.SizeOf(typeof(T));
+			int byteLength = Marshal.SizeOf(typeof(T));
 			var bytes = ReadBytes(byteLength);
 			var pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
 
 			try
 			{
-				return (T) Marshal.PtrToStructure(pinned.AddrOfPinnedObject(), typeof(T));
+				return (T)Marshal.PtrToStructure(pinned.AddrOfPinnedObject(), typeof(T));
 			}
 			finally
 			{
@@ -42,4 +43,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

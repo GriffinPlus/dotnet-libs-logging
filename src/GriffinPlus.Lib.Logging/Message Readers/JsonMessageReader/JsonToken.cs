@@ -9,19 +9,24 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// JSON tokens emitted by the <see cref="JsonTokenizer"/>.
+	/// JSON tokens emitted by the <see cref="JsonTokenizer" />.
 	/// </summary>
-	internal struct JsonToken : IEquatable<JsonToken>
+	struct JsonToken : IEquatable<JsonToken>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonToken"/> struct.
+		/// Initializes a new instance of the <see cref="JsonToken" /> struct.
 		/// </summary>
 		/// <param name="type">The token type.</param>
 		/// <param name="token">The token itself (as extracted from the JSON document).</param>
 		/// <param name="lineNumber">Number of the line at which the token starts (starts at 1).</param>
 		/// <param name="position">Position in the line at which the token starts (starts at 1).</param>
-		public JsonToken(JsonTokenType type, string token, int lineNumber = -1, int position = -1)
+		public JsonToken(
+			JsonTokenType type,
+			string        token,
+			int           lineNumber = -1,
+			int           position   = -1)
 		{
 			Type = type;
 			Token = token;
@@ -83,7 +88,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			unchecked
 			{
-				return ((int) Type * 397) ^ (Token != null ? Token.GetHashCode() : 0);
+				return ((int)Type * 397) ^ (Token != null ? Token.GetHashCode() : 0);
 			}
 		}
 
@@ -96,4 +101,5 @@ namespace GriffinPlus.Lib.Logging
 			return $"{Type} : {Token}";
 		}
 	}
+
 }

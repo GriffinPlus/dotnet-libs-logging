@@ -7,12 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class LogFile
 	{
 		/// <summary>
@@ -21,10 +20,10 @@ namespace GriffinPlus.Lib.Logging
 		abstract class DatabaseAccessor : IDisposable
 		{
 			private static bool sIsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT;
-			
+
 			protected readonly StringPool mStringPool = new StringPool();
-			private bool mDisposed;
-			private readonly bool mCanRollback;
+			private            bool       mDisposed;
+			private readonly   bool       mCanRollback;
 
 			// dictionaries caching mappings from names to corresponding ids used to reference these names
 			private readonly Dictionary<string, long> mProcessNameToId     = new Dictionary<string, long>();
@@ -97,7 +96,7 @@ namespace GriffinPlus.Lib.Logging
 				"DELETE FROM levels;",
 				"DELETE FROM writers;",
 				"DELETE FROM processes;",
-				"DELETE FROM applications;",
+				"DELETE FROM applications;"
 			};
 
 			/// <summary>
@@ -129,7 +128,7 @@ namespace GriffinPlus.Lib.Logging
 			};
 
 			/// <summary>
-			/// Initializes the <see cref="DatabaseAccessor"/> class.
+			/// Initializes the <see cref="DatabaseAccessor" /> class.
 			/// </summary>
 			static DatabaseAccessor()
 			{
@@ -145,7 +144,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="DatabaseAccessor"/> class.
+			/// Initializes a new instance of the <see cref="DatabaseAccessor" /> class.
 			/// </summary>
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
@@ -220,10 +219,12 @@ namespace GriffinPlus.Lib.Logging
 						ExecuteNonQueryCommands(sSetRobustWriteModeCommands);
 						mCanRollback = true; // robust mode uses a journal and can therefore roll back
 						break;
+
 					case LogFileWriteMode.Fast:
 						ExecuteNonQueryCommands(sSetFastWriteModeCommands);
 						mCanRollback = false; // fast mode does not use a journal and cannot roll back, behavior is undefined in these cases
 						break;
+
 					default:
 						throw new NotSupportedException($"The specified write mode({WriteMode}) is not supported.");
 				}
@@ -254,7 +255,6 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the version of the sqlite implementation.
 			/// </summary>
 			/// <returns>Version of the sqlite implementation.</returns>
-			// ReSharper disable once MemberHidesStaticFromOuterClass
 			public static string SqliteVersion { get; }
 
 			/// <summary>
@@ -271,7 +271,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Get the id of the oldest message in the file (-1, if the file is empty).
 			/// </summary>
 			/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
-			public long OldestMessageId { get ; protected set; }
+			public long OldestMessageId { get; protected set; }
 
 			/// <summary>
 			/// Get the id of the newest message in the file (-1, if the file is empty).
@@ -315,9 +315,10 @@ namespace GriffinPlus.Lib.Logging
 			public virtual LogMessage[] Read(long fromId, int count)
 			{
 				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
-				if (count  < 0) throw new ArgumentOutOfRangeException(nameof(count),  count,  "The number of log messages must be positive.");
+				if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "The number of log messages must be positive.");
 
-				List<LogMessage> messages = new List<LogMessage>(count);
+				var messages = new List<LogMessage>(count);
+
 				bool Callback(LogMessage message)
 				{
 					messages.Add(message);
@@ -405,7 +406,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </param>
 			/// <param name="maximumMessageAge">
 			/// Maximum age of log messages to keep;
-			/// <seealso cref="TimeSpan.Zero"/> or a negative timespan to disable removing messages by age.
+			/// <seealso cref="TimeSpan.Zero" /> or a negative timespan to disable removing messages by age.
 			/// </param>
 			public abstract void Cleanup(long maximumMessageCount, TimeSpan maximumMessageAge);
 
@@ -478,7 +479,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// open database file (creates a new one, if it does not exist)
 				bool backupCompleted = false;
-				using (SQLiteConnection backupFileConnection = new SQLiteConnection($"Data Source={path};Version=3"))
+				using (var backupFileConnection = new SQLiteConnection($"Data Source={path};Version=3"))
 				{
 					backupFileConnection.Open();
 
@@ -493,13 +494,13 @@ namespace GriffinPlus.Lib.Logging
 					// define callback method that is invoked, if progress notifications are desired
 					bool SqliteCallback(
 						SQLiteConnection source,
-						string sourceName,
+						string           sourceName,
 						SQLiteConnection destination,
-						string destinationName,
-						int pages,
-						int remainingPages,
-						int totalPages,
-						bool retry)
+						string           destinationName,
+						int              pages,
+						int              remainingPages,
+						int              totalPages,
+						bool             retry)
 					{
 						// notify caller about the progress and allow to cancel the operation
 						// (may be called with the same progress, if the operation needs to be retried due to database locking issues)
@@ -596,12 +597,12 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="name">Name of the process to add.</param>
 			/// <returns>Id associated with the process name.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="name" /> parameter must not be <c>null</c>.</exception>
 			protected long AddProcessName(string name)
 			{
 				if (name == null) throw new ArgumentNullException(nameof(name));
 
-				if (!mProcessNameToId.TryGetValue(name, out var id))
+				if (!mProcessNameToId.TryGetValue(name, out long id))
 				{
 					// insert process name into the table
 					mInsertProcessNameCommand_NameParameter.Value = name;
@@ -623,12 +624,12 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="name">Name of the application to add.</param>
 			/// <returns>Id associated with the application name.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="name" /> parameter must not be <c>null</c>.</exception>
 			protected long AddApplicationName(string name)
 			{
 				if (name == null) throw new ArgumentNullException(nameof(name));
 
-				if (!mApplicationNameToId.TryGetValue(name, out var id))
+				if (!mApplicationNameToId.TryGetValue(name, out long id))
 				{
 					// insert application name into the table
 					mInsertApplicationNameCommand_NameParameter.Value = name;
@@ -650,12 +651,12 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="name">Name of the log writer to add.</param>
 			/// <returns>Id associated with the log writer name.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="name" /> parameter must not be <c>null</c>.</exception>
 			protected long AddLogWriterName(string name)
 			{
 				if (name == null) throw new ArgumentNullException(nameof(name));
 
-				if (!mLogWriterNameToId.TryGetValue(name, out var id))
+				if (!mLogWriterNameToId.TryGetValue(name, out long id))
 				{
 					// insert log writer name into the table
 					mInsertLogWriterNameCommand_NameParameter.Value = name;
@@ -677,12 +678,12 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="name">Name of the log level to add.</param>
 			/// <returns>Id associated with the log level name.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="name" /> parameter must not be <c>null</c>.</exception>
 			protected long AddLogLevelName(string name)
 			{
 				if (name == null) throw new ArgumentNullException(nameof(name));
 
-				if (!mLogLevelNameToId.TryGetValue(name, out var id))
+				if (!mLogLevelNameToId.TryGetValue(name, out long id))
 				{
 					// insert log level name into the table
 					mInsertLogLevelNameCommand_NameParameter.Value = name;
@@ -711,6 +712,7 @@ namespace GriffinPlus.Lib.Logging
 			protected SQLiteCommand PrepareCommand(string commandText)
 			{
 				var command = new SQLiteCommand(commandText, mConnection);
+
 				// command.Prepare(); // commands are automatically prepared as they are used the first time and kept in prepared state
 				mCommands.Add(command);
 				return command;
@@ -778,7 +780,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="commandTexts">Command texts to execute.</param>
 			protected void ExecuteNonQueryCommands(params string[] commandTexts)
 			{
-				foreach (var commandText in commandTexts)
+				foreach (string commandText in commandTexts)
 				{
 					using (var command = new SQLiteCommand(commandText, mConnection))
 					{
@@ -790,4 +792,5 @@ namespace GriffinPlus.Lib.Logging
 			#endregion
 		}
 	}
+
 }

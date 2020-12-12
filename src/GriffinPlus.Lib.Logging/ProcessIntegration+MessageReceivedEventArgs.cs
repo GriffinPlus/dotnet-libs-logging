@@ -7,15 +7,16 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class ProcessIntegration
 	{
 		/// <summary>
-		/// Event arguments for the <see cref="OutputStreamReceivedMessage"/> and the <see cref="ErrorStreamReceivedMessage"/> events.
+		/// Event arguments for the <see cref="OutputStreamReceivedMessage" /> and the <see cref="ErrorStreamReceivedMessage" /> events.
 		/// </summary>
 		public class MessageReceivedEventArgs : EventArgs
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="MessageReceivedEventArgs"/> class.
+			/// Initializes a new instance of the <see cref="MessageReceivedEventArgs" /> class.
 			/// </summary>
 			/// <param name="message">The received log message.</param>
 			public MessageReceivedEventArgs(ILogMessage message)
@@ -29,4 +30,5 @@ namespace GriffinPlus.Lib.Logging
 			public ILogMessage Message { get; }
 		}
 	}
+
 }

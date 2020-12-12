@@ -12,25 +12,25 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log message formatter that formats log messages in a tabular fashion (thread-safe).
 	/// </summary>
 	public partial class TableMessageFormatter : ILogMessageFormatter
 	{
-		private readonly List<ColumnBase> mColumns = new List<ColumnBase>();
-		private readonly StringBuilder mOutputBuilder = new StringBuilder();
-		private LogMessageField mFormattedFields = LogMessageField.None;
-		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
-		private readonly object mSync = new object();
+		private readonly List<ColumnBase> mColumns         = new List<ColumnBase>();
+		private readonly StringBuilder    mOutputBuilder   = new StringBuilder();
+		private          LogMessageField  mFormattedFields = LogMessageField.None;
+		private          IFormatProvider  mFormatProvider  = CultureInfo.InvariantCulture;
+		private readonly object           mSync            = new object();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TableMessageFormatter"/> class.
+		/// Initializes a new instance of the <see cref="TableMessageFormatter" /> class.
 		/// The formatter contains no preconfigured columns.
 		/// The columns must be added explicitly afterwards using the 'Add...Column()' methods.
 		/// </summary>
 		public TableMessageFormatter()
 		{
-
 		}
 
 		/// <summary>
@@ -60,17 +60,26 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public LogMessageField FormattedFields
 		{
-			get { lock (mSync) return mFormattedFields; }
+			get
+			{
+				lock (mSync) return mFormattedFields;
+			}
 		}
 
 		/// <summary>
 		/// Gets or sets the format provider to use when formatting log messages.
-		/// By default <see cref="CultureInfo.InvariantCulture"/> is used.
+		/// By default <see cref="CultureInfo.InvariantCulture" /> is used.
 		/// </summary>
 		public IFormatProvider FormatProvider
 		{
-			get { lock (mSync) return mFormatProvider; }
-			set { lock (mSync) { mFormatProvider = value ?? throw new ArgumentNullException(nameof(value)); } }
+			get
+			{
+				lock (mSync) return mFormatProvider;
+			}
+			set
+			{
+				lock (mSync) { mFormatProvider = value ?? throw new ArgumentNullException(nameof(value)); }
+			}
 		}
 
 		/// <summary>
@@ -123,7 +132,7 @@ namespace GriffinPlus.Lib.Logging
 			// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
 
-			TimestampColumn column = new TimestampColumn(this, format);
+			var column = new TimestampColumn(this, format);
 			AppendColumn(column);
 		}
 
@@ -132,7 +141,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddHighPrecisionTimestampColumn()
 		{
-			HighPrecisionTimestampColumn column = new HighPrecisionTimestampColumn(this);
+			var column = new HighPrecisionTimestampColumn(this);
 			AppendColumn(column);
 		}
 
@@ -141,7 +150,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddLogWriterColumn()
 		{
-			LogWriterColumn column = new LogWriterColumn(this);
+			var column = new LogWriterColumn(this);
 			AppendColumn(column);
 		}
 
@@ -150,7 +159,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddLogLevelColumn()
 		{
-			LogLevelColumn column = new LogLevelColumn(this);
+			var column = new LogLevelColumn(this);
 			AppendColumn(column);
 		}
 
@@ -159,7 +168,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddTagsColumn()
 		{
-			TagsColumn column = new TagsColumn(this);
+			var column = new TagsColumn(this);
 			AppendColumn(column);
 		}
 
@@ -168,7 +177,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddApplicationNameColumn()
 		{
-			ApplicationNameColumn column = new ApplicationNameColumn(this);
+			var column = new ApplicationNameColumn(this);
 			AppendColumn(column);
 		}
 
@@ -177,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddProcessNameColumn()
 		{
-			ProcessNameColumn column = new ProcessNameColumn(this);
+			var column = new ProcessNameColumn(this);
 			AppendColumn(column);
 		}
 
@@ -186,7 +195,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddProcessIdColumn()
 		{
-			ProcessIdColumn column = new ProcessIdColumn(this);
+			var column = new ProcessIdColumn(this);
 			AppendColumn(column);
 		}
 
@@ -195,7 +204,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void AddTextColumn()
 		{
-			TextColumn column = new TextColumn(this);
+			var column = new TextColumn(this);
 			AppendColumn(column);
 		}
 
@@ -213,6 +222,6 @@ namespace GriffinPlus.Lib.Logging
 				mFormattedFields |= column.Field;
 			}
 		}
-
 	}
+
 }

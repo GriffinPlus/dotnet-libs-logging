@@ -7,8 +7,9 @@ using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration"/> class.
+	/// Unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration" /> class.
 	/// </summary>
 	public class VolatileProcessingPipelineStageConfigurationTests : ProcessingPipelineStageConfigurationTests_Base<VolatileProcessingPipelineStageConfiguration>
 	{
@@ -42,6 +43,6 @@ namespace GriffinPlus.Lib.Logging
 			var configuration = new VolatileProcessingPipelineStageConfiguration(null, sync);
 			Assert.Same(sync, configuration.Sync);
 		}
-
 	}
+
 }

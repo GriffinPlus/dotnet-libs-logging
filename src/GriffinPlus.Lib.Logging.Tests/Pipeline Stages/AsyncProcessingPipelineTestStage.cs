@@ -9,33 +9,33 @@ using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Pipeline stage that only provides functionality of the <see cref="AsyncProcessingPipelineStage{STAGE}"/> class.
+	/// Pipeline stage that only provides functionality of the <see cref="AsyncProcessingPipelineStage{STAGE}" /> class.
 	/// It is used for testing purposes only.
 	/// </summary>
 	public class AsyncProcessingPipelineTestStage : AsyncProcessingPipelineStage<AsyncProcessingPipelineTestStage>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineTestStage"/> class.
+		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineTestStage" /> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		public AsyncProcessingPipelineTestStage(string name) : base(name)
 		{
-
 		}
 
 		/// <summary>
-		/// Gets a value indicating whether <see cref="OnInitialize"/> was called.
+		/// Gets a value indicating whether <see cref="OnInitialize" /> was called.
 		/// </summary>
 		public bool OnInitializeWasCalled { get; private set; }
 
 		/// <summary>
-		/// Gets a value indicating whether <see cref="OnShutdown"/> was called.
+		/// Gets a value indicating whether <see cref="OnShutdown" /> was called.
 		/// </summary>
 		public bool OnShutdownWasCalled { get; private set; }
 
 		/// <summary>
-		/// Gets a value indicating whether <see cref="ProcessSync(LocalLogMessage, out bool)"/> was called.
+		/// Gets a value indicating whether <see cref="ProcessSync(LocalLogMessage, out bool)" /> was called.
 		/// </summary>
 		public bool ProcessSyncWasCalled { get; private set; }
 
@@ -52,7 +52,7 @@ namespace GriffinPlus.Lib.Logging
 		public List<LocalLogMessage> MessagesPassedToProcessAsync { get; } = new List<LocalLogMessage>();
 
 		/// <summary>
-		/// Gets a value indicating whether <see cref="ProcessAsync(LocalLogMessage[], CancellationToken)"/> was called.
+		/// Gets a value indicating whether <see cref="ProcessAsync(LocalLogMessage[], CancellationToken)" /> was called.
 		/// </summary>
 		public bool ProcessAsyncWasCalled { get; private set; }
 
@@ -88,6 +88,6 @@ namespace GriffinPlus.Lib.Logging
 
 			return base.ProcessAsync(messages, cancellationToken);
 		}
-
 	}
+
 }

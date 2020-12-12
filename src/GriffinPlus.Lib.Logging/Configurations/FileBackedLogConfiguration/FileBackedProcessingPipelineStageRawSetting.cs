@@ -7,21 +7,22 @@ using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// A raw setting in a <see cref="FileBackedProcessingPipelineStageConfiguration"/>.
+	/// A raw setting in a <see cref="FileBackedProcessingPipelineStageConfiguration" />.
 	/// </summary>
 	public class FileBackedProcessingPipelineStageRawSetting : IProcessingPipelineStageRawSetting
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageRawSetting"/> class.
+		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageRawSetting" /> class.
 		/// </summary>
 		/// <param name="configuration">The configuration the setting belongs to.</param>
 		/// <param name="name">Name of the setting.</param>
 		/// <param name="defaultValue">The default value of the setting.</param>
 		internal FileBackedProcessingPipelineStageRawSetting(
 			FileBackedProcessingPipelineStageConfiguration configuration,
-			string name,
-			string defaultValue)
+			string                                         name,
+			string                                         defaultValue)
 		{
 			StageConfiguration = configuration;
 			Name = name;
@@ -76,7 +77,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.TryGetValue(StageConfiguration.Name, out var settings))
 					{
-						if (settings.TryGetValue(Name, out var value))
+						if (settings.TryGetValue(Name, out string value))
 						{
 							return value;
 						}
@@ -115,9 +116,10 @@ namespace GriffinPlus.Lib.Logging
 			lock (StageConfiguration.Sync)
 			{
 				return HasValue
-					? $"Name: '{Name}', Value: '{Value}'"
-					: $"Name: '{Name}', Value: <no value> (defaults to: '{DefaultValue}'";
+					       ? $"Name: '{Name}', Value: '{Value}'"
+					       : $"Name: '{Name}', Value: <no value> (defaults to: '{DefaultValue}'";
 			}
 		}
 	}
+
 }

@@ -13,11 +13,12 @@ using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// An auto-reset event with async/await capability.
 	/// This implementation is tailored to its use in the logging subsystem.
 	/// </summary>
-	internal class AsyncAutoResetEvent
+	class AsyncAutoResetEvent
 	{
 		#region TaskNode
 
@@ -31,13 +32,13 @@ namespace GriffinPlus.Lib.Logging
 
 		private static readonly Task<bool> sTrueTask = Task.FromResult(true);
 
-		private bool mSet;
-		private TaskNode mAsyncHead;
-		private TaskNode mAsyncTail;
-		private readonly object mSync = new object();
+		private          bool     mSet;
+		private          TaskNode mAsyncHead;
+		private          TaskNode mAsyncTail;
+		private readonly object   mSync = new object();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncAutoResetEvent"/> with the specified initial state.
+		/// Initializes a new instance of the <see cref="AsyncAutoResetEvent" /> with the specified initial state.
 		/// </summary>
 		/// <param name="set">
 		/// true to set the event initially;
@@ -81,9 +82,9 @@ namespace GriffinPlus.Lib.Logging
 		/// Asynchronously waits for the event to be set, with timeout and option to cancel the operation.
 		/// </summary>
 		/// <param name="timeout">
-		/// The number of milliseconds to wait, or <see cref="Timeout.Infinite"/>(-1) to wait indefinitely.
+		/// The number of milliseconds to wait, or <see cref="Timeout.Infinite" />(-1) to wait indefinitely.
 		/// </param>
-		/// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
+		/// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
 		/// <returns>
 		/// A task that will complete with a result of true if the event has been set within the specified time,
 		/// otherwise with a result of false.
@@ -108,9 +109,8 @@ namespace GriffinPlus.Lib.Logging
 
 				// If the event is not set, create and return a task to the caller
 				var asyncWaiter = CreateAndAddAsyncWaiter();
-				if (timeout == Timeout.Infinite && !cancellationToken.CanBeCanceled) {
+				if (timeout == Timeout.Infinite && !cancellationToken.CanBeCanceled)
 					return asyncWaiter.Task;
-				}
 
 				cancellationToken.Register(WaitCancellationCallback, asyncWaiter, false);
 				return WaitUntilCountOrTimeoutAsync(asyncWaiter, timeout, cancellationToken);
@@ -120,10 +120,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Callback that is invoked when an asynchronous wait operation is canceled.
 		/// </summary>
-		/// <param name="state">The <see cref="TaskNode"/> associated with the wait operation.</param>
+		/// <param name="state">The <see cref="TaskNode" /> associated with the wait operation.</param>
 		private static void WaitCancellationCallback(object state)
 		{
-			TaskNode node = (TaskNode) state;
+			var node = (TaskNode)state;
 			bool success = node.TrySetCanceled();
 			Contract.Assert(success);
 		}
@@ -200,8 +200,8 @@ namespace GriffinPlus.Lib.Logging
 			// asyncWaiter completing, so we use our own token that we can explicitly cancel, and we chain the caller's
 			// supplied token into it.
 			using (var cts = cancellationToken.CanBeCanceled
-				? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, default(CancellationToken))
-				: new CancellationTokenSource())
+				                 ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, default)
+				                 : new CancellationTokenSource())
 			{
 				var waitCompleted = Task.WhenAny(asyncWaiter.Task, Task.Delay(timeout, cts.Token));
 				if (asyncWaiter.Task == await waitCompleted.ConfigureAwait(false))
@@ -222,7 +222,7 @@ namespace GriffinPlus.Lib.Logging
 				if (RemoveAsyncWaiter(asyncWaiter))
 				{
 					cancellationToken.ThrowIfCancellationRequested(); // cancellation occurred
-					return false; // timeout occurred
+					return false;                                     // timeout occurred
 				}
 			}
 
@@ -231,4 +231,5 @@ namespace GriffinPlus.Lib.Logging
 			return await asyncWaiter.Task.ConfigureAwait(false);
 		}
 	}
+
 }

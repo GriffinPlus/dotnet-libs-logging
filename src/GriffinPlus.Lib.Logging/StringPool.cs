@@ -7,9 +7,10 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// String pool interning frequently used strings to avoid keeping multiple instances of equivalent strings.
-	/// Although <seealso cref="string.Intern"/> provides a similar functionality, the advantage of the pool is that
+	/// Although <seealso cref="string.Intern" /> provides a similar functionality, the advantage of the pool is that
 	/// pooled strings can be collected by releasing the pool. Strings interned by the runtime are kept alive until
 	/// the runtime terminates.
 	/// </summary>
@@ -18,7 +19,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly string[][] mTable;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="StringPool"/> class.
+		/// Initializes a new instance of the <see cref="StringPool" /> class.
 		/// </summary>
 		public StringPool()
 		{
@@ -35,15 +36,16 @@ namespace GriffinPlus.Lib.Logging
 		{
 			uint hash = (uint)s.GetHashCode();
 			uint index = hash % (uint)mTable.Length;
-			string[] bucket = mTable[index];
+			var bucket = mTable[index];
 			if (bucket != null)
 			{
-				for (int i = 0; i < bucket.Length; i++) {
+				for (int i = 0; i < bucket.Length; i++)
+				{
 					string other = bucket[i];
 					if (s.Equals(other)) return other;
 				}
 
-				mTable[index] = new string[bucket.Length+1];
+				mTable[index] = new string[bucket.Length + 1];
 				Array.Copy(bucket, mTable[index], bucket.Length);
 				mTable[index][bucket.Length] = s;
 				return s;
@@ -55,4 +57,5 @@ namespace GriffinPlus.Lib.Logging
 			return s;
 		}
 	}
+
 }

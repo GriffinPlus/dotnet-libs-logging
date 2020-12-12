@@ -7,8 +7,9 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Untyped interface for a setting in a <see cref="IProcessingPipelineStageConfiguration"/> (must be implemented thread-safe).
+	/// Untyped interface for a setting in a <see cref="IProcessingPipelineStageConfiguration" /> (must be implemented thread-safe).
 	/// </summary>
 	public interface IUntypedProcessingPipelineStageSetting
 	{
@@ -41,7 +42,6 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the default value of the setting.
 		/// </summary>
 		object DefaultValue { get; }
-
 	}
 
 }

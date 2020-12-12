@@ -4,12 +4,14 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="LogWriter"/> class.
+	/// Unit tests targeting the <see cref="LogWriter" /> class.
 	/// </summary>
 	public class LogWriterTests
 	{
@@ -17,21 +19,21 @@ namespace GriffinPlus.Lib.Logging
 		public void Creating_New_LogWriter_By_Name()
 		{
 			string name = Guid.NewGuid().ToString("D");
-			LogWriter writer = Log.GetWriter(name);
+			var writer = Log.GetWriter(name);
 			Assert.Equal(name, writer.Name);
 		}
 
 		[Fact]
 		public void Creating_New_LogWriter_By_Type_Parameter()
 		{
-			LogWriter writer = Log.GetWriter(typeof(LogWriterTests));
+			var writer = Log.GetWriter(typeof(LogWriterTests));
 			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
 		}
 
 		[Fact]
 		public void Creating_New_LogWriter_By_Generic_Type_Parameter()
 		{
-			LogWriter writer = Log.GetWriter<LogWriterTests>();
+			var writer = Log.GetWriter<LogWriterTests>();
 			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
 		}
 
@@ -39,8 +41,8 @@ namespace GriffinPlus.Lib.Logging
 		public void LogWriters_Should_be_Singleton_Instances()
 		{
 			string name = Guid.NewGuid().ToString("D");
-			LogWriter writer1 = Log.GetWriter(name);
-			LogWriter writer2 = Log.GetWriter(name);
+			var writer1 = Log.GetWriter(name);
+			var writer2 = Log.GetWriter(name);
 			Assert.Same(writer1, writer2);
 		}
 
@@ -49,9 +51,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			string name = Guid.NewGuid().ToString("D");
 			string tag = Guid.NewGuid().ToString("D");
-			LogWriter writer1 = Log.GetWriter(name);
+			var writer1 = Log.GetWriter(name);
 			Assert.Empty(writer1.Tags);
-			LogWriter writer2 = writer1.WithTag(tag);
+			var writer2 = writer1.WithTag(tag);
 			Assert.NotSame(writer1, writer2);
 			Assert.Equal(new TagSet(tag), writer2.Tags);
 		}
@@ -61,9 +63,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			string name = Guid.NewGuid().ToString("D");
 			string tag = Guid.NewGuid().ToString("D");
-			LogWriter writer1 = Log.GetWriter(name).WithTag(tag);
+			var writer1 = Log.GetWriter(name).WithTag(tag);
 			Assert.Equal(new TagSet(tag), writer1.Tags);
-			LogWriter writer2 = writer1.WithTag(tag);
+			var writer2 = writer1.WithTag(tag);
 			Assert.Same(writer1, writer2);
 			Assert.Equal(new TagSet(tag), writer2.Tags);
 		}
@@ -73,9 +75,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			string name = Guid.NewGuid().ToString("D");
 			const string tag = null;
-			LogWriter writer1 = Log.GetWriter(name);
+			var writer1 = Log.GetWriter(name);
 			Assert.Empty(writer1.Tags);
-			LogWriter writer2 = writer1.WithTag(tag);
+			var writer2 = writer1.WithTag(tag);
 			Assert.Same(writer1, writer2);
 			Assert.Empty(writer2.Tags);
 		}
@@ -86,9 +88,9 @@ namespace GriffinPlus.Lib.Logging
 			string name = Guid.NewGuid().ToString("D");
 			string tag1 = Guid.NewGuid().ToString("D");
 			string tag2 = Guid.NewGuid().ToString("D");
-			LogWriter writer1 = Log.GetWriter(name);
+			var writer1 = Log.GetWriter(name);
 			Assert.Empty(writer1.Tags);
-			LogWriter writer2 = writer1.WithTags(tag1, tag2);
+			var writer2 = writer1.WithTags(tag1, tag2);
 			Assert.NotSame(writer1, writer2);
 			Assert.Equal(new TagSet(tag1, tag2), writer2.Tags);
 		}
@@ -99,9 +101,9 @@ namespace GriffinPlus.Lib.Logging
 			string name = Guid.NewGuid().ToString("D");
 			string tag1 = Guid.NewGuid().ToString("D");
 			string tag2 = Guid.NewGuid().ToString("D");
-			LogWriter writer1 = Log.GetWriter(name).WithTags(tag1, tag2);
+			var writer1 = Log.GetWriter(name).WithTags(tag1, tag2);
 			Assert.Equal(new TagSet(tag1, tag2), writer1.Tags);
-			LogWriter writer2 = writer1.WithTags(tag1, tag2);
+			var writer2 = writer1.WithTags(tag1, tag2);
 			Assert.Same(writer1, writer2);
 			Assert.Equal(new TagSet(tag1, tag2), writer2.Tags);
 		}
@@ -110,14 +112,12 @@ namespace GriffinPlus.Lib.Logging
 		public void WithTags_TagsIsNull()
 		{
 			string name = Guid.NewGuid().ToString("D");
-			LogWriter writer1 = Log.GetWriter(name);
+			var writer1 = Log.GetWriter(name);
 			Assert.Empty(writer1.Tags);
-			LogWriter writer2 = writer1.WithTags(null);
+			var writer2 = writer1.WithTags(null);
 			Assert.Same(writer1, writer2);
 			Assert.Empty(writer2.Tags);
 		}
-
 	}
+
 }
-
-

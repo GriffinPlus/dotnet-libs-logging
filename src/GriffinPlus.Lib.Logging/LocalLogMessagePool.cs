@@ -9,15 +9,16 @@ using System.Diagnostics;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A pool of log messages allowing log messages to be re-used to reduce garbage collection pressure (thread-safe).
 	/// </summary>
-	internal class LocalLogMessagePool
+	class LocalLogMessagePool
 	{
 		private readonly ConcurrentBag<LocalLogMessage> mMessages;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogMessagePool"/> class.
+		/// Initializes a new instance of the <see cref="LocalLogMessagePool" /> class.
 		/// </summary>
 		public LocalLogMessagePool()
 		{
@@ -31,7 +32,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
-		/// Call <see cref="LocalLogMessage.InitWith"/> to initialize it.
+		/// Call <see cref="LocalLogMessage.InitWith" /> to initialize it.
 		/// </summary>
 		/// <returns>The requested log message.</returns>
 		public LocalLogMessage GetUninitializedMessage()
@@ -55,7 +56,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
 		/// </param>
 		/// <param name="logWriter">Log writer that was used to emit the message.</param>
 		/// <param name="logLevel">Log level that is associated with the message.</param>
@@ -69,16 +70,25 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested log message.</returns>
 		public LocalLogMessage GetMessage(
 			DateTimeOffset timestamp,
-			long highPrecisionTimestamp,
-			LogWriter logWriter,
-			LogLevel logLevel,
-			string applicationName,
-			string processName,
-			int processId,
-			string text)
+			long           highPrecisionTimestamp,
+			LogWriter      logWriter,
+			LogLevel       logLevel,
+			string         applicationName,
+			string         processName,
+			int            processId,
+			string         text)
 		{
-			LocalLogMessage message = GetUninitializedMessage();
-			return message.InitWith(timestamp, highPrecisionTimestamp, logWriter, logLevel, logWriter.Tags, applicationName, processName, processId, text);
+			var message = GetUninitializedMessage();
+			return message.InitWith(
+				timestamp,
+				highPrecisionTimestamp,
+				logWriter,
+				logLevel,
+				logWriter.Tags,
+				applicationName,
+				processName,
+				processId,
+				text);
 		}
 
 		/// <summary>
@@ -92,7 +102,6 @@ namespace GriffinPlus.Lib.Logging
 			message.Reset();
 			mMessages.Add(message);
 		}
-
 	}
 
 }

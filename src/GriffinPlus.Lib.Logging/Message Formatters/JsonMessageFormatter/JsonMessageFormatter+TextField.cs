@@ -7,6 +7,7 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class JsonMessageFormatter
 	{
 		/// <summary>
@@ -15,14 +16,13 @@ namespace GriffinPlus.Lib.Logging
 		private sealed class TextField : FieldBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="TextField"/> class.
+			/// Initializes a new instance of the <see cref="TextField" /> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the field belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>
 			public TextField(JsonMessageFormatter formatter, string jsonKey) :
 				base(formatter, LogMessageField.Text, jsonKey)
 			{
-
 			}
 
 			/// <summary>
@@ -38,4 +38,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

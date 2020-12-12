@@ -10,6 +10,7 @@ using System.Threading;
 
 namespace ConsolePrinter
 {
+
 	/// <summary>
 	/// ConsolePrinter - An application that prints a file to stdout or stderr.
 	/// It is used for testing purposes within the Griffin+ logging subsystem.
@@ -27,7 +28,7 @@ namespace ConsolePrinter
 				return PrintUsage();
 
 			// get appropriate stream
-			var stream = args[0].ToLower();
+			string stream = args[0].ToLower();
 			TextWriter output;
 			if (stream == "stdout") output = Console.Out;
 			else if (stream == "stderr") output = Console.Error;
@@ -38,7 +39,7 @@ namespace ConsolePrinter
 
 			try
 			{
-				var path = args[1];
+				string path = args[1];
 				string data = File.ReadAllText(path, Encoding.UTF8);
 				output.Write(data);
 			}
@@ -68,4 +69,5 @@ namespace ConsolePrinter
 			return 1;
 		}
 	}
+
 }

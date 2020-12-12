@@ -7,6 +7,7 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A simple log message formatter for unit test purposes only.
 	/// </summary>
@@ -19,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The formatted log message.</returns>
 		public string Format(ILogMessage message)
 		{
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 
 			builder.AppendFormat(
 				"{0} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7} ### {8}",
@@ -36,4 +37,5 @@ namespace GriffinPlus.Lib.Logging
 			return builder.ToString();
 		}
 	}
+
 }

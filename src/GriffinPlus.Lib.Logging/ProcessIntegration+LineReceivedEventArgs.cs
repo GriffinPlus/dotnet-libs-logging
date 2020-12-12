@@ -7,15 +7,16 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class ProcessIntegration
 	{
 		/// <summary>
-		/// Event arguments for the <see cref="OutputStreamReceivedText"/> and the <see cref="ErrorStreamReceivedText"/> events.
+		/// Event arguments for the <see cref="OutputStreamReceivedText" /> and the <see cref="ErrorStreamReceivedText" /> events.
 		/// </summary>
 		public class LineReceivedEventArgs : EventArgs
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="LineReceivedEventArgs"/> class.
+			/// Initializes a new instance of the <see cref="LineReceivedEventArgs" /> class.
 			/// </summary>
 			/// <param name="line">The received line.</param>
 			public LineReceivedEventArgs(string line)
@@ -29,4 +30,5 @@ namespace GriffinPlus.Lib.Logging
 			public string Line { get; }
 		}
 	}
+
 }

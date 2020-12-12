@@ -5,6 +5,7 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Formatting styles for JSON output.
 	/// </summary>
@@ -26,10 +27,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Entire JSON document on multiple lines with indentation for nested objects (best readability).
 		/// Example:
 		/// {
-		///   'A' : 1,
-		///   'B' : 2
+		/// 'A' : 1,
+		/// 'B' : 2
 		/// }
 		/// </summary>
 		Beautified
 	}
+
 }

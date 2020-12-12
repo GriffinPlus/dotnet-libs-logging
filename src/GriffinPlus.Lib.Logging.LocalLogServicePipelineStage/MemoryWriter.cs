@@ -8,13 +8,14 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A binary writer that is capable of writing plain structs.
 	/// </summary>
-	internal class MemoryWriter : BinaryWriter
+	class MemoryWriter : BinaryWriter
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryWriter"/> class.
+		/// Initializes a new instance of the <see cref="MemoryWriter" /> class.
 		/// </summary>
 		/// <param name="stream">Stream to write to.</param>
 		public MemoryWriter(Stream stream)
@@ -29,7 +30,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The read struct.</returns>
 		public void WriteStruct<T>(T @struct)
 		{
-			var sizeOfT = Marshal.SizeOf(typeof(T));
+			int sizeOfT = Marshal.SizeOf(typeof(T));
 			var ptr = Marshal.AllocHGlobal(sizeOfT);
 			try
 			{
@@ -44,4 +45,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

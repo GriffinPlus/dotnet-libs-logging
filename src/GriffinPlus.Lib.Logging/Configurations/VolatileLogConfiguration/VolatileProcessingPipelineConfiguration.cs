@@ -5,13 +5,14 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// The configuration of the volatile processing pipeline (thread-safe).
 	/// </summary>
 	public class VolatileProcessingPipelineConfiguration : IProcessingPipelineConfiguration
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineConfiguration"/> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineConfiguration" /> class.
 		/// </summary>
 		/// <param name="configuration">The log configuration the processing pipeline configuration belongs to.</param>
 		internal VolatileProcessingPipelineConfiguration(VolatileLogConfiguration configuration)
@@ -29,4 +30,5 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		IProcessingPipelineStageConfigurations IProcessingPipelineConfiguration.Stages => Stages;
 	}
+
 }

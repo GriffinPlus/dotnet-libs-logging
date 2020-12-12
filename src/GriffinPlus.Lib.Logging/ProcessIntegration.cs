@@ -14,66 +14,99 @@ using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A class that assists with redirecting output/error streams into the Griffin+ logging subsystem.
 	/// </summary>
 	public partial class ProcessIntegration
 	{
 		private readonly JsonMessageReader mOutputMessageReader = new JsonMessageReader();
-		private readonly JsonMessageReader mErrorMessageReader = new JsonMessageReader();
-		private bool mSyncingOutputMessageReader;
-		private bool mSyncingErrorMessageReader;
+		private readonly JsonMessageReader mErrorMessageReader  = new JsonMessageReader();
+		private          bool              mSyncingOutputMessageReader;
+		private          bool              mSyncingErrorMessageReader;
 
 		/// <summary>
 		/// Occurs when the integrated process has written a line to its output stream.
 		/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-		/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line"/> set to <c>null</c> at the end of the stream
+		/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line" /> set to <c>null</c> at the end of the stream
 		/// (when the process exits).
 		/// </summary>
 		public event EventHandler<LineReceivedEventArgs> OutputStreamReceivedText
 		{
-			add => EventManager<LineReceivedEventArgs>.RegisterEventHandler(this, nameof(OutputStreamReceivedText), value, SynchronizationContext.Current);
-			remove => EventManager<LineReceivedEventArgs>.UnregisterEventHandler(this, nameof(OutputStreamReceivedText), value);
+			add => EventManager<LineReceivedEventArgs>.RegisterEventHandler(
+				this,
+				nameof(OutputStreamReceivedText),
+				value,
+				SynchronizationContext.Current);
+
+			remove => EventManager<LineReceivedEventArgs>.UnregisterEventHandler(
+				this,
+				nameof(OutputStreamReceivedText),
+				value);
 		}
 
 		/// <summary>
 		/// Occurs when the integrated process has completed writing a JSON log message to its output stream.
 		/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-		/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message"/> set to <c>null</c> at the end of the stream
+		/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message" /> set to <c>null</c> at the end of the stream
 		/// (when the process exits).
 		/// </summary>
 		public event EventHandler<MessageReceivedEventArgs> OutputStreamReceivedMessage
 		{
-			add => EventManager<MessageReceivedEventArgs>.RegisterEventHandler(this, nameof(OutputStreamReceivedMessage), value, SynchronizationContext.Current);
-			remove => EventManager<MessageReceivedEventArgs>.UnregisterEventHandler(this, nameof(OutputStreamReceivedMessage), value);
+			add => EventManager<MessageReceivedEventArgs>.RegisterEventHandler(
+				this,
+				nameof(OutputStreamReceivedMessage),
+				value,
+				SynchronizationContext.Current);
+
+			remove => EventManager<MessageReceivedEventArgs>.UnregisterEventHandler(
+				this,
+				nameof(OutputStreamReceivedMessage),
+				value);
 		}
 
 		/// <summary>
 		/// Occurs when the integrated process has written a line to its error stream.
 		/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-		/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line"/> set to <c>null</c> at the end of the stream
+		/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line" /> set to <c>null</c> at the end of the stream
 		/// (when the process exits).
 		/// </summary>
 		public event EventHandler<LineReceivedEventArgs> ErrorStreamReceivedText
 		{
-			add => EventManager<LineReceivedEventArgs>.RegisterEventHandler(this, nameof(ErrorStreamReceivedText), value, SynchronizationContext.Current);
-			remove => EventManager<LineReceivedEventArgs>.UnregisterEventHandler(this, nameof(ErrorStreamReceivedText), value);
+			add => EventManager<LineReceivedEventArgs>.RegisterEventHandler(
+				this,
+				nameof(ErrorStreamReceivedText),
+				value,
+				SynchronizationContext.Current);
+
+			remove => EventManager<LineReceivedEventArgs>.UnregisterEventHandler(
+				this,
+				nameof(ErrorStreamReceivedText),
+				value);
 		}
 
 		/// <summary>
 		/// Occurs when the integrated process has completed writing a JSON log message to its error stream.
 		/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-		/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message"/> set to <c>null</c> at the end of the stream
+		/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message" /> set to <c>null</c> at the end of the stream
 		/// (when the process exits).
 		/// </summary>
 		public event EventHandler<MessageReceivedEventArgs> ErrorStreamReceivedMessage
 		{
-			add => EventManager<MessageReceivedEventArgs>.RegisterEventHandler(this, nameof(ErrorStreamReceivedMessage), value, SynchronizationContext.Current);
-			remove => EventManager<MessageReceivedEventArgs>.UnregisterEventHandler(this, nameof(ErrorStreamReceivedMessage), value);
+			add => EventManager<MessageReceivedEventArgs>.RegisterEventHandler(
+				this,
+				nameof(ErrorStreamReceivedMessage),
+				value,
+				SynchronizationContext.Current);
+
+			remove => EventManager<MessageReceivedEventArgs>.UnregisterEventHandler(
+				this,
+				nameof(ErrorStreamReceivedMessage),
+				value);
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessIntegration"/> class.
+		/// Initializes a new instance of the <see cref="ProcessIntegration" /> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <param name="logWriter">Log writer to use when logging received messages (may be null).</param>
@@ -94,9 +127,9 @@ namespace GriffinPlus.Lib.Logging
 			}
 			else
 			{
-				var filename = process.StartInfo.FileName;
-				var name = Path.GetFileName(filename);
-				LogWriter = Log.GetWriter($"External Process ({name})"); 
+				string filename = process.StartInfo.FileName;
+				string name = Path.GetFileName(filename);
+				LogWriter = Log.GetWriter($"External Process ({name})");
 			}
 		}
 
@@ -120,9 +153,9 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Configures the specified process to redirect its output/error streams to the logging subsystem.
-		/// You can attach event handlers to <see cref="OutputStreamReceivedText"/> and <see cref="ErrorStreamReceivedText"/> to
+		/// You can attach event handlers to <see cref="OutputStreamReceivedText" /> and <see cref="ErrorStreamReceivedText" /> to
 		/// get notified as soon as the integrated process writes a line to its output/error stream. The process
-		/// must be started using <see cref="StartProcess"/> to kick off reading from its output/error stream.
+		/// must be started using <see cref="StartProcess" /> to kick off reading from its output/error stream.
 		/// </summary>
 		/// <param name="process">Process to configure.</param>
 		/// <param name="logWriter">Log writer to use when logging received messages (may be null).</param>
@@ -169,7 +202,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Waits asynchronously for the process to exit.
 		/// </summary>
 		/// <param name="cancellationToken">Cancellation token that can be signaled to cancel waiting.</param>
-		public async Task WaitForExitAsync(CancellationToken cancellationToken = default(CancellationToken))
+		public async Task WaitForExitAsync(CancellationToken cancellationToken = default)
 		{
 			var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -220,13 +253,14 @@ namespace GriffinPlus.Lib.Logging
 				{
 					try
 					{
-						ILogMessage[] messages = mOutputMessageReader.Process(e.Data);
+						var messages = mOutputMessageReader.Process(e.Data);
 						for (int i = 0; i < messages.Length; i++)
 						{
-							ILogMessage message = messages[i];
+							var message = messages[i];
 							if (IsLoggingMessagesEnabled) LogMessage(message, "output");
 							OnOutputStreamReceivedMessage(message);
 						}
+
 						mSyncingOutputMessageReader = false;
 					}
 					catch (JsonMessageReaderException ex)
@@ -237,14 +271,14 @@ namespace GriffinPlus.Lib.Logging
 						if (!mSyncingOutputMessageReader)
 						{
 							mSyncingOutputMessageReader = true;
-							LogMessage message = new LogMessage { Text = $"Reading JSON formatted log message failed, trying to sync to the stream.\nException: {ex}" };
+							var message = new LogMessage { Text = $"Reading JSON formatted log message failed, trying to sync to the stream.\nException: {ex}" };
 							OnOutputStreamReceivedMessage(message);
 						}
 					}
 					catch (Exception ex)
 					{
 						// unexpected error
-						LogMessage message = new LogMessage { Text = $"Unhandled exception reading JSON log message stream.\nException: {ex})." };
+						var message = new LogMessage { Text = $"Unhandled exception reading JSON log message stream.\nException: {ex})." };
 						OnOutputStreamReceivedMessage(message);
 					}
 				}
@@ -275,10 +309,10 @@ namespace GriffinPlus.Lib.Logging
 				{
 					try
 					{
-						ILogMessage[] messages = mErrorMessageReader.Process(e.Data);
+						var messages = mErrorMessageReader.Process(e.Data);
 						for (int i = 0; i < messages.Length; i++)
 						{
-							ILogMessage message = messages[i];
+							var message = messages[i];
 							if (IsLoggingMessagesEnabled) LogMessage(message, "error");
 							OnErrorStreamReceivedMessage(message);
 						}
@@ -293,14 +327,14 @@ namespace GriffinPlus.Lib.Logging
 						if (!mSyncingErrorMessageReader)
 						{
 							mSyncingErrorMessageReader = true;
-							LogMessage message = new LogMessage { Text = $"Reading JSON formatted log message failed, trying to sync to the stream.\nException: {ex}" };
+							var message = new LogMessage { Text = $"Reading JSON formatted log message failed, trying to sync to the stream.\nException: {ex}" };
 							OnErrorStreamReceivedMessage(message);
 						}
 					}
 					catch (Exception ex)
 					{
 						// unexpected error
-						LogMessage message = new LogMessage { Text = $"Unhandled exception reading JSON log message stream.\nException: {ex})." };
+						var message = new LogMessage { Text = $"Unhandled exception reading JSON log message stream.\nException: {ex})." };
 						OnErrorStreamReceivedMessage(message);
 					}
 				}
@@ -322,7 +356,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="stream">Name of the stream the message was read from.</param>
 		private void LogMessage(ILogMessage message, string stream)
 		{
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 
 			builder.AppendLine($"--- The process emitted the following log message via its standard {stream} stream ---");
 
@@ -354,7 +388,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// write the received log message to our own log using the same log level
-			LogLevel level = LogLevel.GetAspect(message.LogLevelName ?? "Note"); // log message as 'Note', if not specified explicitly
+			var level = LogLevel.GetAspect(message.LogLevelName ?? "Note"); // log message as 'Note', if not specified explicitly
 			LogWriter.Write(level, builder.ToString());
 		}
 
@@ -363,7 +397,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Event Raiser
 
 		/// <summary>
-		/// Raises the <see cref="OutputStreamReceivedText"/> event.
+		/// Raises the <see cref="OutputStreamReceivedText" /> event.
 		/// </summary>
 		/// <param name="line">Line emitted by the output stream of the integrated process.</param>
 		private void OnOutputStreamReceivedText(string line)
@@ -375,19 +409,23 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Raises the <see cref="OutputStreamReceivedMessage"/> event.
+		/// Raises the <see cref="OutputStreamReceivedMessage" /> event.
 		/// </summary>
 		/// <param name="message">Log message emitted by the output stream of the integrated process.</param>
 		private void OnOutputStreamReceivedMessage(ILogMessage message)
 		{
 			if (EventManager<MessageReceivedEventArgs>.IsHandlerRegistered(this, nameof(OutputStreamReceivedMessage)))
 			{
-				EventManager<MessageReceivedEventArgs>.FireEvent(this, nameof(OutputStreamReceivedMessage), this, new MessageReceivedEventArgs(message));
+				EventManager<MessageReceivedEventArgs>.FireEvent(
+					this,
+					nameof(OutputStreamReceivedMessage),
+					this,
+					new MessageReceivedEventArgs(message));
 			}
 		}
 
 		/// <summary>
-		/// Raises the <see cref="ErrorStreamReceivedText"/> event.
+		/// Raises the <see cref="ErrorStreamReceivedText" /> event.
 		/// </summary>
 		/// <param name="line">Line emitted by the error stream of the integrated process.</param>
 		private void OnErrorStreamReceivedText(string line)
@@ -399,17 +437,22 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Raises the <see cref="ErrorStreamReceivedMessage"/> event.
+		/// Raises the <see cref="ErrorStreamReceivedMessage" /> event.
 		/// </summary>
 		/// <param name="message">Log message emitted by the error stream of the integrated process.</param>
 		private void OnErrorStreamReceivedMessage(ILogMessage message)
 		{
 			if (EventManager<MessageReceivedEventArgs>.IsHandlerRegistered(this, nameof(ErrorStreamReceivedMessage)))
 			{
-				EventManager<MessageReceivedEventArgs>.FireEvent(this, nameof(ErrorStreamReceivedMessage), this, new MessageReceivedEventArgs(message));
+				EventManager<MessageReceivedEventArgs>.FireEvent(
+					this,
+					nameof(ErrorStreamReceivedMessage),
+					this,
+					new MessageReceivedEventArgs(message));
 			}
 		}
 
 		#endregion
 	}
+
 }

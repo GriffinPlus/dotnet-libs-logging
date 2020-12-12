@@ -7,8 +7,9 @@ using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="SplitterPipelineStage"/> class.
+	/// Unit tests targeting the <see cref="SplitterPipelineStage" /> class.
 	/// The splitter pipeline stage is basically the functionality of the base class, so here is not that much to test.
 	/// </summary>
 	public class SplitterPipelineStageTests : ProcessingPipelineStageBaseTests<SplitterPipelineStage>
@@ -33,6 +34,6 @@ namespace GriffinPlus.Lib.Logging
 			var stage = new SplitterPipelineStage("Splitter"); // do not use CreateStage() to emphasize that the constructor is tested
 			Assert.Empty(stage.Settings);
 		}
-
 	}
+
 }

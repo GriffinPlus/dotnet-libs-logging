@@ -5,13 +5,14 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// The processing pipeline part of the <see cref="FileBackedLogConfiguration" /> (thread-safe).
 	/// </summary>
 	public class FileBackedProcessingPipelineConfiguration : IProcessingPipelineConfiguration
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineConfiguration"/> class.
+		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineConfiguration" /> class.
 		/// </summary>
 		/// <param name="configuration">The log configuration the processing pipeline configuration belongs to.</param>
 		internal FileBackedProcessingPipelineConfiguration(FileBackedLogConfiguration configuration)
@@ -29,4 +30,5 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		IProcessingPipelineStageConfigurations IProcessingPipelineConfiguration.Stages => Stages;
 	}
+
 }

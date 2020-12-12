@@ -7,12 +7,13 @@ using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	public partial class FileBackedLogMessageCollection
 	{
 		/// <summary>
 		/// A page in the log message cache.
 		/// </summary>
-		class CachePage
+		private class CachePage
 		{
 			/// <summary>
 			/// Id of the first message in the cache page.
@@ -25,7 +26,7 @@ namespace GriffinPlus.Lib.Logging
 			public readonly List<LogMessage> Messages;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="CachePage"/> class.
+			/// Initializes a new instance of the <see cref="CachePage" /> class.
 			/// </summary>
 			/// <param name="firstMessageId">Id of the first message in the cache page.</param>
 			/// <param name="capacity">Capacity of the cache page.</param>
@@ -36,4 +37,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

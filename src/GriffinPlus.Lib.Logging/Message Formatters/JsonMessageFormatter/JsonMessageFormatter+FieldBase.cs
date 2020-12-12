@@ -7,6 +7,7 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class JsonMessageFormatter
 	{
 		/// <summary>
@@ -16,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		private abstract class FieldBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="FieldBase"/> class.
+			/// Initializes a new instance of the <see cref="FieldBase" /> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the field belongs to.</param>
 			/// <param name="field">The formatted log message field.</param>
@@ -57,7 +58,7 @@ namespace GriffinPlus.Lib.Logging
 			public abstract void AppendFormattedValue(ILogMessage message, StringBuilder builder);
 
 			/// <summary>
-			/// Updates the <see cref="EscapedJsonKey"/> property.
+			/// Updates the <see cref="EscapedJsonKey" /> property.
 			/// </summary>
 			internal void UpdateEscapedJsonKey()
 			{
@@ -72,11 +73,11 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>The escaped string.</returns>
 			private static string GetEscapedString(string s, bool escapeSolidus)
 			{
-				StringBuilder builder = new StringBuilder();
+				var builder = new StringBuilder();
 				AppendEscapedStringToBuilder(builder, s, escapeSolidus);
 				return builder.ToString();
 			}
-
 		}
 	}
+
 }

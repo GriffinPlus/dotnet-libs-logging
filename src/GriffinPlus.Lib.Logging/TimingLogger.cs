@@ -12,30 +12,30 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A timing logger that can be used to measure the time that elapses between its construction and its disposal.
 	/// </summary>
 	public class TimingLogger : IDisposable
 	{
-		private static readonly ConcurrentBag<TimingLogger> sPool = new ConcurrentBag<TimingLogger>();
-		private static readonly LogWriter sDefaultLogWriter = Log.GetWriter("Timing");
-		private static readonly LogLevel sDefaultLogLevel = LogLevel.Timing;
-		private static int sNextTimingLoggerId;
-		private long mTimestamp;
-		private LogWriter mLogWriter;
-		private LogLevel mLogLevel;
-		private string mOperation;
-		private string mThreadName;
-		private int mTimingLoggerId;
-		private int mManagedThreadId;
-		private bool mActive;
+		private static readonly ConcurrentBag<TimingLogger> sPool             = new ConcurrentBag<TimingLogger>();
+		private static readonly LogWriter                   sDefaultLogWriter = Log.GetWriter("Timing");
+		private static readonly LogLevel                    sDefaultLogLevel  = LogLevel.Timing;
+		private static          int                         sNextTimingLoggerId;
+		private                 long                        mTimestamp;
+		private                 LogWriter                   mLogWriter;
+		private                 LogLevel                    mLogLevel;
+		private                 string                      mOperation;
+		private                 string                      mThreadName;
+		private                 int                         mTimingLoggerId;
+		private                 int                         mManagedThreadId;
+		private                 bool                        mActive;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TimingLogger"/> class.
+		/// Initializes a new instance of the <see cref="TimingLogger" /> class.
 		/// </summary>
 		private TimingLogger()
 		{
-
 		}
 
 		/// <summary>
@@ -43,7 +43,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void Dispose()
 		{
-			if (mActive) {
+			if (mActive)
+			{
 				double elapsed = (double)(Stopwatch.GetTimestamp() - mTimestamp) / Stopwatch.Frequency;
 				WriteEndMessage(elapsed);
 				mActive = false;
@@ -143,14 +144,19 @@ namespace GriffinPlus.Lib.Logging
 					mLogWriter.Write(
 						mLogLevel,
 						"Timing ({0}|{1}|{2}): Starting operation ({3}).",
-						mTimingLoggerId, mManagedThreadId, mThreadName, mOperation);
+						mTimingLoggerId,
+						mManagedThreadId,
+						mThreadName,
+						mOperation);
 				}
 				else
 				{
 					mLogWriter.Write(
 						mLogLevel,
 						"Timing ({0}|{1}): Starting operation ({2}).",
-						mTimingLoggerId, mManagedThreadId, mOperation);
+						mTimingLoggerId,
+						mManagedThreadId,
+						mOperation);
 				}
 			}
 			else
@@ -160,14 +166,17 @@ namespace GriffinPlus.Lib.Logging
 					mLogWriter.Write(
 						mLogLevel,
 						"Timing ({0}|{1}|{2}): Starting operation.",
-						mTimingLoggerId, mManagedThreadId, mThreadName);
+						mTimingLoggerId,
+						mManagedThreadId,
+						mThreadName);
 				}
 				else
 				{
 					mLogWriter.Write(
 						mLogLevel,
 						"Timing ({0}|{1}): Starting operation.",
-						mTimingLoggerId, mManagedThreadId);
+						mTimingLoggerId,
+						mManagedThreadId);
 				}
 			}
 		}
@@ -187,14 +196,21 @@ namespace GriffinPlus.Lib.Logging
 					mLogWriter.Write(
 						mLogLevel,
 						"Timing ({0}|{1}|{2}): Operation ({3}) completed [{4:0.0000} ms].",
-						mTimingLoggerId, mManagedThreadId, mThreadName, mOperation, elapsed);
+						mTimingLoggerId,
+						mManagedThreadId,
+						mThreadName,
+						mOperation,
+						elapsed);
 				}
 				else
 				{
 					mLogWriter.Write(
 						mLogLevel,
 						"Timing ({0}|{1}): Operation ({2}) completed [{3:0.0000} ms].",
-						mTimingLoggerId, mManagedThreadId, mOperation, elapsed);
+						mTimingLoggerId,
+						mManagedThreadId,
+						mOperation,
+						elapsed);
 				}
 			}
 			else
@@ -204,17 +220,22 @@ namespace GriffinPlus.Lib.Logging
 					mLogWriter.Write(
 						mLogLevel,
 						"Timing ({0}|{1}|{2}): Operation completed [{3:0.0000} ms].",
-						mTimingLoggerId, mManagedThreadId, mThreadName, elapsed);
+						mTimingLoggerId,
+						mManagedThreadId,
+						mThreadName,
+						elapsed);
 				}
 				else
 				{
 					mLogWriter.Write(
 						mLogLevel,
 						"Timing ({0}|{1}): Operation completed [{2:0.0000} ms].",
-						mTimingLoggerId, mManagedThreadId, elapsed);
+						mTimingLoggerId,
+						mManagedThreadId,
+						elapsed);
 				}
 			}
 		}
-
 	}
+
 }

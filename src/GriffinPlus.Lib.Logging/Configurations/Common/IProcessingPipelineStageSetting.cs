@@ -9,8 +9,9 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Interface for a setting in a <see cref="IProcessingPipelineStageConfiguration"/> (must be implemented thread-safe).
+	/// Interface for a setting in a <see cref="IProcessingPipelineStageConfiguration" /> (must be implemented thread-safe).
 	/// </summary>
 	/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
 	public interface IProcessingPipelineStageSetting<T>

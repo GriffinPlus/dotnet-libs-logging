@@ -5,6 +5,7 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// The purpose of a log file determining how the file is primarily used.
 	/// </summary>
@@ -18,6 +19,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// The log file is primarily used for analyzing messages (optimized for analysis, not for writing).
 		/// </summary>
-		Analysis = 2,
+		Analysis = 2
 	}
+
 }

@@ -4,7 +4,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.IO;
 using System.Threading;
 
 // ReSharper disable RedundantUsingDirective
@@ -17,17 +16,30 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
-	class MyClass1 { }
 
-	class MyClass2 { }
+	class MyClass1
+	{
+	}
 
-	class MyClass3 { }
+	class MyClass2
+	{
+	}
 
-	class MyClass4 { }
+	class MyClass3
+	{
+	}
 
-	class MyClassA { }
+	class MyClass4
+	{
+	}
 
-	class MyClassB { }
+	class MyClassA
+	{
+	}
+
+	class MyClassB
+	{
+	}
 
 	class Program
 	{
@@ -43,9 +55,9 @@ namespace GriffinPlus.Lib.Logging.Demo
 		private static readonly LogWriter sLog7 = Log.GetWriter("My Fancy Writer");
 
 		// Create tagging log writers
-		private static readonly LogWriter sLog_TagA   = sLog7.WithTag("TagA");              // same as sLog7, but tags messages with 'TagA'
-		private static readonly LogWriter sLog_TagB   = sLog7.WithTag("TagB");              // same as sLog7, but tags messages with 'TagB'
-		private static readonly LogWriter sLog_TagBC  = sLog7.WithTags("TagB", "TagC");     // same as sLog7, but tags messages with 'TagB' and 'TagC'
+		private static readonly LogWriter sLog_TagA  = sLog7.WithTag("TagA");          // same as sLog7, but tags messages with 'TagA'
+		private static readonly LogWriter sLog_TagB  = sLog7.WithTag("TagB");          // same as sLog7, but tags messages with 'TagB'
+		private static readonly LogWriter sLog_TagBC = sLog7.WithTags("TagB", "TagC"); // same as sLog7, but tags messages with 'TagB' and 'TagC'
 
 		private static void Main(string[] args)
 		{
@@ -72,10 +84,12 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// - no excluded log levels
 				// - tags must contain 'TagA'
 				// => enabled log levels: 'Note'
-				config.AddLogWritersByWildcard("*", x => x
-					.WithTag("TagA")
-					.WithBaseLevel(LogLevel.None)
-					.WithLevel(LogLevel.Note));
+				config.AddLogWritersByWildcard(
+					"*",
+					x => x
+						.WithTag("TagA")
+						.WithBaseLevel(LogLevel.None)
+						.WithLevel(LogLevel.Note));
 
 				// Add configuration for log writers that attach 'TagB' and/or 'TagC'
 				// - set base log level to 'None' effectively silencing the log writer
@@ -83,10 +97,12 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// - no excluded log levels
 				// - tags must contain 'TagB' and/or 'TagC'
 				// => enabled log levels: 'Warning'
-				config.AddLogWritersByWildcard("*", x => x
-					.WithTagRegex("^Tag[BC]$")
-					.WithBaseLevel(LogLevel.None)
-					.WithLevel(LogLevel.Warning));
+				config.AddLogWritersByWildcard(
+					"*",
+					x => x
+						.WithTagRegex("^Tag[BC]$")
+						.WithBaseLevel(LogLevel.None)
+						.WithLevel(LogLevel.Warning));
 
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass1' only
 				// - set base log level to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
@@ -94,27 +110,31 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// - exclude log level 'Warning'
 				// - tags are not evaluated
 				// => enabled log levels: 'Failure', 'Error', 'Note', 'Trace0'
-				config.AddLogWriter<MyClass1>(x => x
-					.WithBaseLevel(LogLevel.Note)
-					.WithLevel(LogLevel.Trace0)
-					.WithoutLevel("Warning"));
+				config.AddLogWriter<MyClass1>(
+					x => x
+						.WithBaseLevel(LogLevel.Note)
+						.WithLevel(LogLevel.Trace0)
+						.WithoutLevel("Warning"));
 
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass2' only
 				// - set base log level to 'None' effectively silencing the log writer
 				// - no included/excluded log levels
 				// - tags are not evaluated
 				// => no enabled log levels
-				config.AddLogWriter(typeof(MyClass2), x => x
-					.WithBaseLevel(LogLevel.None));
+				config.AddLogWriter(
+					typeof(MyClass2),
+					x => x.WithBaseLevel(LogLevel.None));
 
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass3' only
 				// - set base log level to 'All' enabling all log levels (including aspects)
 				// - exclude all log levels from 'Trace10' up to 'Trace19'
 				// - tags are not evaluated
 				// => enabled log levels: All log levels, but 'Trace[10-19]'
-				config.AddLogWriter(typeof(MyClass3), x => x
-					.WithBaseLevel(LogLevel.All)
-					.WithoutLevelRange(LogLevel.Trace10, LogLevel.Trace19));
+				config.AddLogWriter(
+					typeof(MyClass3),
+					x => x
+						.WithBaseLevel(LogLevel.All)
+						.WithoutLevelRange(LogLevel.Trace10, LogLevel.Trace19));
 
 				// Add configuration for log writers matching regex pattern
 				// - pattern matches 'GriffinPlus.Lib.Logging.Demo.MyClassA' and 'GriffinPlus.Lib.Logging.Demo.MyClassB'
@@ -123,8 +143,9 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// - no excluded log levels
 				// - tags are not evaluated
 				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace0'
-				config.AddLogWritersByRegex("^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$", x => x
-					.WithLevelRange(LogLevel.Trace10, LogLevel.Trace15));
+				config.AddLogWritersByRegex(
+					"^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$",
+					x => x.WithLevelRange(LogLevel.Trace10, LogLevel.Trace15));
 
 				// Add configuration for log writers matching wildcard pattern
 				// - applies to 'GriffinPlus.Lib.Logging.Demo.MyClass4' only
@@ -134,8 +155,9 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// - no excluded log levels
 				// - tags are not evaluated
 				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace15'
-				config.AddLogWritersByWildcard("GriffinPlus.Lib.Logging.Demo.MyClass*", x => x
-					.WithLevel(LogLevel.Trace15));
+				config.AddLogWritersByWildcard(
+					"GriffinPlus.Lib.Logging.Demo.MyClass*",
+					x => x.WithLevel(LogLevel.Trace15));
 
 				// Add configuration for log writer 'My Fancy Writer'
 				// (matches everything that was not handled explicitly before)
@@ -144,9 +166,11 @@ namespace GriffinPlus.Lib.Logging.Demo
 				// - no excluded log levels
 				// - tags are not evaluated
 				// => enabled log levels: 'Demo Aspect'
-				config.AddLogWriter("My Fancy Writer", x => x
-					.WithBaseLevel(LogLevel.None)
-					.WithLevel("Demo Aspect"));
+				config.AddLogWriter(
+					"My Fancy Writer",
+					x => x
+						.WithBaseLevel(LogLevel.None)
+						.WithLevel("Demo Aspect"));
 
 				// Add configuration for log writer 'Timing' to enable logging time measurements written by the internal
 				// 'Timing' log writer (see below for time measurements)
@@ -173,7 +197,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// Create log message formatter that prints log messages in a tabular fashion
 			var tableFormatter = new TableMessageFormatter();
-			tableFormatter.AddTimestampColumn("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
+			tableFormatter.AddTimestampColumn("yyyy-MM-dd HH:mm:ss.fff"); // use custom timestamp format
 			tableFormatter.AddProcessIdColumn();
 			tableFormatter.AddProcessNameColumn();
 			tableFormatter.AddApplicationNameColumn();
@@ -185,7 +209,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// Create log message formatter that prints log messages as JSON
 			var jsonFormatter = new JsonMessageFormatter();
 			jsonFormatter.Style = JsonMessageFormatterStyle.Beautified;
-			jsonFormatter.AddTimestampField("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
+			jsonFormatter.AddTimestampField("yyyy-MM-dd HH:mm:ss.fff"); // use custom timestamp format
 			jsonFormatter.AddProcessIdField();
 			jsonFormatter.AddProcessNameField();
 			jsonFormatter.AddApplicationNameField();
@@ -206,11 +230,11 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// Create pipeline stage for writing to a file
 			var fileStage = new FileWriterPipelineStage("File", "mylog.log", false);
-			fileStage.MessageQueueSize = 500;                                               // buffer up to 500 messages (default)
-			fileStage.DiscardMessagesIfQueueFull = false;                                   // block if the queue is full (default)
-			fileStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                    // wait up to 5000ms for the stage to shut down (default)
-			fileStage.Formatter = jsonFormatter;                                            // use specific formatter
-			fileStage.AutoFlush = false;                                                    // do not flush the file after writing a log message (default)
+			fileStage.MessageQueueSize = 500;                            // buffer up to 500 messages (default)
+			fileStage.DiscardMessagesIfQueueFull = false;                // block if the queue is full (default)
+			fileStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000); // wait up to 5000ms for the stage to shut down (default)
+			fileStage.Formatter = jsonFormatter;                         // use specific formatter
+			fileStage.AutoFlush = false;                                 // do not flush the file after writing a log message (default)
 
 			// Create splitter pipeline stage to unconditionally feed log messages into both pipelines stages
 			var splitterStage = new SplitterPipelineStage("Splitter");
@@ -232,10 +256,10 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// -----------------------------------------------------------------------------------------------------------------
 
 			// Get an aspect log level.
-			LogLevel aspect = LogLevel.GetAspect("Demo Aspect");
+			var aspect = LogLevel.GetAspect("Demo Aspect");
 
 			// Write messages to all known log levels (predefined log levels + aspects).
-			foreach (LogLevel level in LogLevel.KnownLevels)
+			foreach (var level in LogLevel.KnownLevels)
 			{
 				sLog1.Write(level, "This is sLog1 writing using level '{0}'.", level.Name);
 				sLog2.Write(level, "This is sLog2 writing using level '{0}'.", level.Name);
@@ -252,14 +276,16 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// Use a timing logger to determine how long an operation takes. It uses log level 'Timing' and log writer
 			// 'Timing' by default, so you need to ensure that the configuration lets these messages pass).
 			sLog1.Write(LogLevel.Note, "Presenting a timing logger with default settings...");
-			using (TimingLogger.Measure()) {
+			using (TimingLogger.Measure())
+			{
 				Thread.Sleep(500);
 			}
 
 			// Use a timing logger, customize the log writer/level it uses and associate an operation name with the
 			// measurement that is printed to the log as well.
 			sLog1.Write(LogLevel.Note, "A timing logger with custom log level/writer and operation name...");
-			using (TimingLogger.Measure(sLog1, LogLevel.Note, "Waiting for 500ms")) {
+			using (TimingLogger.Measure(sLog1, LogLevel.Note, "Waiting for 500ms"))
+			{
 				Thread.Sleep(500);
 			}
 
@@ -277,4 +303,5 @@ namespace GriffinPlus.Lib.Logging.Demo
 			Console.ReadKey();
 		}
 	}
+
 }

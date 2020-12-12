@@ -11,9 +11,10 @@ using System.ComponentModel;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A collection of log messages
-	/// (supports data binding via <see cref="INotifyCollectionChanged"/> and <see cref="INotifyPropertyChanged"/>).
+	/// (supports data binding via <see cref="INotifyCollectionChanged" /> and <see cref="INotifyPropertyChanged" />).
 	/// </summary>
 	public class LogMessageCollection<TMessage> : ILogMessageCollection<TMessage> where TMessage : ILogMessage
 	{
@@ -30,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessageCollection{TMessage}"/> class.
+		/// Initializes a new instance of the <see cref="LogMessageCollection{TMessage}" /> class.
 		/// </summary>
 		public LogMessageCollection()
 		{
@@ -42,7 +43,6 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void Dispose()
 		{
-
 		}
 
 		/// <summary>
@@ -109,7 +109,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			mMessages.Add(item);
 
-			NotifyCollectionChangedEventHandler handler = CollectionChanged;
+			var handler = CollectionChanged;
 			handler?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
 
 			OnPropertyChanged("Count");
@@ -122,11 +122,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="messages">Log messages to add.</param>
 		public void AddRange(IEnumerable<TMessage> messages)
 		{
-			NotifyCollectionChangedEventHandler handler = CollectionChanged;
+			var handler = CollectionChanged;
 			if (handler != null)
 			{
 				// many WPF controls do not support multi-item adds, so adding messages one by one is necessary...
-				foreach (TMessage message in messages)
+				foreach (var message in messages)
 				{
 					mMessages.Add(message);
 					handler(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, message));
@@ -178,7 +178,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void Clear()
 		{
-			NotifyCollectionChangedEventHandler handler = CollectionChanged;
+			var handler = CollectionChanged;
 			if (mMessages.Count > 0)
 			{
 				mMessages.Clear();
@@ -238,7 +238,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>true, if the collection contains the log message; otherwise false.</returns>
 		bool IList.Contains(object item)
 		{
-			return Contains((TMessage) item);
+			return Contains((TMessage)item);
 		}
 
 		/// <summary>
@@ -251,7 +251,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		int IList.IndexOf(object item)
 		{
-			return IndexOf((TMessage) item);
+			return IndexOf((TMessage)item);
 		}
 
 		/// <summary>
@@ -273,7 +273,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="NotSupportedException">Inserting is not supported.</exception>
 		void IList.Insert(int index, object item)
 		{
-			Insert(index, (TMessage) item);
+			Insert(index, (TMessage)item);
 		}
 
 		/// <summary>
@@ -284,7 +284,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="NotSupportedException">Removing log messages is not supported.</exception>
 		void IList.Remove(object item)
 		{
-			Remove((TMessage) item);
+			Remove((TMessage)item);
 		}
 
 		/// <summary>
@@ -305,7 +305,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arrayIndex">Index in the array to start copying to.</param>
 		void ICollection.CopyTo(Array array, int arrayIndex)
 		{
-			mMessages.CopyTo((TMessage[]) array, arrayIndex);
+			mMessages.CopyTo((TMessage[])array, arrayIndex);
 		}
 
 		#endregion
@@ -334,15 +334,16 @@ namespace GriffinPlus.Lib.Logging
 		#region Event Raiser
 
 		/// <summary>
-		/// Raises the <see cref="PropertyChanged"/> event.
+		/// Raises the <see cref="PropertyChanged" /> event.
 		/// </summary>
 		/// <param name="name">Name of the property that has changed.</param>
 		protected virtual void OnPropertyChanged(string name)
 		{
-			PropertyChangedEventHandler handler = PropertyChanged;
+			var handler = PropertyChanged;
 			handler?.Invoke(this, new PropertyChangedEventArgs(name));
 		}
 
 		#endregion
 	}
+
 }

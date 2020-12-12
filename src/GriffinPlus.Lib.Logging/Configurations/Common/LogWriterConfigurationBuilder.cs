@@ -8,20 +8,20 @@ using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Fluent builder for a <see cref="LogWriterConfiguration"/>.
+	/// Fluent builder for a <see cref="LogWriterConfiguration" />.
 	/// </summary>
 	public class LogWriterConfigurationBuilder
 	{
 		private readonly LogWriterConfiguration mConfiguration = new LogWriterConfiguration();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriterConfigurationBuilder"/> class.
-		/// Not supported, please use <see cref="New"/> instead to feature the fluent character.
+		/// Initializes a new instance of the <see cref="LogWriterConfigurationBuilder" /> class.
+		/// Not supported, please use <see cref="New" /> instead to feature the fluent character.
 		/// </summary>
 		private LogWriterConfigurationBuilder()
 		{
-
 		}
 
 		/// <summary>
@@ -135,12 +135,13 @@ namespace GriffinPlus.Lib.Logging
 		public LogWriterConfigurationBuilder WithLevel(params string[] levels)
 		{
 			if (levels == null) throw new ArgumentNullException(nameof(levels));
-			foreach (var level in levels)
+			foreach (string level in levels)
 			{
 				if (level == null) throw new ArgumentException("One of the specified log levels is a null reference.", nameof(levels));
 				if (!mConfiguration.mIncludes.Contains(level)) mConfiguration.mIncludes.Add(level);
 				mConfiguration.mExcludes.Remove(level);
 			}
+
 			return this;
 		}
 
@@ -211,7 +212,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (levels == null) throw new ArgumentNullException(nameof(levels));
 
-			foreach (var level in levels)
+			foreach (string level in levels)
 			{
 				if (level == null) throw new ArgumentException("One of the specified log levels is a null reference.", nameof(levels));
 				mConfiguration.mIncludes.Remove(level);
@@ -275,12 +276,13 @@ namespace GriffinPlus.Lib.Logging
 		public LogWriterConfiguration Build()
 		{
 			var copy = new LogWriterConfiguration(mConfiguration);
+
 			// add default pattern matching all log writer names, if no pattern was specified explicitly
 			if (!copy.mNamePatterns.Any()) copy.mNamePatterns.Add(LogWriterConfiguration.DefaultPattern);
+
 			// tags are only considered, if specified => no need to add a default pattern for them
 			return copy;
 		}
-
 	}
 
 }

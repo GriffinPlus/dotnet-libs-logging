@@ -2,6 +2,7 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Interface for a setting in the configuration of a pipeline specific stage.
 	/// </summary>
@@ -32,4 +33,5 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		string Value { get; set; }
 	}
+
 }

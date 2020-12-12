@@ -9,8 +9,9 @@ using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Delegate for callbacks that are invoked to set up a <see cref="LogWriterConfiguration"/> using a <see cref="LogWriterConfigurationBuilder"/>.
+	/// Delegate for callbacks that are invoked to set up a <see cref="LogWriterConfiguration" /> using a <see cref="LogWriterConfigurationBuilder" />.
 	/// </summary>
 	/// <param name="writer"></param>
 	public delegate void LogWriterConfigurationCallback(LogWriterConfigurationBuilder writer);
@@ -19,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// The base class for log configurations.
 	/// </summary>
 	public abstract class LogConfiguration<CONFIGURATION> : ILogConfiguration
-		where CONFIGURATION: LogConfiguration<CONFIGURATION>
+		where CONFIGURATION : LogConfiguration<CONFIGURATION>
 	{
 		/// <summary>
 		/// Gets the object to use when synchronizing access to the log configuration.
@@ -132,7 +133,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Adds a log writer configuration for the internal 'Timing' log writer.
-		/// By default, the log writer is used by <see cref="TimingLogger"/> when logging time measurements.
+		/// By default, the log writer is used by <see cref="TimingLogger" /> when logging time measurements.
 		/// </summary>
 		public void AddLogWriterTiming()
 		{
@@ -158,9 +159,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="writer">Log writer configuration to append to the log configuration.</param>
 		private void AppendLogWriterConfiguration(LogWriterConfiguration writer)
 		{
-			List<LogWriterConfiguration> settings = new List<LogWriterConfiguration>(GetLogWriterSettings().Where(x => !x.IsDefault)) { writer };
+			var settings = new List<LogWriterConfiguration>(GetLogWriterSettings().Where(x => !x.IsDefault)) { writer };
 			SetLogWriterSettings(settings);
 		}
-
 	}
+
 }

@@ -7,7 +7,8 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	internal partial class UnsafeSharedMemoryQueue
+
+	partial class UnsafeSharedMemoryQueue
 	{
 		/// <summary>
 		/// A block of data in the shared memory queue.
@@ -38,4 +39,5 @@ namespace GriffinPlus.Lib.Logging
 			public int OverflowCount;
 		}
 	}
+
 }

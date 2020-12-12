@@ -7,19 +7,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="LogFile"/> class.
+	/// Unit tests targeting the <see cref="LogFile" /> class.
 	/// </summary>
 	public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	{
 		private readonly LogFileTestsFixture mFixture;
 
 		/// <summary>
-		/// Initializes an instance of the <see cref="LogFileTests"/> class.
+		/// Initializes an instance of the <see cref="LogFileTests" /> class.
 		/// </summary>
 		/// <param name="fixture">Fixture providing static test data.</param>
 		public LogFileTests(LogFileTestsFixture fixture)
@@ -30,7 +32,7 @@ namespace GriffinPlus.Lib.Logging
 		#region GetSqliteVersion()
 
 		/// <summary>
-		/// Tests getting the <see cref="LogFile.SqliteVersion"/> property.
+		/// Tests getting the <see cref="LogFile.SqliteVersion" /> property.
 		/// </summary>
 		/// <remarks>
 		/// This test fails on linux due to different sqlite versions in the nuget package, see also
@@ -63,7 +65,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="LogFile"/> class.
+		/// Tests creating a new instance of the <see cref="LogFile" /> class.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -72,30 +74,30 @@ namespace GriffinPlus.Lib.Logging
 		private void CreateEmptyFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			const string filename = "Test.gplog";
-			string       fullPath = Path.GetFullPath(filename);
+			string fullPath = Path.GetFullPath(filename);
 
 			// ensure the log file does not exist
 			File.Delete(fullPath);
 
 			// create a new log file
-			using (LogFile file = new LogFile(filename, purpose, writeMode))
+			using (var file = new LogFile(filename, purpose, writeMode))
 			{
 				// the log file itself
-				Assert.Equal(fullPath,  file.FilePath);
-				Assert.Equal(purpose,   file.Purpose);
+				Assert.Equal(fullPath, file.FilePath);
+				Assert.Equal(purpose, file.Purpose);
 				Assert.Equal(writeMode, file.WriteMode);
-				Assert.Equal(0,         file.MessageCount);
-				Assert.Equal(-1,        file.OldestMessageId);
-				Assert.Equal(-1,        file.NewestMessageId);
+				Assert.Equal(0, file.MessageCount);
+				Assert.Equal(-1, file.OldestMessageId);
+				Assert.Equal(-1, file.NewestMessageId);
 
 				// the message collection working on top of the log file
 				var collection = file.Messages;
 				Assert.Same(file, collection.LogFile);
 				Assert.Empty(collection);
 				Assert.False(collection.IsReadOnly);
-				Assert.Equal(0,        collection.Count);
-				Assert.Equal(20,       collection.MaxCachePageCount);
-				Assert.Equal(100,      collection.CachePageCapacity);
+				Assert.Equal(0, collection.Count);
+				Assert.Equal(20, collection.MaxCachePageCount);
+				Assert.Equal(100, collection.CachePageCapacity);
 				Assert.Equal(fullPath, collection.FilePath);
 			}
 		}
@@ -114,16 +116,16 @@ namespace GriffinPlus.Lib.Logging
 		private void WriteFollowedByRead_SingleMessage(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			const string filename = "Test.gplog";
-			string       fullPath = Path.GetFullPath(filename);
+			string fullPath = Path.GetFullPath(filename);
 
 			// ensure the log file does not exist
 			File.Delete(fullPath);
 
 			// generate a message to write into the file
-			LogMessage message = LogFileTestsFixture.GetTestMessages(1)[0];
+			var message = LogFileTestsFixture.GetTestMessages(1)[0];
 
 			// create a new log file
-			using (LogFile file = new LogFile(filename, purpose, writeMode))
+			using (var file = new LogFile(filename, purpose, writeMode))
 			{
 				// the state of an empty log file is already tested in CreateEmptyFile()
 				// => nothing to do here...
@@ -135,7 +137,7 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(1, file.MessageCount);
 				Assert.Equal(0, file.OldestMessageId);
 				Assert.Equal(0, file.NewestMessageId);
-				LogMessage[] readMessages = file.Read(0, 100);
+				var readMessages = file.Read(0, 100);
 				Assert.Single(readMessages);
 
 				// the message returned by the log file should be the same as the inserted message
@@ -165,16 +167,16 @@ namespace GriffinPlus.Lib.Logging
 		private void WriteFollowedByRead_MultipleMessages(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			const string filename = "Test.gplog";
-			string       fullPath = Path.GetFullPath(filename);
+			string fullPath = Path.GetFullPath(filename);
 
 			// ensure the log file does not exist
 			File.Delete(fullPath);
 
 			// generate messages to write into the file
-			LogMessage[] messages = mFixture.GetLogMessages_Random_10K();
+			var messages = mFixture.GetLogMessages_Random_10K();
 
 			// create a new log file
-			using (LogFile file = new LogFile(filename, purpose, writeMode))
+			using (var file = new LogFile(filename, purpose, writeMode))
 			{
 				// the state of an empty log file is already tested in CreateEmptyFile()
 				// => nothing to do here...
@@ -183,11 +185,11 @@ namespace GriffinPlus.Lib.Logging
 				file.Write(messages);
 
 				// the file should now contain the written messages
-				LogMessage[] readMessages = file.Read(0, messages.Length + 1);
-				Assert.Equal(messages.Length,     file.MessageCount);
-				Assert.Equal(0,                   file.OldestMessageId);
+				var readMessages = file.Read(0, messages.Length + 1);
+				Assert.Equal(messages.Length, file.MessageCount);
+				Assert.Equal(0, file.OldestMessageId);
 				Assert.Equal(messages.Length - 1, file.NewestMessageId);
-				Assert.Equal(messages.Length,     readMessages.Length);
+				Assert.Equal(messages.Length, readMessages.Length);
 
 				// the messages returned by the log file should be the same as the inserted message
 				// (except the message id that is set by the log file)
@@ -223,20 +225,20 @@ namespace GriffinPlus.Lib.Logging
 		private void Read_ReturnMessages(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			string path = purpose == LogFilePurpose.Recording
-				? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
-				: mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
 			try
 			{
-				LogMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
+				var expectedMessages = mFixture.GetLogMessages_Random_10K();
 
-				int              totalMessageCount = expectedMessages.Length;
-				List<LogMessage> readMessages      = new List<LogMessage>();
-				using (LogFile file = new LogFile(path, purpose, writeMode))
+				int totalMessageCount = expectedMessages.Length;
+				var readMessages = new List<LogMessage>();
+				using (var file = new LogFile(path, purpose, writeMode))
 				{
 					// check initial status
-					Assert.Equal(totalMessageCount,     file.MessageCount);
-					Assert.Equal(0,                     file.OldestMessageId);
+					Assert.Equal(totalMessageCount, file.MessageCount);
+					Assert.Equal(0, file.OldestMessageId);
 					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
 
 					// read messages in chunks of 999, so the last chunk does not return a full set
@@ -244,7 +246,7 @@ namespace GriffinPlus.Lib.Logging
 					int chunkSize = 999;
 					for (int readMessageCount = 0; readMessageCount < totalMessageCount;)
 					{
-						LogMessage[] messages = file.Read(file.OldestMessageId + readMessageCount, chunkSize);
+						var messages = file.Read(file.OldestMessageId + readMessageCount, chunkSize);
 
 						int expectedReadCount = Math.Min(chunkSize, totalMessageCount - readMessageCount);
 						Assert.Equal(expectedReadCount, messages.Length);
@@ -255,7 +257,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// the list of read messages should now equal the original test data set
 				Assert.Equal(expectedMessages.Length, readMessages.Count);
-				Assert.Equal(expectedMessages,        readMessages.ToArray());
+				Assert.Equal(expectedMessages, readMessages.ToArray());
 			}
 			finally
 			{
@@ -294,24 +296,24 @@ namespace GriffinPlus.Lib.Logging
 		private void Read_PassMessagesToCallback(LogFilePurpose purpose, LogFileWriteMode writeMode, bool cancelReading)
 		{
 			string path = purpose == LogFilePurpose.Recording
-				? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
-				: mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
 			try
 			{
 				// get expected result set
 				// (when cancellation is requested, it is done after half the log messages)
-				LogMessage[] allMessages          = mFixture.GetLogMessages_Random_10K();
-				LogMessage[] expectedMessages     = cancelReading ? allMessages.Take(5000).ToArray() : allMessages;
-				int          totalMessageCount    = allMessages.Length;
-				int          expectedMessageCount = expectedMessages.Length;
+				var allMessages = mFixture.GetLogMessages_Random_10K();
+				var expectedMessages = cancelReading ? allMessages.Take(5000).ToArray() : allMessages;
+				int totalMessageCount = allMessages.Length;
+				int expectedMessageCount = expectedMessages.Length;
 
-				List<LogMessage> readMessages = new List<LogMessage>();
-				using (LogFile file = new LogFile(path, purpose, writeMode))
+				var readMessages = new List<LogMessage>();
+				using (var file = new LogFile(path, purpose, writeMode))
 				{
 					// check initial status
-					Assert.Equal(totalMessageCount,     file.MessageCount);
-					Assert.Equal(0,                     file.OldestMessageId);
+					Assert.Equal(totalMessageCount, file.MessageCount);
+					Assert.Equal(0, file.OldestMessageId);
 					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
 
 					// read messages in chunks of 999, so the last chunk does not return a full set
@@ -344,7 +346,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// the list of read messages should now equal the original test data set
 				Assert.Equal(expectedMessages.Length, readMessages.Count);
-				Assert.Equal(expectedMessages,        readMessages.ToArray());
+				Assert.Equal(expectedMessages, readMessages.ToArray());
 			}
 			finally
 			{
@@ -367,8 +369,8 @@ namespace GriffinPlus.Lib.Logging
 		private void Clear(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			string path = purpose == LogFilePurpose.Recording
-				? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
-				: mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
 			try
 			{
@@ -376,21 +378,21 @@ namespace GriffinPlus.Lib.Logging
 				long fileSizeAtStart = new FileInfo(path).Length;
 
 				// get test data set with log messages that should be in the file
-				LogMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
+				var expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 				int totalMessageCount = expectedMessages.Length;
-				using (LogFile file = new LogFile(path, purpose, writeMode))
+				using (var file = new LogFile(path, purpose, writeMode))
 				{
 					// check initial status of the file
-					Assert.Equal(totalMessageCount,     file.MessageCount);
-					Assert.Equal(0,                     file.OldestMessageId);
+					Assert.Equal(totalMessageCount, file.MessageCount);
+					Assert.Equal(0, file.OldestMessageId);
 					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
 
 					// clear log file
 					file.Clear();
 
 					// the file should be empty now
-					Assert.Equal(0,  file.MessageCount);
+					Assert.Equal(0, file.MessageCount);
 					Assert.Equal(-1, file.OldestMessageId);
 					Assert.Equal(-1, file.NewestMessageId);
 
@@ -412,4 +414,5 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 	}
+
 }

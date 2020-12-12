@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using Xunit;
 
 // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
@@ -13,8 +14,10 @@ using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Common unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration"/> and the <see cref="FileBackedProcessingPipelineConfiguration"/> class.
+	/// Common unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration" /> and the
+	/// <see cref="FileBackedProcessingPipelineConfiguration" /> class.
 	/// </summary>
 	public abstract class ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION> where CONFIGURATION : ProcessingPipelineStageConfigurationBase
 	{
@@ -69,7 +72,7 @@ namespace GriffinPlus.Lib.Logging
 				yield return new object[] { typeof(uint), uint.MaxValue / 2, "2147483647", uint.MaxValue, "4294967295" };
 
 				yield return new object[] { typeof(ulong), ulong.MinValue, "0", ulong.MaxValue / 2, "9223372036854775807" };
-				yield return new object[] { typeof(ulong), ulong.MaxValue, "18446744073709551615", ulong.MaxValue /2, "9223372036854775807" };
+				yield return new object[] { typeof(ulong), ulong.MaxValue, "18446744073709551615", ulong.MaxValue / 2, "9223372036854775807" };
 				yield return new object[] { typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MinValue, "0" };
 				yield return new object[] { typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MaxValue, "18446744073709551615" };
 
@@ -113,7 +116,7 @@ namespace GriffinPlus.Lib.Logging
 		[Theory]
 		[MemberData(nameof(GetSetting_TestData))]
 		public void GetSetting(
-			Type type,
+			Type   type,
 			object defaultValue,
 			string defaultValueAsString,
 			object value,
@@ -128,7 +131,9 @@ namespace GriffinPlus.Lib.Logging
 			GetSetting_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
 
 			// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION>).GetMethod(nameof(GetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(type);
+			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION>)
+				.GetMethod(nameof(GetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
+				.MakeGenericMethod(type);
 			typedTestMethod.Invoke(this, new[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
 
 			// test getting the same setting once again (should succeed, if default value is the same)
@@ -138,16 +143,16 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Same(setting21, setting22);
 
 			// test whether getting the same setting with different default values fails as expected
-			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting1", value})).InnerException);
+			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting1", value })).InnerException);
 			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting2", value })).InnerException);
 		}
 
 		private static void GetSetting_UntypedInterface(
 			IUntypedProcessingPipelineStageSetting setting,
-			object defaultValue,
-			string defaultValueAsString,
-			object value,
-			string valueAsString)
+			object                                 defaultValue,
+			string                                 defaultValueAsString,
+			object                                 value,
+			string                                 valueAsString)
 		{
 			Assert.False(setting.HasValue);
 			Assert.Equal(defaultValue, setting.DefaultValue);
@@ -164,10 +169,10 @@ namespace GriffinPlus.Lib.Logging
 
 		private static void GetSetting_TypedInterface<T>(
 			IProcessingPipelineStageSetting<T> setting,
-			object defaultValue,
-			string defaultValueAsString,
-			object value,
-			string valueAsString)
+			object                             defaultValue,
+			string                             defaultValueAsString,
+			object                             value,
+			string                             valueAsString)
 		{
 			Assert.False(setting.HasValue);
 			Assert.Equal(defaultValue, setting.DefaultValue);
@@ -181,6 +186,6 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(value, setting.Value);
 			Assert.Equal(valueAsString, setting.ValueAsString);
 		}
-
 	}
+
 }

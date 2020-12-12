@@ -11,9 +11,11 @@ using System.ComponentModel;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Interface log message collections must implement.
 	/// </summary>
+
 	// ReSharper disable once PossibleInterfaceMemberAmbiguity
 	public interface ILogMessageCollection<TMessage> :
 		IList<TMessage>,

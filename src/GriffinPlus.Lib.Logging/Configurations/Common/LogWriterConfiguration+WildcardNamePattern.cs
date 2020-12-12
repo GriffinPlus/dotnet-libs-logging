@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	public partial class LogWriterConfiguration
 	{
 		/// <summary>
@@ -16,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		public class WildcardNamePattern : INamePattern
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="WildcardNamePattern"/> class.
+			/// Initializes a new instance of the <see cref="WildcardNamePattern" /> class.
 			/// </summary>
 			/// <param name="pattern">The wildcard pattern to use.</param>
 			public WildcardNamePattern(string pattern)
@@ -45,4 +46,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

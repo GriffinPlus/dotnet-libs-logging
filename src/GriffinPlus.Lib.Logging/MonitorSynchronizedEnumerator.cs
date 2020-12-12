@@ -4,24 +4,25 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Provides an enumerator that keeps a monitor synchronized object locked during enumeration.
 	/// </summary>
-	internal class MonitorSynchronizedEnumerator<T> : IEnumerator<T>
+	class MonitorSynchronizedEnumerator<T> : IEnumerator<T>
 	{
 		private readonly IEnumerator<T> mInner;
-		private readonly object mSync;
-		private bool mDisposed;
+		private readonly object         mSync;
+		private          bool           mDisposed;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MonitorSynchronizedEnumerator{T}"/> class.
+		/// Initializes a new instance of the <see cref="MonitorSynchronizedEnumerator{T}" /> class.
 		/// </summary>
 		/// <param name="inner">Inner enumerator (unsynchronized).</param>
 		/// <param name="sync">Synchronization object to use for locking the enumerated collection.</param>
@@ -61,7 +62,7 @@ namespace GriffinPlus.Lib.Logging
 				else
 				{
 					// enumerator is finalized, it was not disposed explicitly before
-					Debug.Fail($"The {typeof(MonitorSynchronizedEnumerator<T>).FullName} was not disposed. The collection the enumerator is associated with was not unblocked!");
+					Debug.Fail("The enumerator was not disposed. The collection the enumerator is associated with was not unblocked!");
 				}
 			}
 		}
@@ -103,4 +104,5 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		object IEnumerator.Current => Current;
 	}
+
 }

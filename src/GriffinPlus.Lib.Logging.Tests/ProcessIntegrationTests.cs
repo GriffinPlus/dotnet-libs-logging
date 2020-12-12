@@ -11,13 +11,16 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using GriffinPlus.Lib.Threading;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="ProcessIntegration"/> class.
+	/// Unit tests targeting the <see cref="ProcessIntegration" /> class.
 	/// </summary>
 	public class ProcessIntegrationTests
 	{
@@ -33,15 +36,20 @@ namespace GriffinPlus.Lib.Logging
 					{
 						stream,
 						"WaitForExit()",
-						new Func<ProcessIntegration, Task>(integration =>
-						{
-							return Task.Factory.StartNew(() => // needed to avoid blocking the only thread in the AsyncContext!
+						new Func<ProcessIntegration, Task>(
+							integration =>
 							{
-								integration.WaitForExit();
-								Assert.True(integration.Process.HasExited);
-								return Task.CompletedTask;
-							}, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-						})
+								return Task.Factory.StartNew(
+									() => // needed to avoid blocking the only thread in the AsyncContext!
+									{
+										integration.WaitForExit();
+										Assert.True(integration.Process.HasExited);
+										return Task.CompletedTask;
+									},
+									CancellationToken.None,
+									TaskCreationOptions.LongRunning,
+									TaskScheduler.Default);
+							})
 					};
 
 					// test waiting for process exit using the synchronous method:
@@ -50,13 +58,14 @@ namespace GriffinPlus.Lib.Logging
 					{
 						stream,
 						"WaitForExit(0)",
-						new Func<ProcessIntegration, Task>(integration =>
-						{
-							bool success = integration.WaitForExit(0);
-							Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
-							Assert.False(integration.Process.HasExited);
-							return Task.CompletedTask;
-						})
+						new Func<ProcessIntegration, Task>(
+							integration =>
+							{
+								bool success = integration.WaitForExit(0);
+								Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
+								Assert.False(integration.Process.HasExited);
+								return Task.CompletedTask;
+							})
 					};
 
 					// test waiting for process exit using the synchronous method:
@@ -65,15 +74,20 @@ namespace GriffinPlus.Lib.Logging
 					{
 						stream,
 						"WaitForExit(100)",
-						new Func<ProcessIntegration, Task>(integration =>
-						{
-							return Task.Factory.StartNew(() => // needed to avoid blocking the only thread in the AsyncContext!
+						new Func<ProcessIntegration, Task>(
+							integration =>
 							{
-								bool success = integration.WaitForExit(100);
-								Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
-								Assert.False(integration.Process.HasExited);
-							}, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-						})
+								return Task.Factory.StartNew(
+									() => // needed to avoid blocking the only thread in the AsyncContext!
+									{
+										bool success = integration.WaitForExit(100);
+										Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
+										Assert.False(integration.Process.HasExited);
+									},
+									CancellationToken.None,
+									TaskCreationOptions.LongRunning,
+									TaskScheduler.Default);
+							})
 					};
 
 					// test waiting for process exit using the synchronous method:
@@ -82,15 +96,22 @@ namespace GriffinPlus.Lib.Logging
 					{
 						stream,
 						"WaitForExit(2000)",
-						new Func<ProcessIntegration, Task>(integration =>
-						{
-							return Task.Factory.StartNew(() => // needed to avoid blocking the only thread in the AsyncContext!
+						new Func<ProcessIntegration, Task>(
+							integration =>
 							{
-								bool success = integration.WaitForExit(10000);
-								Assert.True(success, "The process should have exited after 10000ms."); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
-								Assert.True(integration.Process.HasExited);
-							}, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-						})
+								return Task.Factory.StartNew(
+									() => // needed to avoid blocking the only thread in the AsyncContext!
+									{
+										bool success = integration.WaitForExit(10000);
+										Assert.True(
+											success,
+											"The process should have exited after 10000ms."); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
+										Assert.True(integration.Process.HasExited);
+									},
+									CancellationToken.None,
+									TaskCreationOptions.LongRunning,
+									TaskScheduler.Default);
+							})
 					};
 
 					// test waiting for process exit using the asynchronous method:
@@ -99,14 +120,15 @@ namespace GriffinPlus.Lib.Logging
 					{
 						stream,
 						"WaitForExitAsync(ct) with ct = CancellationToken.None)",
-						new Func<ProcessIntegration, Task>(async integration =>
-						{
-							await integration
-								.WaitForExitAsync(CancellationToken.None)
-								.ConfigureAwait(false);
+						new Func<ProcessIntegration, Task>(
+							async integration =>
+							{
+								await integration
+									.WaitForExitAsync(CancellationToken.None)
+									.ConfigureAwait(false);
 
-							Assert.True(integration.Process.HasExited);
-						})
+								Assert.True(integration.Process.HasExited);
+							})
 					};
 
 					// test waiting for process exit using the asynchronous method:
@@ -115,15 +137,17 @@ namespace GriffinPlus.Lib.Logging
 					{
 						stream,
 						"WaitForExitAsync(ct) with ct signaled after 100ms",
-						new Func<ProcessIntegration, Task>(async integration =>
-						{
-							CancellationTokenSource cts = new CancellationTokenSource(100); // cancel after 100 ms
-							await Assert.ThrowsAsync<TaskCanceledException>(async () => await integration
-									.WaitForExitAsync(cts.Token)
-									.ConfigureAwait(false))
-								.ConfigureAwait(false);
-							Assert.False(integration.Process.HasExited);
-						})
+						new Func<ProcessIntegration, Task>(
+							async integration =>
+							{
+								var cts = new CancellationTokenSource(100); // cancel after 100 ms
+								await Assert.ThrowsAsync<TaskCanceledException>(
+										async () => await integration
+											            .WaitForExitAsync(cts.Token)
+											            .ConfigureAwait(false))
+									.ConfigureAwait(false);
+								Assert.False(integration.Process.HasExited);
+							})
 					};
 				}
 			}
@@ -131,7 +155,7 @@ namespace GriffinPlus.Lib.Logging
 
 		[Theory]
 		[MemberData(nameof(IntegrateIntoLogging_TestData))]
-		void IntegrateIntoLogging(string stream, string description, Func<ProcessIntegration, Task> waitForExit)
+		private void IntegrateIntoLogging(string stream, string description, Func<ProcessIntegration, Task> waitForExit)
 		{
 			// it is sufficient to test one newline character sequence as newlines are mangled when traveling from the executed process to this process
 			// (nevertheless it is necessary to use a deterministic character sequence to build up the test data to compare the output with)
@@ -139,10 +163,12 @@ namespace GriffinPlus.Lib.Logging
 
 			// create a file containing mix log messages as JSON
 			var data = JsonMessageReaderTests.GetTestData(
-				1, // generate one test set only
-				100000, 100000, // the test set should contain 100000 log messages
-				newline, // use specified newline character sequence only to make reconstruction possible when receiving data via stdout/stderr
-				false).First(); // do not inject random whitespaces between log messages as these would screw up printing to the console and vice versa
+					1,      // generate one test set only
+					100000, // the test set should contain 100000 log messages
+					100000,
+					newline, // use specified newline character sequence only to make reconstruction possible when receiving data via stdout/stderr
+					false)
+				.First(); // do not inject random whitespaces between log messages as these would screw up printing to the console and vice versa
 
 			// prepare unique file name to avoid issues with tests running in parallel
 			string testDataFile = $"TestData_IntegrateIntoLogging_{Guid.NewGuid():D}.json";
@@ -156,86 +182,88 @@ namespace GriffinPlus.Lib.Logging
 				var integration = PrepareConsolePrinterIntegration(stream, testDataFile);
 				integration.IsLoggingMessagesEnabled = false;
 
-				StringBuilder stdoutReceivedText = new StringBuilder();
-				List<ILogMessage> stdoutReceivedMessages = new List<ILogMessage>();
-				AsyncManualResetEvent stdoutTextFinishedEvent = new AsyncManualResetEvent();
-				AsyncManualResetEvent stdoutMessageFinishedEvent = new AsyncManualResetEvent();
+				var stdoutReceivedText = new StringBuilder();
+				var stdoutReceivedMessages = new List<ILogMessage>();
+				var stdoutTextFinishedEvent = new AsyncManualResetEvent();
+				var stdoutMessageFinishedEvent = new AsyncManualResetEvent();
 
-				StringBuilder stderrReceivedText = new StringBuilder();
-				List<ILogMessage> stderrReceivedMessages = new List<ILogMessage>();
-				AsyncManualResetEvent stderrTextFinishedEvent = new AsyncManualResetEvent();
-				AsyncManualResetEvent stderrMessageFinishedEvent = new AsyncManualResetEvent();
+				var stderrReceivedText = new StringBuilder();
+				var stderrReceivedMessages = new List<ILogMessage>();
+				var stderrTextFinishedEvent = new AsyncManualResetEvent();
+				var stderrMessageFinishedEvent = new AsyncManualResetEvent();
 
 				// run processing in a thread that supports marshalling calls into it
 				// to avoid that event handlers are called out of order by pool threads
-				AsyncContextThread thread = new AsyncContextThread();
-				thread.Factory.Run(async () =>
-				{
-					integration.OutputStreamReceivedText += (sender, args) =>
-					{
-						// abort, if the process has exited
-						if (args.Line == null)
+				var thread = new AsyncContextThread();
+				thread.Factory.Run(
+						async () =>
 						{
-							stdoutTextFinishedEvent.Set();
-							return;
-						}
+							integration.OutputStreamReceivedText += (sender, args) =>
+							{
+								// abort, if the process has exited
+								if (args.Line == null)
+								{
+									stdoutTextFinishedEvent.Set();
+									return;
+								}
 
-						stdoutReceivedText.Append(args.Line);
-						stdoutReceivedText.Append(newline);
-					};
+								stdoutReceivedText.Append(args.Line);
+								stdoutReceivedText.Append(newline);
+							};
 
-					integration.OutputStreamReceivedMessage += (sender, args) =>
-					{
-						// abort, if the process has exited
-						if (args.Message == null)
-						{
-							stdoutMessageFinishedEvent.Set();
-							return;
-						}
+							integration.OutputStreamReceivedMessage += (sender, args) =>
+							{
+								// abort, if the process has exited
+								if (args.Message == null)
+								{
+									stdoutMessageFinishedEvent.Set();
+									return;
+								}
 
-						stdoutReceivedMessages.Add(args.Message);
-					};
+								stdoutReceivedMessages.Add(args.Message);
+							};
 
-					integration.ErrorStreamReceivedText += (sender, args) =>
-					{
-						// abort, if the process has exited
-						if (args.Line == null)
-						{
-							stderrTextFinishedEvent.Set();
-							return;
-						}
+							integration.ErrorStreamReceivedText += (sender, args) =>
+							{
+								// abort, if the process has exited
+								if (args.Line == null)
+								{
+									stderrTextFinishedEvent.Set();
+									return;
+								}
 
-						stderrReceivedText.Append(args.Line);
-						stderrReceivedText.Append(newline);
-					};
+								stderrReceivedText.Append(args.Line);
+								stderrReceivedText.Append(newline);
+							};
 
-					integration.ErrorStreamReceivedMessage += (sender, args) =>
-					{
-						// abort, if the process has exited
-						if (args.Message == null)
-						{
-							stderrMessageFinishedEvent.Set();
-							return;
-						}
+							integration.ErrorStreamReceivedMessage += (sender, args) =>
+							{
+								// abort, if the process has exited
+								if (args.Message == null)
+								{
+									stderrMessageFinishedEvent.Set();
+									return;
+								}
 
-						stderrReceivedMessages.Add(args.Message);
-					};
+								stderrReceivedMessages.Add(args.Message);
+							};
 
-					// start process
-					integration.StartProcess();
+							// start process
+							integration.StartProcess();
 
-					// run the various WaitForExit[Async] methods
-					// (some may return before the process has actually exited)
-					await waitForExit(integration);
+							// run the various WaitForExit[Async] methods
+							// (some may return before the process has actually exited)
+							await waitForExit(integration);
 
-					// wait for all event handlers to receive the terminating event arguments
-					// (abort after 30 seconds)
-					CancellationTokenSource cts = new CancellationTokenSource(30000);
-					await stdoutTextFinishedEvent.WaitAsync(cts.Token);
-					await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
-					await stderrTextFinishedEvent.WaitAsync(cts.Token);
-					await stderrMessageFinishedEvent.WaitAsync(cts.Token);
-				}).WaitAndUnwrapException();
+							// wait for all event handlers to receive the terminating event arguments
+							// (abort after 30 seconds)
+							var cts = new CancellationTokenSource(30000);
+							await stdoutTextFinishedEvent.WaitAsync(cts.Token);
+							await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
+							await stderrTextFinishedEvent.WaitAsync(cts.Token);
+							await stderrMessageFinishedEvent.WaitAsync(cts.Token);
+						})
+					.WaitAndUnwrapException();
 
 				if (stream == "stdout")
 				{
@@ -293,9 +321,9 @@ namespace GriffinPlus.Lib.Logging
 			ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal($"External Process ({dotnetExecutable})", integration.LogWriter.Name);
 #elif NETFRAMEWORK
-			ProcessStartInfo startInfo = new ProcessStartInfo("ConsolePrinter.exe", $"{stream} {testDataFile}");
-			Process process = new Process { StartInfo = startInfo };
-			ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
+			var startInfo = new ProcessStartInfo("ConsolePrinter.exe", $"{stream} {testDataFile}");
+			var process = new Process { StartInfo = startInfo };
+			var integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal("External Process (ConsolePrinter.exe)", integration.LogWriter.Name);
 #endif
 			Assert.Same(process, integration.Process);
@@ -303,4 +331,5 @@ namespace GriffinPlus.Lib.Logging
 			return integration;
 		}
 	}
+
 }

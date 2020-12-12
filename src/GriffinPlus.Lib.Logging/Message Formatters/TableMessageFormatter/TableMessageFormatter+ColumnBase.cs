@@ -7,6 +7,7 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class TableMessageFormatter
 	{
 		/// <summary>
@@ -15,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 		private abstract class ColumnBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="ColumnBase"/> class.
+			/// Initializes a new instance of the <see cref="ColumnBase" /> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			/// <param name="field">The formatted log message field.</param>
@@ -46,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 			protected int Width { get; set; }
 
 			/// <summary>
-			/// Measures the field of the message to present in the column and updates the <see cref="Width"/> property.
+			/// Measures the field of the message to present in the column and updates the <see cref="Width" /> property.
 			/// </summary>
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public abstract void UpdateWidth(ILogMessage message);
@@ -61,4 +62,5 @@ namespace GriffinPlus.Lib.Logging
 			public abstract bool Write(ILogMessage message, StringBuilder builder, int line);
 		}
 	}
+
 }

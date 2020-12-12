@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	public partial class LogWriterConfiguration
 	{
 		/// <summary>
@@ -16,13 +17,13 @@ namespace GriffinPlus.Lib.Logging
 		public class ExactNamePattern : INamePattern
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="ExactNamePattern"/> class.
+			/// Initializes a new instance of the <see cref="ExactNamePattern" /> class.
 			/// </summary>
 			/// <param name="name">The name to match.</param>
 			public ExactNamePattern(string name)
 			{
 				Pattern = name ?? throw new ArgumentNullException(nameof(name));
-				var regex = $"^{Regex.Escape(name)}$";
+				string regex = $"^{Regex.Escape(name)}$";
 				Regex = new Regex(regex, RegexOptions.Singleline); // compilation is not needed as the regex matches only once against a log writer name and is then cached
 			}
 
@@ -46,5 +47,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
-}
 
+}

@@ -4,32 +4,31 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Threading;
-using System.Runtime.CompilerServices;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 // ReSharper disable StaticMemberInGenericType
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Event manager that administrates event handlers in a central place.
-	/// Made for events of the <see cref="EventHandler{TEventArgs}"/> type.
+	/// Made for events of the <see cref="EventHandler{TEventArgs}" /> type.
 	/// Objects firing events do not need to implement own event add/remove logic, especially when it comes to firing
 	/// events asynchronously.
 	/// </summary>
 	/// <typeparam name="T">Type of the event arguments of the event.</typeparam>
-	internal static class EventManager<T> where T: EventArgs
+	static class EventManager<T> where T : EventArgs
 	{
-		#region Internal Data Types
-		
 		/// <summary>
 		/// An event handler item in the event manager.
 		/// </summary>
 		private struct Item
 		{
 			public readonly SynchronizationContext SynchronizationContext;
-			public readonly EventHandler<T> Handler;
+			public readonly EventHandler<T>        Handler;
 
 			public Item(SynchronizationContext context, EventHandler<T> handler)
 			{
@@ -38,14 +37,10 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 
-		#endregion
+		private static readonly ConditionalWeakTable<object, Dictionary<string, Item[]>> sItemsByObject =
+			new ConditionalWeakTable<object, Dictionary<string, Item[]>>();
 
-		#region Class Variables
-
-		private static readonly ConditionalWeakTable<object,Dictionary<string,Item[]>> sItemsByObject = new ConditionalWeakTable<object,Dictionary<string,Item[]>>();
 		private static readonly object sSync = new object();
-
-		#endregion
 
 		/// <summary>
 		/// Registers an event handler for an event associated with the specified object.
@@ -59,9 +54,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		/// <returns>Total number of registered event handlers (including the specified event handler).</returns>
 		public static int RegisterEventHandler(
-			object obj,
-			string eventName,
-			EventHandler<T> handler,
+			object                 obj,
+			string                 eventName,
+			EventHandler<T>        handler,
 			SynchronizationContext context)
 		{
 			return RegisterEventHandler(obj, eventName, handler, context, false, null, null);
@@ -86,13 +81,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="e">Event arguments to pass to the event handler that is fired immediately.</param>
 		/// <returns>Total number of registered event handlers (including the specified event handler).</returns>
 		public static int RegisterEventHandler(
-			object obj,
-			string eventName,
-			EventHandler<T> handler,
+			object                 obj,
+			string                 eventName,
+			EventHandler<T>        handler,
 			SynchronizationContext context,
-			bool fireImmediately,
-			object sender,
-			T e)
+			bool                   fireImmediately,
+			object                 sender,
+			T                      e)
 		{
 			if (handler == null) throw new ArgumentNullException(nameof(handler));
 
@@ -100,27 +95,35 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (sSync)
 			{
-				if (!sItemsByObject.TryGetValue(obj, out var itemsByName)) {
-					itemsByName = new Dictionary<string,Item[]>(1);
+				if (!sItemsByObject.TryGetValue(obj, out var itemsByName))
+				{
+					itemsByName = new Dictionary<string, Item[]>(1);
 					sItemsByObject.Add(obj, itemsByName);
 				}
 
-				if (itemsByName.TryGetValue(eventName, out var items)) {
-					newItems = new Item[items.Length+1];
+				if (itemsByName.TryGetValue(eventName, out var items))
+				{
+					newItems = new Item[items.Length + 1];
 					Array.Copy(items, newItems, items.Length);
 					newItems[items.Length] = new Item(context, handler);
 					itemsByName[eventName] = newItems;
-				} else {
+				}
+				else
+				{
 					newItems = new Item[1];
 					newItems[0] = new Item(context, handler);
 					itemsByName[eventName] = newItems;
 				}
 			}
 
-			if (fireImmediately) {
-				if (context != null) {
-					context.Post((x) => { handler(sender, e); }, null);
-				} else {
+			if (fireImmediately)
+			{
+				if (context != null)
+				{
+					context.Post(x => { handler(sender, e); }, null);
+				}
+				else
+				{
 					handler(sender, e);
 				}
 			}
@@ -144,22 +147,25 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (sSync)
 			{
-				if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out var items)){
+				if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out var items))
+				{
 					// specified event handler was not registered
 					return -1;
 				}
 
 				for (int i = 0; i < items.Length; i++)
 				{
-					EventHandler<T> registeredHandler = items[i].Handler;
+					var registeredHandler = items[i].Handler;
 					if (registeredHandler == handler)
 					{
-						Item[] newItems = new Item[items.Length-1];
-						for (int j = 0, k = 0; j < items.Length; j++) {
+						var newItems = new Item[items.Length - 1];
+						for (int j = 0, k = 0; j < items.Length; j++)
+						{
 							if (j != i) newItems[k++] = items[j];
 						}
 
-						if (newItems.Length > 0) {
+						if (newItems.Length > 0)
+						{
 							itemsByName[eventName] = newItems;
 							return newItems.Length;
 						}
@@ -184,9 +190,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (sSync)
 			{
-				if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out _)){
+				if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out _))
 					return false;
-				}
 
 				return true;
 			}
@@ -203,12 +208,13 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (sSync)
 			{
-				if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out var items)){
+				if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out var items))
 					return false;
-				}
 
-				for (int i = 0; i < items.Length; i++) {
-					if (items[i].Handler == handler) return true;
+				for (int i = 0; i < items.Length; i++)
+				{
+					if (items[i].Handler == handler)
+						return true;
 				}
 			}
 
@@ -223,7 +229,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="eventName">Name of the event.</param>
 		/// <param name="sender">Sender object to pass to invoked event handlers.</param>
 		/// <param name="e">Event arguments to pass to invoked event handlers.</param>
-		public static void FireEvent(object obj, string eventName, object sender, T e)
+		public static void FireEvent(
+			object obj,
+			string eventName,
+			object sender,
+			T      e)
 		{
 			Item[] items;
 
@@ -233,10 +243,14 @@ namespace GriffinPlus.Lib.Logging
 				if (!itemsByName.TryGetValue(eventName, out items)) return;
 			}
 
-			foreach (Item item in items) {
-				if (item.SynchronizationContext != null) {
+			foreach (var item in items)
+			{
+				if (item.SynchronizationContext != null)
+				{
 					item.SynchronizationContext.Post(x => { ((Item)x).Handler(sender, e); }, item);
-				} else {
+				}
+				else
+				{
 					item.Handler(sender, e);
 				}
 			}
@@ -262,18 +276,20 @@ namespace GriffinPlus.Lib.Logging
 
 			EventHandler<T> handlers = null;
 
-			foreach (Item item in items)
+			foreach (var item in items)
 			{
 				if (item.SynchronizationContext != null)
 				{
-					handlers += (sender, e) => {
+					handlers += (sender, e) =>
+					{
 						item.SynchronizationContext.Post(x => { ((Item)x).Handler(sender, e); }, item);
 					};
 				}
 				else
 				{
-					Item itemCopy = item;
-					handlers += (sender, e) => {
+					var itemCopy = item;
+					handlers += (sender, e) =>
+					{
 						itemCopy.Handler(sender, e);
 					};
 				}

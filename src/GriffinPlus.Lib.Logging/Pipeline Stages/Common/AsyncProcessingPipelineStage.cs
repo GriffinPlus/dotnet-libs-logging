@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Base class for stages in the log message processing pipeline that feature asynchronous processing.
 	/// Messages can be processed synchronously or asynchronously. Heavyweight operations and all operations
@@ -20,24 +21,23 @@ namespace GriffinPlus.Lib.Logging
 	/// not blocked.
 	/// </summary>
 	public abstract class AsyncProcessingPipelineStage<STAGE> : ProcessingPipelineBaseStage
-		where STAGE: AsyncProcessingPipelineStage<STAGE>
+		where STAGE : AsyncProcessingPipelineStage<STAGE>
 	{
-		private Task mAsyncProcessingTask;
-		private AsyncAutoResetEvent mTriggerAsyncProcessingEvent;
+		private Task                           mAsyncProcessingTask;
+		private AsyncAutoResetEvent            mTriggerAsyncProcessingEvent;
 		private LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
-		private bool mDiscardMessagesIfQueueFull;
-		private int mMessageQueueSize = 500;
-		private TimeSpan mShutdownTimeout = TimeSpan.FromMilliseconds(5000);
-		private CancellationTokenSource mAsyncProcessingCancellationTokenSource;
-		private bool mTerminateProcessingTask;
+		private bool                           mDiscardMessagesIfQueueFull;
+		private int                            mMessageQueueSize = 500;
+		private TimeSpan                       mShutdownTimeout  = TimeSpan.FromMilliseconds(5000);
+		private CancellationTokenSource        mAsyncProcessingCancellationTokenSource;
+		private bool                           mTerminateProcessingTask;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage{T}"/> class.
+		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage{T}" /> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		protected AsyncProcessingPipelineStage(string name) : base(name)
 		{
-
 		}
 
 		#region Initialization / Shutdown
@@ -55,10 +55,11 @@ namespace GriffinPlus.Lib.Logging
 				mAsyncProcessingCancellationTokenSource = new CancellationTokenSource();
 				mTerminateProcessingTask = false;
 				mAsyncProcessingTask = Task.Factory.StartNew(
-					ProcessingTask,
-					CancellationToken.None,
-					TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
-					TaskScheduler.Default).Unwrap();
+						ProcessingTask,
+						CancellationToken.None,
+						TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
+						TaskScheduler.Default)
+					.Unwrap();
 
 				// bind settings
 				BindSettings();
@@ -194,7 +195,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Processing Messages and Notifications
 
 		/// <summary>
-		/// Is called on behalf of <see cref="IProcessingPipelineStage.Shutdown"/> (for internal use only).
+		/// Is called on behalf of <see cref="IProcessingPipelineStage.Shutdown" /> (for internal use only).
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
@@ -207,7 +208,7 @@ namespace GriffinPlus.Lib.Logging
 			try
 			{
 				// synchronous processing
-				bool proceed = ProcessSync(message, out var queueMessageForAsynchronousProcessing);
+				bool proceed = ProcessSync(message, out bool queueMessageForAsynchronousProcessing);
 
 				// asynchronous processing
 				if (queueMessageForAsynchronousProcessing)
@@ -254,8 +255,8 @@ namespace GriffinPlus.Lib.Logging
 		/// otherwise false.
 		/// </returns>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		protected virtual bool ProcessSync(LocalLogMessage message, out bool queueForAsyncProcessing)
@@ -271,8 +272,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		protected virtual Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)
@@ -299,7 +300,8 @@ namespace GriffinPlus.Lib.Logging
 				if (mTerminateProcessingTask)
 				{
 					// process the last messages, if there is time left...
-					if (!mAsyncProcessingCancellationTokenSource.IsCancellationRequested) {
+					if (!mAsyncProcessingCancellationTokenSource.IsCancellationRequested)
+					{
 						await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);
 					}
 
@@ -309,12 +311,12 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Processes log messages that have been buffered in the <see cref="mAsyncProcessingMessageStack"/> (for asynchronous processing only).
+		/// Processes log messages that have been buffered in the <see cref="mAsyncProcessingMessageStack" /> (for asynchronous processing only).
 		/// </summary>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		private async Task ProcessQueuedMessages(CancellationToken cancellationToken)
 		{
-			LocalLogMessage[] messages = mAsyncProcessingMessageStack.FlushAndReverse();
+			var messages = mAsyncProcessingMessageStack.FlushAndReverse();
 			if (messages == null) return;
 
 			try
@@ -328,7 +330,8 @@ namespace GriffinPlus.Lib.Logging
 			finally
 			{
 				// release message to let them return to the pool
-				for (int i = 0; i < messages.Length; i++) {
+				for (int i = 0; i < messages.Length; i++)
+				{
 					messages[i].Release();
 				}
 			}

@@ -7,13 +7,14 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Exception that is thrown when tokenizing a document fails due to invalid data.
 	/// </summary>
 	public class TokenizingException : Exception
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TokenizingException"/> class.
+		/// Initializes a new instance of the <see cref="TokenizingException" /> class.
 		/// </summary>
 		/// <param name="lineNumber">Line in the document where the tokenizing error occurred (starts at 1).</param>
 		/// <param name="position">Position in the document where the tokenizing error occurred (starts at 1).</param>
@@ -25,13 +26,17 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TokenizingException"/> class.
+		/// Initializes a new instance of the <see cref="TokenizingException" /> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		/// <param name="lineNumber">Line in the document where the tokenizing error occurred (starts at 1).</param>
 		/// <param name="position">Position in the document where the tokenizing error occurred (starts at 1).</param>
 		/// <param name="innerException">The original exception that led to the exception being thrown.</param>
-		public TokenizingException(int lineNumber, int position, string message, Exception innerException) : base(message, innerException)
+		public TokenizingException(
+			int       lineNumber,
+			int       position,
+			string    message,
+			Exception innerException) : base(message, innerException)
 		{
 			LineNumber = lineNumber;
 			Position = position;
@@ -47,4 +52,5 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public int Position { get; }
 	}
+
 }

@@ -15,36 +15,37 @@ using System.Threading.Tasks;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// An interface to the local log service for logging clients.
 	/// </summary>
-	internal sealed unsafe partial class LocalLogServiceConnection
+	sealed unsafe partial class LocalLogServiceConnection
 	{
-		private const int PipeRequestTimeout = 1000; // ms
-		private const int QueueBlockFetchRetryDelayTime = 20; // ms
+		private const int PipeRequestTimeout            = 1000; // ms
+		private const int QueueBlockFetchRetryDelayTime = 20;   // ms
 
-		private static readonly int sCurrentProcessId = Process.GetCurrentProcess().Id;
-		private readonly object mSync = new object();
-		private readonly string mSinkServerPipeName;
-		private readonly string mGlobalQueueName;
-		private readonly string mLocalQueueName;
-		private readonly UnsafeSharedMemoryQueue mSharedMemoryQueue = new UnsafeSharedMemoryQueue();
-		private bool mInitialized;
-		private int mPeakBufferCapacity;
-		private readonly Queue<LogEntryBlock> mPeakBufferQueue = new Queue<LogEntryBlock>();
-		private int mLostMessageCount;
-		private bool mAutoReconnect = true;
-		private TimeSpan mAutoReconnectRetryInterval = TimeSpan.FromSeconds(15);
-		private Task mAutoReconnectTask;
-		private CancellationTokenSource mAutoReconnectTaskCancellationTokenSource;
-		private bool mLosslessMode;
-		private bool mWriteToLogFile = true;
-		private Process mServiceProcess;
+		private static readonly int                     sCurrentProcessId = Process.GetCurrentProcess().Id;
+		private readonly        object                  mSync             = new object();
+		private readonly        string                  mSinkServerPipeName;
+		private readonly        string                  mGlobalQueueName;
+		private readonly        string                  mLocalQueueName;
+		private readonly        UnsafeSharedMemoryQueue mSharedMemoryQueue = new UnsafeSharedMemoryQueue();
+		private                 bool                    mInitialized;
+		private                 int                     mPeakBufferCapacity;
+		private readonly        Queue<LogEntryBlock>    mPeakBufferQueue = new Queue<LogEntryBlock>();
+		private                 int                     mLostMessageCount;
+		private                 bool                    mAutoReconnect              = true;
+		private                 TimeSpan                mAutoReconnectRetryInterval = TimeSpan.FromSeconds(15);
+		private                 Task                    mAutoReconnectTask;
+		private                 CancellationTokenSource mAutoReconnectTaskCancellationTokenSource;
+		private                 bool                    mLosslessMode;
+		private                 bool                    mWriteToLogFile = true;
+		private                 Process                 mServiceProcess;
 
 		#region Construction
 
 		/// <summary>
-		/// Initializes the <see cref="LocalLogServiceConnection"/> class.
+		/// Initializes the <see cref="LocalLogServiceConnection" /> class.
 		/// </summary>
 		static LocalLogServiceConnection()
 		{
@@ -52,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogServiceConnection"/> class.
+		/// Initializes a new instance of the <see cref="LocalLogServiceConnection" /> class.
 		/// </summary>
 		/// <param name="prefix">Prefix for kernel objects created along with the connection.</param>
 		public LocalLogServiceConnection(string prefix)
@@ -97,7 +98,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the interval between two attempts to re-establish the connection to the local log service.
-		/// Requires <see cref="AutoReconnect"/> to be set to <c>true</c>.
+		/// Requires <see cref="AutoReconnect" /> to be set to <c>true</c>.
 		/// </summary>
 		public TimeSpan AutoReconnectRetryInterval
 		{
@@ -162,7 +163,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the capacity of the queue buffering data blocks that would have been sent to the local
 		/// log service, but could not, because the shared memory queue was full. This can happen in case of severe
-		/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode"/> is <c>false</c>. Set the capacity
+		/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode" /> is <c>false</c>. Set the capacity
 		/// to 0 to disable peak buffering messages (notifications are always buffered to avoid getting out of sync).
 		/// </summary>
 		/// <remarks>
@@ -217,7 +218,7 @@ namespace GriffinPlus.Lib.Logging
 						try
 						{
 							// prepare request for the local log service
-							Request request = new Request
+							var request = new Request
 							{
 								Command = Command.SetWritingToLogFile,
 								SetWritingToLogFileCommand =
@@ -238,8 +239,8 @@ namespace GriffinPlus.Lib.Logging
 							{
 								Debug.WriteLine(
 									mWriteToLogFile
-									? "Enabling writing messages to the log file failed."
-									: "Disabling writing messages to the log file failed.");
+										? "Enabling writing messages to the log file failed."
+										: "Disabling writing messages to the log file failed.");
 							}
 						}
 						catch (Exception ex)
@@ -276,7 +277,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <returns>
 		/// true, if the connection has been established successfully or if it already was established;
-		/// false, if establishing the connection failed and <see cref="AutoReconnect"/> is <c>false</c>, so the connection will not be established automatically.
+		/// false, if establishing the connection failed and <see cref="AutoReconnect" /> is <c>false</c>,
+		/// so the connection will not be established automatically.
 		/// </returns>
 		public bool Initialize()
 		{
@@ -314,7 +316,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Schedules a task to connect to the local log service after the <see cref="mAutoReconnectRetryInterval"/>.
+		/// Schedules a task to connect to the local log service after the <see cref="mAutoReconnectRetryInterval" />.
 		/// </summary>
 		private void StartAutoReconnectTask()
 		{
@@ -328,32 +330,36 @@ namespace GriffinPlus.Lib.Logging
 				// create a new cancellation token source
 				// (it is necessary to pull the token out of mAutoReconnectTaskCancellationTokenSource to ensure it is not overwritten by replacing mAutoReconnectTaskCancellationTokenSource)
 				mAutoReconnectTaskCancellationTokenSource = new CancellationTokenSource();
-				CancellationToken cts = mAutoReconnectTaskCancellationTokenSource.Token;
+				var cts = mAutoReconnectTaskCancellationTokenSource.Token;
 
 				// schedule a new task to retry to connect to the local log service
 				mAutoReconnectTask = Task
 					.Delay(mAutoReconnectRetryInterval, cts)
-					.ContinueWith(x =>
-					{
-						lock (mSync)
+					.ContinueWith(
+						x =>
 						{
-							cts.ThrowIfCancellationRequested();
-
-							if (mInitialized && mAutoReconnect && !IsLogSinkAlive())
+							lock (mSync)
 							{
-								// shut the connection down to clean up resources
-								ShutdownConnection();
+								cts.ThrowIfCancellationRequested();
 
-								// try to connect to the local log service
-								if (!InitConnection())
+								if (mInitialized && mAutoReconnect && !IsLogSinkAlive())
 								{
-									// connecting to the local log service failed
-									// => schedule a new task to retry after the specified time
-									StartAutoReconnectTask();
+									// shut the connection down to clean up resources
+									ShutdownConnection();
+
+									// try to connect to the local log service
+									if (!InitConnection())
+									{
+										// connecting to the local log service failed
+										// => schedule a new task to retry after the specified time
+										StartAutoReconnectTask();
+									}
 								}
 							}
-						}
-					}, cts, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
+						},
+						cts,
+						TaskContinuationOptions.OnlyOnRanToCompletion,
+						TaskScheduler.Current);
 			}
 		}
 
@@ -369,7 +375,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (mSync)
 			{
 				// create an 'unregister' request (for error conditions)
-				Request unregisterRequest = new Request
+				var unregisterRequest = new Request
 				{
 					Command = Command.UnregisterLogSource,
 					UnregisterLogSourceCommand =
@@ -390,7 +396,7 @@ namespace GriffinPlus.Lib.Logging
 				try
 				{
 					// prepare request
-					Request request = new Request
+					var request = new Request
 					{
 						Command = Command.RegisterLogSource,
 						RegisterLogSourceCommand =
@@ -453,7 +459,7 @@ namespace GriffinPlus.Lib.Logging
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				try
 				{
-					Request request = new Request
+					var request = new Request
 					{
 						Command = Command.SetWritingToLogFile,
 						SetWritingToLogFileCommand =
@@ -472,6 +478,7 @@ namespace GriffinPlus.Lib.Logging
 					if (reply.Result == 0)
 					{
 						Debug.WriteLine("The local log service failed to enable writing to the log file.");
+
 						// proceed in case of an error...
 					}
 				}
@@ -485,7 +492,7 @@ namespace GriffinPlus.Lib.Logging
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				// open the sink's process
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				Process serviceProcess = Process.GetProcessById(serviceProcessId);
+				var serviceProcess = Process.GetProcessById(serviceProcessId);
 
 				try
 				{
@@ -589,7 +596,7 @@ namespace GriffinPlus.Lib.Logging
 					try
 					{
 						// prepare request
-						Request request = new Request
+						var request = new Request
 						{
 							Command = Command.UnregisterLogSource,
 							UnregisterLogSourceCommand =
@@ -665,9 +672,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			try
 			{
-				using (NamedPipeClientStream pipe = new NamedPipeClientStream(".", mSinkServerPipeName, PipeDirection.InOut))
-				using (MemoryReader reader = new MemoryReader(pipe))
-				using (MemoryWriter writer = new MemoryWriter(pipe))
+				using (var pipe = new NamedPipeClientStream(".", mSinkServerPipeName, PipeDirection.InOut))
+				using (var reader = new MemoryReader(pipe))
+				using (var writer = new MemoryWriter(pipe))
 				{
 					// connect to the pipe or wait until the pipe is available
 					// (the local log service has a set of pipes to serve multiple clients, so waiting most likely
@@ -699,7 +706,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="LocalLogServiceCommunicationException">Communicating with the local log service failed.</exception>
 		private int QueryProcessId(int timeout = PipeRequestTimeout)
 		{
-			Request request = new Request { Command = Command.QueryProcessId };
+			var request = new Request { Command = Command.QueryProcessId };
 			var reply = SendRequest(request, timeout);
 			return reply.QueryProcessIdCommand.ProcessId;
 		}
@@ -716,7 +723,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (mSync)
 			{
 				// try to get a free block from the queue
-				LogEntryBlock* block = GetLogEntryBlock();
+				var block = GetLogEntryBlock();
 
 				if (block != null)
 				{
@@ -744,7 +751,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (mSync)
 			{
 				// try to get a free block from the queue
-				LogEntryBlock* block = GetLogEntryBlock();
+				var block = GetLogEntryBlock();
 
 				if (block != null)
 				{
@@ -765,7 +772,7 @@ namespace GriffinPlus.Lib.Logging
 					// terminate the string, if necessary
 					if (charsToCopy < LogEntryBlock_SetApplicationName.ApplicationNameSize)
 					{
-						block->SetApplicationName.ApplicationName[charsToCopy] = (char) 0;
+						block->SetApplicationName.ApplicationName[charsToCopy] = (char)0;
 					}
 
 					// write the block
@@ -788,11 +795,11 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
-				LogLevel[] levels = LogLevel.KnownLevels.ToArray();
-				foreach (LogLevel level in levels)
+				var levels = LogLevel.KnownLevels.ToArray();
+				foreach (var level in levels)
 				{
 					// try to get a free block from the queue
-					LogEntryBlock* block = GetLogEntryBlock();
+					var block = GetLogEntryBlock();
 
 					if (block != null)
 					{
@@ -838,11 +845,11 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
-				LogWriter[] writers = Log.KnownWriters.ToArray();
-				foreach (LogWriter writer in writers)
+				var writers = Log.KnownWriters.ToArray();
+				foreach (var writer in writers)
 				{
 					// try to get a free block from the queue
-					LogEntryBlock* block = GetLogEntryBlock();
+					var block = GetLogEntryBlock();
 
 					if (block != null)
 					{
@@ -899,7 +906,8 @@ namespace GriffinPlus.Lib.Logging
 
 				// the shared memory queue is full
 				// => abort, if the peak buffer queue is also full
-				if (mPeakBufferQueue.Count >= mPeakBufferCapacity) {
+				if (mPeakBufferQueue.Count >= mPeakBufferCapacity)
+				{
 					mLostMessageCount++;
 					return false;
 				}
@@ -926,8 +934,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
-				var timestamp = message.Timestamp.ToUniversalTime().ToFileTime();
-				var highPrecisionTimestamp = (message.HighPrecisionTimestamp + 500) / 1000; // ns => µs
+				long timestamp = message.Timestamp.ToUniversalTime().ToFileTime();
+				long highPrecisionTimestamp = (message.HighPrecisionTimestamp + 500) / 1000; // ns => µs
 
 				if (defer || mServiceProcess != null)
 				{
@@ -935,7 +943,7 @@ namespace GriffinPlus.Lib.Logging
 					LogEntryBlock* firstBlock;
 					if (defer)
 					{
-						LogEntryBlock* b = stackalloc LogEntryBlock[1];
+						var b = stackalloc LogEntryBlock[1];
 						firstBlock = b;
 					}
 					else
@@ -968,7 +976,7 @@ namespace GriffinPlus.Lib.Logging
 						// terminate the message, if it is shorter than the buffer
 						if (charsToCopy < LogEntryBlock_Message.MessageSize)
 						{
-							firstBlock->Message.Message[charsToCopy] = (char) 0;
+							firstBlock->Message.Message[charsToCopy] = (char)0;
 						}
 
 						if (message.Text.Length <= LogEntryBlock_Message.MessageSize)
@@ -1001,14 +1009,14 @@ namespace GriffinPlus.Lib.Logging
 						firstBlock->Message.MessageExtensionCount = requiredExtensionMessages;
 
 						// get enough blocks to store the resulting message
-						LogEntryBlock** blocks = stackalloc LogEntryBlock*[requiredExtensionMessages + 1];
-						int* bytesWritten = stackalloc int[requiredExtensionMessages + 1];
+						var blocks = stackalloc LogEntryBlock*[requiredExtensionMessages + 1];
+						var bytesWritten = stackalloc int[requiredExtensionMessages + 1];
 						blocks[0] = firstBlock;
 						bytesWritten[0] = sizeof(LogEntryBlock);
 
 						if (defer)
 						{
-							LogEntryBlock* b2 = stackalloc LogEntryBlock[requiredExtensionMessages];
+							var b2 = stackalloc LogEntryBlock[requiredExtensionMessages];
 							for (int i = 1; i <= requiredExtensionMessages; i++) blocks[i] = &b2[i - 1];
 						}
 						else
@@ -1056,7 +1064,7 @@ namespace GriffinPlus.Lib.Logging
 
 								if (charsToCopy < LogEntryBlock_MessageExtension.MessageSize)
 								{
-									blocks[i]->MessageExtension.Message[charsToCopy] = (char) 0;
+									blocks[i]->MessageExtension.Message[charsToCopy] = (char)0;
 								}
 
 								offset += charsToCopy;
@@ -1074,7 +1082,7 @@ namespace GriffinPlus.Lib.Logging
 						}
 						else
 						{
-							mSharedMemoryQueue.EndWritingSequence((void**) blocks, bytesWritten, requiredExtensionMessages + 1, mLostMessageCount);
+							mSharedMemoryQueue.EndWritingSequence((void**)blocks, bytesWritten, requiredExtensionMessages + 1, mLostMessageCount);
 							mLostMessageCount = 0;
 						}
 
@@ -1133,7 +1141,7 @@ namespace GriffinPlus.Lib.Logging
 					LogEntryBlock* block;
 					if (defer)
 					{
-						LogEntryBlock* b = stackalloc LogEntryBlock[1];
+						var b = stackalloc LogEntryBlock[1];
 						block = b;
 					}
 					else
@@ -1161,7 +1169,7 @@ namespace GriffinPlus.Lib.Logging
 						// terminate the message, if it is shorter than the buffer
 						if (charsToCopy < LogEntryBlock_AddLogLevelName.LogLevelNameSize)
 						{
-							block->AddLogLevelName.LogLevelName[charsToCopy] = (char) 0;
+							block->AddLogLevelName.LogLevelName[charsToCopy] = (char)0;
 						}
 
 						// enqueue notification
@@ -1230,7 +1238,7 @@ namespace GriffinPlus.Lib.Logging
 					LogEntryBlock* block;
 					if (defer)
 					{
-						LogEntryBlock* b = stackalloc LogEntryBlock[1];
+						var b = stackalloc LogEntryBlock[1];
 						block = b;
 					}
 					else
@@ -1258,7 +1266,7 @@ namespace GriffinPlus.Lib.Logging
 						// terminate the message, if it is shorter than the buffer
 						if (charsToCopy < LogEntryBlock_AddSourceName.SourceNameSize)
 						{
-							block->AddSourceName.SourceName[charsToCopy] = (char) 0;
+							block->AddSourceName.SourceName[charsToCopy] = (char)0;
 						}
 
 						// enqueue notification
@@ -1328,7 +1336,7 @@ namespace GriffinPlus.Lib.Logging
 					LogEntryBlock* block;
 					if (defer)
 					{
-						LogEntryBlock* b = stackalloc LogEntryBlock[1];
+						var b = stackalloc LogEntryBlock[1];
 						block = b;
 					}
 					else
@@ -1412,7 +1420,7 @@ namespace GriffinPlus.Lib.Logging
 					LogEntryBlock* block;
 					if (defer)
 					{
-						LogEntryBlock* b = stackalloc LogEntryBlock[1];
+						var b = stackalloc LogEntryBlock[1];
 						block = b;
 					}
 					else
@@ -1455,7 +1463,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="sendDeferredItems">
 		/// true to send deferred items, if any;
-		/// false to skip sending deferred items (only for use within <see cref="GetLogEntryBlock"/>).
+		/// false to skip sending deferred items (only for use within <see cref="GetLogEntryBlock" />).
 		/// </param>
 		/// <returns>
 		/// A free log entry block;
@@ -1463,7 +1471,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		/// <remarks>
 		/// This method returns a free block from the log entry queue. If the queue does not contain any
-		/// free blocks, it tries to get a block after a certain time (<see cref="QueueBlockFetchRetryDelayTime"/>).
+		/// free blocks, it tries to get a block after a certain time (<see cref="QueueBlockFetchRetryDelayTime" />).
 		/// </remarks>
 		private LogEntryBlock* GetLogEntryBlock(bool sendDeferredItems = true)
 		{
@@ -1476,7 +1484,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// try to get a free block from the queue
 				// (suppress the overflow indication, if explicitly specified and on the first run only to avoid counting the condition multiple times)
-				LogEntryBlock* pBlock = (LogEntryBlock*) mSharedMemoryQueue.BeginWriting();
+				var pBlock = (LogEntryBlock*)mSharedMemoryQueue.BeginWriting();
 				if (pBlock != null) return pBlock;
 
 				// no free block in the queue
@@ -1558,8 +1566,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// allocate enough blocks for the message block incl. its extension blocks
 			int requiredBlockCount = extensionMessageCount + 1;
-			LogEntryBlock** blocks = stackalloc LogEntryBlock*[requiredBlockCount];
-			int* blockSizes = stackalloc int[requiredBlockCount];
+			var blocks = stackalloc LogEntryBlock*[requiredBlockCount];
+			var blockSizes = stackalloc int[requiredBlockCount];
 			for (int i = 0; i < requiredBlockCount; i++)
 			{
 				blockSizes[i] = sizeof(LogEntryBlock);
@@ -1582,12 +1590,12 @@ namespace GriffinPlus.Lib.Logging
 			for (int i = 0; i < requiredBlockCount; i++)
 			{
 				// there should be enough blocks in the queue, otherwise the enqueuing operation is broken...
-				LogEntryBlock block = mPeakBufferQueue.Dequeue();
+				var block = mPeakBufferQueue.Dequeue();
 				Buffer.MemoryCopy(&block, blocks[i], sizeof(LogEntryBlock), sizeof(LogEntryBlock));
 			}
 
 			// enqueue blocks
-			mSharedMemoryQueue.EndWritingSequence((void **)blocks, blockSizes, requiredBlockCount, mLostMessageCount);
+			mSharedMemoryQueue.EndWritingSequence((void**)blocks, blockSizes, requiredBlockCount, mLostMessageCount);
 			mLostMessageCount = 0;
 			return true;
 		}
@@ -1601,9 +1609,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		private bool SendDeferredItems_SingleBlock()
 		{
-			LogEntryBlock* pBlock = GetLogEntryBlock(false);
+			var pBlock = GetLogEntryBlock(false);
 			if (pBlock == null) return false;
-			LogEntryBlock block = mPeakBufferQueue.Dequeue();
+			var block = mPeakBufferQueue.Dequeue();
 			Buffer.MemoryCopy(&block, pBlock, sizeof(LogEntryBlock), sizeof(LogEntryBlock));
 			mSharedMemoryQueue.EndWriting(pBlock, sizeof(LogEntryBlock), mLostMessageCount);
 			mLostMessageCount = 0;
@@ -1612,4 +1620,5 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 	}
+
 }

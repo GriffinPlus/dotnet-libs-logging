@@ -7,7 +7,8 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	internal partial class UnsafeSharedMemoryQueue
+
+	partial class UnsafeSharedMemoryQueue
 	{
 		/// <summary>
 		/// The header of the shared memory queue.
@@ -46,4 +47,5 @@ namespace GriffinPlus.Lib.Logging
 			public int BlockSize;
 		}
 	}
+
 }

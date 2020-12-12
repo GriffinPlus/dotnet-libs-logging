@@ -8,16 +8,17 @@ using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// The configuration for a pipeline stage configuration (thread-safe).
 	/// </summary>
 	public class VolatileProcessingPipelineStageConfiguration : ProcessingPipelineStageConfigurationBase
 	{
 		private readonly Dictionary<string, VolatileProcessingPipelineStageRawSetting> mRawSettings = new Dictionary<string, VolatileProcessingPipelineStageRawSetting>();
-		private readonly Dictionary<string, IUntypedProcessingPipelineStageSetting> mSettings = new Dictionary<string, IUntypedProcessingPipelineStageSetting>();
+		private readonly Dictionary<string, IUntypedProcessingPipelineStageSetting>    mSettings    = new Dictionary<string, IUntypedProcessingPipelineStageSetting>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration" /> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
 		/// <param name="sync">
@@ -95,14 +96,14 @@ namespace GriffinPlus.Lib.Logging
 				// ensure that the setting value types are the same
 				if (setting.ValueType != typeof(T))
 				{
-					var message = $"The setting exists already, but the specified types ({typeof(T).FullName}) differs from the value type of the existing setting ({setting.ValueType.FullName}).";
+					string message = $"The setting exists already, but the specified types ({typeof(T).FullName}) differs from the value type of the existing setting ({setting.ValueType.FullName}).";
 					throw new ArgumentException(message);
 				}
 
 				// ensure that the setting default values are the same
 				if (!Equals(setting.DefaultValue, defaultValue))
 				{
-					var message = $"The setting exists already, but the specified default value ({defaultValue}) does not match the default value of the existing setting ({setting.DefaultValue}).";
+					string message = $"The setting exists already, but the specified default value ({defaultValue}) does not match the default value of the existing setting ({setting.DefaultValue}).";
 					throw new ArgumentException(message);
 				}
 
@@ -211,6 +212,6 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		#endregion
-
 	}
+
 }

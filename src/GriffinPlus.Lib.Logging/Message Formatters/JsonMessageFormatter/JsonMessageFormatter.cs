@@ -12,29 +12,29 @@ using System.Text;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log message formatter that formats log messages as JSON.
 	/// All configured log message fields are put in a flat JSON object, the key of a field is customizable.
 	/// </summary>
 	public partial class JsonMessageFormatter : ILogMessageFormatter
 	{
-		private readonly List<FieldBase> mFields = new List<FieldBase>();
-		private readonly StringBuilder mOutputBuilder = new StringBuilder();
-		private LogMessageField mFormattedFields = LogMessageField.None;
-		private IFormatProvider mFormatProvider = CultureInfo.InvariantCulture;
-		private JsonMessageFormatterStyle mStyle = JsonMessageFormatterStyle.OneLine;
-		private string mIndent = "    ";
-		private string mNewline = Environment.NewLine;
-		private bool mEscapeSolidus;
-		private int mMaxEscapedJsonKeyLength;
-		private readonly object mSync = new object();
+		private readonly List<FieldBase>           mFields          = new List<FieldBase>();
+		private readonly StringBuilder             mOutputBuilder   = new StringBuilder();
+		private          LogMessageField           mFormattedFields = LogMessageField.None;
+		private          IFormatProvider           mFormatProvider  = CultureInfo.InvariantCulture;
+		private          JsonMessageFormatterStyle mStyle           = JsonMessageFormatterStyle.OneLine;
+		private          string                    mIndent          = "    ";
+		private          string                    mNewline         = Environment.NewLine;
+		private          bool                      mEscapeSolidus;
+		private          int                       mMaxEscapedJsonKeyLength;
+		private readonly object                    mSync = new object();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonMessageFormatter"/> class.
+		/// Initializes a new instance of the <see cref="JsonMessageFormatter" /> class.
 		/// </summary>
 		public JsonMessageFormatter()
 		{
-
 		}
 
 		/// <summary>
@@ -63,7 +63,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public LogMessageField FormattedFields
 		{
-			get { lock (mSync) return mFormattedFields; }
+			get
+			{
+				lock (mSync) return mFormattedFields;
+			}
 		}
 
 		/// <summary>
@@ -71,7 +74,11 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public bool EscapeSolidus
 		{
-			get { lock (mSync) return mEscapeSolidus; }
+			get
+			{
+				lock (mSync) return mEscapeSolidus;
+			}
+
 			set
 			{
 				lock (mSync)
@@ -88,12 +95,19 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the format provider to use when formatting log messages.
-		/// By default <see cref="CultureInfo.InvariantCulture"/> is used.
+		/// By default <see cref="CultureInfo.InvariantCulture" /> is used.
 		/// </summary>
 		public IFormatProvider FormatProvider
 		{
-			get { lock (mSync) return mFormatProvider; }
-			set { lock (mSync) mFormatProvider = value ?? throw new ArgumentNullException(nameof(value)); }
+			get
+			{
+				lock (mSync) return mFormatProvider;
+			}
+
+			set
+			{
+				lock (mSync) mFormatProvider = value ?? throw new ArgumentNullException(nameof(value));
+			}
 		}
 
 		/// <summary>
@@ -101,18 +115,32 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public JsonMessageFormatterStyle Style
 		{
-			get { lock (mSync) return mStyle; }
-			set { lock (mSync) mStyle = value; }
+			get
+			{
+				lock (mSync) return mStyle;
+			}
+
+			set
+			{
+				lock (mSync) mStyle = value;
+			}
 		}
 
 		/// <summary>
 		/// Gets or sets the string to use for indenting lines
-		/// (applies only if <see cref="Style"/> is set to <see cref="JsonMessageFormatterStyle.Beautified"/>).
+		/// (applies only if <see cref="Style" /> is set to <see cref="JsonMessageFormatterStyle.Beautified" />).
 		/// </summary>
 		public string Indent
 		{
-			get { lock (mSync) { return mIndent; } }
-			set { lock (mSync) { mIndent = value ?? throw new ArgumentNullException(nameof(value)); } }
+			get
+			{
+				lock (mSync) { return mIndent; }
+			}
+
+			set
+			{
+				lock (mSync) { mIndent = value ?? throw new ArgumentNullException(nameof(value)); }
+			}
 		}
 
 		/// <summary>
@@ -121,8 +149,15 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string Newline
 		{
-			get { lock (mSync) { return mNewline; } }
-			set { lock (mSync) { mNewline = value ?? throw new ArgumentNullException(nameof(value)); } }
+			get
+			{
+				lock (mSync) { return mNewline; }
+			}
+
+			set
+			{
+				lock (mSync) { mNewline = value ?? throw new ArgumentNullException(nameof(value)); }
+			}
 		}
 
 		/// <summary>
@@ -139,59 +174,62 @@ namespace GriffinPlus.Lib.Logging
 				switch (mStyle)
 				{
 					case JsonMessageFormatterStyle.Compact:
+					{
+						mOutputBuilder.Append("{");
+						for (int i = 0; i < mFields.Count; i++)
 						{
-							mOutputBuilder.Append("{");
-							for (int i = 0; i < mFields.Count; i++)
-							{
-								var field = mFields[i];
-								mOutputBuilder.Append('"');
-								mOutputBuilder.Append(field.EscapedJsonKey);
-								mOutputBuilder.Append('"');
-								mOutputBuilder.Append(":");
-								field.AppendFormattedValue(message, mOutputBuilder);
-								if (i+1 < mFields.Count) mOutputBuilder.Append(",");
-							}
-							mOutputBuilder.Append("}");
-							break;
+							var field = mFields[i];
+							mOutputBuilder.Append('"');
+							mOutputBuilder.Append(field.EscapedJsonKey);
+							mOutputBuilder.Append('"');
+							mOutputBuilder.Append(":");
+							field.AppendFormattedValue(message, mOutputBuilder);
+							if (i + 1 < mFields.Count) mOutputBuilder.Append(",");
 						}
+
+						mOutputBuilder.Append("}");
+						break;
+					}
 
 					case JsonMessageFormatterStyle.OneLine:
+					{
+						mOutputBuilder.Append("{ ");
+						for (int i = 0; i < mFields.Count; i++)
 						{
-							mOutputBuilder.Append("{ ");
-							for (int i = 0; i < mFields.Count; i++)
-							{
-								var field = mFields[i];
-								mOutputBuilder.Append('"');
-								mOutputBuilder.Append(field.EscapedJsonKey);
-								mOutputBuilder.Append('"');
-								mOutputBuilder.Append(" : ");
-								field.AppendFormattedValue(message, mOutputBuilder);
-								mOutputBuilder.Append(i + 1 < mFields.Count ? ", " : " ");
-							}
-							mOutputBuilder.Append("}");
-							break;
+							var field = mFields[i];
+							mOutputBuilder.Append('"');
+							mOutputBuilder.Append(field.EscapedJsonKey);
+							mOutputBuilder.Append('"');
+							mOutputBuilder.Append(" : ");
+							field.AppendFormattedValue(message, mOutputBuilder);
+							mOutputBuilder.Append(i + 1 < mFields.Count ? ", " : " ");
 						}
 
+						mOutputBuilder.Append("}");
+						break;
+					}
+
 					case JsonMessageFormatterStyle.Beautified:
+					{
+						mOutputBuilder.Append("{");
+						mOutputBuilder.Append(mNewline);
+						for (int i = 0; i < mFields.Count; i++)
 						{
-							mOutputBuilder.Append("{");
+							var field = mFields[i];
+							mOutputBuilder.Append(mIndent);
+							mOutputBuilder.Append('"');
+							mOutputBuilder.Append(field.EscapedJsonKey);
+							mOutputBuilder.Append('"');
+							mOutputBuilder.Append(' ', mMaxEscapedJsonKeyLength - field.EscapedJsonKey.Length);
+							mOutputBuilder.Append(" : ");
+							field.AppendFormattedValue(message, mOutputBuilder);
+							if (i + 1 < mFields.Count) mOutputBuilder.Append(",");
 							mOutputBuilder.Append(mNewline);
-							for (int i = 0; i < mFields.Count; i++)
-							{
-								var field = mFields[i];
-								mOutputBuilder.Append(mIndent);
-								mOutputBuilder.Append('"');
-								mOutputBuilder.Append(field.EscapedJsonKey);
-								mOutputBuilder.Append('"');
-								mOutputBuilder.Append(' ', mMaxEscapedJsonKeyLength - field.EscapedJsonKey.Length);
-								mOutputBuilder.Append(" : ");
-								field.AppendFormattedValue(message, mOutputBuilder);
-								if (i + 1 < mFields.Count) mOutputBuilder.Append(",");
-								mOutputBuilder.Append(mNewline);
-							}
-							mOutputBuilder.Append("}");
-							break;
 						}
+
+						mOutputBuilder.Append("}");
+						break;
+					}
 
 					default:
 						throw new NotSupportedException($"The configured style ({mStyle}) is not supported.");
@@ -217,7 +255,7 @@ namespace GriffinPlus.Lib.Logging
 			// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
 			DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
 
-			TimestampField field = new TimestampField(this, jsonKey, format);
+			var field = new TimestampField(this, jsonKey, format);
 			AppendField(field);
 		}
 
@@ -228,7 +266,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddHighPrecisionTimestampField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.HighPrecisionTimestamp;
-			HighPrecisionTimestampField field = new HighPrecisionTimestampField(this, jsonKey);
+			var field = new HighPrecisionTimestampField(this, jsonKey);
 			AppendField(field);
 		}
 
@@ -239,7 +277,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddLogWriterField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.LogWriter;
-			LogWriterField field = new LogWriterField(this, jsonKey);
+			var field = new LogWriterField(this, jsonKey);
 			AppendField(field);
 		}
 
@@ -250,7 +288,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddTagsField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Tags;
-			TagsField field = new TagsField(this, jsonKey);
+			var field = new TagsField(this, jsonKey);
 			AppendField(field);
 		}
 
@@ -261,7 +299,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddLogLevelField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.LogLevel;
-			LogLevelField field = new LogLevelField(this, jsonKey);
+			var field = new LogLevelField(this, jsonKey);
 			AppendField(field);
 		}
 
@@ -272,7 +310,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddApplicationNameField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ApplicationName;
-			ApplicationNameField field = new ApplicationNameField(this, jsonKey);
+			var field = new ApplicationNameField(this, jsonKey);
 			AppendField(field);
 		}
 
@@ -283,7 +321,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddProcessNameField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ProcessName;
-			ProcessNameField field = new ProcessNameField(this, jsonKey);
+			var field = new ProcessNameField(this, jsonKey);
 			AppendField(field);
 		}
 
@@ -294,7 +332,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddProcessIdField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ProcessId;
-			ProcessIdField field = new ProcessIdField(this, jsonKey);
+			var field = new ProcessIdField(this, jsonKey);
 			AppendField(field);
 		}
 
@@ -305,7 +343,7 @@ namespace GriffinPlus.Lib.Logging
 		public void AddTextField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Text;
-			TextField field = new TextField(this, jsonKey);
+			var field = new TextField(this, jsonKey);
 			AppendField(field);
 		}
 
@@ -324,7 +362,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Updates the <see cref="mMaxEscapedJsonKeyLength"/> field to reflect changes to the fields.
+		/// Updates the <see cref="mMaxEscapedJsonKeyLength" /> field to reflect changes to the fields.
 		/// </summary>
 		private void UpdateMaxEscapedJsonKeyLength()
 		{
@@ -346,7 +384,7 @@ namespace GriffinPlus.Lib.Logging
 			// The following implementation escapes control characters that could cause issues when loading the
 			// JSON file into an editor.
 
-			foreach (var c in s)
+			foreach (char c in s)
 			{
 				switch (c)
 				{
@@ -354,43 +392,54 @@ namespace GriffinPlus.Lib.Logging
 						builder.Append('\\');
 						builder.Append('"');
 						break;
+
 					case '/': // solidus
 						if (escapeSolidus) builder.Append('\\');
 						builder.Append('/');
 						break;
+
 					case '\t': // tab
 						builder.Append('\\');
 						builder.Append('t');
 						break;
+
 					case '\n': // line feed
 						builder.Append('\\');
 						builder.Append('n');
 						break;
+
 					case '\r': // carriage return
 						builder.Append('\\');
 						builder.Append('r');
 						break;
+
 					case '\f': // form feed
 						builder.Append('\\');
 						builder.Append('f');
 						break;
+
 					case '\b': // backspace
 						builder.Append('\\');
 						builder.Append('b');
 						break;
+
 					case '\\': // reverse solidus
 						builder.Append('\\');
 						builder.Append('\\');
 						break;
+
 					case '\u0085': // Next Line
 						builder.Append("\\u0085");
 						break;
+
 					case '\u2028': // Line Separator
 						builder.Append("\\u2028");
 						break;
+
 					case '\u2029': // Paragraph Separator
 						builder.Append("\\u2029");
 						break;
+
 					default:
 						if (c <= 0x1F) // control characters
 						{
@@ -400,10 +449,11 @@ namespace GriffinPlus.Lib.Logging
 						{
 							builder.Append(c);
 						}
+
 						break;
 				}
 			}
 		}
-
 	}
+
 }

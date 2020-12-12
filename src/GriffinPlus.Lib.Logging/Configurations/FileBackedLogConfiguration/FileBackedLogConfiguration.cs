@@ -12,6 +12,7 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log configuration with ini-style file backing (thread-safe).
 	/// </summary>
@@ -25,17 +26,17 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly LogWriter sLog = Log.GetWriter("Logging");
 
 		private readonly FileBackedProcessingPipelineConfiguration mProcessingPipelineConfiguration;
-		private FileSystemWatcher mFileSystemWatcher;
-		private Timer mReloadingTimer;
-		private readonly string mFileName;
+		private          FileSystemWatcher                         mFileSystemWatcher;
+		private          Timer                                     mReloadingTimer;
+		private readonly string                                    mFileName;
 
 		/// <summary>
-		/// Initializes the <see cref="FileBackedLogConfiguration"/> class.
+		/// Initializes the <see cref="FileBackedLogConfiguration" /> class.
 		/// </summary>
 		static FileBackedLogConfiguration()
 		{
 			// initialize the path of the configuration file
-			Assembly assembly = Assembly.GetEntryAssembly();
+			var assembly = Assembly.GetEntryAssembly();
 			if (assembly != null)
 			{
 				// regular case
@@ -53,16 +54,15 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class (the configuration file is
+		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration" /> class (the configuration file is
 		/// located in the application's base directory and named as the entry assembly plus extension '.logconf').
 		/// </summary>
 		public FileBackedLogConfiguration() : this(sDefaultConfigFilePath)
 		{
-
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class.
+		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration" /> class.
 		/// </summary>
 		/// <param name="path">Path of the configuration file to use.</param>
 		public FileBackedLogConfiguration(string path)
@@ -102,7 +102,8 @@ namespace GriffinPlus.Lib.Logging
 						sLog.ForceWrite(
 							LogLevel.Failure,
 							"Loading log configuration file ({0}) failed. Exception: {1}",
-							FullPath, ex);
+							FullPath,
+							ex);
 
 						throw;
 					}
@@ -184,7 +185,7 @@ namespace GriffinPlus.Lib.Logging
 					return File.ApplicationName;
 				}
 			}
-			
+
 			set
 			{
 				lock (Sync)
@@ -256,7 +257,7 @@ namespace GriffinPlus.Lib.Logging
 					LogLevelBitMask mask;
 
 					// enable all log levels that are covered by the base level
-					LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
+					var level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
 					if (level == LogLevel.All)
 					{
 						mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
@@ -268,14 +269,14 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					// add log levels explicitly included
-					foreach (var include in settings.Includes)
+					foreach (string include in settings.Includes)
 					{
 						level = LogLevel.GetAspect(include);
 						mask.SetBit(level.Id);
 					}
 
 					// disable log levels explicitly excluded
-					foreach (var exclude in settings.Excludes)
+					foreach (string exclude in settings.Excludes)
 					{
 						level = LogLevel.GetAspect(exclude);
 						mask.ClearBit(level.Id);
@@ -302,7 +303,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync)
 			{
 				// save the configuration file before making modifications
-				LogConfigurationFile oldFile = File;
+				var oldFile = File;
 
 				try
 				{
@@ -344,7 +345,8 @@ namespace GriffinPlus.Lib.Logging
 							sLog.ForceWrite(
 								LogLevel.Failure,
 								"Loading log configuration file ({0}) failed. Exception: {1}",
-								FullPath, ex);
+								FullPath,
+								ex);
 
 							throw;
 						}
@@ -409,7 +411,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// configuration file was removed
 					// => create a default configuration...
-					LogConfigurationFile file = new LogConfigurationFile();
+					var file = new LogConfigurationFile();
 					File = file;
 				}
 			}
@@ -439,7 +441,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// configuration file was removed
 					// => create a default configuration...
-					LogConfigurationFile file = new LogConfigurationFile();
+					var file = new LogConfigurationFile();
 					File = file;
 				}
 			}
@@ -472,6 +474,6 @@ namespace GriffinPlus.Lib.Logging
 				}
 			}
 		}
-
 	}
+
 }

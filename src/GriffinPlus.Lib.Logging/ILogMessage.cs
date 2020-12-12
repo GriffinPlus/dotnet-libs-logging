@@ -7,6 +7,7 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Interface log messages must implement.
 	/// </summary>
@@ -58,6 +59,6 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the actual text the log message is about.
 		/// </summary>
 		string Text { get; }
-
 	}
+
 }

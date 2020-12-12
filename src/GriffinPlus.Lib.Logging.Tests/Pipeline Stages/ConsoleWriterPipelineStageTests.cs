@@ -9,14 +9,16 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+
 using Xunit;
 
 // ReSharper disable UseObjectOrCollectionInitializer
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="ConsoleWriterPipelineStage"/> class.
+	/// Unit tests targeting the <see cref="ConsoleWriterPipelineStage" /> class.
 	/// </summary>
 	public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<ConsoleWriterPipelineStage>
 	{
@@ -32,7 +34,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The created stage.</returns>
 		protected override ConsoleWriterPipelineStage CreateStage(string name)
 		{
-			ConsoleWriterPipelineStage stage = new ConsoleWriterPipelineStage(name);
+			var stage = new ConsoleWriterPipelineStage(name);
 			stage.OutputStream = new StringWriter();
 			stage.ErrorStream = new StringWriter();
 			return stage;
@@ -100,7 +102,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether explicitly mapping a log level to a specific output stream using
-		/// <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream(LogLevel, ConsoleOutputStream)"/> works as excepted.
+		/// <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream(LogLevel, ConsoleOutputStream)" /> works as excepted.
 		/// </summary>
 		[Theory]
 		[MemberData(nameof(LogLevelToStreamMapping_TestData))]
@@ -109,7 +111,7 @@ namespace GriffinPlus.Lib.Logging
 			var stage = CreateStage("Console");
 
 			// add the mappings and calculate the expected result
-			Dictionary<LogLevel, ConsoleOutputStream> expectedMapping = new Dictionary<LogLevel, ConsoleOutputStream>();
+			var expectedMapping = new Dictionary<LogLevel, ConsoleOutputStream>();
 			foreach (var mapping in mappings)
 			{
 				expectedMapping[mapping.Item1] = mapping.Item2;
@@ -121,7 +123,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream"/> throws an exception,
+		/// Tests whether <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream" /> throws an exception,
 		/// if the log level is a null reference.
 		/// </summary>
 		[Fact]
@@ -132,20 +134,20 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream"/> throws an exception,
+		/// Tests whether <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream" /> throws an exception,
 		/// if the pipeline stage is initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]
 		public void MapLogLevelToStream_FailsIfInitialized()
 		{
 			var stage = CreateStage("Console");
-			((IProcessingPipelineStage) stage).Initialize();
+			((IProcessingPipelineStage)stage).Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.MapLogLevelToStream(LogLevel.Note, ConsoleOutputStream.Stdout));
 		}
 
 		/// <summary>
 		/// Tests whether explicitly mapping log levels to a specific output stream using
-		/// <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides"/> works as excepted.
+		/// <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides" /> works as excepted.
 		/// </summary>
 		[Theory]
 		[MemberData(nameof(LogLevelToStreamMapping_TestData))]
@@ -154,7 +156,7 @@ namespace GriffinPlus.Lib.Logging
 			var stage = CreateStage("Console");
 
 			// add the mappings and calculate the expected result
-			Dictionary<LogLevel, ConsoleOutputStream> expectedMapping = new Dictionary<LogLevel, ConsoleOutputStream>();
+			var expectedMapping = new Dictionary<LogLevel, ConsoleOutputStream>();
 			foreach (var mapping in mappings) expectedMapping[mapping.Item1] = mapping.Item2;
 			stage.StreamByLevelOverrides = expectedMapping;
 
@@ -163,7 +165,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether setting <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides"/> throws an exception,
+		/// Tests whether setting <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides" /> throws an exception,
 		/// if setting a null reference.
 		/// </summary>
 		[Fact]
@@ -174,14 +176,14 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether setting <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides"/> throws an exception,
+		/// Tests whether setting <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides" /> throws an exception,
 		/// if the pipeline stage is initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]
 		public void StreamByLevelOverrides_FailsIfInitialized()
 		{
 			var stage = CreateStage("Console");
-			((IProcessingPipelineStage) stage).Initialize();
+			((IProcessingPipelineStage)stage).Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.StreamByLevelOverrides = new Dictionary<LogLevel, ConsoleOutputStream>());
 		}
 
@@ -192,13 +194,14 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				return from defaultStream in new[]
+				return
+					from defaultStream in new[]
 					{
 						ConsoleOutputStream.Stdout,
 						ConsoleOutputStream.Stderr
 					}
 					from args in LogLevelToStreamMapping_TestData
-					let mappings = (List<Tuple<LogLevel, ConsoleOutputStream>>) args[0]
+					let mappings = (List<Tuple<LogLevel, ConsoleOutputStream>>)args[0]
 					from messages in TestData.LocalLogMessageSet
 					select new object[]
 					{
@@ -235,7 +238,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// configure the stage
 			// build a dictionary that contains the mappings from log level to the corresponding console stream
-			Dictionary<LogLevel, ConsoleOutputStream> levelToStreamMap = new Dictionary<LogLevel, ConsoleOutputStream>();
+			var levelToStreamMap = new Dictionary<LogLevel, ConsoleOutputStream>();
 			foreach (var mapping in mappings)
 			{
 				levelToStreamMap[mapping.Item1] = mapping.Item2;
@@ -246,17 +249,16 @@ namespace GriffinPlus.Lib.Logging
 			((IProcessingPipelineStage)stage).Initialize();
 
 			// process the message and determine the expected output in stdout/stderr
-			StringBuilder expectedStdout = new StringBuilder();
-			StringBuilder expectedStderr = new StringBuilder();
+			var expectedStdout = new StringBuilder();
+			var expectedStderr = new StringBuilder();
 			foreach (var message in messages)
 			{
-				((IProcessingPipelineStage) stage).ProcessMessage(message);
+				((IProcessingPipelineStage)stage).ProcessMessage(message);
 
-				if (!levelToStreamMap.TryGetValue(message.LogLevel, out var stream)) {
+				if (!levelToStreamMap.TryGetValue(message.LogLevel, out var stream))
 					stream = defaultStream;
-				}
 
-				var formattedOutput = formatter.Format(message);
+				string formattedOutput = formatter.Format(message);
 				if (stream == ConsoleOutputStream.Stdout)
 				{
 					expectedStdout.Append(formattedOutput);
@@ -281,8 +283,8 @@ namespace GriffinPlus.Lib.Logging
 			stderrStream.Read(stderrData, 0, stderrData.Length);
 			var stdoutReader = new StreamReader(new MemoryStream(stdoutData));
 			var stderrReader = new StreamReader(new MemoryStream(stderrData));
-			var stdoutOutput = stdoutReader.ReadToEnd();
-			var stderrOutput = stderrReader.ReadToEnd();
+			string stdoutOutput = stdoutReader.ReadToEnd();
+			string stderrOutput = stderrReader.ReadToEnd();
 			Assert.Equal(expectedStdout.ToString(), stdoutOutput);
 			Assert.Equal(expectedStderr.ToString(), stderrOutput);
 
@@ -291,4 +293,5 @@ namespace GriffinPlus.Lib.Logging
 			Assert.False(stage.IsInitialized);
 		}
 	}
+
 }

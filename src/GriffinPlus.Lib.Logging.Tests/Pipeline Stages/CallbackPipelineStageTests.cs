@@ -7,25 +7,26 @@ using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="CallbackPipelineStage"/> class.
+	/// Unit tests targeting the <see cref="CallbackPipelineStage" /> class.
 	/// </summary>
 	public class CallbackPipelineStageTests : ProcessingPipelineStageBaseTests<CallbackPipelineStage>
 	{
 		internal class Callback
 		{
 			/// <summary>
-			/// Gets or sets the value returned by <see cref="ProcessSyncCallback(LocalLogMessage)"/>.
+			/// Gets or sets the value returned by <see cref="ProcessSyncCallback(LocalLogMessage)" />.
 			/// </summary>
 			public bool ProcessSyncCallbackReturnValue { get; set; }
 
 			/// <summary>
-			/// Gets a value indicating whether <see cref="ProcessSyncCallback(LocalLogMessage)"/> was called.
+			/// Gets a value indicating whether <see cref="ProcessSyncCallback(LocalLogMessage)" /> was called.
 			/// </summary>
 			public bool ProcessSyncCallbackWasCalled { get; private set; }
 
 			/// <summary>
-			/// Gets the log message passed to <see cref="ProcessSyncCallback(LocalLogMessage)"/>.
+			/// Gets the log message passed to <see cref="ProcessSyncCallback(LocalLogMessage)" />.
 			/// </summary>
 			public LocalLogMessage MessagePassedToProcessSyncCallback { get; private set; }
 
@@ -89,13 +90,13 @@ namespace GriffinPlus.Lib.Logging
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
-			((IProcessingPipelineStage) stage).Initialize();
+			((IProcessingPipelineStage)stage).Initialize();
 			Assert.True(stage.IsInitialized);
 
 			// process a log message
 			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback.ProcessSyncCallbackWasCalled);
-			((IProcessingPipelineStage) stage).ProcessMessage(message);
+			((IProcessingPipelineStage)stage).ProcessMessage(message);
 			Assert.True(callback.ProcessSyncCallbackWasCalled);
 			Assert.Same(message, callback.MessagePassedToProcessSyncCallback);
 
@@ -106,7 +107,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether processing a log message succeeds, if the stage has a following stage.
-		/// Both stages should have called <see cref="Callback.ProcessSyncCallback(LocalLogMessage)"/> after this.
+		/// Both stages should have called <see cref="Callback.ProcessSyncCallback(LocalLogMessage)" /> after this.
 		/// </summary>
 		[Theory]
 		[InlineData(false)]
@@ -122,7 +123,7 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			((IProcessingPipelineStage) stage1).Initialize();
+			((IProcessingPipelineStage)stage1).Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 
@@ -130,7 +131,7 @@ namespace GriffinPlus.Lib.Logging
 			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback1.ProcessSyncCallbackWasCalled);
 			Assert.False(callback2.ProcessSyncCallbackWasCalled);
-			((IProcessingPipelineStage) stage1).ProcessMessage(message);
+			((IProcessingPipelineStage)stage1).ProcessMessage(message);
 			if (processSyncReturnValue)
 			{
 				// the message should have traveled through stage 1 and 2
@@ -153,6 +154,6 @@ namespace GriffinPlus.Lib.Logging
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
 		}
-
 	}
+
 }

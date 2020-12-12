@@ -7,8 +7,9 @@ using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="FileBackedProcessingPipelineStageConfiguration"/> class.
+	/// Unit tests targeting the <see cref="FileBackedProcessingPipelineStageConfiguration" /> class.
 	/// </summary>
 	public class FileBackedProcessingPipelineStageConfigurationTests : ProcessingPipelineStageConfigurationTests_Base<FileBackedProcessingPipelineStageConfiguration>
 	{
@@ -20,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		protected override FileBackedProcessingPipelineStageConfiguration CreateConfiguration(string name)
 		{
 			// the file-backed pipeline stage configuration can exist only within the file-backed log configuration
-			FileBackedLogConfiguration logConfiguration = new FileBackedLogConfiguration();
+			var logConfiguration = new FileBackedLogConfiguration();
 			return new FileBackedProcessingPipelineStageConfiguration(logConfiguration, name);
 		}
 
@@ -30,10 +31,10 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Create()
 		{
-			FileBackedLogConfiguration logConfiguration = new FileBackedLogConfiguration();
+			var logConfiguration = new FileBackedLogConfiguration();
 			var stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, "Stage");
 			Assert.NotNull(stageConfiguration.Sync);
 		}
-
 	}
+
 }

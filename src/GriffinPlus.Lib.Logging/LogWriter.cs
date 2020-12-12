@@ -6,25 +6,26 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A log writer (thread-safe).
 	/// </summary>
 	public class LogWriter
 	{
-		private static readonly IFormatProvider sDefaultFormatProvider = CultureInfo.InvariantCulture;
-		private static readonly ThreadLocal<StringBuilder> sBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder());
-		private static int sNextId;
-		private readonly List<WeakReference<LogWriter>> mSecondaryWriters;
+		private static readonly IFormatProvider                sDefaultFormatProvider = CultureInfo.InvariantCulture;
+		private static readonly ThreadLocal<StringBuilder>     sBuilder               = new ThreadLocal<StringBuilder>(() => new StringBuilder());
+		private static          int                            sNextId;
+		private readonly        List<WeakReference<LogWriter>> mSecondaryWriters;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriter"/> class (for primary writers).
+		/// Initializes a new instance of the <see cref="LogWriter" /> class (for primary writers).
 		/// </summary>
 		/// <param name="name">Name of the log writer.</param>
 		internal LogWriter(string name)
@@ -36,11 +37,10 @@ namespace GriffinPlus.Lib.Logging
 			Name = name;
 			ActiveLogLevelMask = LogLevelBitMask.Zeros;
 			Tags = TagSet.Empty;
-			
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriter"/> class (for secondary writers).
+		/// Initializes a new instance of the <see cref="LogWriter" /> class (for secondary writers).
 		/// </summary>
 		/// <param name="writer">The original (non-tagging) log writer.</param>
 		/// <param name="tags">Tags the tagging log writer should attach to written messages.</param>
@@ -115,7 +115,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (Log.Sync)
 			{
 				RemoveCollectedSecondaryWriters();
-				LogWriter newWriter = new LogWriter(PrimaryWriter, newTags);
+				var newWriter = new LogWriter(PrimaryWriter, newTags);
 				PrimaryWriter.mSecondaryWriters.Add(new WeakReference<LogWriter>(newWriter));
 				return newWriter;
 			}
@@ -134,7 +134,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (Log.Sync)
 			{
 				RemoveCollectedSecondaryWriters();
-				LogWriter newWriter = new LogWriter(PrimaryWriter, newTags);
+				var newWriter = new LogWriter(PrimaryWriter, newTags);
 				PrimaryWriter.mSecondaryWriters.Add(new WeakReference<LogWriter>(newWriter));
 				return newWriter;
 			}
@@ -190,7 +190,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="message">Message to write to the log.</param>
 		public void Write(LogLevel level, string message)
 		{
-			if (IsLogLevelActive(level)) {
+			if (IsLogLevelActive(level))
+			{
 				Log.WriteMessage(this, level, Tags, message);
 			}
 		}
@@ -239,7 +240,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
 		/// <param name="arg0">Argument to put into placeholder {0}.</param>
 		/// <param name="arg1">Argument to put into placeholder {1}.</param>
-		public void Write<T0,T1>(LogLevel level, string format, T0 arg0, T1 arg1)
+		public void Write<T0, T1>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1);
 		}
@@ -255,7 +260,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg0">Argument to put into placeholder {0}.</param>
 		/// <param name="arg1">Argument to put into placeholder {1}.</param>
 		/// <param name="arg2">Argument to put into placeholder {2}.</param>
-		public void Write<T0,T1,T2>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2)
+		public void Write<T0, T1, T2>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2);
 		}
@@ -273,7 +283,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg1">Argument to put into placeholder {1}.</param>
 		/// <param name="arg2">Argument to put into placeholder {2}.</param>
 		/// <param name="arg3">Argument to put into placeholder {3}.</param>
-		public void Write<T0,T1,T2,T3>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
+		public void Write<T0, T1, T2, T3>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3);
 		}
@@ -293,7 +309,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg2">Argument to put into placeholder {2}.</param>
 		/// <param name="arg3">Argument to put into placeholder {3}.</param>
 		/// <param name="arg4">Argument to put into placeholder {4}.</param>
-		public void Write<T0,T1,T2,T3,T4>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+		public void Write<T0, T1, T2, T3, T4>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4);
 		}
@@ -315,7 +338,15 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg3">Argument to put into placeholder {3}.</param>
 		/// <param name="arg4">Argument to put into placeholder {4}.</param>
 		/// <param name="arg5">Argument to put into placeholder {5}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+		public void Write<T0, T1, T2, T3, T4, T5>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5);
 		}
@@ -339,7 +370,16 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg4">Argument to put into placeholder {4}.</param>
 		/// <param name="arg5">Argument to put into placeholder {5}.</param>
 		/// <param name="arg6">Argument to put into placeholder {6}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+		public void Write<T0, T1, T2, T3, T4, T5, T6>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 		}
@@ -365,7 +405,17 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg5">Argument to put into placeholder {5}.</param>
 		/// <param name="arg6">Argument to put into placeholder {6}.</param>
 		/// <param name="arg7">Argument to put into placeholder {7}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6,
+			T7       arg7)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 		}
@@ -393,7 +443,18 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg6">Argument to put into placeholder {6}.</param>
 		/// <param name="arg7">Argument to put into placeholder {7}.</param>
 		/// <param name="arg8">Argument to put into placeholder {8}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6,
+			T7       arg7,
+			T8       arg8)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
 		}
@@ -423,7 +484,19 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg7">Argument to put into placeholder {7}.</param>
 		/// <param name="arg8">Argument to put into placeholder {8}.</param>
 		/// <param name="arg9">Argument to put into placeholder {9}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6,
+			T7       arg7,
+			T8       arg8,
+			T9       arg9)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 		}
@@ -455,7 +528,20 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg8">Argument to put into placeholder {8}.</param>
 		/// <param name="arg9">Argument to put into placeholder {9}.</param>
 		/// <param name="arg10">Argument to put into placeholder {10}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6,
+			T7       arg7,
+			T8       arg8,
+			T9       arg9,
+			T10      arg10)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
 		}
@@ -489,7 +575,21 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg9">Argument to put into placeholder {9}.</param>
 		/// <param name="arg10">Argument to put into placeholder {10}.</param>
 		/// <param name="arg11">Argument to put into placeholder {11}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6,
+			T7       arg7,
+			T8       arg8,
+			T9       arg9,
+			T10      arg10,
+			T11      arg11)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
 		}
@@ -525,7 +625,22 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg10">Argument to put into placeholder {10}.</param>
 		/// <param name="arg11">Argument to put into placeholder {11}.</param>
 		/// <param name="arg12">Argument to put into placeholder {12}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6,
+			T7       arg7,
+			T8       arg8,
+			T9       arg9,
+			T10      arg10,
+			T11      arg11,
+			T12      arg12)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
@@ -563,7 +678,23 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg11">Argument to put into placeholder {11}.</param>
 		/// <param name="arg12">Argument to put into placeholder {12}.</param>
 		/// <param name="arg13">Argument to put into placeholder {13}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6,
+			T7       arg7,
+			T8       arg8,
+			T9       arg9,
+			T10      arg10,
+			T11      arg11,
+			T12      arg12,
+			T13      arg13)
 		{
 			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
 		}
@@ -603,9 +734,44 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg12">Argument to put into placeholder {12}.</param>
 		/// <param name="arg13">Argument to put into placeholder {13}.</param>
 		/// <param name="arg14">Argument to put into placeholder {14}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>(LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(
+			LogLevel level,
+			string   format,
+			T0       arg0,
+			T1       arg1,
+			T2       arg2,
+			T3       arg3,
+			T4       arg4,
+			T5       arg5,
+			T6       arg6,
+			T7       arg7,
+			T8       arg8,
+			T9       arg9,
+			T10      arg10,
+			T11      arg11,
+			T12      arg12,
+			T13      arg13,
+			T14      arg14)
 		{
-			Write(sDefaultFormatProvider, level, format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
+			Write(
+				sDefaultFormatProvider,
+				level,
+				format,
+				arg0,
+				arg1,
+				arg2,
+				arg3,
+				arg4,
+				arg5,
+				arg6,
+				arg7,
+				arg8,
+				arg9,
+				arg10,
+				arg11,
+				arg12,
+				arg13,
+				arg14);
 		}
 
 		/// <summary>
@@ -615,23 +781,30 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="level">Log level to write the message to.</param>
 		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
 		/// <param name="args">Arguments to put into the placeholders.</param>
-		public void Write(IFormatProvider provider, LogLevel level, string format, params object[] args)
+		public void Write(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			params object[] args)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object[] modifiedArgs = args;
-				for (int i = 0; i < modifiedArgs.Length; i++) {
-					object obj = modifiedArgs[i];
-					if (obj is Exception exception) {
+				var modifiedArgs = args;
+				for (int i = 0; i < modifiedArgs.Length; i++)
+				{
+					var obj = modifiedArgs[i];
+					if (obj is Exception exception)
+					{
 						if (modifiedArgs == args) modifiedArgs = (object[])args.Clone();
 						modifiedArgs[i] = UnwrapException(exception);
 					}
 				}
+
 				args = modifiedArgs;
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, args);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -646,23 +819,28 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="level">Log level to write the message to.</param>
 		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
 		/// <param name="args">Arguments to put into the placeholders.</param>
-		public void ForceWrite(IFormatProvider provider, LogLevel level, string format, params object[] args)
+		public void ForceWrite(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			params object[] args)
 		{
 			// unwrap exceptions to ensure inner exceptions are logged as well
-			object[] modifiedArgs = args;
+			var modifiedArgs = args;
 			for (int i = 0; i < modifiedArgs.Length; i++)
 			{
-				object obj = modifiedArgs[i];
+				var obj = modifiedArgs[i];
 				if (obj is Exception exception)
 				{
 					if (modifiedArgs == args) modifiedArgs = (object[])args.Clone();
 					modifiedArgs[i] = UnwrapException(exception);
 				}
 			}
+
 			args = modifiedArgs;
 
 			// write message to the log
-			StringBuilder builder = sBuilder.Value;
+			var builder = sBuilder.Value;
 			builder.Clear();
 			builder.AppendFormat(provider, format, args);
 			Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -676,15 +854,19 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="level">Log level to write the message to.</param>
 		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
 		/// <param name="arg">Argument to put into placeholder {0}.</param>
-		public void Write<T>(IFormatProvider provider, LogLevel level, string format, T arg)
+		public void Write<T>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T               arg)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg = PrepareArgument(arg);
+				var carg = PrepareArgument(arg);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -701,16 +883,21 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="format">A composite format string containing placeholders (formatting as usual in .NET).</param>
 		/// <param name="arg0">Argument to put into placeholder {0}.</param>
 		/// <param name="arg1">Argument to put into placeholder {1}.</param>
-		public void Write<T0,T1>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1)
+		public void Write<T0, T1>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -729,17 +916,23 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg0">Argument to put into placeholder {0}.</param>
 		/// <param name="arg1">Argument to put into placeholder {1}.</param>
 		/// <param name="arg2">Argument to put into placeholder {2}.</param>
-		public void Write<T0,T1,T2>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2)
+		public void Write<T0, T1, T2>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
-				object carg2 = PrepareArgument(arg2);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -760,18 +953,25 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg1">Argument to put into placeholder {1}.</param>
 		/// <param name="arg2">Argument to put into placeholder {2}.</param>
 		/// <param name="arg3">Argument to put into placeholder {3}.</param>
-		public void Write<T0,T1,T2,T3>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
+		public void Write<T0, T1, T2, T3>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
-				object carg2 = PrepareArgument(arg2);
-				object carg3 = PrepareArgument(arg3);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -794,19 +994,27 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg2">Argument to put into placeholder {2}.</param>
 		/// <param name="arg3">Argument to put into placeholder {3}.</param>
 		/// <param name="arg4">Argument to put into placeholder {4}.</param>
-		public void Write<T0,T1,T2,T3,T4>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+		public void Write<T0, T1, T2, T3, T4>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
-				object carg2 = PrepareArgument(arg2);
-				object carg3 = PrepareArgument(arg3);
-				object carg4 = PrepareArgument(arg4);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -831,20 +1039,29 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg3">Argument to put into placeholder {3}.</param>
 		/// <param name="arg4">Argument to put into placeholder {4}.</param>
 		/// <param name="arg5">Argument to put into placeholder {5}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+		public void Write<T0, T1, T2, T3, T4, T5>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
-				object carg2 = PrepareArgument(arg2);
-				object carg3 = PrepareArgument(arg3);
-				object carg4 = PrepareArgument(arg4);
-				object carg5 = PrepareArgument(arg5);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -871,21 +1088,31 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg4">Argument to put into placeholder {4}.</param>
 		/// <param name="arg5">Argument to put into placeholder {5}.</param>
 		/// <param name="arg6">Argument to put into placeholder {6}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+		public void Write<T0, T1, T2, T3, T4, T5, T6>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
-				object carg2 = PrepareArgument(arg2);
-				object carg3 = PrepareArgument(arg3);
-				object carg4 = PrepareArgument(arg4);
-				object carg5 = PrepareArgument(arg5);
-				object carg6 = PrepareArgument(arg6);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -914,22 +1141,33 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg5">Argument to put into placeholder {5}.</param>
 		/// <param name="arg6">Argument to put into placeholder {6}.</param>
 		/// <param name="arg7">Argument to put into placeholder {7}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6,
+			T7              arg7)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
-				object carg2 = PrepareArgument(arg2);
-				object carg3 = PrepareArgument(arg3);
-				object carg4 = PrepareArgument(arg4);
-				object carg5 = PrepareArgument(arg5);
-				object carg6 = PrepareArgument(arg6);
-				object carg7 = PrepareArgument(arg7);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
+				var carg7 = PrepareArgument(arg7);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -960,23 +1198,35 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg6">Argument to put into placeholder {6}.</param>
 		/// <param name="arg7">Argument to put into placeholder {7}.</param>
 		/// <param name="arg8">Argument to put into placeholder {8}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6,
+			T7              arg7,
+			T8              arg8)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
-				object carg2 = PrepareArgument(arg2);
-				object carg3 = PrepareArgument(arg3);
-				object carg4 = PrepareArgument(arg4);
-				object carg5 = PrepareArgument(arg5);
-				object carg6 = PrepareArgument(arg6);
-				object carg7 = PrepareArgument(arg7);
-				object carg8 = PrepareArgument(arg8);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
+				var carg7 = PrepareArgument(arg7);
+				var carg8 = PrepareArgument(arg8);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -1009,24 +1259,37 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg7">Argument to put into placeholder {7}.</param>
 		/// <param name="arg8">Argument to put into placeholder {8}.</param>
 		/// <param name="arg9">Argument to put into placeholder {9}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6,
+			T7              arg7,
+			T8              arg8,
+			T9              arg9)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0 = PrepareArgument(arg0);
-				object carg1 = PrepareArgument(arg1);
-				object carg2 = PrepareArgument(arg2);
-				object carg3 = PrepareArgument(arg3);
-				object carg4 = PrepareArgument(arg4);
-				object carg5 = PrepareArgument(arg5);
-				object carg6 = PrepareArgument(arg6);
-				object carg7 = PrepareArgument(arg7);
-				object carg8 = PrepareArgument(arg8);
-				object carg9 = PrepareArgument(arg9);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
+				var carg7 = PrepareArgument(arg7);
+				var carg8 = PrepareArgument(arg8);
+				var carg9 = PrepareArgument(arg9);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -1061,25 +1324,39 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg8">Argument to put into placeholder {8}.</param>
 		/// <param name="arg9">Argument to put into placeholder {9}.</param>
 		/// <param name="arg10">Argument to put into placeholder {10}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6,
+			T7              arg7,
+			T8              arg8,
+			T9              arg9,
+			T10             arg10)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0  = PrepareArgument(arg0);
-				object carg1  = PrepareArgument(arg1);
-				object carg2  = PrepareArgument(arg2);
-				object carg3  = PrepareArgument(arg3);
-				object carg4  = PrepareArgument(arg4);
-				object carg5  = PrepareArgument(arg5);
-				object carg6  = PrepareArgument(arg6);
-				object carg7  = PrepareArgument(arg7);
-				object carg8  = PrepareArgument(arg8);
-				object carg9  = PrepareArgument(arg9);
-				object carg10 = PrepareArgument(arg10);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
+				var carg7 = PrepareArgument(arg7);
+				var carg8 = PrepareArgument(arg8);
+				var carg9 = PrepareArgument(arg9);
+				var carg10 = PrepareArgument(arg10);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -1116,26 +1393,41 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg9">Argument to put into placeholder {9}.</param>
 		/// <param name="arg10">Argument to put into placeholder {10}.</param>
 		/// <param name="arg11">Argument to put into placeholder {11}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6,
+			T7              arg7,
+			T8              arg8,
+			T9              arg9,
+			T10             arg10,
+			T11             arg11)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0  = PrepareArgument(arg0);
-				object carg1  = PrepareArgument(arg1);
-				object carg2  = PrepareArgument(arg2);
-				object carg3  = PrepareArgument(arg3);
-				object carg4  = PrepareArgument(arg4);
-				object carg5  = PrepareArgument(arg5);
-				object carg6  = PrepareArgument(arg6);
-				object carg7  = PrepareArgument(arg7);
-				object carg8  = PrepareArgument(arg8);
-				object carg9  = PrepareArgument(arg9);
-				object carg10 = PrepareArgument(arg10);
-				object carg11 = PrepareArgument(arg11);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
+				var carg7 = PrepareArgument(arg7);
+				var carg8 = PrepareArgument(arg8);
+				var carg9 = PrepareArgument(arg9);
+				var carg10 = PrepareArgument(arg10);
+				var carg11 = PrepareArgument(arg11);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -1174,27 +1466,43 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg10">Argument to put into placeholder {10}.</param>
 		/// <param name="arg11">Argument to put into placeholder {11}.</param>
 		/// <param name="arg12">Argument to put into placeholder {12}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6,
+			T7              arg7,
+			T8              arg8,
+			T9              arg9,
+			T10             arg10,
+			T11             arg11,
+			T12             arg12)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0  = PrepareArgument(arg0);
-				object carg1  = PrepareArgument(arg1);
-				object carg2  = PrepareArgument(arg2);
-				object carg3  = PrepareArgument(arg3);
-				object carg4  = PrepareArgument(arg4);
-				object carg5  = PrepareArgument(arg5);
-				object carg6  = PrepareArgument(arg6);
-				object carg7  = PrepareArgument(arg7);
-				object carg8  = PrepareArgument(arg8);
-				object carg9  = PrepareArgument(arg9);
-				object carg10 = PrepareArgument(arg10);
-				object carg11 = PrepareArgument(arg11);
-				object carg12 = PrepareArgument(arg12);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
+				var carg7 = PrepareArgument(arg7);
+				var carg8 = PrepareArgument(arg8);
+				var carg9 = PrepareArgument(arg9);
+				var carg10 = PrepareArgument(arg10);
+				var carg11 = PrepareArgument(arg11);
+				var carg12 = PrepareArgument(arg12);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
 				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
@@ -1235,30 +1543,63 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg11">Argument to put into placeholder {11}.</param>
 		/// <param name="arg12">Argument to put into placeholder {12}.</param>
 		/// <param name="arg13">Argument to put into placeholder {13}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6,
+			T7              arg7,
+			T8              arg8,
+			T9              arg9,
+			T10             arg10,
+			T11             arg11,
+			T12             arg12,
+			T13             arg13)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0  = PrepareArgument(arg0);
-				object carg1  = PrepareArgument(arg1);
-				object carg2  = PrepareArgument(arg2);
-				object carg3  = PrepareArgument(arg3);
-				object carg4  = PrepareArgument(arg4);
-				object carg5  = PrepareArgument(arg5);
-				object carg6  = PrepareArgument(arg6);
-				object carg7  = PrepareArgument(arg7);
-				object carg8  = PrepareArgument(arg8);
-				object carg9  = PrepareArgument(arg9);
-				object carg10 = PrepareArgument(arg10);
-				object carg11 = PrepareArgument(arg11);
-				object carg12 = PrepareArgument(arg12);
-				object carg13 = PrepareArgument(arg13);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
+				var carg7 = PrepareArgument(arg7);
+				var carg8 = PrepareArgument(arg8);
+				var carg9 = PrepareArgument(arg9);
+				var carg10 = PrepareArgument(arg10);
+				var carg11 = PrepareArgument(arg11);
+				var carg12 = PrepareArgument(arg12);
+				var carg13 = PrepareArgument(arg13);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
-				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13);
+				builder.AppendFormat(
+					provider,
+					format,
+					carg0,
+					carg1,
+					carg2,
+					carg3,
+					carg4,
+					carg5,
+					carg6,
+					carg7,
+					carg8,
+					carg9,
+					carg10,
+					carg11,
+					carg12,
+					carg13);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
@@ -1299,31 +1640,66 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arg12">Argument to put into placeholder {12}.</param>
 		/// <param name="arg13">Argument to put into placeholder {13}.</param>
 		/// <param name="arg14">Argument to put into placeholder {14}.</param>
-		public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>(IFormatProvider provider, LogLevel level, string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
+		public void Write<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(
+			IFormatProvider provider,
+			LogLevel        level,
+			string          format,
+			T0              arg0,
+			T1              arg1,
+			T2              arg2,
+			T3              arg3,
+			T4              arg4,
+			T5              arg5,
+			T6              arg6,
+			T7              arg7,
+			T8              arg8,
+			T9              arg9,
+			T10             arg10,
+			T11             arg11,
+			T12             arg12,
+			T13             arg13,
+			T14             arg14)
 		{
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				object carg0  = PrepareArgument(arg0);
-				object carg1  = PrepareArgument(arg1);
-				object carg2  = PrepareArgument(arg2);
-				object carg3  = PrepareArgument(arg3);
-				object carg4  = PrepareArgument(arg4);
-				object carg5  = PrepareArgument(arg5);
-				object carg6  = PrepareArgument(arg6);
-				object carg7  = PrepareArgument(arg7);
-				object carg8  = PrepareArgument(arg8);
-				object carg9  = PrepareArgument(arg9);
-				object carg10 = PrepareArgument(arg10);
-				object carg11 = PrepareArgument(arg11);
-				object carg12 = PrepareArgument(arg12);
-				object carg13 = PrepareArgument(arg13);
-				object carg14 = PrepareArgument(arg14);
+				var carg0 = PrepareArgument(arg0);
+				var carg1 = PrepareArgument(arg1);
+				var carg2 = PrepareArgument(arg2);
+				var carg3 = PrepareArgument(arg3);
+				var carg4 = PrepareArgument(arg4);
+				var carg5 = PrepareArgument(arg5);
+				var carg6 = PrepareArgument(arg6);
+				var carg7 = PrepareArgument(arg7);
+				var carg8 = PrepareArgument(arg8);
+				var carg9 = PrepareArgument(arg9);
+				var carg10 = PrepareArgument(arg10);
+				var carg11 = PrepareArgument(arg11);
+				var carg12 = PrepareArgument(arg12);
+				var carg13 = PrepareArgument(arg13);
+				var carg14 = PrepareArgument(arg14);
 
 				// write message to the log
-				StringBuilder builder = sBuilder.Value;
+				var builder = sBuilder.Value;
 				builder.Clear();
-				builder.AppendFormat(provider, format, carg0, carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13, carg14);
+				builder.AppendFormat(
+					provider,
+					format,
+					carg0,
+					carg1,
+					carg2,
+					carg3,
+					carg4,
+					carg5,
+					carg6,
+					carg7,
+					carg8,
+					carg9,
+					carg10,
+					carg11,
+					carg12,
+					carg13,
+					carg14);
 				Log.WriteMessage(this, level, Tags, builder.ToString());
 			}
 		}
@@ -1349,16 +1725,17 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns></returns>
 		public static string UnwrapException(Exception exception)
 		{
-			StringBuilder builder = new StringBuilder();
+			var builder = new StringBuilder();
 			builder.AppendLine();
 
 			int innerExceptionLevel = 0;
-			Exception current = exception;
+			var current = exception;
 			while (current != null)
 			{
-				builder.Append(innerExceptionLevel == 0
-					? "--- Exception ---------------------------------------------------------------------------------------------\r\n"
-					: "--- Inner Exception ---------------------------------------------------------------------------------------\r\n");
+				builder.Append(
+					innerExceptionLevel == 0
+						? "--- Exception ---------------------------------------------------------------------------------------------\r\n"
+						: "--- Inner Exception ---------------------------------------------------------------------------------------\r\n");
 				builder.AppendFormat("--- Exception Type: {0}\r\n", exception.GetType().FullName);
 				builder.AppendFormat("--- Message: {0}\r\n", current.Message);
 				builder.AppendFormat("--- Stacktrace:\r\n{0}", current.StackTrace);
@@ -1370,6 +1747,6 @@ namespace GriffinPlus.Lib.Logging
 
 			return builder.ToString();
 		}
-
 	}
+
 }

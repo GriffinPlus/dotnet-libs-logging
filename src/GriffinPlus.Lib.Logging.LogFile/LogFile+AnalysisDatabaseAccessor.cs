@@ -4,20 +4,20 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	partial class LogFile
 	{
 		/// <summary>
 		/// The database accessor for the 'analysis' file format.
 		/// The format is optimized for analyzing log messages.
 		/// </summary>
-		class AnalysisDatabaseAccessor : DatabaseAccessor
+		private class AnalysisDatabaseAccessor : DatabaseAccessor
 		{
 			private readonly SQLiteCommand   mGetOldestMessageIdCommand;
 			private readonly SQLiteCommand   mGetNewestMessageIdCommand;
@@ -71,7 +71,7 @@ namespace GriffinPlus.Lib.Logging
 			};
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="AnalysisDatabaseAccessor"/> class.
+			/// Initializes a new instance of the <see cref="AnalysisDatabaseAccessor" /> class.
 			/// </summary>
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
@@ -127,8 +127,8 @@ namespace GriffinPlus.Lib.Logging
 				// query to get a number of log messages starting at a specific log message id
 				mSelectContinuousMessagesCommand = PrepareCommand(
 					"SELECT m.id, timestamp, m.timezone_offset, m.high_precision_timestamp, m.lost_message_count, m.process_id, p.name, a.name, w.name, l.name, t.text" +
-					" FROM messages as m, texts as t, processes as p, applications as a, writers as w, levels as l"                                                         +
-					" WHERE m.id >= @from_id AND m.id == t.id AND m.process_name_id == p.id AND m.application_name_id == a.id AND m.writer_name_id == w.id AND m.level_name_id == l.id"         +
+					" FROM messages as m, texts as t, processes as p, applications as a, writers as w, levels as l" +
+					" WHERE m.id >= @from_id AND m.id == t.id AND m.process_name_id == p.id AND m.application_name_id == a.id AND m.writer_name_id == w.id AND m.level_name_id == l.id" +
 					" LIMIT @count;");
 				mSelectContinuousMessagesCommand.Parameters.Add(mSelectContinuousMessagesCommand_FromIdParameter = new SQLiteParameter("@from_id", DbType.Int64));
 				mSelectContinuousMessagesCommand.Parameters.Add(mSelectContinuousMessagesCommand_CountParameter = new SQLiteParameter("@count", DbType.Int64));
@@ -201,11 +201,11 @@ namespace GriffinPlus.Lib.Logging
 			/// true, if reading ran to completion;
 			/// false, if reading was cancelled.
 			/// </returns>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> or <paramref name="count"/> must be positive.</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> or <paramref name="count" /> must be positive.</exception>
 			public override bool Read(long fromId, long count, ReadMessageCallback callback)
 			{
 				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
-				if (count  < 0) throw new ArgumentOutOfRangeException(nameof(count),  count,  "The number of log messages must be positive.");
+				if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "The number of log messages must be positive.");
 
 				// columns in result:
 				// 0 = message id
@@ -225,19 +225,19 @@ namespace GriffinPlus.Lib.Logging
 				{
 					while (reader.Read())
 					{
-						var messageId              = reader.GetInt64(0);
-						var timezoneOffset         = TimeSpan.FromTicks(reader.GetInt64(2));
-						var timestamp              = new DateTimeOffset(reader.GetInt64(1) + timezoneOffset.Ticks, timezoneOffset);
-						var highPrecisionTimestamp = reader.GetInt64(3);
-						var lostMessageCount       = reader.GetInt32(4);
-						var processId              = reader.GetInt32(5);
-						var processName            = reader.GetString(6);
-						var applicationName        = reader.GetString(7);
-						var logWriterName          = reader.GetString(8);
-						var logLevelName           = reader.GetString(9);
-						var text                   = reader.GetString(10);
+						long messageId = reader.GetInt64(0);
+						var timezoneOffset = TimeSpan.FromTicks(reader.GetInt64(2));
+						var timestamp = new DateTimeOffset(reader.GetInt64(1) + timezoneOffset.Ticks, timezoneOffset);
+						long highPrecisionTimestamp = reader.GetInt64(3);
+						int lostMessageCount = reader.GetInt32(4);
+						int processId = reader.GetInt32(5);
+						string processName = reader.GetString(6);
+						string applicationName = reader.GetString(7);
+						string logWriterName = reader.GetString(8);
+						string logLevelName = reader.GetString(9);
+						string text = reader.GetString(10);
 
-						LogMessage message = LogMessagePool.Default.GetMessage(
+						var message = LogMessagePool.Default.GetMessage(
 							messageId,
 							timestamp,
 							highPrecisionTimestamp,
@@ -266,10 +266,10 @@ namespace GriffinPlus.Lib.Logging
 			protected override void WriteLogMessage(ILogMessage message, long messageId)
 			{
 				// insert common data
-				long processNameId     = AddProcessName(message.ProcessName);
+				long processNameId = AddProcessName(message.ProcessName);
 				long applicationNameId = AddApplicationName(message.ApplicationName);
-				long writerNameId      = AddLogWriterName(message.LogWriterName);
-				long levelNameId       = AddLogLevelName(message.LogLevelName);
+				long writerNameId = AddLogWriterName(message.LogWriterName);
+				long levelNameId = AddLogLevelName(message.LogLevelName);
 
 				// insert message metadata
 				mInsertMessageCommand_IdParameter.Value = messageId;
@@ -299,7 +299,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </param>
 			/// <param name="maximumMessageAge">
 			/// Maximum age of log messages to keep;
-			/// <seealso cref="TimeSpan.Zero"/> or a negative timespan to disable removing messages by age.
+			/// <seealso cref="TimeSpan.Zero" /> or a negative timespan to disable removing messages by age.
 			/// </param>
 			public override void Cleanup(long maximumMessageCount, TimeSpan maximumMessageAge)
 			{
@@ -324,13 +324,13 @@ namespace GriffinPlus.Lib.Logging
 
 					// determine the id of the first message to delete due to the maximum message count limit
 					// (determined row is included)
-					long totalMessageCount                = NewestMessageId - OldestMessageId + 1;
-					long messagesToDeleteCount            = Math.Max(totalMessageCount - maximumMessageCount, 0);
+					long totalMessageCount = NewestMessageId - OldestMessageId + 1;
+					long messagesToDeleteCount = Math.Max(totalMessageCount - maximumMessageCount, 0);
 					long deleteByMaxMessageCountMessageId = messagesToDeleteCount > 0 ? OldestMessageId + messagesToDeleteCount - 1 : -1;
 
 					// combine selection conditions
 					long messageId = -1;
-					if (deleteByTimestampMessageId       >= 0) messageId = deleteByTimestampMessageId;
+					if (deleteByTimestampMessageId >= 0) messageId = deleteByTimestampMessageId;
 					if (deleteByMaxMessageCountMessageId >= 0) messageId = Math.Max(messageId, deleteByMaxMessageCountMessageId);
 
 					// delete old messages up to the determined message id
@@ -359,4 +359,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

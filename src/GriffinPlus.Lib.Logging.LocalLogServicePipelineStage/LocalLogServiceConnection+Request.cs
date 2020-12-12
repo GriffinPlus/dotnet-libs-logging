@@ -7,7 +7,8 @@ using System.Runtime.InteropServices;
 
 namespace GriffinPlus.Lib.Logging
 {
-	internal partial class LocalLogServiceConnection
+
+	partial class LocalLogServiceConnection
 	{
 		/// <summary>
 		/// A request sent via the named pipe.
@@ -15,18 +16,18 @@ namespace GriffinPlus.Lib.Logging
 		[StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode)]
 		public struct Request
 		{
-			[FieldOffset(0)] public Command Command;
-			[FieldOffset(4)] public Request_RegisterLogSourceCommand RegisterLogSourceCommand;
+			[FieldOffset(0)] public Command                            Command;
+			[FieldOffset(4)] public Request_RegisterLogSourceCommand   RegisterLogSourceCommand;
 			[FieldOffset(4)] public Request_UnregisterLogSourceCommand UnregisterLogSourceCommand;
-			[FieldOffset(4)] public Request_QueryProcessIdCommand QueryProcessIdCommand;
+			[FieldOffset(4)] public Request_QueryProcessIdCommand      QueryProcessIdCommand;
 			[FieldOffset(4)] public Request_SetWritingToLogFileCommand SetWritingToLogFileCommand;
 		}
 
 		public enum Command
 		{
-			RegisterLogSource = 1,
+			RegisterLogSource   = 1,
 			UnregisterLogSource = 2,
-			QueryProcessId = 3,
+			QueryProcessId      = 3,
 			SetWritingToLogFile = 4
 		}
 
@@ -68,6 +69,6 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			public int Enable; // not 'bool', it only has 8 bit, but 32 bit are expected (Win32 BOOL)
 		}
-
 	}
+
 }

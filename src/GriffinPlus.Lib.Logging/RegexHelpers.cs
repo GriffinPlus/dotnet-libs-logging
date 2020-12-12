@@ -10,10 +10,11 @@ using System.Text.RegularExpressions;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Some helper methods around working with regular expressions.
 	/// </summary>
-	internal static class RegexHelpers
+	static class RegexHelpers
 	{
 		/// <summary>
 		/// Checks whether the specified string is a wildcard expression
@@ -36,6 +37,6 @@ namespace GriffinPlus.Lib.Logging
 			string regex = "^" + Regex.Escape(expression).Replace("\\*", ".*").Replace("\\?", ".") + "$"; // greedy
 			return new Regex(regex, regexOptions);
 		}
-
 	}
+
 }

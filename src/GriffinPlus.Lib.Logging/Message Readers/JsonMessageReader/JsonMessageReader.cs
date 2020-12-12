@@ -9,12 +9,13 @@ using System.Globalization;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Reads a log message written by <see cref="JsonMessageFormatter"/> returning <see cref="LogMessage"/>.
+	/// Reads a log message written by <see cref="JsonMessageFormatter" /> returning <see cref="LogMessage" />.
 	/// </summary>
 	public class JsonMessageReader
 	{
-		enum State
+		private enum State
 		{
 			Start,
 			ReadingObjectKey,
@@ -31,19 +32,19 @@ namespace GriffinPlus.Lib.Logging
 			ReadingApplicationNameValue,
 			ReadingProcessNameValue,
 			ReadingProcessIdValue,
-			ReadingTextValue,
+			ReadingTextValue
 		}
 
-		private readonly JsonTokenizer mTokenizer = new JsonTokenizer();
-		private readonly Stack<State> mStateStack = new Stack<State>();
-		private State mState = State.Start;
-		private State mReadingValueState;
-		private readonly List<ILogMessage> mCompletedLogMessages = new List<ILogMessage>();
-		private LogMessage mLogMessage;
-		private JsonMessageFieldNames mFieldNames;
+		private readonly JsonTokenizer         mTokenizer  = new JsonTokenizer();
+		private readonly Stack<State>          mStateStack = new Stack<State>();
+		private          State                 mState      = State.Start;
+		private          State                 mReadingValueState;
+		private readonly List<ILogMessage>     mCompletedLogMessages = new List<ILogMessage>();
+		private          LogMessage            mLogMessage;
+		private readonly JsonMessageFieldNames mFieldNames;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonMessageReader"/> class.
+		/// Initializes a new instance of the <see cref="JsonMessageReader" /> class.
 		/// </summary>
 		public JsonMessageReader()
 		{
@@ -51,7 +52,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the field names defining how to map JSON keys to fields in <see cref="ILogMessage"/>.
+		/// Gets the field names defining how to map JSON keys to fields in <see cref="ILogMessage" />.
 		/// </summary>
 		public JsonMessageFieldNames FieldNames => mFieldNames;
 
@@ -88,7 +89,7 @@ namespace GriffinPlus.Lib.Logging
 
 			while (remainingTokenCount-- > 0)
 			{
-				JsonToken token = mTokenizer.Tokens.Dequeue();
+				var token = mTokenizer.Tokens.Dequeue();
 
 				switch (mState)
 				{
@@ -123,10 +124,13 @@ namespace GriffinPlus.Lib.Logging
 							else if (token.Token == mFieldNames.ProcessName) mReadingValueState = State.ReadingProcessNameValue;
 							else if (token.Token == mFieldNames.ProcessId) mReadingValueState = State.ReadingProcessIdValue;
 							else if (token.Token == mFieldNames.Text) mReadingValueState = State.ReadingTextValue;
-							else throw new JsonMessageReaderException(
-								token.LineNumber,
-								token.Position,
-								$"'{token.Token}' at ({token.LineNumber},{token.Position}) is not a valid field name.");
+							else
+							{
+								throw new JsonMessageReaderException(
+									token.LineNumber,
+									token.Position,
+									$"'{token.Token}' at ({token.LineNumber},{token.Position}) is not a valid field name.");
+							}
 
 							mState = State.ExpectingColon;
 							break;
@@ -175,8 +179,14 @@ namespace GriffinPlus.Lib.Logging
 					case State.ReadingHighPrecisionTimestampValue:
 					{
 						if (token.Type != JsonTokenType.Number) ThrowUnexpectedTokenException(ref token);
-						if (!long.TryParse(token.Token, out var timestamp))
-							throw new JsonMessageReaderException(token.LineNumber, token.Position, $"The high precision timestamp ({token.Token}) does not have the expected format.");
+						if (!long.TryParse(token.Token, out long timestamp))
+						{
+							throw new JsonMessageReaderException(
+								token.LineNumber,
+								token.Position,
+								$"The high precision timestamp ({token.Token}) does not have the expected format.");
+						}
+
 						mLogMessage.HighPrecisionTimestamp = timestamp;
 						mState = State.ExpectingCommaOrEndOfObject;
 						break;
@@ -279,7 +289,7 @@ namespace GriffinPlus.Lib.Logging
 					case State.ReadingProcessIdValue:
 					{
 						if (token.Type != JsonTokenType.Number) ThrowUnexpectedTokenException(ref token);
-						if (!int.TryParse(token.Token, out var id))
+						if (!int.TryParse(token.Token, out int id))
 							throw new JsonMessageReaderException(token.LineNumber, token.Position, $"The process id ({token.Token}) does not have the expected format.");
 						mLogMessage.ProcessId = id;
 						mState = State.ExpectingCommaOrEndOfObject;
@@ -313,7 +323,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Throws a <see cref="JsonMessageReaderException"/> indicating that an unexpected token was found.
+		/// Throws a <see cref="JsonMessageReaderException" /> indicating that an unexpected token was found.
 		/// </summary>
 		/// <param name="token">The unexpected token.</param>
 		private void ThrowUnexpectedTokenException(ref JsonToken token)
@@ -324,4 +334,5 @@ namespace GriffinPlus.Lib.Logging
 				$"Unexpected token '{token.Token}' at ({token.LineNumber},{token.Position}).");
 		}
 	}
+
 }

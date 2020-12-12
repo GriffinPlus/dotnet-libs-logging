@@ -7,12 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// Unit tests targeting the <see cref="JsonMessageReader"/> class.
+	/// Unit tests targeting the <see cref="JsonMessageReader" /> class.
 	/// </summary>
 	public class JsonMessageReaderTests
 	{
@@ -20,7 +22,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests whether the creation of the reader succeeds.
 		/// </summary>
 		[Fact]
-		void Create()
+		private void Create()
 		{
 			var reader = new JsonMessageReader();
 			Assert.Equal("u", reader.TimestampFormat);
@@ -43,12 +45,12 @@ namespace GriffinPlus.Lib.Logging
 				foreach (var data in JsonMessageFormatterTests.FormatTestData)
 				{
 					// JsonMessageFormatterStyle style = (JsonMessageFormatterStyle) data[0];
-					LogMessageField field = (LogMessageField) data[1];
-					LogMessage message = (LogMessage) data[2];
-					string newline = (string) data[3]; // character sequence used to inject line breaks
-					string json = (string) data[4];
+					var field = (LogMessageField)data[1];
+					var message = (LogMessage)data[2];
+					string newline = (string)data[3]; // character sequence used to inject line breaks
+					string json = (string)data[4];
 
-					LogMessage expected = new LogMessage();
+					var expected = new LogMessage();
 					if (field.HasFlag(LogMessageField.Timestamp)) expected.Timestamp = message.Timestamp;
 					if (field.HasFlag(LogMessageField.HighPrecisionTimestamp)) expected.HighPrecisionTimestamp = message.HighPrecisionTimestamp;
 					if (field.HasFlag(LogMessageField.LogWriterName)) expected.LogWriterName = message.LogWriterName;
@@ -75,7 +77,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="expected">The log message that is expected to be returned.</param>
 		[Theory]
 		[MemberData(nameof(ProcessTestData_SingleMessage))]
-		void Process_SingleMessage_AllAtOnce(string json, string newline, LogMessage expected)
+		private void Process_SingleMessage_AllAtOnce(string json, string newline, LogMessage expected)
 		{
 			var reader = new JsonMessageReader();
 			var messages = reader.Process(json);
@@ -94,9 +96,9 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="expected">The log message that is expected to be returned.</param>
 		[Theory]
 		[MemberData(nameof(ProcessTestData_SingleMessage))]
-		void Process_SingleMessage_CharWise(string json, string newline, LogMessage expected)
+		private void Process_SingleMessage_CharWise(string json, string newline, LogMessage expected)
 		{
-			JsonMessageReader reader = new JsonMessageReader();
+			var reader = new JsonMessageReader();
 			ILogMessage[] messages;
 
 			// pass all characters except the last one (that would complete the message) to the reader
@@ -107,13 +109,13 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// pass the last character into the reader completing the message
-			messages = reader.Process(json[json.Length-1].ToString());
+			messages = reader.Process(json[json.Length - 1].ToString());
 			Assert.Single(messages);
 			Assert.Equal(expected, messages[0]);
 		}
 
 		/// <summary>
-		/// Gets a test data set with JSON documents combined from data returned by <see cref="ProcessTestData_SingleMessage"/>.
+		/// Gets a test data set with JSON documents combined from data returned by <see cref="ProcessTestData_SingleMessage" />.
 		/// </summary>
 		/// <param name="testSetCount">Number of test data sets.</param>
 		/// <param name="minMessageCount">Minimum number of messages in a test data set.</param>
@@ -128,37 +130,40 @@ namespace GriffinPlus.Lib.Logging
 		/// The tuples contain the combined JSON string and the log messages the string represents.
 		/// </returns>
 		public static IEnumerable<Tuple<string, ILogMessage[], HashSet<int>>> GetTestData(
-			int testSetCount = 100000,
-			int minMessageCount = 1,
-			int maxMessageCount = 30,
-			string newline = null,
-			bool injectRandomWhiteSpaceBetweenMessages = true)
+			int    testSetCount                          = 100000,
+			int    minMessageCount                       = 1,
+			int    maxMessageCount                       = 30,
+			string newline                               = null,
+			bool   injectRandomWhiteSpaceBetweenMessages = true)
 		{
 			var data = ProcessTestData_SingleMessage
 				.Where(x => newline == null || (string)x[1] == null || (string)x[1] == newline) // get only test sets with the desired line break character sequence
 				.Select(x => new Tuple<string, LogMessage>((string)x[0], (LogMessage)x[2]))
 				.ToArray();
 
-			Random random = new Random(0);
-			StringBuilder json = new StringBuilder();
-			List<LogMessage> expectedMessages = new List<LogMessage>();
-			HashSet<int> endIndexOfLogMessages = new HashSet<int>();
+			var random = new Random(0);
+			var json = new StringBuilder();
+			var expectedMessages = new List<LogMessage>();
+			var endIndexOfLogMessages = new HashSet<int>();
 			for (int run = 0; run < testSetCount; run++)
 			{
 				json.Clear();
 				expectedMessages.Clear();
 				endIndexOfLogMessages.Clear();
 				int messageCount = random.Next(minMessageCount, maxMessageCount);
-				
+
 				for (int j = 0; j < messageCount; j++)
 				{
 					int selectedMessageIndex = random.Next(0, data.Length - 1);
 					json.Append(data[selectedMessageIndex].Item1);
 					endIndexOfLogMessages.Add(json.Length - 1);
 
-					if (injectRandomWhiteSpaceBetweenMessages) {
+					if (injectRandomWhiteSpaceBetweenMessages)
+					{
 						json.Append(JsonTokenizerTests.WhiteSpaceCharacters[random.Next(0, JsonTokenizerTests.WhiteSpaceCharacters.Length - 1)]);
-					} else {
+					}
+					else
+					{
 						json.Append(newline ?? "\n");
 					}
 
@@ -176,14 +181,14 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests processing multiple log messages that are passed to the reader at once.
 		/// </summary>
 		[Fact]
-		void Process_MultipleMessages_AllAtOnce()
+		private void Process_MultipleMessages_AllAtOnce()
 		{
-			JsonMessageReader reader = new JsonMessageReader();
+			var reader = new JsonMessageReader();
 
-			foreach (var data in GetTestData(100000, 2, 30, null, true))
+			foreach (var data in GetTestData(100000, 2))
 			{
 				string json = data.Item1;
-				ILogMessage[] expectedMessages = data.Item2;
+				var expectedMessages = data.Item2;
 				var messages = reader.Process(json);
 				Assert.Equal(expectedMessages.Length, messages.Length);
 				Assert.Equal(expectedMessages, messages);
@@ -196,15 +201,15 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests processing multiple log messages that are passed to the reader character wise.
 		/// </summary>
 		[Fact]
-		void Process_MultipleMessages_CharWise()
+		private void Process_MultipleMessages_CharWise()
 		{
-			JsonMessageReader reader = new JsonMessageReader();
+			var reader = new JsonMessageReader();
 
-			foreach (var data in GetTestData(100000, 2, 30, null, true))
+			foreach (var data in GetTestData(100000, 2))
 			{
 				string json = data.Item1;
-				ILogMessage[] expectedMessages = data.Item2;
-				HashSet<int> endIndexOfLogMessages = data.Item3;
+				var expectedMessages = data.Item2;
+				var endIndexOfLogMessages = data.Item3;
 				int messageNumber = 0;
 				for (int i = 0; i < json.Length; i++)
 				{
@@ -226,6 +231,6 @@ namespace GriffinPlus.Lib.Logging
 				reader.Reset();
 			}
 		}
-
 	}
+
 }

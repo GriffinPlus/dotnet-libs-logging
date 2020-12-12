@@ -9,6 +9,7 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// A bit field of variable size that supports comparisons (equality, inequality), unary logical operations (NOT, XOR)
 	/// and binary logical operations (AND, OR).
@@ -16,10 +17,10 @@ namespace GriffinPlus.Lib.Logging
 	public class LogLevelBitMask
 	{
 		private static readonly uint[] sEmptyBitField = new uint[0];
-		private uint[] mBitField;
+		private                 uint[] mBitField;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogLevelBitMask"/> class.
+		/// Initializes a new instance of the <see cref="LogLevelBitMask" /> class.
 		/// </summary>
 		/// <param name="size">Size of the bit field (is rounded up to the next multiple of 32).</param>
 		/// <param name="set">Initial value of the bits in the bit mask.</param>
@@ -44,11 +45,10 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogLevelBitMask"/> class (for internal use only).
+		/// Initializes a new instance of the <see cref="LogLevelBitMask" /> class (for internal use only).
 		/// </summary>
 		private LogLevelBitMask()
 		{
-
 		}
 
 		/// <summary>
@@ -78,7 +78,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The resulting bit mask.</returns>
 		public static LogLevelBitMask operator ~(LogLevelBitMask mask)
 		{
-			LogLevelBitMask result = new LogLevelBitMask();
+			var result = new LogLevelBitMask();
 			int count = mask.mBitField.Length;
 			result.mBitField = count > 0 ? new uint[count] : sEmptyBitField;
 			result.PaddingValue = !mask.PaddingValue;
@@ -159,11 +159,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="mask1">First bit mask.</param>
 		/// <param name="mask2">Second bit mask.</param>
 		/// <returns>
-		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
+		/// The resulting bit mask (has the same padding value as <paramref name="mask1" />).
 		/// </returns>
 		public static LogLevelBitMask operator |(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
-			LogLevelBitMask result = new LogLevelBitMask();
+			var result = new LogLevelBitMask();
 			int count1 = mask1.mBitField.Length;
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
@@ -187,11 +187,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="mask1">First bit mask.</param>
 		/// <param name="mask2">Second bit mask.</param>
 		/// <returns>
-		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
+		/// The resulting bit mask (has the same padding value as <paramref name="mask1" />).
 		/// </returns>
 		public static LogLevelBitMask operator &(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
-			LogLevelBitMask result = new LogLevelBitMask();
+			var result = new LogLevelBitMask();
 			int count1 = mask1.mBitField.Length;
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
@@ -215,11 +215,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="mask1">First bit mask.</param>
 		/// <param name="mask2">Second bit mask.</param>
 		/// <returns>
-		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
+		/// The resulting bit mask (has the same padding value as <paramref name="mask1" />).
 		/// </returns>
 		public static LogLevelBitMask operator ^(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
-			LogLevelBitMask result = new LogLevelBitMask();
+			var result = new LogLevelBitMask();
 			int count1 = mask1.mBitField.Length;
 			int count2 = mask2.mBitField.Length;
 			int count = count1 > count2 ? count1 : count2;
@@ -354,15 +354,15 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the mask as an array of <see cref="System.UInt32"/>.
+		/// Gets the mask as an array of <see cref="System.UInt32" />.
 		/// The value at index 0 contains the bits 0-31, the value at index 1 the bits 32-63 and so on.
 		/// </summary>
 		/// <returns>
-		/// The bit mask as an array of <see cref="System.UInt32"/>.
+		/// The bit mask as an array of <see cref="System.UInt32" />.
 		/// </returns>
 		public uint[] AsArray()
 		{
-			uint[] copy = new uint[mBitField.Length];
+			var copy = new uint[mBitField.Length];
 			Array.Copy(mBitField, copy, mBitField.Length);
 			return copy;
 		}
@@ -379,6 +379,7 @@ namespace GriffinPlus.Lib.Logging
 			unchecked
 			{
 				int hash = 0;
+
 				// ReSharper disable once ForCanBeConvertedToForeach
 				// ReSharper disable once LoopCanBeConvertedToQuery
 				for (int i = 0; i < mBitField.Length; i++) hash ^= (int)mBitField[i];
@@ -393,10 +394,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>true, if the specified bit mask equals the current one; otherwise false.</returns>
 		public override bool Equals(object obj)
 		{
-			LogLevelBitMask other = obj as LogLevelBitMask;
+			var other = obj as LogLevelBitMask;
 			if (other == null) return false;
 			return this == other; // use overloaded equality operator
 		}
-
 	}
+
 }

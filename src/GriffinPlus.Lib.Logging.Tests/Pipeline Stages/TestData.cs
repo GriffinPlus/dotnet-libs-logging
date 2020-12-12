@@ -8,6 +8,7 @@ using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Some data used for unit tests.
 	/// </summary>
@@ -22,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				var tagSets = new[] { null, new[] { "Tag" }, new [] { "Tag1", "Tag2" } };
+				var tagSets = new[] { null, new[] { "Tag" }, new[] { "Tag1", "Tag2" } };
 
 				foreach (var tags in tagSets)
 				{
@@ -74,4 +75,5 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 	}
+
 }

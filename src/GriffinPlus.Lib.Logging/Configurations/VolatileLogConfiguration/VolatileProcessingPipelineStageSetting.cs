@@ -7,28 +7,29 @@ using System;
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
-	/// A setting in a <see cref="VolatileProcessingPipelineStageConfiguration"/>.
+	/// A setting in a <see cref="VolatileProcessingPipelineStageConfiguration" />.
 	/// </summary>
 	/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
 	public class VolatileProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>, IUntypedProcessingPipelineStageSetting
 	{
-		private readonly VolatileProcessingPipelineStageRawSetting mRawSetting;
+		private readonly VolatileProcessingPipelineStageRawSetting                            mRawSetting;
 		private readonly ProcessingPipelineStageConfigurationBase.ValueFromStringConverter<T> mFromStringConverter;
-		private readonly ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T> mToStringConverter;
-		private string mCachedRawValue;
-		private T mCachedValue;
+		private readonly ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T>   mToStringConverter;
+		private          string                                                               mCachedRawValue;
+		private          T                                                                    mCachedValue;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageSetting{T}"/> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageSetting{T}" /> class.
 		/// </summary>
 		/// <param name="rawSetting">The corresponding raw setting in the configuration.</param>
 		/// <param name="valueFromStringConverter">Delegate that converts the setting value to a string.</param>
 		/// <param name="valueToStringConverter">Delegate that converts a string to the setting value.</param>
 		internal VolatileProcessingPipelineStageSetting(
-			VolatileProcessingPipelineStageRawSetting rawSetting,
+			VolatileProcessingPipelineStageRawSetting                            rawSetting,
 			ProcessingPipelineStageConfigurationBase.ValueFromStringConverter<T> valueFromStringConverter,
-			ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T> valueToStringConverter)
+			ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T>   valueToStringConverter)
 		{
 			mRawSetting = rawSetting;
 			mFromStringConverter = valueFromStringConverter;
@@ -118,7 +119,6 @@ namespace GriffinPlus.Lib.Logging
 		{
 			return mRawSetting.ToString();
 		}
-
 	}
 
 }

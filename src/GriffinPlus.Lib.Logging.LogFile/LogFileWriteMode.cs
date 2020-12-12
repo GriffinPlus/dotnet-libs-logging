@@ -5,6 +5,7 @@
 
 namespace GriffinPlus.Lib.Logging
 {
+
 	/// <summary>
 	/// Modes influencing how the log file will handle write operations.
 	/// </summary>
@@ -21,4 +22,5 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		Fast = 2
 	}
+
 }
