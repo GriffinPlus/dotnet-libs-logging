@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Repository Files", "Reposit
 		src\Directory.Build.props = src\Directory.Build.props
 		src\Directory.Build.targets = src\Directory.Build.targets
 		LICENSE = LICENSE
+		Logging.sln.DotSettings = Logging.sln.DotSettings
 		README.md = README.md
 		src\tests.runsettings = src\tests.runsettings
 	EndProjectSection
@@ -51,6 +52,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build.vs", "build.vs", "{A6
 		build.vs\PackNuGet.psm1 = build.vs\PackNuGet.psm1
 		build.vs\PreBuildWizard.psm1 = build.vs\PreBuildWizard.psm1
 		build.vs\README.md = build.vs\README.md
+		build.vs\ReSharper.DotSettings = build.vs\ReSharper.DotSettings
 		build.vs\RestoreNuGet.psm1 = build.vs\RestoreNuGet.psm1
 		build.vs\UpdateOutputFileList.psm1 = build.vs\UpdateOutputFileList.psm1
 	EndProjectSection
@@ -58,6 +60,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.LogFile", "src\GriffinPlus.Lib.Logging.LogFile\GriffinPlus.Lib.Logging.LogFile.csproj", "{EFCE565D-F313-4834-B2D6-AD5284E24464}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.LogFile.Tests", "src\GriffinPlus.Lib.Logging.LogFile.Tests\GriffinPlus.Lib.Logging.LogFile.Tests.csproj", "{0FD81A8E-8645-46AA-B1A0-AE55386514E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "azure-pipelines", "azure-pipelines", "{4A957793-E9E3-407E-91EC-D18C6D63DB51}"
+	ProjectSection(SolutionItems) = preProject
+		build.vs\azure-pipelines\ci-csharp-netstandard20-with-deployment-on-tag.yml = build.vs\azure-pipelines\ci-csharp-netstandard20-with-deployment-on-tag.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -96,6 +103,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4A957793-E9E3-407E-91EC-D18C6D63DB51} = {A60613DA-9A84-417D-B737-40CC37FC47E3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {144ED164-6EC1-42FC-912C-EB9C920DB329}
