@@ -104,6 +104,168 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
+		#region GetLogWriterNames(), GetLogLevelNames(), GetProcessNames(), GetApplicationNames()
+
+		/// <summary>
+		/// Test data for methods that return names of log writers, log levels, processes, applications and tags.
+		/// </summary>
+		public static IEnumerable<object[]> GetNamesTestData
+		{
+			get
+			{
+				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
+				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
+				foreach (bool usedOnly in new[] { false, true })
+				{
+					yield return new object[] { purpose, writeMode, usedOnly };
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests for getting log writer names.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="usedOnly">
+		/// true to test getting names that are referenced in the log file only;
+		/// false to get all names.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(GetNamesTestData))]
+		private void GetLogWriterNames(LogFilePurpose purpose, LogFileWriteMode writeMode, bool usedOnly)
+		{
+			CommonGetNames(
+				purpose,
+				writeMode,
+				usedOnly,
+				message => new[] { message.LogWriterName },
+				file => file.GetLogWriterNames(usedOnly));
+		}
+
+		/// <summary>
+		/// Tests for getting log level names.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="usedOnly">
+		/// true to test getting names that are referenced in the log file only;
+		/// false to get all names.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(GetNamesTestData))]
+		private void GetLogLevelNames(LogFilePurpose purpose, LogFileWriteMode writeMode, bool usedOnly)
+		{
+			CommonGetNames(
+				purpose,
+				writeMode,
+				usedOnly,
+				message => new[] { message.LogLevelName },
+				file => file.GetLogLevelNames(usedOnly));
+		}
+
+		/// <summary>
+		/// Tests for getting process names.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="usedOnly">
+		/// true to test getting names that are referenced in the log file only;
+		/// false to get all names.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(GetNamesTestData))]
+		private void GetProcessNames(LogFilePurpose purpose, LogFileWriteMode writeMode, bool usedOnly)
+		{
+			CommonGetNames(
+				purpose,
+				writeMode,
+				usedOnly,
+				message => new[] { message.ProcessName },
+				file => file.GetProcessNames(usedOnly));
+		}
+
+		/// <summary>
+		/// Tests for getting all application names.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="usedOnly">
+		/// true to test getting names that are referenced in the log file only;
+		/// false to get all names.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(GetNamesTestData))]
+		private void GetApplicationNames(LogFilePurpose purpose, LogFileWriteMode writeMode, bool usedOnly)
+		{
+			CommonGetNames(
+				purpose,
+				writeMode,
+				usedOnly,
+				message => new[] { message.ApplicationName },
+				file => file.GetApplicationNames(usedOnly));
+		}
+
+		/// <summary>
+		/// Helper method for other test methods that check for lists of strings returned by the log file.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="usedOnly">
+		/// true to test getting names that are referenced in the log file only;
+		/// false to get all names.
+		/// </param>
+		/// <param name="selector">Selects a string property value out of a log message.</param>
+		/// <param name="action">Action to perform on the log file, returns the strings to compare with the list of selected strings.</param>
+		private void CommonGetNames(
+			LogFilePurpose purpose,
+			LogFileWriteMode writeMode,
+			bool usedOnly,
+			Func<LogMessage, IEnumerable<string>> selector,
+			Func<LogFile, string[]> action)
+		{
+			string path = purpose == LogFilePurpose.Recording
+				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			try
+			{
+				// get test data set with log messages that should be in the file
+				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+
+				// query the log file and check whether it returns the expected names
+				using (var file = new LogFile(path, purpose, writeMode))
+				{
+					if (usedOnly)
+					{
+						// testing to return names that are actually referenced by messages
+						// => clear out all except 1 message
+						// => the remaining message should then define the returned names
+						file.Prune(1, DateTime.MinValue, false);
+						Assert.Equal(1, file.MessageCount);
+						expectedMessages = new[] { expectedMessages[expectedMessages.Length - 1] };
+					}
+
+					// collect name(s) from message properties and build the set of expected names
+					HashSet<string> expectedNamesSet = new HashSet<string>();
+					foreach (var message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
+					var expectedNames = new List<string>(expectedNamesSet);
+					expectedNames.Sort(); // the list returned by the log file is expected to be sorted ascendingly
+
+					// perform the action to test on the log file and compare with the expected result
+					var names = action(file);
+					Assert.Equal(expectedNames, names);
+				}
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
+		}
+
+		#endregion
+
 		#region Write()
 
 		/// <summary>

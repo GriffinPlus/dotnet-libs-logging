@@ -40,18 +40,22 @@ namespace GriffinPlus.Lib.Logging
 			private readonly SQLiteCommand       mVacuumCommand;
 			private readonly SQLiteCommand       mVacuumIntoCommand;
 			private readonly SQLiteParameter     mVacuumIntoCommand_FileParameter;
+			private readonly SQLiteCommand       mSelectAllProcessNamesCommand;
 			private readonly SQLiteCommand       mInsertProcessNameCommand;
 			private readonly SQLiteParameter     mInsertProcessNameCommand_NameParameter;
 			private readonly SQLiteCommand       mSelectProcessNameIdCommand;
 			private readonly SQLiteParameter     mSelectProcessNameIdCommand_NameParameter;
+			private readonly SQLiteCommand       mSelectAllApplicationNamesCommand;
 			private readonly SQLiteCommand       mInsertApplicationNameCommand;
 			private readonly SQLiteParameter     mInsertApplicationNameCommand_NameParameter;
 			private readonly SQLiteCommand       mSelectApplicationNameIdCommand;
 			private readonly SQLiteParameter     mSelectApplicationNameIdCommand_NameParameter;
+			private readonly SQLiteCommand       mSelectAllLogWriterNamesCommand;
 			private readonly SQLiteCommand       mInsertLogWriterNameCommand;
 			private readonly SQLiteParameter     mInsertLogWriterNameCommand_NameParameter;
 			private readonly SQLiteCommand       mSelectLogWriterIdCommand;
 			private readonly SQLiteParameter     mSelectLogWriterIdCommand_NameParameter;
+			private readonly SQLiteCommand       mSelectAllLogLevelNamesCommand;
 			private readonly SQLiteCommand       mInsertLogLevelNameCommand;
 			private readonly SQLiteParameter     mInsertLogLevelNameCommand_NameParameter;
 			private readonly SQLiteCommand       mSelectLogLevelIdCommand;
@@ -173,6 +177,9 @@ namespace GriffinPlus.Lib.Logging
 				mVacuumIntoCommand = PrepareCommand("VACUUM INTO @file;");
 				mVacuumIntoCommand.Parameters.Add(mVacuumIntoCommand_FileParameter = new SQLiteParameter(DbType.String, "@file"));
 
+				// command to get all process names in ascending order
+				mSelectAllProcessNamesCommand = PrepareCommand("SELECT name FROM processes ORDER BY name ASC;");
+
 				// command to add a process name (id is assigned automatically)
 				mInsertProcessNameCommand = PrepareCommand("INSERT OR IGNORE INTO processes (name) VALUES (@name);");
 				mInsertProcessNameCommand.Parameters.Add(mInsertProcessNameCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
@@ -180,6 +187,9 @@ namespace GriffinPlus.Lib.Logging
 				// command to get the id of a process name
 				mSelectProcessNameIdCommand = PrepareCommand("SELECT id FROM processes WHERE name = @name;");
 				mSelectProcessNameIdCommand.Parameters.Add(mSelectProcessNameIdCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
+
+				// command to get all application names in ascending order
+				mSelectAllApplicationNamesCommand = PrepareCommand("SELECT name FROM applications ORDER BY name ASC;");
 
 				// command to add an application name (id is assigned automatically)
 				mInsertApplicationNameCommand = PrepareCommand("INSERT OR IGNORE INTO applications (name) VALUES (@name);");
@@ -189,6 +199,9 @@ namespace GriffinPlus.Lib.Logging
 				mSelectApplicationNameIdCommand = PrepareCommand("SELECT id FROM applications WHERE name = @name;");
 				mSelectApplicationNameIdCommand.Parameters.Add(mSelectApplicationNameIdCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
 
+				// command to get all log writer names in ascending order
+				mSelectAllLogWriterNamesCommand = PrepareCommand("SELECT name FROM writers ORDER BY name ASC;");
+
 				// command to add a log writer name (id is assigned automatically)
 				mInsertLogWriterNameCommand = PrepareCommand("INSERT OR IGNORE INTO writers (name) VALUES (@name);");
 				mInsertLogWriterNameCommand.Parameters.Add(mInsertLogWriterNameCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
@@ -196,6 +209,9 @@ namespace GriffinPlus.Lib.Logging
 				// command to get the id of a log writer name
 				mSelectLogWriterIdCommand = PrepareCommand("SELECT id FROM writers WHERE name = @name;");
 				mSelectLogWriterIdCommand.Parameters.Add(mSelectLogWriterIdCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
+
+				// command to get all log writer names in ascending order
+				mSelectAllLogLevelNamesCommand = PrepareCommand("SELECT name FROM levels ORDER BY name ASC;");
 
 				// command to add a log level name (id is assigned automatically)
 				mInsertLogLevelNameCommand = PrepareCommand("INSERT OR IGNORE INTO levels (name) VALUES (@name);");
@@ -280,6 +296,66 @@ namespace GriffinPlus.Lib.Logging
 			public long NewestMessageId { get; protected set; }
 
 			#region Public Methods
+
+			/// <summary>
+			/// Gets the name of log writers that are/were associated with log messages.
+			/// </summary>
+			/// <param name="usedOnly">
+			/// true to get the name of log writers that are referenced by messages in the log file only;
+			/// false to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+			/// </param>
+			/// <returns>A list of log writer names.</returns>
+			public string[] GetLogWriterNames(bool usedOnly)
+			{
+				return usedOnly
+					       ? GetUsedLogWriterNames()
+					       : ExecuteSingleColumnStringQuery(mSelectAllLogWriterNamesCommand);
+			}
+
+			/// <summary>
+			/// Gets the name of log levels that are/were associated with log messages.
+			/// </summary>
+			/// <param name="usedOnly">
+			/// true to get the name of log writers that are referenced by messages in the log file only;
+			/// false to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+			/// </param>
+			/// <returns>A list of log level names.</returns>
+			public string[] GetLogLevelNames(bool usedOnly)
+			{
+				return usedOnly
+					       ? GetUsedLogLevelNames()
+					       : ExecuteSingleColumnStringQuery(mSelectAllLogLevelNamesCommand);
+			}
+
+			/// <summary>
+			/// Gets the name of processes that are/were associated with log messages.
+			/// </summary>
+			/// <param name="usedOnly">
+			/// true to get the name of processes that are referenced by messages in the log file only;
+			/// false to get all process names (even if referencing log messages have been removed after clearing/pruning).
+			/// </param>
+			/// <returns>A list of process names.</returns>
+			public string[] GetProcessNames(bool usedOnly)
+			{
+				return usedOnly
+					       ? GetUsedProcessNames()
+					       : ExecuteSingleColumnStringQuery(mSelectAllProcessNamesCommand);
+			}
+
+			/// <summary>
+			/// Gets the name of applications that are/were associated with log messages.
+			/// </summary>
+			/// <param name="usedOnly">
+			/// true to get the name of applications that are referenced by messages in the log file only;
+			/// false to get all application names (even if referencing log messages have been removed after clearing/pruning).
+			/// </param>
+			/// <returns>A list of application names.</returns>
+			public string[] GetApplicationNames(bool usedOnly)
+			{
+				return usedOnly
+					       ? GetUsedApplicationNames()
+					       : ExecuteSingleColumnStringQuery(mSelectAllApplicationNamesCommand);
+			}
 
 			/// <summary>
 			/// Removes all data from the log file.
@@ -582,6 +658,30 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
+			/// Gets the name of log writers that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of log writer names.</returns>
+			protected abstract string[] GetUsedLogWriterNames();
+
+			/// <summary>
+			/// Gets the name of log levels that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of log level names.</returns>
+			protected abstract string[] GetUsedLogLevelNames();
+
+			/// <summary>
+			/// Gets the name of processes that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of process names.</returns>
+			protected abstract string[] GetUsedProcessNames();
+
+			/// <summary>
+			/// Gets the name of applications that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of application names.</returns>
+			protected abstract string[] GetUsedApplicationNames();
+
+			/// <summary>
 			/// Removes all schema specific data from the log file.
 			/// </summary>
 			/// <param name="messagesOnly">
@@ -792,6 +892,27 @@ namespace GriffinPlus.Lib.Logging
 						command.ExecuteNonQuery();
 					}
 				}
+			}
+
+			/// <summary>
+			/// Gets the name of all applications that are/were associated with log messages
+			/// (may contain application names that are not used by log messages any more after clearing/pruning).
+			/// </summary>
+			/// <returns>A list of application names.</returns>
+			protected string[] ExecuteSingleColumnStringQuery(SQLiteCommand command)
+			{
+				var list = new List<string>();
+
+				command.Reset();
+				using (var reader = command.ExecuteReader())
+				{
+					while (reader.Read())
+					{
+						list.Add(reader.GetString(0));
+					}
+				}
+
+				return list.ToArray();
 			}
 
 			#endregion

@@ -21,6 +21,10 @@ namespace GriffinPlus.Lib.Logging
 		{
 			private readonly SQLiteCommand   mGetOldestMessageIdCommand;
 			private readonly SQLiteCommand   mGetNewestMessageIdCommand;
+			private readonly SQLiteCommand   mSelectUsedProcessNamesCommand;
+			private readonly SQLiteCommand   mSelectUsedApplicationNamesCommand;
+			private readonly SQLiteCommand   mSelectUsedLogWriterNamesCommand;
+			private readonly SQLiteCommand   mSelectUsedLogLevelNamesCommand;
 			private readonly SQLiteCommand   mInsertMessageCommand;
 			private readonly SQLiteParameter mInsertMessageCommand_IdParameter;
 			private readonly SQLiteParameter mInsertMessageCommand_TimestampParameter;
@@ -85,6 +89,12 @@ namespace GriffinPlus.Lib.Logging
 				// commands to get the lowest and the highest message id
 				mGetOldestMessageIdCommand = PrepareCommand("SELECT id FROM messages ORDER BY id ASC  LIMIT 1;");
 				mGetNewestMessageIdCommand = PrepareCommand("SELECT id FROM messages ORDER BY id DESC LIMIT 1;");
+
+				// command to get names of referenced processes, application, log writers and log levels in ascending order
+				mSelectUsedProcessNamesCommand = PrepareCommand("SELECT DISTINCT p.name FROM messages as m, processes as p WHERE m.process_name_id == p.id ORDER BY p.name ASC;");
+				mSelectUsedApplicationNamesCommand = PrepareCommand("SELECT DISTINCT a.name FROM messages as m, applications as a WHERE m.application_name_id == a.id ORDER BY a.name ASC;");
+				mSelectUsedLogWriterNamesCommand = PrepareCommand("SELECT DISTINCT w.name FROM messages as m, writers as w WHERE m.writer_name_id == w.id ORDER BY w.name ASC;");
+				mSelectUsedLogLevelNamesCommand = PrepareCommand("SELECT DISTINCT l.name FROM messages as m, levels as l WHERE m.level_name_id == l.id ORDER BY l.name ASC;");
 
 				// command to add a log message metadata record (everything, but the actual message text)
 				mInsertMessageCommand = PrepareCommand(
@@ -174,6 +184,42 @@ namespace GriffinPlus.Lib.Logging
 			{
 				var result = ExecuteScalarCommand(mGetNewestMessageIdCommand);
 				return result != null ? Convert.ToInt64(result) : -1;
+			}
+
+			/// <summary>
+			/// Gets the name of log writers that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of log writer names.</returns>
+			protected override string[] GetUsedLogWriterNames()
+			{
+				return ExecuteSingleColumnStringQuery(mSelectUsedLogWriterNamesCommand);
+			}
+
+			/// <summary>
+			/// Gets the name of log levels that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of log level names.</returns>
+			protected override string[] GetUsedLogLevelNames()
+			{
+				return ExecuteSingleColumnStringQuery(mSelectUsedLogLevelNamesCommand);
+			}
+
+			/// <summary>
+			/// Gets the name of processes that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of process names.</returns>
+			protected override string[] GetUsedProcessNames()
+			{
+				return ExecuteSingleColumnStringQuery(mSelectUsedProcessNamesCommand);
+			}
+
+			/// <summary>
+			/// Gets the name of applications that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of application names.</returns>
+			protected override string[] GetUsedApplicationNames()
+			{
+				return ExecuteSingleColumnStringQuery(mSelectUsedApplicationNamesCommand);
 			}
 
 			/// <summary>
