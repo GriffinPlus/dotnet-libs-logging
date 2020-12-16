@@ -369,7 +369,15 @@ namespace GriffinPlus.Lib.Logging
 				BeginTransaction();
 				try
 				{
-					if (!messagesOnly) ExecuteNonQueryCommands(sDeleteEverythingCommands_CommonTables);
+					if (!messagesOnly)
+					{
+						ExecuteNonQueryCommands(sDeleteEverythingCommands_CommonTables);
+						mProcessNameToId.Clear();
+						mApplicationNameToId.Clear();
+						mLogWriterNameToId.Clear();
+						mLogLevelNameToId.Clear();
+					}
+
 					ClearSpecific(messagesOnly);
 					CommitTransaction();
 				}
