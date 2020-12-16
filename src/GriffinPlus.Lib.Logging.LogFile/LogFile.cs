@@ -258,8 +258,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="fromId">Id of the message to start at.</param>
 		/// <param name="count">Number of log messages to get.</param>
 		/// <returns>The requested log messages.</returns>
-		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> is not in the interval [OldestMessageId,NewestMessageId].</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
 		/// <exception cref="LogFileException">Reading failed (see inner exception for details).</exception>
+		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		public LogMessage[] Read(long fromId, int count)
 		{
 			CheckDisposed();
@@ -286,9 +288,10 @@ namespace GriffinPlus.Lib.Logging
 		/// true, if reading ran to completion;
 		/// false, if reading was cancelled.
 		/// </returns>
-		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> or <paramref name="count" /> must be positive.</exception>
-		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> is not in the interval [OldestMessageId,NewestMessageId].</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
 		/// <exception cref="LogFileException">Reading failed (see inner exception for details).</exception>
+		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		public bool Read(long fromId, long count, ReadMessageCallback callback)
 		{
 			CheckDisposed();

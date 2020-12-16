@@ -178,10 +178,12 @@ namespace GriffinPlus.Lib.Logging
 			/// true, if reading ran to completion;
 			/// false, if reading was cancelled.
 			/// </returns>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> or <paramref name="count" /> must be positive.</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> is not in the interval [OldestMessageId,NewestMessageId].</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
 			public override bool Read(long fromId, long count, ReadMessageCallback callback)
 			{
-				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
+				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, $"The log message id must be positive.");
+				if (fromId < OldestMessageId || fromId > NewestMessageId) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, $"The log message id must be in the interval [{OldestMessageId},{NewestMessageId}].");
 				if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "The number of log messages must be positive.");
 
 				// columns in result:
