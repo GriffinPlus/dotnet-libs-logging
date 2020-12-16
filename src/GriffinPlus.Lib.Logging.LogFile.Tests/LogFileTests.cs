@@ -522,13 +522,42 @@ namespace GriffinPlus.Lib.Logging
 		#region Clear()
 
 		/// <summary>
+		/// Test data providing a mix of purpose and write modes.
+		/// </summary>
+		public static IEnumerable<object[]> ClearTestData
+		{
+			get
+			{
+				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
+				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
+				foreach (bool messagesOnly in new [] { false, true })
+				foreach (bool compact in new [] { false, true })
+				{
+					yield return new object[] { purpose, writeMode, messagesOnly, compact };
+				}
+			}
+		}
+
+		/// <summary>
 		/// Tests clearing an existing log file.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="messagesOnly">
+		/// true to remove messages only;
+		/// false to remove processes, applications, log writers, log levels and tags as well.
+		/// </param>
+		/// <param name="compact">
+		/// true to compact the log file after clearing (default);
+		/// false to clear the log file, but do not compact it.
+		/// </param>
 		[Theory]
-		[MemberData(nameof(PurposeWriteModeMixTestData))]
-		private void Clear(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		[MemberData(nameof(ClearTestData))]
+		private void Clear(
+			LogFilePurpose   purpose,
+			LogFileWriteMode writeMode,
+			bool             messagesOnly,
+			bool             compact)
 		{
 			string path = purpose == LogFilePurpose.Recording
 				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
@@ -550,10 +579,17 @@ namespace GriffinPlus.Lib.Logging
 					Assert.Equal(0, file.OldestMessageId);
 					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
 
-					// clear log file
-					file.Clear();
+					// retrieve the lists of log writers, levels, process names etc.
+					var logWriterNames = file.GetLogWriterNames(false);
+					var logLevelNames = file.GetLogLevelNames(false);
+					var processNames = file.GetProcessNames(false);
+					var applicationNames = file.GetApplicationNames(false);
+					var tags = file.GetTags(false);
 
-					// the file should be empty now
+					// clear log file
+					file.Clear(messagesOnly, compact);
+
+					// the file should not contain any messages now
 					Assert.Equal(0, file.MessageCount);
 					Assert.Equal(-1, file.OldestMessageId);
 					Assert.Equal(-1, file.NewestMessageId);
@@ -561,11 +597,31 @@ namespace GriffinPlus.Lib.Logging
 					// the collection should reflect the change as well
 					Assert.Equal(0, file.Messages.Count);
 					Assert.Empty(file.Messages);
+
+					if (messagesOnly)
+					{
+						// clearing should not have touched any non-message data
+						Assert.Equal(logWriterNames, file.GetLogWriterNames(false));
+						Assert.Equal(logLevelNames, file.GetLogLevelNames(false));
+						Assert.Equal(processNames, file.GetProcessNames(false));
+						Assert.Equal(applicationNames, file.GetApplicationNames(false));
+						Assert.Equal(tags, file.GetTags(false));
+					}
+					else
+					{
+						// clearing should not have cleared non-message data as well
+						Assert.Empty(file.GetLogWriterNames(false));
+						Assert.Empty(file.GetLogLevelNames(false));
+						Assert.Empty(file.GetProcessNames(false));
+						Assert.Empty(file.GetApplicationNames(false));
+						Assert.Empty(file.GetTags(false));
+					}
 				}
 
-				// the file should be smaller now as the database is vacuum'ed after clearing
+				// if compacting is requested, the file should be smaller now
 				long fileSizeAtEnd = new FileInfo(path).Length;
-				Assert.True(fileSizeAtEnd < fileSizeAtStart);
+				if (compact) Assert.True(fileSizeAtEnd < fileSizeAtStart);
+				else Assert.Equal(fileSizeAtStart, fileSizeAtEnd);
 			}
 			finally
 			{

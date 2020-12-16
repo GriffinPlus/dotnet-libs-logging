@@ -325,9 +325,13 @@ namespace GriffinPlus.Lib.Logging
 		/// true to remove messages only;
 		/// false to remove processes, applications, log writers, log levels and tags as well.
 		/// </param>
+		/// <param name="compact">
+		/// true to compact the log file after clearing (default);
+		/// false to clear the log file, but do not compact it.
+		/// </param>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		/// <exception cref="LogFileException">Clearing the log file failed (see inner exception for details).</exception>
-		public void Clear(bool messagesOnly = true)
+		public void Clear(bool messagesOnly = true, bool compact = true)
 		{
 			CheckDisposed();
 
@@ -335,7 +339,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// clear and shrink the log file
 				mDatabaseAccessor.Clear(messagesOnly);
-				mDatabaseAccessor.Vacuum();
+				if (compact) mDatabaseAccessor.Vacuum();
 			}
 			catch (SQLiteException ex)
 			{
