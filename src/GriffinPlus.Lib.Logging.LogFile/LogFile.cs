@@ -323,7 +323,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="messagesOnly">
 		/// true to remove messages only;
-		/// false to remove processes, applications, log writers, log levels and tags as well.
+		/// false to remove processes, applications, log writers, log levels and tags as well (default).
 		/// </param>
 		/// <param name="compact">
 		/// true to compact the log file after clearing (default);
@@ -331,7 +331,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		/// <exception cref="LogFileException">Clearing the log file failed (see inner exception for details).</exception>
-		public void Clear(bool messagesOnly = true, bool compact = true)
+		public void Clear(bool messagesOnly = false, bool compact = true)
 		{
 			CheckDisposed();
 
