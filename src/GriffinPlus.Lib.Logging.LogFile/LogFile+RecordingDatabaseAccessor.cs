@@ -182,7 +182,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
 			public override bool Read(long fromId, long count, ReadMessageCallback callback)
 			{
-				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, $"The log message id must be positive.");
+				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
 				if (fromId < OldestMessageId || fromId > NewestMessageId) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, $"The log message id must be in the interval [{OldestMessageId},{NewestMessageId}].");
 				if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "The number of log messages must be positive.");
 
@@ -267,33 +267,30 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Removes log messages that are above the specified message limit -or- older than the specified age.
+			/// Removes log messages that are above the specified message limit -or- have a timestamp before the specified point in time.
 			/// </summary>
 			/// <param name="maximumMessageCount">
-			/// Maximum number of messages to enforce;
+			/// Maximum number of messages to keep;
 			/// -1 to disable removing messages by maximum message count.
 			/// </param>
-			/// <param name="maximumMessageAge">
-			/// Maximum age of log messages to keep;
-			/// <seealso cref="TimeSpan.Zero" /> or a negative timespan to disable removing messages by age.
+			/// <param name="minimumMessageTimestamp">
+			/// Point in time (UTC) to keep messages after (includes the exact point in time);
+			/// <seealso cref="DateTime.MinValue" /> to disable removing messages by age.
 			/// </param>
-			public override void Cleanup(long maximumMessageCount, TimeSpan maximumMessageAge)
+			public override void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp)
 			{
 				// abort, if the database is empty
 				if (OldestMessageId < 0)
 					return;
-
-				// calculate the timestamp of the first message to keep (older messages will be deleted)
-				long deleteByTimestampTicks = maximumMessageAge > TimeSpan.Zero ? DateTime.UtcNow.Ticks - maximumMessageAge.Ticks : -1;
 
 				BeginTransaction();
 				try
 				{
 					// determine the id of the first message older than the specified timestamp
 					long deleteByTimestampMessageId = -1;
-					if (deleteByTimestampTicks >= 0)
+					if (minimumMessageTimestamp > DateTime.MinValue)
 					{
-						mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter.Value = DateTime.UtcNow.Ticks - maximumMessageAge.Ticks;
+						mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter.Value = minimumMessageTimestamp.Ticks;
 						var result = ExecuteScalarCommand(mSelectMessageIdByTimestampForDeleteMessagesCommand);
 						deleteByTimestampMessageId = result != null ? Convert.ToInt64(result) : -1;
 					}
@@ -301,8 +298,12 @@ namespace GriffinPlus.Lib.Logging
 					// determine the id of the first message to delete due to the maximum message count limit
 					// (determined row is included)
 					long totalMessageCount = NewestMessageId - OldestMessageId + 1;
-					long messagesToDeleteCount = Math.Max(totalMessageCount - maximumMessageCount, 0);
-					long deleteByMaxMessageCountMessageId = messagesToDeleteCount > 0 ? OldestMessageId + messagesToDeleteCount - 1 : -1;
+					long deleteByMaxMessageCountMessageId = -1;
+					if (maximumMessageCount >= 0)
+					{
+						long messagesToDeleteCount = Math.Max(totalMessageCount - maximumMessageCount, 0);
+						deleteByMaxMessageCountMessageId = messagesToDeleteCount > 0 ? OldestMessageId + messagesToDeleteCount - 1 : -1;
+					}
 
 					// combine selection conditions
 					long messageId = -1;

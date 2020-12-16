@@ -316,7 +316,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
 			public virtual LogMessage[] Read(long fromId, int count)
 			{
-				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, $"The log message id must be positive.");
+				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
 				if (fromId < OldestMessageId || fromId > NewestMessageId) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, $"The log message id must be in the interval [{OldestMessageId},{NewestMessageId}].");
 				if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "The number of log messages must be positive.");
 
@@ -403,17 +403,17 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Removes log messages that are above the specified message limit -or- older than the specified age.
+			/// Removes log messages that are above the specified message limit -or- have a timestamp before the specified point in time.
 			/// </summary>
 			/// <param name="maximumMessageCount">
-			/// Maximum number of messages to enforce;
+			/// Maximum number of messages to keep;
 			/// -1 to disable removing messages by maximum message count.
 			/// </param>
-			/// <param name="maximumMessageAge">
-			/// Maximum age of log messages to keep;
-			/// <seealso cref="TimeSpan.Zero" /> or a negative timespan to disable removing messages by age.
+			/// <param name="minimumMessageTimestamp">
+			/// Point in time (UTC) to keep messages after (includes the exact point in time);
+			/// <seealso cref="DateTime.MinValue" /> to disable removing messages by age.
 			/// </param>
-			public abstract void Cleanup(long maximumMessageCount, TimeSpan maximumMessageAge);
+			public abstract void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp);
 
 			/// <summary>
 			/// Gets the application id stored in the sqlite database ('PRAGMA application_id').

@@ -48,8 +48,7 @@ namespace GriffinPlus.Lib.Logging
 
 		#region Member Variables
 
-		private readonly LinkedList<CachePage> mCachePages = new LinkedList<CachePage>();
-		private readonly long                  mOldestMessageIdAtStartup;
+		private readonly LinkedList<CachePage> mCachePages        = new LinkedList<CachePage>();
 		private          int                   mMaxCachePageCount = DefaultMaxCachePageCount;
 		private          int                   mCachePageCapacity = DefaultCachePageCapacity;
 		private          int                   mChangeCounter;
@@ -86,8 +85,6 @@ namespace GriffinPlus.Lib.Logging
 		{
 			LogFile = new LogFile(path, purpose, mode, this);
 			FilePath = LogFile.FilePath;
-			mOldestMessageIdAtStartup = LogFile.OldestMessageId;
-			if (mOldestMessageIdAtStartup < 1) mOldestMessageIdAtStartup = 0;
 		}
 
 		/// <summary>
@@ -98,8 +95,6 @@ namespace GriffinPlus.Lib.Logging
 		{
 			LogFile = file ?? throw new ArgumentNullException(nameof(file));
 			FilePath = LogFile.FilePath;
-			mOldestMessageIdAtStartup = LogFile.OldestMessageId;
-			if (mOldestMessageIdAtStartup < 1) mOldestMessageIdAtStartup = 0;
 		}
 
 		/// <summary>
@@ -615,6 +610,7 @@ namespace GriffinPlus.Lib.Logging
 		internal void ResetCollectionInternal()
 		{
 			mChangeCounter++;
+			mCachePages.Clear();
 
 			var handler = CollectionChanged;
 			handler?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
@@ -694,7 +690,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// cache does not contain the requested message
 			// => insert page into the cache
-			firstMessageId = mOldestMessageIdAtStartup + mCachePageCapacity * ((id - mOldestMessageIdAtStartup) / mCachePageCapacity);
+			firstMessageId = LogFile.OldestMessageId + mCachePageCapacity * ((id - LogFile.OldestMessageId) / mCachePageCapacity);
 			if (mCachePages.Count >= mMaxCachePageCount)
 			{
 				// cache is full

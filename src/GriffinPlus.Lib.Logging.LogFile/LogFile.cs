@@ -361,42 +361,40 @@ namespace GriffinPlus.Lib.Logging
 		/// Removes log messages that are above the specified message limit -or- older than the specified age.
 		/// </summary>
 		/// <param name="maximumMessageCount">
-		/// Maximum number of messages to enforce;
+		/// Maximum number of messages to keep;
 		/// -1 to disable removing messages by maximum message count.
 		/// </param>
-		/// <param name="maximumMessageAge">
-		/// Maximum age of log messages to keep;
-		/// <seealso cref="TimeSpan.Zero" /> to disable removing messages by age.
+		/// <param name="minimumMessageTimestamp">
+		/// Point in time (UTC) to keep messages after (includes the exact point in time);
+		/// <seealso cref="DateTime.MinValue" /> to disable removing messages by age.
+		/// </param>
+		/// <param name="compact">
+		/// true to compact the log file after removing log messages;
+		/// otherwise false.
 		/// </param>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// The message limit must be > 0 to limit the number of message or -1 to disable the limit.
 		/// </exception>
-		/// <exception cref="ArgumentOutOfRangeException">
-		/// The maximum message age must be positive to limit the number of messages or TimeSpan.Empty to disable the limit.
-		/// </exception>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		/// <exception cref="LogFileException">Cleaning up failed (see inner exception for details).</exception>
-		public void Cleanup(long maximumMessageCount, TimeSpan maximumMessageAge)
+		public void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp, bool compact = false)
 		{
-			if (maximumMessageCount < -1 || maximumMessageCount == 0)
+			if (maximumMessageCount < -1)
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(maximumMessageCount),
 					"The maximum message count must be > 0 to limit the number of messages or -1 to disable the limit.");
 			}
 
-			if (maximumMessageAge < TimeSpan.Zero)
-			{
-				throw new ArgumentOutOfRangeException(
-					nameof(maximumMessageAge),
-					"The maximum message age must be positive to limit the number of messages or TimeSpan.Empty to disable the limit.");
-			}
-
 			CheckDisposed();
 
+			bool pruned = false;
 			try
 			{
-				mDatabaseAccessor.Cleanup(maximumMessageCount, maximumMessageAge);
+				long oldestMessageId = mDatabaseAccessor.OldestMessageId;
+				mDatabaseAccessor.Prune(maximumMessageCount, minimumMessageTimestamp);
+				pruned = oldestMessageId != mDatabaseAccessor.OldestMessageId;
+				if (compact && pruned) mDatabaseAccessor.Vacuum();
 			}
 			catch (SQLiteException ex)
 			{
@@ -405,7 +403,7 @@ namespace GriffinPlus.Lib.Logging
 					ex);
 			}
 
-			mMessageCollection.ResetCollectionInternal();
+			if (pruned) mMessageCollection.ResetCollectionInternal();
 		}
 
 		/// <summary>

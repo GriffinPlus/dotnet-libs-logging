@@ -360,7 +360,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Clear()
 
 		/// <summary>
-		/// Tests writing a single message to an empty log file and reading the message back.
+		/// Tests clearing an existing log file.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -404,6 +404,155 @@ namespace GriffinPlus.Lib.Logging
 				// the file should be smaller now as the database is vacuum'ed after clearing
 				long fileSizeAtEnd = new FileInfo(path).Length;
 				Assert.True(fileSizeAtEnd < fileSizeAtStart);
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
+		}
+
+		#endregion
+
+		#region Prune()
+
+		/// <summary>
+		/// Test data providing a mix of purpose and write modes.
+		/// </summary>
+		public static IEnumerable<object[]> PruneTestData
+		{
+			get
+			{
+				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
+				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
+				foreach (bool compact in new[] { false, true })
+				{
+					yield return new object[] { purpose, writeMode, compact, -1, -1 };     // do not discard anything
+					yield return new object[] { purpose, writeMode, compact, 10000, -1 };  // discard by message count limit, but the file does not contain more than that messages
+					yield return new object[] { purpose, writeMode, compact, 9999, -1 };   // discard the oldest message by message count
+					yield return new object[] { purpose, writeMode, compact, 5000, -1 };   // discard half of the messages by message count
+					yield return new object[] { purpose, writeMode, compact, 2, -1 };      // discard all but the newest two messages by message count
+					yield return new object[] { purpose, writeMode, compact, 1, -1 };      // discard all but the newest message by message count
+					yield return new object[] { purpose, writeMode, compact, 0, -1 };      // discard all messages by message count
+					yield return new object[] { purpose, writeMode, compact, -1, 0 };      // do not discard anything
+					yield return new object[] { purpose, writeMode, compact, -1, 1 };      // discard the oldest message by timestamp
+					yield return new object[] { purpose, writeMode, compact, -1, 2 };      // discard the oldest two messages by timestamp
+					yield return new object[] { purpose, writeMode, compact, -1, 5000 };   // discard half of the messages by timestamp
+					yield return new object[] { purpose, writeMode, compact, -1, 9999 };   // discard all messages but the newest message by timestamp
+					yield return new object[] { purpose, writeMode, compact, -1, 10000 };  // discard all messages by timestamp
+					yield return new object[] { purpose, writeMode, compact, 5000, 4999 }; // discard half of the messages (by message count discards one more than by timestamp)
+					yield return new object[] { purpose, writeMode, compact, 4999, 5000 }; // discard half of the messages (by timestamp discards one more than by message count)
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests pruning an existing log file.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="compact">true to compact the log file; otherwise false.</param>
+		/// <param name="maximumMessageCount">Number of messages to keep in the log file.</param>
+		/// <param name="pruneByTimestampCount">Number of old messages to remove by timestamp.</param>
+		[Theory]
+		[MemberData(nameof(PruneTestData))]
+		private void Prune(
+			LogFilePurpose   purpose,
+			LogFileWriteMode writeMode,
+			bool             compact,
+			int              maximumMessageCount,
+			int              pruneByTimestampCount)
+		{
+			string path = purpose == LogFilePurpose.Recording
+				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			try
+			{
+				// get the initial size of the log file
+				long fileSizeAtStart = new FileInfo(path).Length;
+
+				// get test data set with log messages that should be in the file
+				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+
+				int totalMessageCount = expectedMessages.Length;
+				int pruneTotalCount;
+				using (var file = new LogFile(path, purpose, writeMode))
+				{
+					// check initial status of the file
+					Assert.Equal(totalMessageCount, file.MessageCount);
+					Assert.Equal(0, file.OldestMessageId);
+					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
+
+					// generate the appropriate prune timestamp
+					var pruneTimestamp = DateTime.MinValue;
+					pruneTotalCount = maximumMessageCount >= 0 ? Math.Min(expectedMessages.Length, expectedMessages.Length - maximumMessageCount) : 0;
+					if (pruneByTimestampCount > 0)
+					{
+						if (pruneByTimestampCount >= expectedMessages.Length)
+						{
+							var newestMessage = expectedMessages[expectedMessages.Length - 1];
+							pruneTimestamp = newestMessage.Timestamp.UtcDateTime + new TimeSpan(1);
+							pruneTotalCount = Math.Max(pruneTotalCount, expectedMessages.Length);
+						}
+						else
+						{
+							var firstMessageToKeep = expectedMessages[pruneByTimestampCount];
+							pruneTimestamp = firstMessageToKeep.Timestamp.UtcDateTime;
+							pruneTotalCount = Math.Max(pruneTotalCount, pruneByTimestampCount);
+						}
+					}
+
+					// prune log file
+					file.Prune(maximumMessageCount, pruneTimestamp, compact);
+
+					// determine the expected number of remaining messages
+					int expectedMessageCount = expectedMessages.Length;
+					if (maximumMessageCount >= 0) expectedMessageCount = Math.Min(expectedMessageCount, maximumMessageCount);
+					if (pruneByTimestampCount >= 0) expectedMessageCount = Math.Min(expectedMessageCount, expectedMessages.Length - pruneByTimestampCount);
+
+					// check the number of messages in the file, the ids of the oldest/newest message
+					// and the remaining messages in the file
+					int newOldestMessageId = pruneTotalCount; // the id of the oldest message was 0, so the prune count is the id of the now oldest message
+					Assert.Equal(expectedMessageCount, file.MessageCount);
+					if (expectedMessageCount > 0)
+					{
+						Assert.Equal(totalMessageCount - expectedMessageCount, file.OldestMessageId);
+						Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
+						var readMessages = file.Read(newOldestMessageId, expectedMessageCount + 1);
+						Assert.Equal(expectedMessageCount, readMessages.Length);
+						Assert.Equal(
+							expectedMessages.Skip(expectedMessages.Length - expectedMessageCount).ToArray(),
+							readMessages);
+					}
+					else
+					{
+						Assert.Equal(-1, file.OldestMessageId);
+						Assert.Equal(-1, file.NewestMessageId);
+					}
+
+					// the collection should reflect the change as well
+					if (expectedMessageCount > 0)
+					{
+						Assert.Equal(expectedMessageCount, file.Messages.Count);
+						Assert.Equal(
+							expectedMessages.Skip(expectedMessages.Length - expectedMessageCount).ToArray(),
+							file.Messages.ToArray());
+					}
+					else
+					{
+						Assert.Equal(0, file.Messages.Count);
+						Assert.Empty(file.Messages);
+					}
+				}
+
+				// the file should be smaller now as the database is vacuum'ed after pruning
+				// (this test is a bit tricky as a database page contains multiple records and removing only few records does not guarantee that a page is removed)
+				if (compact && pruneTotalCount > 10)
+				{
+					long fileSizeAtEnd = new FileInfo(path).Length;
+					Assert.True(fileSizeAtEnd < fileSizeAtStart);
+				}
 			}
 			finally
 			{
