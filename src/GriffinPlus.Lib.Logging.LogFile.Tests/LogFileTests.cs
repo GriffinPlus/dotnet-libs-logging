@@ -584,7 +584,6 @@ namespace GriffinPlus.Lib.Logging
 					var logLevelNames = file.GetLogLevelNames(false);
 					var processNames = file.GetProcessNames(false);
 					var applicationNames = file.GetApplicationNames(false);
-					var tags = file.GetTags(false);
 
 					// clear log file
 					file.Clear(messagesOnly, compact);
@@ -605,7 +604,6 @@ namespace GriffinPlus.Lib.Logging
 						Assert.Equal(logLevelNames, file.GetLogLevelNames(false));
 						Assert.Equal(processNames, file.GetProcessNames(false));
 						Assert.Equal(applicationNames, file.GetApplicationNames(false));
-						Assert.Equal(tags, file.GetTags(false));
 					}
 					else
 					{
@@ -614,7 +612,6 @@ namespace GriffinPlus.Lib.Logging
 						Assert.Empty(file.GetLogLevelNames(false));
 						Assert.Empty(file.GetProcessNames(false));
 						Assert.Empty(file.GetApplicationNames(false));
-						Assert.Empty(file.GetTags(false));
 					}
 				}
 
@@ -771,6 +768,69 @@ namespace GriffinPlus.Lib.Logging
 					long fileSizeAtEnd = new FileInfo(path).Length;
 					Assert.True(fileSizeAtEnd < fileSizeAtStart);
 				}
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
+		}
+
+		#endregion
+
+		#region Compact()
+
+		/// <summary>
+		/// Tests compacting a log file after clearing.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		[Theory]
+		[MemberData(nameof(PurposeWriteModeMixTestData))]
+		private void Compact(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		{
+			string path = purpose == LogFilePurpose.Recording
+				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			try
+			{
+				// get the initial size of the log file
+				long fileSizeAtStart = new FileInfo(path).Length;
+
+				// get test data set with log messages that should be in the file
+				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+
+				int totalMessageCount = expectedMessages.Length;
+				using (var file = new LogFile(path, purpose, writeMode))
+				{
+					// check initial status of the file
+					Assert.Equal(totalMessageCount, file.MessageCount);
+					Assert.Equal(0, file.OldestMessageId);
+					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
+
+					// remove all messages from the log file, but do not compact the file afterwards
+					file.Clear(false, false);
+					Assert.Equal(0, file.MessageCount);
+				}
+
+				// the log file must be closed as robust write mode lets its sqlite database run in WAL mode
+				// => closing the database file merges the WAL into the database file creating the final file
+				//    (otherwise the file keeps its initial size)
+
+				// the log file should still have the same size
+				long fileSizeAtClearing = new FileInfo(path).Length;
+				Assert.Equal(fileSizeAtStart, fileSizeAtClearing);
+
+				// compact the log file
+				using (var file = new LogFile(path, purpose, writeMode))
+				{
+					file.Compact();
+				}
+
+				// the file should be smaller now
+				long fileSizeAtEnd = new FileInfo(path).Length;
+				Assert.True(fileSizeAtEnd < fileSizeAtStart);
 			}
 			finally
 			{

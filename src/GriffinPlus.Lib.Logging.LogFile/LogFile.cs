@@ -507,6 +507,25 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Compacts the log file.
+		/// </summary>
+		public void Compact()
+		{
+			CheckDisposed();
+
+			try
+			{
+				mDatabaseAccessor.Vacuum();
+			}
+			catch (SQLiteException ex)
+			{
+				throw new LogFileException(
+					$"Saving snapshot failed: {ex.Message}",
+					ex);
+			}
+		}
+
+		/// <summary>
 		/// Saves a snapshot of the log file.
 		/// </summary>
 		/// <param name="path">Path of the file to save the snapshot to.</param>
