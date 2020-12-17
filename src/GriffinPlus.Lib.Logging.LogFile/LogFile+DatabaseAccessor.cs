@@ -26,10 +26,10 @@ namespace GriffinPlus.Lib.Logging
 			private readonly   bool       mCanRollback;
 
 			// dictionaries caching mappings from names to corresponding ids used to reference these names
-			private readonly Dictionary<string, long> mProcessNameToId     = new Dictionary<string, long>();
-			private readonly Dictionary<string, long> mApplicationNameToId = new Dictionary<string, long>();
-			private readonly Dictionary<string, long> mLogWriterNameToId   = new Dictionary<string, long>();
-			private readonly Dictionary<string, long> mLogLevelNameToId    = new Dictionary<string, long>();
+			private readonly OverlayDictionary<string, long> mProcessNameToId     = new OverlayDictionary<string, long>();
+			private readonly OverlayDictionary<string, long> mApplicationNameToId = new OverlayDictionary<string, long>();
+			private readonly OverlayDictionary<string, long> mLogWriterNameToId   = new OverlayDictionary<string, long>();
+			private readonly OverlayDictionary<string, long> mLogLevelNameToId    = new OverlayDictionary<string, long>();
 
 			// sqlite specific commands
 			private readonly SQLiteConnection    mConnection;
@@ -366,12 +366,14 @@ namespace GriffinPlus.Lib.Logging
 			/// </param>
 			public virtual void Clear(bool messagesOnly)
 			{
-				BeginTransaction();
-				try
+				void Operation()
 				{
 					if (!messagesOnly)
 					{
+						// clear tables in the database
 						ExecuteNonQueryCommands(sDeleteEverythingCommands_CommonTables);
+
+						// clear cache dictionaries
 						mProcessNameToId.Clear();
 						mApplicationNameToId.Clear();
 						mLogWriterNameToId.Clear();
@@ -379,12 +381,9 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					ClearSpecific(messagesOnly);
-					CommitTransaction();
 				}
-				catch
-				{
-					RollbackTransaction();
-				}
+
+				ExecuteInTransaction(Operation);
 
 				OldestMessageId = -1;
 				NewestMessageId = -1;
@@ -439,17 +438,12 @@ namespace GriffinPlus.Lib.Logging
 			{
 				long messageId = NewestMessageId;
 
-				BeginTransaction();
-				try
+				void Operation()
 				{
 					WriteLogMessage(message, ++messageId);
-					CommitTransaction();
 				}
-				catch
-				{
-					RollbackTransaction();
-					throw;
-				}
+
+				ExecuteInTransaction(Operation);
 
 				if (OldestMessageId < 0) OldestMessageId = messageId;
 				NewestMessageId = messageId;
@@ -464,22 +458,17 @@ namespace GriffinPlus.Lib.Logging
 			{
 				long count = 0;
 
-				BeginTransaction();
-				try
+				void Operation()
 				{
+					// ReSharper disable once PossibleMultipleEnumeration
 					foreach (var message in messages)
 					{
 						WriteLogMessage(message, NewestMessageId + count + 1);
 						count++;
 					}
+				}
 
-					CommitTransaction();
-				}
-				catch
-				{
-					RollbackTransaction();
-					throw;
-				}
+				ExecuteInTransaction(Operation);
 
 				NewestMessageId = NewestMessageId + count;
 				if (OldestMessageId < 0) OldestMessageId = NewestMessageId - count + 1;
@@ -829,6 +818,85 @@ namespace GriffinPlus.Lib.Logging
 				// command.Prepare(); // commands are automatically prepared as they are used the first time and kept in prepared state
 				mCommands.Add(command);
 				return command;
+			}
+
+			/// <summary>
+			/// Executes the specified action in a sqlite transaction.
+			/// </summary>
+			/// <param name="action">Action to execute.</param>
+			protected void ExecuteInTransaction(Action action)
+			{
+				BeginTransaction();
+				try
+				{
+					// execute the action
+					action();
+
+					// commit changes to the database
+					CommitTransaction();
+
+					// the database has successfully committed changes
+					// => commit changes to cache dictionaries as well
+					mProcessNameToId.Commit();
+					mApplicationNameToId.Commit();
+					mLogWriterNameToId.Commit();
+					mLogLevelNameToId.Commit();
+				}
+				catch
+				{
+					// discard changes to cache dictionaries
+					mProcessNameToId.Discard();
+					mApplicationNameToId.Discard();
+					mLogWriterNameToId.Discard();
+					mLogLevelNameToId.Discard();
+
+					// roll back changes to the database
+					RollbackTransaction();
+
+					throw;
+				}
+			}
+
+			/// <summary>
+			/// Executes the specified action in a sqlite transaction.
+			/// </summary>
+			/// <typeparam name="TResult">Type of the result returned by the action.</typeparam>
+			/// <param name="action">Action to execute.</param>
+			/// <returns>The result returned by the action.</returns>
+			protected TResult ExecuteInTransaction<TResult>(Func<TResult> action)
+			{
+				BeginTransaction();
+				try
+				{
+					// execute the action
+					TResult result = action();
+
+					// commit changes to the database
+					CommitTransaction();
+
+					// the database has successfully committed changes
+					// => commit changes to cache dictionaries as well
+					mProcessNameToId.Commit();
+					mApplicationNameToId.Commit();
+					mLogWriterNameToId.Commit();
+					mLogLevelNameToId.Commit();
+
+					// return the action's result
+					return result;
+				}
+				catch
+				{
+					// discard changes to cache dictionaries
+					mProcessNameToId.Discard();
+					mApplicationNameToId.Discard();
+					mLogWriterNameToId.Discard();
+					mLogLevelNameToId.Discard();
+
+					// roll back changes to the database
+					RollbackTransaction();
+
+					throw;
+				}
 			}
 
 			/// <summary>

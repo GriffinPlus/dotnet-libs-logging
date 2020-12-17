@@ -329,8 +329,7 @@ namespace GriffinPlus.Lib.Logging
 				if (OldestMessageId < 0)
 					return;
 
-				BeginTransaction();
-				try
+				void Operation()
 				{
 					// determine the id of the first message older than the specified timestamp
 					long deleteByTimestampMessageId = -1;
@@ -363,13 +362,10 @@ namespace GriffinPlus.Lib.Logging
 						mDeleteMessagesUpToIdCommand_IdParameter.Value = messageId;
 						ExecuteNonQueryCommand(mDeleteMessagesUpToIdCommand);
 					}
+				}
 
-					CommitTransaction();
-				}
-				catch
-				{
-					RollbackTransaction();
-				}
+				// execute the operation in a transaction
+				ExecuteInTransaction(Operation);
 
 				// update the id of the oldest and the newest log message
 				OldestMessageId = GetOldestMessageId();
