@@ -25,6 +25,7 @@ namespace GriffinPlus.Lib.Logging
 			private readonly SQLiteCommand   mSelectUsedApplicationNamesCommand;
 			private readonly SQLiteCommand   mSelectUsedLogWriterNamesCommand;
 			private readonly SQLiteCommand   mSelectUsedLogLevelNamesCommand;
+			private readonly SQLiteCommand   mSelectUsedTagsCommand;
 			private readonly SQLiteCommand   mInsertMessageCommand;
 			private readonly SQLiteParameter mInsertMessageCommand_IdParameter;
 			private readonly SQLiteParameter mInsertMessageCommand_TimestampParameter;
@@ -36,6 +37,7 @@ namespace GriffinPlus.Lib.Logging
 			private readonly SQLiteParameter mInsertMessageCommand_ApplicationNameIdParameter;
 			private readonly SQLiteParameter mInsertMessageCommand_WriterNameIdParameter;
 			private readonly SQLiteParameter mInsertMessageCommand_LevelNameIdParameter;
+			private readonly SQLiteParameter mInsertMessageCommand_HasTagsParameter;
 			private readonly SQLiteParameter mInsertMessageCommand_TextParameter;
 			private readonly SQLiteCommand   mSelectMessageIdByTimestampForDeleteMessagesCommand;
 			private readonly SQLiteParameter mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter;
@@ -52,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 			private static readonly string[] sCreateDatabaseCommands_SpecificStructure =
 			{
 				"PRAGMA user_version = 1;", // <- 'recording' format
-				"CREATE TABLE messages (id INTEGER PRIMARY KEY, timestamp INTEGER, timezone_offset INTEGER, high_precision_timestamp INTEGER, lost_message_count INTEGER, process_id INTEGER, process_name_id INTEGER, application_name_id INTEGER, writer_name_id INTEGER, level_name_id INTEGER, text TEXT);"
+				"CREATE TABLE messages (id INTEGER PRIMARY KEY, timestamp INTEGER, timezone_offset INTEGER, high_precision_timestamp INTEGER, lost_message_count INTEGER, process_id INTEGER, process_name_id INTEGER, application_name_id INTEGER, writer_name_id INTEGER, level_name_id INTEGER, has_tags BOOLEAN, text TEXT);"
 			};
 
 			/// <summary>
@@ -79,16 +81,17 @@ namespace GriffinPlus.Lib.Logging
 				mGetOldestMessageIdCommand = PrepareCommand("SELECT id FROM messages ORDER BY id ASC  LIMIT 1;");
 				mGetNewestMessageIdCommand = PrepareCommand("SELECT id FROM messages ORDER BY id DESC LIMIT 1;");
 
-				// command to get names of referenced processes, application, log writers and log levels in ascending order
+				// command to get names of referenced processes, applications, log writers, log levels and tags in ascending order
 				mSelectUsedProcessNamesCommand = PrepareCommand("SELECT DISTINCT p.name FROM messages as m, processes as p WHERE m.process_name_id == p.id ORDER BY p.name ASC;");
 				mSelectUsedApplicationNamesCommand = PrepareCommand("SELECT DISTINCT a.name FROM messages as m, applications as a WHERE m.application_name_id == a.id ORDER BY a.name ASC;");
 				mSelectUsedLogWriterNamesCommand = PrepareCommand("SELECT DISTINCT w.name FROM messages as m, writers as w WHERE m.writer_name_id == w.id ORDER BY w.name ASC;");
 				mSelectUsedLogLevelNamesCommand = PrepareCommand("SELECT DISTINCT l.name FROM messages as m, levels as l WHERE m.level_name_id == l.id ORDER BY l.name ASC;");
+				mSelectUsedTagsCommand = PrepareCommand("SELECT DISTINCT t.name FROM messages as m, tags as t, tag2msg as tm WHERE t.id == tm.tag_id AND m.id == tm.message_id ORDER BY t.name ASC;");
 
 				// command to add a log message
 				mInsertMessageCommand = PrepareCommand(
-					"INSERT INTO messages (id, timestamp, timezone_offset, high_precision_timestamp, lost_message_count, process_id, process_name_id, application_name_id, writer_name_id, level_name_id, text)" +
-					" VALUES (@id, @timestamp, @timezone_offset, @high_precision_timestamp, @lost_message_count, @process_id, @process_name_id, @application_name_id, @writer_name_id, @level_name_id, @text);");
+					"INSERT INTO messages (id, timestamp, timezone_offset, high_precision_timestamp, lost_message_count, process_id, process_name_id, application_name_id, writer_name_id, level_name_id, has_tags, text)" +
+					" VALUES (@id, @timestamp, @timezone_offset, @high_precision_timestamp, @lost_message_count, @process_id, @process_name_id, @application_name_id, @writer_name_id, @level_name_id, @has_tags, @text);");
 				mInsertMessageCommand.Parameters.Add(mInsertMessageCommand_IdParameter = new SQLiteParameter("@id", DbType.Int64));
 				mInsertMessageCommand.Parameters.Add(mInsertMessageCommand_TimestampParameter = new SQLiteParameter("@timestamp", DbType.Int64));
 				mInsertMessageCommand.Parameters.Add(mInsertMessageCommand_TimezoneOffsetParameter = new SQLiteParameter("@timezone_offset", DbType.Int64));
@@ -99,6 +102,7 @@ namespace GriffinPlus.Lib.Logging
 				mInsertMessageCommand.Parameters.Add(mInsertMessageCommand_ApplicationNameIdParameter = new SQLiteParameter("@application_name_id", DbType.Int64));
 				mInsertMessageCommand.Parameters.Add(mInsertMessageCommand_WriterNameIdParameter = new SQLiteParameter("@writer_name_id", DbType.Int64));
 				mInsertMessageCommand.Parameters.Add(mInsertMessageCommand_LevelNameIdParameter = new SQLiteParameter("@level_name_id", DbType.Int64));
+				mInsertMessageCommand.Parameters.Add(mInsertMessageCommand_HasTagsParameter = new SQLiteParameter("@has_tags", DbType.Boolean));
 				mInsertMessageCommand.Parameters.Add(mInsertMessageCommand_TextParameter = new SQLiteParameter("@text", DbType.String));
 
 				// query to get the id of the first message that is next a specific point in time
@@ -114,7 +118,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// query to get a number of log messages starting at a specific log message id
 				mSelectContinuousMessagesCommand = PrepareCommand(
-					"SELECT m.id, timestamp, m.timezone_offset, m.high_precision_timestamp, m.lost_message_count, m.process_id, p.name, a.name, w.name, l.name, m.text" +
+					"SELECT m.id, timestamp, m.timezone_offset, m.high_precision_timestamp, m.lost_message_count, m.process_id, p.name, a.name, w.name, l.name, m.has_tags, m.text" +
 					" FROM messages as m, processes as p, applications as a, writers as w, levels as l" +
 					" WHERE m.id >= @from_id AND m.process_name_id == p.id AND m.application_name_id == a.id AND m.writer_name_id == w.id AND m.level_name_id == l.id" +
 					" LIMIT @count;");
@@ -165,30 +169,12 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Gets the name of log writers that are associated with log messages.
-			/// </summary>
-			/// <returns>A list of log writer names.</returns>
-			protected override string[] GetUsedLogWriterNames()
-			{
-				return ExecuteSingleColumnStringQuery(mSelectUsedLogWriterNamesCommand);
-			}
-
-			/// <summary>
-			/// Gets the name of log levels that are associated with log messages.
-			/// </summary>
-			/// <returns>A list of log level names.</returns>
-			protected override string[] GetUsedLogLevelNames()
-			{
-				return ExecuteSingleColumnStringQuery(mSelectUsedLogLevelNamesCommand);
-			}
-
-			/// <summary>
 			/// Gets the name of processes that are associated with log messages.
 			/// </summary>
 			/// <returns>A list of process names.</returns>
 			protected override string[] GetUsedProcessNames()
 			{
-				return ExecuteSingleColumnStringQuery(mSelectUsedProcessNamesCommand);
+				return ExecuteSingleColumnStringQuery(mSelectUsedProcessNamesCommand, true);
 			}
 
 			/// <summary>
@@ -197,7 +183,34 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>A list of application names.</returns>
 			protected override string[] GetUsedApplicationNames()
 			{
-				return ExecuteSingleColumnStringQuery(mSelectUsedApplicationNamesCommand);
+				return ExecuteSingleColumnStringQuery(mSelectUsedApplicationNamesCommand, true);
+			}
+
+			/// <summary>
+			/// Gets the name of log writers that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of log writer names.</returns>
+			protected override string[] GetUsedLogWriterNames()
+			{
+				return ExecuteSingleColumnStringQuery(mSelectUsedLogWriterNamesCommand, true);
+			}
+
+			/// <summary>
+			/// Gets the name of log levels that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of log level names.</returns>
+			protected override string[] GetUsedLogLevelNames()
+			{
+				return ExecuteSingleColumnStringQuery(mSelectUsedLogLevelNamesCommand, true);
+			}
+
+			/// <summary>
+			/// Gets the tags that are associated with log messages.
+			/// </summary>
+			/// <returns>A list of tags.</returns>
+			protected override string[] GetUsedTags()
+			{
+				return ExecuteSingleColumnStringQuery(mSelectUsedTagsCommand, true);
 			}
 
 			/// <summary>
@@ -243,7 +256,8 @@ namespace GriffinPlus.Lib.Logging
 				// 7 = application name
 				// 8 = log writer name
 				// 9 = log level name
-				// 10 = text name
+				// 10 = has tags
+				// 11 = text name
 				mSelectContinuousMessagesCommand.Reset();
 				mSelectContinuousMessagesCommand_FromIdParameter.Value = fromId;
 				mSelectContinuousMessagesCommand_CountParameter.Value = count;
@@ -261,21 +275,26 @@ namespace GriffinPlus.Lib.Logging
 						string applicationName = reader.GetString(7);
 						string logWriterName = reader.GetString(8);
 						string logLevelName = reader.GetString(9);
-						string text = reader.GetString(10);
+						bool hasTags = reader.GetBoolean(10);
+						string text = reader.GetString(11);
 
 						var message = LogMessagePool.Default.GetMessage(
 							messageId,
 							timestamp,
 							highPrecisionTimestamp,
 							lostMessageCount,
-							mStringPool.Intern(logWriterName),
-							mStringPool.Intern(logLevelName),
-							null, // tags
-							mStringPool.Intern(applicationName),
-							mStringPool.Intern(processName),
+							StringPool.Intern(logWriterName),
+							StringPool.Intern(logLevelName),
+							TagSet.Empty,
+							StringPool.Intern(applicationName),
+							StringPool.Intern(processName),
 							processId,
 							text);
 
+						// initialize tags, if there are tags associated with the message
+						if (hasTags) message.Tags = GetTagsOfMessage(messageId);
+
+						// invoke processing callback
 						if (!callback(message))
 							return false;
 					}
@@ -297,6 +316,18 @@ namespace GriffinPlus.Lib.Logging
 				long writerNameId = AddLogWriterName(message.LogWriterName);
 				long levelNameId = AddLogLevelName(message.LogLevelName);
 
+				// insert tags
+				bool hasTags = false;
+				if (message.Tags != null)
+				{
+					foreach (string tag in message.Tags)
+					{
+						long tagId = AddTag(tag);
+						AttachTagToMessage(tagId, messageId);
+						hasTags = true;
+					}
+				}
+
 				// insert message
 				mInsertMessageCommand_IdParameter.Value = messageId;
 				mInsertMessageCommand_TimestampParameter.Value = message.Timestamp.UtcTicks;
@@ -308,6 +339,7 @@ namespace GriffinPlus.Lib.Logging
 				mInsertMessageCommand_ApplicationNameIdParameter.Value = applicationNameId;
 				mInsertMessageCommand_WriterNameIdParameter.Value = writerNameId;
 				mInsertMessageCommand_LevelNameIdParameter.Value = levelNameId;
+				mInsertMessageCommand_HasTagsParameter.Value = hasTags;
 				mInsertMessageCommand_TextParameter.Value = message.Text;
 				ExecuteNonQueryCommand(mInsertMessageCommand);
 			}
@@ -355,12 +387,16 @@ namespace GriffinPlus.Lib.Logging
 					if (deleteByTimestampMessageId >= 0) messageId = deleteByTimestampMessageId;
 					if (deleteByMaxMessageCountMessageId >= 0) messageId = Math.Max(messageId, deleteByMaxMessageCountMessageId);
 
-					// delete old messages up to the determined message id
+					// delete old messages and associated tags up to the determined message id
 					// (including the message with the determined id)
 					if (messageId >= 0)
 					{
+						// delete old messages
 						mDeleteMessagesUpToIdCommand_IdParameter.Value = messageId;
 						ExecuteNonQueryCommand(mDeleteMessagesUpToIdCommand);
+
+						// remove tags associated with the messages
+						RemoveTagAssociations(messageId);
 					}
 				}
 

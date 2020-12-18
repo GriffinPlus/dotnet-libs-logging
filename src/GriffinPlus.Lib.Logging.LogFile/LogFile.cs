@@ -223,6 +223,54 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the name of processes that are/were associated with log messages.
+		/// </summary>
+		/// <param name="usedOnly">
+		/// true to get the name of processes that are referenced by messages in the log file only;
+		/// false to get all process names (even if referencing log messages have been removed after clearing/pruning).
+		/// </param>
+		/// <returns>A list of process names.</returns>
+		public string[] GetProcessNames(bool usedOnly)
+		{
+			CheckDisposed();
+
+			try
+			{
+				return mDatabaseAccessor.GetProcessNames(usedOnly);
+			}
+			catch (SQLiteException ex)
+			{
+				throw new LogFileException(
+					$"Getting process names failed: {ex.Message}",
+					ex);
+			}
+		}
+
+		/// <summary>
+		/// Gets the name of applications that are/were associated with log messages.
+		/// </summary>
+		/// <param name="usedOnly">
+		/// true to get the name of applications that are referenced by messages in the log file only;
+		/// false to get all application names (even if referencing log messages have been removed after clearing/pruning).
+		/// </param>
+		/// <returns>A list of application names.</returns>
+		public string[] GetApplicationNames(bool usedOnly)
+		{
+			CheckDisposed();
+
+			try
+			{
+				return mDatabaseAccessor.GetApplicationNames(usedOnly);
+			}
+			catch (SQLiteException ex)
+			{
+				throw new LogFileException(
+					$"Getting application names failed: {ex.Message}",
+					ex);
+			}
+		}
+
+		/// <summary>
 		/// Gets the name of log writers that are/were associated with log messages.
 		/// </summary>
 		/// <param name="usedOnly">
@@ -271,49 +319,25 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the name of processes that are/were associated with log messages.
+		/// Gets the tags that are/were associated with log messages.
 		/// </summary>
 		/// <param name="usedOnly">
-		/// true to get the name of processes that are referenced by messages in the log file only;
-		/// false to get all process names (even if referencing log messages have been removed after clearing/pruning).
+		/// true to get the tags that are referenced by messages in the log file only;
+		/// false to get all tags (even if referencing log messages have been removed after clearing/pruning).
 		/// </param>
-		/// <returns>A list of process names.</returns>
-		public string[] GetProcessNames(bool usedOnly)
+		/// <returns>A list of tags.</returns>
+		public string[] GetTags(bool usedOnly)
 		{
 			CheckDisposed();
 
 			try
 			{
-				return mDatabaseAccessor.GetProcessNames(usedOnly);
+				return mDatabaseAccessor.GetTags(usedOnly);
 			}
 			catch (SQLiteException ex)
 			{
 				throw new LogFileException(
-					$"Getting process names failed: {ex.Message}",
-					ex);
-			}
-		}
-
-		/// <summary>
-		/// Gets the name of applications that are/were associated with log messages.
-		/// </summary>
-		/// <param name="usedOnly">
-		/// true to get the name of applications that are referenced by messages in the log file only;
-		/// false to get all application names (even if referencing log messages have been removed after clearing/pruning).
-		/// </param>
-		/// <returns>A list of application names.</returns>
-		public string[] GetApplicationNames(bool usedOnly)
-		{
-			CheckDisposed();
-
-			try
-			{
-				return mDatabaseAccessor.GetApplicationNames(usedOnly);
-			}
-			catch (SQLiteException ex)
-			{
-				throw new LogFileException(
-					$"Getting application names failed: {ex.Message}",
+					$"Getting tags failed: {ex.Message}",
 					ex);
 			}
 		}
@@ -488,7 +512,7 @@ namespace GriffinPlus.Lib.Logging
 
 			CheckDisposed();
 
-			bool pruned = false;
+			bool pruned;
 			try
 			{
 				long oldestMessageId = mDatabaseAccessor.OldestMessageId;

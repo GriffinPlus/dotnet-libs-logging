@@ -122,10 +122,20 @@ namespace GriffinPlus.Lib.Logging
 			var utcTimestamp = DateTime.Parse("2020-01-01T01:02:03");
 			long highPrecisionTimestamp = 0;
 
+			// init list of tags to select from
+			var allTags = new List<string>();
+			for (int i = 0; i < 50; i++) allTags.Add($"Tag{i}");
+
 			for (long i = 0; i < count; i++)
 			{
 				var timezoneOffset = TimeSpan.FromHours(random.Next(-14, 14));
 				int processId = random.Next(1, maxDifferentProcessIdsCount);
+
+				// build tag set to associate with a message (up to 3 tags per message)
+				int tagCount = random.Next(0, 3);
+				var tags = new TagSet();
+				for (int j = 0; j < tagCount; j++) tags += allTags[random.Next(0, allTags.Count - 1)];
+
 				var message = new LogMessage().InitWith(
 					i, // message id is zero-based, so the index is a perfect match
 					new DateTimeOffset(utcTimestamp + timezoneOffset, timezoneOffset),
@@ -133,7 +143,7 @@ namespace GriffinPlus.Lib.Logging
 					random.Next(0, 1),
 					$"Log Writer {random.Next(1, maxDifferentWritersCount)}",
 					$"Log Level {random.Next(1, maxDifferentLevelsCount)}",
-					null,
+					tags,
 					$"Application {random.Next(1, maxDifferentApplicationsCount)}",
 					$"Process {processId}",
 					processId,

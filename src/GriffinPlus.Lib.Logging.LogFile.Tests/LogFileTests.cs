@@ -104,7 +104,7 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region GetLogWriterNames(), GetLogLevelNames(), GetProcessNames(), GetApplicationNames()
+		#region GetLogWriterNames(), GetLogLevelNames(), GetProcessNames(), GetApplicationNames(), GetTags()
 
 		/// <summary>
 		/// Test data for methods that return names of log writers, log levels, processes, applications and tags.
@@ -207,6 +207,27 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Tests for getting tags.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="usedOnly">
+		/// true to test getting tags that are referenced in the log file only;
+		/// false to get all tags.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(GetNamesTestData))]
+		private void GetTags(LogFilePurpose purpose, LogFileWriteMode writeMode, bool usedOnly)
+		{
+			CommonGetNames(
+				purpose,
+				writeMode,
+				usedOnly,
+				message => message.Tags,
+				file => file.GetTags(usedOnly));
+		}
+
+		/// <summary>
 		/// Helper method for other test methods that check for lists of strings returned by the log file.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
@@ -218,11 +239,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="selector">Selects a string property value out of a log message.</param>
 		/// <param name="action">Action to perform on the log file, returns the strings to compare with the list of selected strings.</param>
 		private void CommonGetNames(
-			LogFilePurpose purpose,
-			LogFileWriteMode writeMode,
-			bool usedOnly,
+			LogFilePurpose                        purpose,
+			LogFileWriteMode                      writeMode,
+			bool                                  usedOnly,
 			Func<LogMessage, IEnumerable<string>> selector,
-			Func<LogFile, string[]> action)
+			Func<LogFile, string[]>               action)
 		{
 			string path = purpose == LogFilePurpose.Recording
 				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
@@ -247,7 +268,7 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					// collect name(s) from message properties and build the set of expected names
-					HashSet<string> expectedNamesSet = new HashSet<string>();
+					var expectedNamesSet = new HashSet<string>();
 					foreach (var message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
 					var expectedNames = new List<string>(expectedNamesSet);
 					expectedNames.Sort(); // the list returned by the log file is expected to be sorted ascendingly
@@ -530,8 +551,8 @@ namespace GriffinPlus.Lib.Logging
 			{
 				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
 				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
-				foreach (bool messagesOnly in new [] { false, true })
-				foreach (bool compact in new [] { false, true })
+				foreach (bool messagesOnly in new[] { false, true })
+				foreach (bool compact in new[] { false, true })
 				{
 					yield return new object[] { purpose, writeMode, messagesOnly, compact };
 				}
@@ -584,6 +605,7 @@ namespace GriffinPlus.Lib.Logging
 					var logLevelNames = file.GetLogLevelNames(false);
 					var processNames = file.GetProcessNames(false);
 					var applicationNames = file.GetApplicationNames(false);
+					var tags = file.GetTags(false);
 
 					// clear log file
 					file.Clear(messagesOnly, compact);
@@ -604,6 +626,7 @@ namespace GriffinPlus.Lib.Logging
 						Assert.Equal(logLevelNames, file.GetLogLevelNames(false));
 						Assert.Equal(processNames, file.GetProcessNames(false));
 						Assert.Equal(applicationNames, file.GetApplicationNames(false));
+						Assert.Equal(tags, file.GetTags(false));
 					}
 					else
 					{
@@ -612,6 +635,7 @@ namespace GriffinPlus.Lib.Logging
 						Assert.Empty(file.GetLogLevelNames(false));
 						Assert.Empty(file.GetProcessNames(false));
 						Assert.Empty(file.GetApplicationNames(false));
+						Assert.Empty(file.GetTags(false));
 					}
 				}
 

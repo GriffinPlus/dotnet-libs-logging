@@ -19,47 +19,58 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		abstract class DatabaseAccessor : IDisposable
 		{
-			private static bool sIsWindows = Environment.OSVersion.Platform == PlatformID.Win32NT;
-
-			protected readonly StringPool mStringPool = new StringPool();
-			private            bool       mDisposed;
-			private readonly   bool       mCanRollback;
+			private readonly SQLiteConnection mConnection;
+			private          bool             mDisposed;
+			private readonly bool             mCanRollback;
 
 			// dictionaries caching mappings from names to corresponding ids used to reference these names
 			private readonly OverlayDictionary<string, long> mProcessNameToId     = new OverlayDictionary<string, long>();
 			private readonly OverlayDictionary<string, long> mApplicationNameToId = new OverlayDictionary<string, long>();
 			private readonly OverlayDictionary<string, long> mLogWriterNameToId   = new OverlayDictionary<string, long>();
 			private readonly OverlayDictionary<string, long> mLogLevelNameToId    = new OverlayDictionary<string, long>();
+			private readonly OverlayDictionary<string, long> mTagToId             = new OverlayDictionary<string, long>();
 
 			// sqlite specific commands
-			private readonly SQLiteConnection    mConnection;
-			private readonly List<SQLiteCommand> mCommands;
-			private readonly SQLiteCommand       mBeginTransactionCommand;
-			private readonly SQLiteCommand       mCommitTransactionCommand;
-			private readonly SQLiteCommand       mRollbackTransactionCommand;
-			private readonly SQLiteCommand       mVacuumCommand;
-			private readonly SQLiteCommand       mVacuumIntoCommand;
-			private readonly SQLiteParameter     mVacuumIntoCommand_FileParameter;
-			private readonly SQLiteCommand       mSelectAllProcessNamesCommand;
-			private readonly SQLiteCommand       mInsertProcessNameCommand;
-			private readonly SQLiteParameter     mInsertProcessNameCommand_NameParameter;
-			private readonly SQLiteCommand       mSelectProcessNameIdCommand;
-			private readonly SQLiteParameter     mSelectProcessNameIdCommand_NameParameter;
-			private readonly SQLiteCommand       mSelectAllApplicationNamesCommand;
-			private readonly SQLiteCommand       mInsertApplicationNameCommand;
-			private readonly SQLiteParameter     mInsertApplicationNameCommand_NameParameter;
-			private readonly SQLiteCommand       mSelectApplicationNameIdCommand;
-			private readonly SQLiteParameter     mSelectApplicationNameIdCommand_NameParameter;
-			private readonly SQLiteCommand       mSelectAllLogWriterNamesCommand;
-			private readonly SQLiteCommand       mInsertLogWriterNameCommand;
-			private readonly SQLiteParameter     mInsertLogWriterNameCommand_NameParameter;
-			private readonly SQLiteCommand       mSelectLogWriterIdCommand;
-			private readonly SQLiteParameter     mSelectLogWriterIdCommand_NameParameter;
-			private readonly SQLiteCommand       mSelectAllLogLevelNamesCommand;
-			private readonly SQLiteCommand       mInsertLogLevelNameCommand;
-			private readonly SQLiteParameter     mInsertLogLevelNameCommand_NameParameter;
-			private readonly SQLiteCommand       mSelectLogLevelIdCommand;
-			private readonly SQLiteParameter     mSelectLogLevelIdCommand_NameParameter;
+			private readonly List<SQLiteCommand> mCommands;                                                   //
+			private readonly SQLiteCommand       mBeginTransactionCommand;                                    // transactions
+			private readonly SQLiteCommand       mCommitTransactionCommand;                                   //
+			private readonly SQLiteCommand       mRollbackTransactionCommand;                                 //
+			private readonly SQLiteCommand       mVacuumCommand;                                              // vacuum
+			private readonly SQLiteCommand       mVacuumIntoCommand;                                          //
+			private readonly SQLiteParameter     mVacuumIntoCommand_FileParameter;                            //
+			private readonly SQLiteCommand       mSelectAllProcessNamesCommand;                               // processes
+			private readonly SQLiteCommand       mInsertProcessNameCommand;                                   //
+			private readonly SQLiteParameter     mInsertProcessNameCommand_NameParameter;                     //
+			private readonly SQLiteCommand       mSelectProcessNameIdCommand;                                 //
+			private readonly SQLiteParameter     mSelectProcessNameIdCommand_NameParameter;                   //
+			private readonly SQLiteCommand       mSelectAllApplicationNamesCommand;                           // applications
+			private readonly SQLiteCommand       mInsertApplicationNameCommand;                               //
+			private readonly SQLiteParameter     mInsertApplicationNameCommand_NameParameter;                 //
+			private readonly SQLiteCommand       mSelectApplicationNameIdCommand;                             //
+			private readonly SQLiteParameter     mSelectApplicationNameIdCommand_NameParameter;               //
+			private readonly SQLiteCommand       mSelectAllLogWriterNamesCommand;                             // log writers
+			private readonly SQLiteCommand       mInsertLogWriterNameCommand;                                 //
+			private readonly SQLiteParameter     mInsertLogWriterNameCommand_NameParameter;                   //
+			private readonly SQLiteCommand       mSelectLogWriterIdCommand;                                   //
+			private readonly SQLiteParameter     mSelectLogWriterIdCommand_NameParameter;                     //
+			private readonly SQLiteCommand       mSelectAllLogLevelNamesCommand;                              // log levels
+			private readonly SQLiteCommand       mInsertLogLevelNameCommand;                                  //
+			private readonly SQLiteParameter     mInsertLogLevelNameCommand_NameParameter;                    //
+			private readonly SQLiteCommand       mSelectLogLevelIdCommand;                                    //
+			private readonly SQLiteParameter     mSelectLogLevelIdCommand_NameParameter;                      //
+			private readonly SQLiteCommand       mSelectAllTagsCommand;                                       // tags
+			private readonly SQLiteCommand       mInsertTagCommand;                                           //
+			private readonly SQLiteParameter     mInsertTagCommand_NameParameter;                             //
+			private readonly SQLiteCommand       mSelectTagIdCommand;                                         //
+			private readonly SQLiteParameter     mSelectTagIdCommand_NameParameter;                           //
+			private readonly SQLiteCommand       mInsertTagToMessageMappingCommand;                           // tag to message mapping
+			private readonly SQLiteParameter     mInsertTagToMessageMappingCommand_TagIdParameter;            //
+			private readonly SQLiteParameter     mInsertTagToMessageMappingCommand_MessageIdParameter;        //
+			private readonly SQLiteCommand       mSelectOneTagToMessageMappingCommand;                        //
+			private readonly SQLiteCommand       mSelectAllTagsOfMessageByIdCommand;                          //
+			private readonly SQLiteParameter     mSelectAllTagsOfMessageByIdCommand_MessageIdParameter;       //
+			private readonly SQLiteCommand       mDeleteTagToMessageMappingsUpToIdCommand;                    //
+			private readonly SQLiteParameter     mDeleteTagToMessageMappingsUpToIdCommand_MessageIdParameter; //
 
 			/// <summary>
 			/// Application id used within a sqlite database to recognize it as a log file
@@ -75,10 +86,12 @@ namespace GriffinPlus.Lib.Logging
 				$"PRAGMA application_id = {LogFileApplicationId};",
 				"PRAGMA encoding = 'UTF-8';",
 				"PRAGMA page_size = 65536;",
-				"CREATE TABLE levels (id INTEGER PRIMARY KEY, name TEXT);",
-				"CREATE TABLE writers (id INTEGER PRIMARY KEY, name TEXT);",
 				"CREATE TABLE processes (id INTEGER PRIMARY KEY, name TEXT);",
-				"CREATE TABLE applications (id INTEGER PRIMARY KEY, name TEXT);"
+				"CREATE TABLE applications (id INTEGER PRIMARY KEY, name TEXT);",
+				"CREATE TABLE writers (id INTEGER PRIMARY KEY, name TEXT);",
+				"CREATE TABLE levels (id INTEGER PRIMARY KEY, name TEXT);",
+				"CREATE TABLE tags (id INTEGER PRIMARY KEY, name TEXT);",
+				"CREATE TABLE tag2msg (id INTEGER PRIMARY KEY, tag_id INTEGER, message_id INTEGER);"
 			};
 
 			/// <summary>
@@ -86,10 +99,13 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			private static readonly string[] sCreateDatabaseCommands_CommonIndices =
 			{
-				"CREATE UNIQUE INDEX levels_index ON levels (name);",
-				"CREATE UNIQUE INDEX writers_index ON writers (name);",
-				"CREATE UNIQUE INDEX processes_index ON processes (name);",
-				"CREATE UNIQUE INDEX applications_index ON applications (name);"
+				"CREATE UNIQUE INDEX processes_name_index ON processes (name);",
+				"CREATE UNIQUE INDEX applications_name_index ON applications (name);",
+				"CREATE UNIQUE INDEX writers_name_index ON writers (name);",
+				"CREATE UNIQUE INDEX levels_name_index ON levels (name);",
+				"CREATE UNIQUE INDEX tags_name_index ON tags (name);",
+				"CREATE INDEX tag2msg_tag_id_index ON tag2msg (tag_id);",
+				"CREATE INDEX tag2msg_message_id_index ON tag2msg (message_id);"
 			};
 
 			/// <summary>
@@ -97,10 +113,12 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			private static readonly string[] sDeleteEverythingCommands_CommonTables =
 			{
-				"DELETE FROM levels;",
-				"DELETE FROM writers;",
 				"DELETE FROM processes;",
-				"DELETE FROM applications;"
+				"DELETE FROM applications;",
+				"DELETE FROM writers;",
+				"DELETE FROM levels;",
+				"DELETE FROM tags;",
+				"DELETE FROM tag2msg;"
 			};
 
 			/// <summary>
@@ -170,12 +188,16 @@ namespace GriffinPlus.Lib.Logging
 				mCommitTransactionCommand = PrepareCommand("COMMIT TRANSACTION;");
 				mRollbackTransactionCommand = PrepareCommand("ROLLBACK TRANSACTION;");
 
+				// vacuum
+
 				// command to vacuum the database
 				mVacuumCommand = PrepareCommand("VACUUM;");
 
 				// command to vacuum the database and write the resulting database into another file
 				mVacuumIntoCommand = PrepareCommand("VACUUM INTO @file;");
 				mVacuumIntoCommand.Parameters.Add(mVacuumIntoCommand_FileParameter = new SQLiteParameter(DbType.String, "@file"));
+
+				// processes
 
 				// command to get all process names in ascending order
 				mSelectAllProcessNamesCommand = PrepareCommand("SELECT name FROM processes ORDER BY name ASC;");
@@ -188,6 +210,8 @@ namespace GriffinPlus.Lib.Logging
 				mSelectProcessNameIdCommand = PrepareCommand("SELECT id FROM processes WHERE name = @name;");
 				mSelectProcessNameIdCommand.Parameters.Add(mSelectProcessNameIdCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
 
+				// applications
+
 				// command to get all application names in ascending order
 				mSelectAllApplicationNamesCommand = PrepareCommand("SELECT name FROM applications ORDER BY name ASC;");
 
@@ -198,6 +222,8 @@ namespace GriffinPlus.Lib.Logging
 				// command to get the id of an application name
 				mSelectApplicationNameIdCommand = PrepareCommand("SELECT id FROM applications WHERE name = @name;");
 				mSelectApplicationNameIdCommand.Parameters.Add(mSelectApplicationNameIdCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
+
+				// writers
 
 				// command to get all log writer names in ascending order
 				mSelectAllLogWriterNamesCommand = PrepareCommand("SELECT name FROM writers ORDER BY name ASC;");
@@ -210,6 +236,8 @@ namespace GriffinPlus.Lib.Logging
 				mSelectLogWriterIdCommand = PrepareCommand("SELECT id FROM writers WHERE name = @name;");
 				mSelectLogWriterIdCommand.Parameters.Add(mSelectLogWriterIdCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
 
+				// levels
+
 				// command to get all log writer names in ascending order
 				mSelectAllLogLevelNamesCommand = PrepareCommand("SELECT name FROM levels ORDER BY name ASC;");
 
@@ -220,6 +248,37 @@ namespace GriffinPlus.Lib.Logging
 				// command to get the id of a log level name
 				mSelectLogLevelIdCommand = PrepareCommand("SELECT id FROM levels WHERE name = @name;");
 				mSelectLogLevelIdCommand.Parameters.Add(mSelectLogLevelIdCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
+
+				// tags
+
+				// command to get all tags in ascending order
+				mSelectAllTagsCommand = PrepareCommand("SELECT name FROM tags ORDER BY name ASC;");
+
+				// command to add a tag (id is assigned automatically)
+				mInsertTagCommand = PrepareCommand("INSERT OR IGNORE INTO tags (name) VALUES (@name);");
+				mInsertTagCommand.Parameters.Add(mInsertTagCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
+
+				// command to get the id of a tag
+				mSelectTagIdCommand = PrepareCommand("SELECT id FROM tags WHERE name = @name;");
+				mSelectTagIdCommand.Parameters.Add(mSelectTagIdCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
+
+				// tag2msg
+
+				// command to add a tag-to-message mapping (id is assigned automatically)
+				mInsertTagToMessageMappingCommand = PrepareCommand("INSERT INTO tag2msg (tag_id, message_id) VALUES (@tag_id, @message_id);");
+				mInsertTagToMessageMappingCommand.Parameters.Add(mInsertTagToMessageMappingCommand_TagIdParameter = new SQLiteParameter("@tag_id", DbType.Int64));
+				mInsertTagToMessageMappingCommand.Parameters.Add(mInsertTagToMessageMappingCommand_MessageIdParameter = new SQLiteParameter("@message_id", DbType.Int64));
+
+				// command to get one tag to message mapping (to check whether messages use tags)
+				mSelectOneTagToMessageMappingCommand = PrepareCommand("SELECT id FROM tag2msg LIMIT 1;");
+
+				// command to get all tags associated with a specific message id
+				mSelectAllTagsOfMessageByIdCommand = PrepareCommand("SELECT t.name FROM tags as t, tag2msg as tm WHERE t.id = tm.tag_id AND tm.message_id = @message_id;");
+				mSelectAllTagsOfMessageByIdCommand.Parameters.Add(mSelectAllTagsOfMessageByIdCommand_MessageIdParameter = new SQLiteParameter("@message_id", DbType.Int64));
+
+				// command to delete all tag-to-message mappings up to a specific message id
+				mDeleteTagToMessageMappingsUpToIdCommand = PrepareCommand("DELETE FROM tag2msg as tm WHERE tm.message_id <= @message_id;");
+				mDeleteTagToMessageMappingsUpToIdCommand.Parameters.Add(mDeleteTagToMessageMappingsUpToIdCommand_MessageIdParameter = new SQLiteParameter("@message_id", DbType.Int64));
 
 				// create common database tables and indices, if requested
 				if (create)
@@ -271,6 +330,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the version of the sqlite implementation.
 			/// </summary>
 			/// <returns>Version of the sqlite implementation.</returns>
+			// ReSharper disable once MemberHidesStaticFromOuterClass
 			public static string SqliteVersion { get; }
 
 			/// <summary>
@@ -295,37 +355,12 @@ namespace GriffinPlus.Lib.Logging
 			/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 			public long NewestMessageId { get; protected set; }
 
+			/// <summary>
+			/// Gets the string pool that can be used to pool common strings to reduce memory consumption.
+			/// </summary>
+			protected StringPool StringPool { get; } = new StringPool();
+
 			#region Public Methods
-
-			/// <summary>
-			/// Gets the name of log writers that are/were associated with log messages.
-			/// </summary>
-			/// <param name="usedOnly">
-			/// true to get the name of log writers that are referenced by messages in the log file only;
-			/// false to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
-			/// </param>
-			/// <returns>A list of log writer names.</returns>
-			public string[] GetLogWriterNames(bool usedOnly)
-			{
-				return usedOnly
-					       ? GetUsedLogWriterNames()
-					       : ExecuteSingleColumnStringQuery(mSelectAllLogWriterNamesCommand);
-			}
-
-			/// <summary>
-			/// Gets the name of log levels that are/were associated with log messages.
-			/// </summary>
-			/// <param name="usedOnly">
-			/// true to get the name of log writers that are referenced by messages in the log file only;
-			/// false to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
-			/// </param>
-			/// <returns>A list of log level names.</returns>
-			public string[] GetLogLevelNames(bool usedOnly)
-			{
-				return usedOnly
-					       ? GetUsedLogLevelNames()
-					       : ExecuteSingleColumnStringQuery(mSelectAllLogLevelNamesCommand);
-			}
 
 			/// <summary>
 			/// Gets the name of processes that are/were associated with log messages.
@@ -339,7 +374,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				return usedOnly
 					       ? GetUsedProcessNames()
-					       : ExecuteSingleColumnStringQuery(mSelectAllProcessNamesCommand);
+					       : ExecuteSingleColumnStringQuery(mSelectAllProcessNamesCommand, true);
 			}
 
 			/// <summary>
@@ -354,7 +389,52 @@ namespace GriffinPlus.Lib.Logging
 			{
 				return usedOnly
 					       ? GetUsedApplicationNames()
-					       : ExecuteSingleColumnStringQuery(mSelectAllApplicationNamesCommand);
+					       : ExecuteSingleColumnStringQuery(mSelectAllApplicationNamesCommand, true);
+			}
+
+			/// <summary>
+			/// Gets the name of log writers that are/were associated with log messages.
+			/// </summary>
+			/// <param name="usedOnly">
+			/// true to get the name of log writers that are referenced by messages in the log file only;
+			/// false to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+			/// </param>
+			/// <returns>A list of log writer names.</returns>
+			public string[] GetLogWriterNames(bool usedOnly)
+			{
+				return usedOnly
+					       ? GetUsedLogWriterNames()
+					       : ExecuteSingleColumnStringQuery(mSelectAllLogWriterNamesCommand, true);
+			}
+
+			/// <summary>
+			/// Gets the name of log levels that are/were associated with log messages.
+			/// </summary>
+			/// <param name="usedOnly">
+			/// true to get the name of log writers that are referenced by messages in the log file only;
+			/// false to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+			/// </param>
+			/// <returns>A list of log level names.</returns>
+			public string[] GetLogLevelNames(bool usedOnly)
+			{
+				return usedOnly
+					       ? GetUsedLogLevelNames()
+					       : ExecuteSingleColumnStringQuery(mSelectAllLogLevelNamesCommand, true);
+			}
+
+			/// <summary>
+			/// Gets the tags that are/were associated with log messages.
+			/// </summary>
+			/// <param name="usedOnly">
+			/// true to get the tags that are referenced by messages in the log file only;
+			/// false to get all tags (even if referencing log messages have been removed after clearing/pruning).
+			/// </param>
+			/// <returns>A list of tags.</returns>
+			public string[] GetTags(bool usedOnly)
+			{
+				return usedOnly
+					       ? GetUsedTags()
+					       : ExecuteSingleColumnStringQuery(mSelectAllTagsCommand, true);
 			}
 
 			/// <summary>
@@ -378,6 +458,7 @@ namespace GriffinPlus.Lib.Logging
 						mApplicationNameToId.Clear();
 						mLogWriterNameToId.Clear();
 						mLogLevelNameToId.Clear();
+						mTagToId.Clear();
 					}
 
 					ClearSpecific(messagesOnly);
@@ -631,28 +712,16 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Begins a transaction.
+			/// Gets the name of processes that are associated with log messages.
 			/// </summary>
-			protected void BeginTransaction()
-			{
-				ExecuteNonQueryCommand(mBeginTransactionCommand);
-			}
+			/// <returns>A list of process names.</returns>
+			protected abstract string[] GetUsedProcessNames();
 
 			/// <summary>
-			/// Commits a transaction.
+			/// Gets the name of applications that are associated with log messages.
 			/// </summary>
-			protected void CommitTransaction()
-			{
-				ExecuteNonQueryCommand(mCommitTransactionCommand);
-			}
-
-			/// <summary>
-			/// Rolls the running transaction back.
-			/// </summary>
-			protected void RollbackTransaction()
-			{
-				if (mCanRollback) ExecuteNonQueryCommand(mRollbackTransactionCommand);
-			}
+			/// <returns>A list of application names.</returns>
+			protected abstract string[] GetUsedApplicationNames();
 
 			/// <summary>
 			/// Gets the name of log writers that are associated with log messages.
@@ -667,16 +736,10 @@ namespace GriffinPlus.Lib.Logging
 			protected abstract string[] GetUsedLogLevelNames();
 
 			/// <summary>
-			/// Gets the name of processes that are associated with log messages.
+			/// Gets the tags that are associated with log messages.
 			/// </summary>
-			/// <returns>A list of process names.</returns>
-			protected abstract string[] GetUsedProcessNames();
-
-			/// <summary>
-			/// Gets the name of applications that are associated with log messages.
-			/// </summary>
-			/// <returns>A list of application names.</returns>
-			protected abstract string[] GetUsedApplicationNames();
+			/// <returns>A list of tags.</returns>
+			protected abstract string[] GetUsedTags();
 
 			/// <summary>
 			/// Removes all schema specific data from the log file.
@@ -802,6 +865,66 @@ namespace GriffinPlus.Lib.Logging
 				return id;
 			}
 
+			/// <summary>
+			/// Adds the specified tag to the database.
+			/// </summary>
+			/// <param name="tag">Tag to add.</param>
+			/// <returns>Id associated with the tag.</returns>
+			/// <exception cref="ArgumentNullException">The <paramref name="tag" /> parameter must not be <c>null</c>.</exception>
+			protected long AddTag(string tag)
+			{
+				if (tag == null) throw new ArgumentNullException(nameof(tag));
+
+				if (!mTagToId.TryGetValue(tag, out long id))
+				{
+					// insert tag into the table
+					mInsertTagCommand_NameParameter.Value = tag;
+					ExecuteNonQueryCommand(mInsertTagCommand);
+
+					// get id associated with the tag
+					mSelectTagIdCommand_NameParameter.Value = tag;
+					id = (long)ExecuteScalarCommand(mSelectTagIdCommand);
+
+					// cache mapping
+					mTagToId.Add(tag, id);
+				}
+
+				return id;
+			}
+
+			/// <summary>
+			/// Gets the set of tags associated with the message with the specified id.
+			/// </summary>
+			/// <param name="messageId">Id of the message to get the tags for.</param>
+			/// <returns>Tag set containing all tags associated with the specified message.</returns>
+			protected TagSet GetTagsOfMessage(long messageId)
+			{
+				mSelectAllTagsOfMessageByIdCommand_MessageIdParameter.Value = messageId;
+				return new TagSet(ExecuteSingleColumnStringQuery(mSelectAllTagsOfMessageByIdCommand, true));
+			}
+
+			/// <summary>
+			/// Attaches the tag with the specified id to the message with the specified id.
+			/// </summary>
+			/// <param name="tagId">Id of the tag attach.</param>
+			/// <param name="messageId">Id of the message to attach the tag to.</param>
+			protected void AttachTagToMessage(long tagId, long messageId)
+			{
+				mInsertTagToMessageMappingCommand_TagIdParameter.Value = tagId;
+				mInsertTagToMessageMappingCommand_MessageIdParameter.Value = messageId;
+				ExecuteNonQueryCommand(mInsertTagToMessageMappingCommand);
+			}
+
+			/// <summary>
+			/// Removes tag associations for messages up to the specified id (including the message with the specified id).
+			/// </summary>
+			/// <param name="messageId">Id of the message to remove tags up to.</param>
+			protected void RemoveTagAssociations(long messageId)
+			{
+				mDeleteTagToMessageMappingsUpToIdCommand_MessageIdParameter.Value = messageId;
+				ExecuteNonQueryCommand(mDeleteTagToMessageMappingsUpToIdCommand);
+			}
+
 			#endregion
 
 			#region Helpers
@@ -826,14 +949,16 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="action">Action to execute.</param>
 			protected void ExecuteInTransaction(Action action)
 			{
-				BeginTransaction();
+				// begin transaction
+				ExecuteNonQueryCommand(mBeginTransactionCommand);
+
 				try
 				{
 					// execute the action
 					action();
 
 					// commit changes to the database
-					CommitTransaction();
+					ExecuteNonQueryCommand(mCommitTransactionCommand);
 
 					// the database has successfully committed changes
 					// => commit changes to cache dictionaries as well
@@ -841,6 +966,7 @@ namespace GriffinPlus.Lib.Logging
 					mApplicationNameToId.Commit();
 					mLogWriterNameToId.Commit();
 					mLogLevelNameToId.Commit();
+					mTagToId.Commit();
 				}
 				catch
 				{
@@ -849,9 +975,10 @@ namespace GriffinPlus.Lib.Logging
 					mApplicationNameToId.Discard();
 					mLogWriterNameToId.Discard();
 					mLogLevelNameToId.Discard();
+					mTagToId.Discard();
 
 					// roll back changes to the database
-					RollbackTransaction();
+					if (mCanRollback) ExecuteNonQueryCommand(mRollbackTransactionCommand);
 
 					throw;
 				}
@@ -865,14 +992,15 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>The result returned by the action.</returns>
 			protected TResult ExecuteInTransaction<TResult>(Func<TResult> action)
 			{
-				BeginTransaction();
+				// begin transaction
+				ExecuteNonQueryCommand(mBeginTransactionCommand);
 				try
 				{
 					// execute the action
-					TResult result = action();
+					var result = action();
 
 					// commit changes to the database
-					CommitTransaction();
+					ExecuteNonQueryCommand(mCommitTransactionCommand);
 
 					// the database has successfully committed changes
 					// => commit changes to cache dictionaries as well
@@ -880,6 +1008,7 @@ namespace GriffinPlus.Lib.Logging
 					mApplicationNameToId.Commit();
 					mLogWriterNameToId.Commit();
 					mLogLevelNameToId.Commit();
+					mTagToId.Commit();
 
 					// return the action's result
 					return result;
@@ -891,9 +1020,10 @@ namespace GriffinPlus.Lib.Logging
 					mApplicationNameToId.Discard();
 					mLogWriterNameToId.Discard();
 					mLogLevelNameToId.Discard();
+					mTagToId.Discard();
 
 					// roll back changes to the database
-					RollbackTransaction();
+					if (mCanRollback) ExecuteNonQueryCommand(mRollbackTransactionCommand);
 
 					throw;
 				}
@@ -975,7 +1105,7 @@ namespace GriffinPlus.Lib.Logging
 			/// (may contain application names that are not used by log messages any more after clearing/pruning).
 			/// </summary>
 			/// <returns>A list of application names.</returns>
-			protected string[] ExecuteSingleColumnStringQuery(SQLiteCommand command)
+			protected string[] ExecuteSingleColumnStringQuery(SQLiteCommand command, bool pool)
 			{
 				var list = new List<string>();
 
@@ -984,7 +1114,9 @@ namespace GriffinPlus.Lib.Logging
 				{
 					while (reader.Read())
 					{
-						list.Add(reader.GetString(0));
+						string value = reader.GetString(0);
+						if (pool) value = StringPool.Intern(value);
+						list.Add(value);
 					}
 				}
 
