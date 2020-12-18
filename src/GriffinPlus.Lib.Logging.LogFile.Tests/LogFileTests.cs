@@ -864,6 +864,84 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		#endregion
+
+		#region SaveSnapshot()
+
+		/// <summary>
+		/// Tests saving a snapshot of an opened log file.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		[Theory]
+		[MemberData(nameof(PurposeWriteModeMixTestData))]
+		private void SaveSnapshot(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		{
+			string logFilePath = purpose == LogFilePurpose.Recording
+				                     ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				                     : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+			string snapshotFilePath = logFilePath + ".snapshot";
+
+			try
+			{
+				// get the initial size of the log file
+				long logFileSizeAtStart = new FileInfo(logFilePath).Length;
+
+				// get test data set with all log messages
+				var allMessages = mFixture.GetLogMessages_Random_10K();
+
+				int totalMessageCount = allMessages.Length;
+				using (var file = new LogFile(logFilePath, purpose, writeMode))
+				{
+					// check initial status of the file
+					Assert.Equal(totalMessageCount, file.MessageCount);
+					Assert.Equal(0, file.OldestMessageId);
+					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
+
+					// remove half of the messages from the log file, but do not compact the file afterwards
+					file.Prune(5000, DateTime.MinValue, false);
+					Assert.Equal(5000, file.MessageCount);
+				}
+
+				// the log file must be closed as robust write mode lets its sqlite database run in WAL mode
+				// => closing the database file merges the WAL into the database file creating the final file
+				//    (otherwise the file keeps its initial size)
+
+				// the log file should still have the same size
+				long fileSizeAtPruning = new FileInfo(logFilePath).Length;
+				Assert.Equal(logFileSizeAtStart, fileSizeAtPruning);
+
+				// save a snapshot of the log file
+				using (var file = new LogFile(logFilePath, purpose, writeMode))
+				{
+					file.SaveSnapshot(snapshotFilePath);
+				}
+
+				// the snapshot file should be smaller than the original file as it is compacted
+				// on the fly when taking a snapshot
+				long snapshotFileSize = new FileInfo(snapshotFilePath).Length;
+				Assert.True(snapshotFileSize < logFileSizeAtStart);
+
+				// the snapshot should now contain the 5000 newest messages
+				var expectedMessages = allMessages.Skip(5000).ToArray();
+				using (var file = new LogFile(snapshotFilePath, purpose, writeMode))
+				{
+					Assert.Equal(5000, file.OldestMessageId);
+					Assert.Equal(9999, file.NewestMessageId);
+					Assert.Equal(5000, file.MessageCount);
+					var readMessages = file.Read(file.OldestMessageId, (int)file.MessageCount + 1); // +1 to check for no more than the expected messages
+					Assert.Equal(file.MessageCount, readMessages.Length);
+					Assert.Equal(expectedMessages, readMessages);
+				}
+			}
+			finally
+			{
+				// remove temporary log files to avoid polluting the output directory
+				File.Delete(logFilePath);
+				File.Delete(snapshotFilePath);
+			}
+		}
+
+		#endregion
 	}
 
 }

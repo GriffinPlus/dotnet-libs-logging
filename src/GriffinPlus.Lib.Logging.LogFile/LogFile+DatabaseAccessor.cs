@@ -195,7 +195,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// command to vacuum the database and write the resulting database into another file
 				mVacuumIntoCommand = PrepareCommand("VACUUM INTO @file;");
-				mVacuumIntoCommand.Parameters.Add(mVacuumIntoCommand_FileParameter = new SQLiteParameter(DbType.String, "@file"));
+				mVacuumIntoCommand.Parameters.Add(mVacuumIntoCommand_FileParameter = new SQLiteParameter("@file", DbType.String));
 
 				// processes
 
