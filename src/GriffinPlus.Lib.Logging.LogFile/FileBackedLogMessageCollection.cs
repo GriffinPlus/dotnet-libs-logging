@@ -54,6 +54,7 @@ namespace GriffinPlus.Lib.Logging
 		private          int                   mCachePageCapacity = DefaultCachePageCapacity;
 		private          int                   mChangeCounter;
 		private          bool                  mAutoDelete;
+		private          bool                  mDisposed;
 
 		#endregion
 
@@ -107,15 +108,21 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public void Dispose()
 		{
-			LogFile.Dispose();
-			mCachePages.Clear();
-			if (mAutoDelete)
+			if (!mDisposed)
 			{
-				try { File.Delete(LogFile.FilePath); }
-				catch
+				string path = LogFile.FilePath;
+				LogFile.Dispose();
+				if (mAutoDelete)
 				{
-					/* swallow */
+					try { File.Delete(path); }
+					catch
+					{
+						/* swallow */
+					}
 				}
+
+				mCachePages.Clear();
+				mDisposed = true;
 			}
 		}
 
