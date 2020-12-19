@@ -373,7 +373,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// tell the log message collection about the change
-			Messages.ResetCollectionInternal();
+			Messages.ProcessMessagesRemoved();
 		}
 
 		/// <summary>
@@ -527,7 +527,7 @@ namespace GriffinPlus.Lib.Logging
 					ex);
 			}
 
-			if (pruned) mMessageCollection.ResetCollectionInternal();
+			if (pruned) mMessageCollection.ProcessMessagesRemoved();
 		}
 
 		/// <summary>

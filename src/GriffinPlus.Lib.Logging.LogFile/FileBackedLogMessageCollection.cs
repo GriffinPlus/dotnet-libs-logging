@@ -48,7 +48,8 @@ namespace GriffinPlus.Lib.Logging
 
 		#region Member Variables
 
-		private readonly LinkedList<CachePage> mCachePages        = new LinkedList<CachePage>();
+		private readonly LinkedList<CachePage> mCachePages = new LinkedList<CachePage>();
+		private          long                  mCacheStartMessageId;
 		private          int                   mMaxCachePageCount = DefaultMaxCachePageCount;
 		private          int                   mCachePageCapacity = DefaultCachePageCapacity;
 		private          int                   mChangeCounter;
@@ -85,6 +86,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			LogFile = new LogFile(path, purpose, mode, this);
 			FilePath = LogFile.FilePath;
+			mCacheStartMessageId = LogFile.OldestMessageId;
+			if (mCacheStartMessageId < 0) mCacheStartMessageId = 0;
 		}
 
 		/// <summary>
@@ -95,6 +98,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			LogFile = file ?? throw new ArgumentNullException(nameof(file));
 			FilePath = LogFile.FilePath;
+			mCacheStartMessageId = LogFile.OldestMessageId;
+			if (mCacheStartMessageId < 0) mCacheStartMessageId = 0;
 		}
 
 		/// <summary>
@@ -605,13 +610,47 @@ namespace GriffinPlus.Lib.Logging
 		#region Interaction with the LogFile Class
 
 		/// <summary>
-		/// Resets the collection fetching fresh data from the underlying log file.
+		/// Is called when the underlying file removes messages.
 		/// </summary>
-		internal void ResetCollectionInternal()
+		internal void ProcessMessagesRemoved()
 		{
 			mChangeCounter++;
-			mCachePages.Clear();
 
+			if (LogFile.MessageCount == 0)
+			{
+				// the collection has been cleared entirely
+				// => flush the cache to discard buffered messages
+				mCachePages.Clear();
+				mCacheStartMessageId = 0; // inserting the next message will start at message id 0
+			}
+			else
+			{
+				// some message might have been removed from the log file
+				// => flush cache pages that contain only messages that have been removed
+				var node = mCachePages.First;
+				while (node != null)
+				{
+					long firstMessageIdInPage = node.Value.FirstMessageId;
+					long lastMessageIdInPage = firstMessageIdInPage + node.Value.Messages.Count - 1;
+					bool pageContainsExistingMessages = firstMessageIdInPage >= LogFile.OldestMessageId && lastMessageIdInPage <= LogFile.NewestMessageId;
+					if (pageContainsExistingMessages)
+					{
+						// the page contains at least one message that is still in the log file
+						// => keep the page
+						node = node.Next;
+					}
+					else
+					{
+						// the page does not contain any messages that are still in the log file
+						// => remove the page
+						var next = node.Next;
+						mCachePages.Remove(node);
+						node = next;
+					}
+				}
+			}
+
+			// notify clients about the change
 			var handler = CollectionChanged;
 			handler?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 
@@ -626,6 +665,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			mChangeCounter++;
 
+			// notify clients about the change
 			var handler = CollectionChanged;
 			if (handler != null)
 			{
@@ -667,7 +707,7 @@ namespace GriffinPlus.Lib.Logging
 					if (id < firstMessageId + node.Value.Messages.Count)
 					{
 						// found message in the cache
-						// => return cache message
+						// => return cached message
 						mCachePages.Remove(node);
 						mCachePages.AddFirst(node);
 						return node.Value.Messages[(int)(id - firstMessageId)];
@@ -688,7 +728,7 @@ namespace GriffinPlus.Lib.Logging
 				node = node.Next;
 			}
 
-			// cache does not contain the requested message
+			// cache does not contain the page with the requested message
 			// => insert page into the cache
 			firstMessageId = LogFile.OldestMessageId + mCachePageCapacity * ((id - LogFile.OldestMessageId) / mCachePageCapacity);
 			if (mCachePages.Count >= mMaxCachePageCount)
