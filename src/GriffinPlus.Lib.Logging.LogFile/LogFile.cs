@@ -579,7 +579,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		private void CheckDisposed()
 		{
-			if (mDatabaseAccessor == null) throw new ObjectDisposedException($"Log File ({FilePath})");
+			if (mDatabaseAccessor == null) throw new ObjectDisposedException($"Log File ({mFilePath})");
 		}
 
 		#endregion
