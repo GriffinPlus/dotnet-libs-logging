@@ -62,6 +62,11 @@ namespace GriffinPlus.Lib.Logging
 		public IDictionary<string, object> Context { get; } = new Dictionary<string, object>();
 
 		/// <summary>
+		/// Gets the id uniquely identifying the message in a certain context, e.g. a collection or log file (always -1).
+		/// </summary>
+		public long Id => -1;
+
+		/// <summary>
 		/// Gets the date/time the message was written to the log.
 		/// </summary>
 		public DateTimeOffset Timestamp { get; private set; }

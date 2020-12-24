@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="other">Message to copy.</param>
 		public LogMessage(ILogMessage other)
 		{
-			Id = other is LogMessage message ? message.Id : -1;
+			Id = other.Id;
 			Timestamp = other.Timestamp;
 			HighPrecisionTimestamp = other.HighPrecisionTimestamp;
 			LogWriterName = other.LogWriterName;
@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Message Properties
 
 		/// <summary>
-		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file
+		/// Gets or sets the id uniquely identifying the message in a certain context, e.g. a collection or log file
 		/// (-1, if the id is invalid).
 		/// </summary>
 		public long Id { get; set; }
@@ -248,15 +248,16 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (other == null) return false;
 			if (other is LogMessage otherLogMessage) return Equals(otherLogMessage);
-			return Timestamp.Equals(other.Timestamp) &&
+			return Id == other.Id &&
+			       Timestamp.Equals(other.Timestamp) &&
 			       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
 			       LogWriterName == other.LogWriterName &&
 			       LogLevelName == other.LogLevelName &&
-			       Equals(Tags, other.Tags) &&
 			       ApplicationName == other.ApplicationName &&
 			       ProcessName == other.ProcessName &&
 			       ProcessId == other.ProcessId &&
-			       Text == other.Text;
+			       Text == other.Text &&
+			       Equals(Tags, other.Tags);
 		}
 
 		/// <summary>

@@ -14,6 +14,12 @@ namespace GriffinPlus.Lib.Logging
 	public interface ILogMessage
 	{
 		/// <summary>
+		/// Gets the id uniquely identifying the message in a certain context, e.g. a collection or log file
+		/// (-1, if the id is invalid).
+		/// </summary>
+		long Id { get; }
+
+		/// <summary>
 		/// Gets the date/time the message was written to the log.
 		/// </summary>
 		DateTimeOffset Timestamp { get; }
