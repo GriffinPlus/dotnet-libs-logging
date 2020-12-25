@@ -39,6 +39,16 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="LogMessageCollection{TMessage}" /> class containing the specified log messages.
+		/// </summary>
+		/// <param name="messages">Log messages to keep in the collection.</param>
+		public LogMessageCollection(IEnumerable<TMessage> messages)
+		{
+			if (messages == null) throw new ArgumentNullException(nameof(messages));
+			mMessages = new List<TMessage>(messages);
+		}
+
+		/// <summary>
 		/// Disposes the collection (actually does nothing, just to satisfy the interface).
 		/// </summary>
 		public void Dispose()
@@ -104,13 +114,16 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds a log message to the collection.
 		/// </summary>
-		/// <param name="item">Log message to add.</param>
-		public void Add(TMessage item)
+		/// <param name="message">Log message to add.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="message" /> is null.</exception>
+		public void Add(TMessage message)
 		{
-			mMessages.Add(item);
+			if (message == null) throw new ArgumentNullException(nameof(message));
+
+			mMessages.Add(message);
 
 			var handler = CollectionChanged;
-			handler?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+			handler?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, message, mMessages.Count - 1));
 
 			OnPropertyChanged("Count");
 			OnPropertyChanged("Item[]");
@@ -120,8 +133,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Adds multiple log messages to the collection at once.
 		/// </summary>
 		/// <param name="messages">Log messages to add.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="messages" /> is null.</exception>
 		public void AddRange(IEnumerable<TMessage> messages)
 		{
+			if (messages == null) throw new ArgumentNullException(nameof(messages));
+
 			var handler = CollectionChanged;
 			if (handler != null)
 			{
@@ -129,7 +145,7 @@ namespace GriffinPlus.Lib.Logging
 				foreach (var message in messages)
 				{
 					mMessages.Add(message);
-					handler(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, message));
+					handler(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, message, mMessages.Count - 1));
 				}
 			}
 			else
@@ -170,6 +186,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arrayIndex">Index in the array to start copying to.</param>
 		public void CopyTo(TMessage[] array, int arrayIndex)
 		{
+			if (array == null) throw new ArgumentNullException(nameof(array));
+			if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex), "The array index is negative.");
+			if (array.Rank != 1) throw new ArgumentException("The specified array is multi-dimensional.");
+			if (arrayIndex > array.Length) throw new ArgumentOutOfRangeException(nameof(arrayIndex), "The array index is outside the specified array.");
+			if (Count > array.Length - arrayIndex) throw new ArgumentException("The specified array is too small to receive all log messages.");
+
 			mMessages.CopyTo(array, arrayIndex);
 		}
 
@@ -203,7 +225,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets an object that can be used to synchronize the collection.
 		/// </summary>
-		object ICollection.SyncRoot => this;
+		object ICollection.SyncRoot => mMessages; // this list is not publicly visible and therefore suitable for this purpose
 
 		/// <summary>
 		/// Gets the log message at the specified index.
@@ -305,6 +327,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arrayIndex">Index in the array to start copying to.</param>
 		void ICollection.CopyTo(Array array, int arrayIndex)
 		{
+			if (array == null) throw new ArgumentNullException(nameof(array));
+			if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex), "The array index is negative.");
+			if (array.Rank != 1) throw new ArgumentException("The specified array is multi-dimensional.");
+			if (arrayIndex > array.Length) throw new ArgumentOutOfRangeException(nameof(arrayIndex), "The array index is outside the specified array.");
+			if (Count > array.Length - arrayIndex) throw new ArgumentException("The specified array is too small to receive all log messages.");
+
 			mMessages.CopyTo((TMessage[])array, arrayIndex);
 		}
 

@@ -440,6 +440,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="LogFileException">Writing failed (see inner exception for details).</exception>
 		public void Write(ILogMessage message)
 		{
+			if (message == null) throw new ArgumentNullException(nameof(message));
+
 			CheckDisposed();
 
 			try

@@ -16,6 +16,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Unit tests targeting the <see cref="LogFile" /> class.
 	/// </summary>
+	[Collection("LogFileTests")]
 	public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	{
 		private readonly LogFileTestsFixture mFixture;
@@ -305,7 +306,7 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(fullPath);
 
 			// generate a message to write into the file
-			var message = LogFileTestsFixture.GetTestMessages(1)[0];
+			var message = LoggingTestHelpers.GetTestMessages(1)[0];
 
 			// create a new log file
 			using (var file = new LogFile(filename, purpose, writeMode))

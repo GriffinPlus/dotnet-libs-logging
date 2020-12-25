@@ -286,7 +286,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets an object that can be used to synchronize the collection.
 		/// </summary>
-		object ICollection.SyncRoot => this;
+		object ICollection.SyncRoot => mCachePages; // this list is not publicly visible and therefore suitable for this purpose
 
 		/// <summary>
 		/// Gets the total number of log messages in the collection.
@@ -418,15 +418,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (LogFile.MessageCount > 0)
 			{
-				LogFile.Clear();
-				mChangeCounter++;
 				mCachePages.Clear();
-
-				var handler = CollectionChanged;
-				handler?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-
-				OnPropertyChanged("Count");
-				OnPropertyChanged("Item[]");
+				LogFile.Clear(); // invokes callback that raises the appropriate events
 			}
 		}
 
@@ -437,6 +430,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arrayIndex">Index in the array to start copying to.</param>
 		void ICollection.CopyTo(Array array, int arrayIndex)
 		{
+			if (array == null) throw new ArgumentNullException(nameof(array));
+			if (!(array is LogMessage[])) throw new ArgumentException($"The specified array is not of type {typeof(LogMessage[])}.");
 			CopyTo((LogMessage[])array, arrayIndex);
 		}
 
@@ -479,12 +474,18 @@ namespace GriffinPlus.Lib.Logging
 		public bool Contains(LogMessage item)
 		{
 			if (item == null) return false;
+
+			// the message cannot be in the collection, if the message id is not in the range between
+			// the oldest and the newest message
 			long oldestMessageId = LogFile.OldestMessageId;
 			long newestMessageId = LogFile.NewestMessageId;
-			if (item.Id >= oldestMessageId && item.Id <= newestMessageId)
-				return true;
+			if (item.Id < oldestMessageId || item.Id > newestMessageId)
+				return false;
 
-			return false;
+			// message could be in the collection, check whether the specified message equals the message in
+			// the collection with the same id
+			var other = GetMessage(item.Id);
+			return item.Equals(other);
 		}
 
 		/// <summary>
@@ -499,9 +500,21 @@ namespace GriffinPlus.Lib.Logging
 		public int IndexOf(LogMessage item)
 		{
 			if (item == null) return -1;
-			long index = item.Id - LogFile.OldestMessageId;
-			if (index >= int.MaxValue) ThrowLogFileTooLargeException();
-			return (int)index;
+
+			// the message cannot be in the collection, if the message id is not in the range between
+			// the oldest and the newest message
+			long oldestMessageId = LogFile.OldestMessageId;
+			long newestMessageId = LogFile.NewestMessageId;
+			if (item.Id < oldestMessageId || item.Id > newestMessageId)
+				return -1;
+
+			// message could be in the collection, check whether the specified message equals the message in
+			// the collection with the same id
+			var other = GetMessage(item.Id);
+			if (item.Equals(other)) return (int)(other.Id - oldestMessageId);
+
+			// the collection does not contain the message
+			return -1;
 		}
 
 		/// <summary>
@@ -545,12 +558,18 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="arrayIndex">Index in the array to start copying to.</param>
 		public void CopyTo(LogMessage[] array, int arrayIndex)
 		{
-			if (Count > array.Length - arrayIndex)
-				throw new ArgumentException("The specified array is too small to receive all log messages.");
+			if (array == null) throw new ArgumentNullException(nameof(array));
+			if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex), "The array index is negative.");
+			if (array.Rank != 1) throw new ArgumentException("The specified array is multi-dimensional.");
+			if (arrayIndex > array.Length) throw new ArgumentOutOfRangeException(nameof(arrayIndex), "The array index is outside the specified array.");
+			if (Count > array.Length - arrayIndex) throw new ArgumentException("The specified array is too small to receive all log messages.");
 
 			int currentArrayIndex = arrayIndex;
 			long firstId = LogFile.OldestMessageId;
 			long lastId = LogFile.NewestMessageId;
+
+			// abort, if the collection is empty
+			if (firstId < 0) return;
 
 			for (long id = firstId; id <= lastId; id++)
 			{
@@ -682,9 +701,16 @@ namespace GriffinPlus.Lib.Logging
 				// (a continuous update would drop the performance since frequently requested messages are kicked out the cache)
 
 				// many WPF controls do not support multi-item adds, so adding messages one by one is necessary...
-				foreach (var message in messages)
+				for (int i = 0; i < messages.Length; i++)
 				{
-					handler(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, message));
+					var message = messages[i];
+
+					handler(
+						this,
+						new NotifyCollectionChangedEventArgs(
+							NotifyCollectionChangedAction.Add,
+							message,
+							(int)(LogFile.NewestMessageId - LogFile.OldestMessageId - count + i + 1)));
 				}
 			}
 
