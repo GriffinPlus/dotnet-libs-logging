@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -315,17 +316,36 @@ namespace GriffinPlus.Lib.Logging
 		private static ProcessIntegration PrepareConsolePrinterIntegration(string stream, string testDataFile)
 		{
 #if NETCOREAPP
+			// determine the path of the output directory
+			string directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			Assert.NotNull(directory);
+
+			// start the process to print test data to stdout/stderr
 			string dotnetExecutable = Environment.OSVersion.Platform == PlatformID.Win32NT ? "dotnet.exe" : "dotnet";
-			ProcessStartInfo startInfo = new ProcessStartInfo(dotnetExecutable, $"ConsolePrinter.dll {stream} {testDataFile}");
+			string consolePrinterPath = Path.Combine(directory, "ConsolePrinter.dll");
+			Assert.True(File.Exists(consolePrinterPath), $"{consolePrinterPath} does not exist.");
+			ProcessStartInfo startInfo = new ProcessStartInfo(dotnetExecutable, $"\"{consolePrinterPath}\" {stream} {testDataFile}") { WorkingDirectory = directory };
 			Process process = new Process { StartInfo = startInfo };
 			ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal($"External Process ({dotnetExecutable})", integration.LogWriter.Name);
+
 #elif NETFRAMEWORK
-			var startInfo = new ProcessStartInfo("ConsolePrinter.exe", $"{stream} {testDataFile}");
+
+			// determine the path of the output directory
+			var codeBaseUrl = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+			var codeBasePath = Uri.UnescapeDataString(codeBaseUrl.AbsolutePath);
+			string directory = Path.GetDirectoryName(codeBasePath);
+			Assert.NotNull(directory);
+
+			// start the process to print test data to stdout/stderr
+			string consolePrinterPath = Path.Combine(directory, "ConsolePrinter.exe");
+			Assert.True(File.Exists(consolePrinterPath), $"{consolePrinterPath} does not exist.");
+			var startInfo = new ProcessStartInfo(consolePrinterPath, $"{stream} {testDataFile}") { WorkingDirectory = directory };
 			var process = new Process { StartInfo = startInfo };
 			var integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal("External Process (ConsolePrinter.exe)", integration.LogWriter.Name);
 #endif
+
 			Assert.Same(process, integration.Process);
 			Assert.True(integration.IsLoggingMessagesEnabled);
 			return integration;
