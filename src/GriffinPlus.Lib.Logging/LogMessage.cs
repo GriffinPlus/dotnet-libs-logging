@@ -38,78 +38,198 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="other">Message to copy.</param>
 		public LogMessage(ILogMessage other)
 		{
-			Id = other.Id;
-			Timestamp = other.Timestamp;
-			HighPrecisionTimestamp = other.HighPrecisionTimestamp;
-			LogWriterName = other.LogWriterName;
-			Tags = other.Tags;
-			LogLevelName = other.LogLevelName;
-			ApplicationName = other.ApplicationName;
-			ProcessName = other.ProcessName;
-			ProcessId = other.ProcessId;
-			Text = other.Text;
+			mId = other.Id;
+			mTimestamp = other.Timestamp;
+			mHighPrecisionTimestamp = other.HighPrecisionTimestamp;
+			mLogWriterName = other.LogWriterName;
+			mTags = other.Tags;
+			mLogLevelName = other.LogLevelName;
+			mApplicationName = other.ApplicationName;
+			mProcessName = other.ProcessName;
+			mProcessId = other.ProcessId;
+			mText = other.Text;
 		}
 
 		#region Message Properties
+
+		private long           mId = -1;
+		private int            mLostMessageCount;
+		private DateTimeOffset mTimestamp;
+		private long           mHighPrecisionTimestamp;
+		private string         mLogWriterName;
+		private string         mLogLevelName;
+		private TagSet         mTags;
+		private string         mApplicationName;
+		private string         mProcessName;
+		private int            mProcessId = -1;
+		private string         mText;
 
 		/// <summary>
 		/// Gets or sets the id uniquely identifying the message in a certain context, e.g. a collection or log file
 		/// (-1, if the id is invalid).
 		/// </summary>
-		public long Id { get; set; }
+		public long Id
+		{
+			get => mId;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mId = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the number of preceding messages that have been lost before this message
 		/// (useful when dealing with message streams).
 		/// </summary>
-		public int LostMessageCount { get; set; }
+		public int LostMessageCount
+		{
+			get => mLostMessageCount;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mLostMessageCount = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the date/time the message was written to the log.
 		/// </summary>
-		public DateTimeOffset Timestamp { get; set; }
+		public DateTimeOffset Timestamp
+		{
+			get => mTimestamp;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mTimestamp = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the timestamp for relative time measurements with high precision
 		/// (in nanoseconds, but the actual precision depends on the system timer).
 		/// </summary>
-		public long HighPrecisionTimestamp { get; set; }
+		public long HighPrecisionTimestamp
+		{
+			get => mHighPrecisionTimestamp;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mHighPrecisionTimestamp = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the name of the log writer associated with the log message.
 		/// </summary>
-		public string LogWriterName { get; set; }
+		public string LogWriterName
+		{
+			get => mLogWriterName;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mLogWriterName = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the name of the log level associated with the log message.
 		/// </summary>
-		public string LogLevelName { get; set; }
+		public string LogLevelName
+		{
+			get => mLogLevelName;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mLogLevelName = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets tags attached to the log message.
 		/// </summary>
-		public TagSet Tags { get; set; }
+		public TagSet Tags
+		{
+			get => mTags;
+			set {
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mTags = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </summary>
-		public string ApplicationName { get; set; }
+		public string ApplicationName
+		{
+			get => mApplicationName;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mApplicationName = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the name of the process emitting the log message.
 		/// </summary>
-		public string ProcessName { get; set; }
+		public string ProcessName
+		{
+			get => mProcessName;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mProcessName = value;
+			}
+		}
 
 		/// <summary>
-		/// Gets or sets the id of the process emitting the log message.
+		/// Gets or sets the id of the process emitting the log message
+		/// (-1, if the process id is invalid/unset).
 		/// </summary>
-		public int ProcessId { get; set; }
+		public int ProcessId
+		{
+			get => mProcessId;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mProcessId = value;
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the actual text the log message is about.
 		/// </summary>
-		public string Text { get; set; }
+		public string Text
+		{
+			get => mText;
+			set
+			{
+				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+				mText = value;
+			}
+		}
+
+		#endregion
+
+		#region Write Protection
+
+		private bool mIsReadOnly;
+
+		/// <summary>
+		/// Gets a value indicating whether the log message is protected.
+		/// If <c>true</c>, property setters will throw <see cref="NotSupportedException"/> when invoked.
+		/// </summary>
+		public bool IsReadOnly => mIsReadOnly;
+
+		/// <summary>
+		/// Protects the log message, so it cannot be modified any further.
+		/// </summary>
+		public void Protect()
+		{
+			mIsReadOnly = true;
+		}
 
 		#endregion
 
@@ -200,6 +320,8 @@ namespace GriffinPlus.Lib.Logging
 			int            processId,
 			string         text)
 		{
+			if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+
 			Id = id;
 			Timestamp = timestamp;
 			HighPrecisionTimestamp = highPrecisionTimestamp;
@@ -211,25 +333,28 @@ namespace GriffinPlus.Lib.Logging
 			ProcessName = processName;
 			ProcessId = processId;
 			Text = text;
+
 			return this;
 		}
 
 		/// <summary>
-		/// Resets the log message to defaults.
+		/// Resets the log message to defaults
+		/// (called by the pool to prepare the log message for re-use).
 		/// </summary>
 		internal void Reset()
 		{
-			Id = -1;
-			Timestamp = default;
-			HighPrecisionTimestamp = 0;
-			LostMessageCount = 0;
-			LogWriterName = null;
-			LogLevelName = null;
-			Tags = null;
-			ApplicationName = null;
-			ProcessName = null;
-			ProcessId = 0;
-			Text = null;
+			mId = -1;
+			mTimestamp = default;
+			mHighPrecisionTimestamp = 0;
+			mLostMessageCount = 0;
+			mLogWriterName = null;
+			mLogLevelName = null;
+			mTags = null;
+			mApplicationName = null;
+			mProcessName = null;
+			mProcessId = -1;
+			mText = null;
+			mIsReadOnly = false;
 		}
 
 		#endregion
@@ -262,6 +387,9 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Checks whether the current log message equals the specified one.
+		/// The following properties are _not_ taken into account:
+		/// - <see cref="IsReadOnly"/>
+		/// - <see cref="RefCount"/>
 		/// </summary>
 		/// <param name="other">Log message to compare with.</param>
 		/// <returns>
@@ -284,7 +412,6 @@ namespace GriffinPlus.Lib.Logging
 			       Equals(Tags, other.Tags);
 		}
 
-
 		/// <summary>
 		/// Checks whether the current log message equals the specified one.
 		/// </summary>
@@ -300,6 +427,9 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets the hash code of the log message.
+		/// The following properties are _not_ taken into account:
+		/// - <see cref="IsReadOnly"/>
+		/// - <see cref="RefCount"/>
 		/// </summary>
 		/// <returns>Hash code of the log message.</returns>
 		public override int GetHashCode()
