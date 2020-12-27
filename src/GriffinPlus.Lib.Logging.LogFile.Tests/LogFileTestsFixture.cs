@@ -92,7 +92,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="path">Path of the file to copy.</param>
 		/// <returns>Path of the copy of the file.</returns>
-		private string GetCopyOfFile(string path)
+		private static string GetCopyOfFile(string path)
 		{
 			string copyPath = Path.GetFullPath($"{Guid.NewGuid():D}.gplog");
 			File.Copy(path, copyPath);

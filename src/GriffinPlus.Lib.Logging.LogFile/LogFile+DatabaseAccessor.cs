@@ -551,7 +551,7 @@ namespace GriffinPlus.Lib.Logging
 
 				ExecuteInTransaction(Operation);
 
-				NewestMessageId = NewestMessageId + count;
+				NewestMessageId += count;
 				if (OldestMessageId < 0) OldestMessageId = NewestMessageId - count + 1;
 				return count;
 			}
@@ -672,7 +672,7 @@ namespace GriffinPlus.Lib.Logging
 					// determine the number of pages to copy at once
 					// (influences the granularity of progress notifications and backup performance)
 					// backing up approx. 1 mb at a time seems to be a good compromise
-					int maxCopySliceSize = 1 * 1024 * 1024;
+					const int maxCopySliceSize = 1 * 1024 * 1024;
 					int pagesToCopyAtOnce = (int)((double)(maxCopySliceSize + pageSize - 1) / pageSize);
 
 					// run the backup
@@ -1069,7 +1069,7 @@ namespace GriffinPlus.Lib.Logging
 			/// The result of the query;
 			/// null, if the result was empty.
 			/// </returns>
-			protected object ExecuteScalarCommand(SQLiteCommand command)
+			protected static object ExecuteScalarCommand(SQLiteCommand command)
 			{
 				command.Reset();
 				return command.ExecuteScalar();
@@ -1079,7 +1079,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Executes the specified prepared sqlite non-query command (expecting no result).
 			/// </summary>
 			/// <param name="command">Command to execute.</param>
-			protected void ExecuteNonQueryCommand(SQLiteCommand command)
+			protected static void ExecuteNonQueryCommand(SQLiteCommand command)
 			{
 				command.Reset();
 				command.ExecuteNonQuery();

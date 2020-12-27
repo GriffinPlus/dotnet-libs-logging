@@ -8,6 +8,9 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
+// ReSharper disable ConvertIfStatementToSwitchStatement
+// ReSharper disable ConvertToAutoPropertyWithPrivateSetter
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -22,14 +25,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Characters creating a line break.
 		/// </summary>
-		private static readonly string sLineSeparators =
-			"\u000A" + // line feed
-			"\u000B" + // vertical tab
-			"\u000C" + // form feed
-			"\u000D" + // carriage return (can be followed by a line feed creating a single line break!)
-			"\u0085" + // next line
-			"\u2028" + // line separator
-			"\u2029";  // paragraph separator
+		private const string LineSeparators = "\u000A" + // line feed
+		                                      "\u000B" + // vertical tab
+		                                      "\u000C" + // form feed
+		                                      "\u000D" + // carriage return (can be followed by a line feed creating a single line break!)
+		                                      "\u0085" + // next line
+		                                      "\u2028" + // line separator
+		                                      "\u2029";  // paragraph separator
 
 		/// <summary>
 		/// Characters that have a special meaning in JSON.
@@ -39,7 +41,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Characters that have a special meaning in JSON.
 		/// </summary>
-		private static readonly string sSpecialCharacters = "{}[]:,";
+		private const string SpecialCharacters = "{}[]:,";
 
 		/// <summary>
 		/// Characters that terminate building an identifier.
@@ -88,7 +90,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			sWhitespaceCharacters = builder.ToString();
-			sEndOfIdentifierChars = sWhitespaceCharacters + sSpecialCharacters;
+			sEndOfIdentifierChars = sWhitespaceCharacters + SpecialCharacters;
 		}
 
 		/// <summary>
@@ -139,7 +141,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// determine the next line number and position
 				mNextPosition = mCurrentPosition + 1;
-				if (sLineSeparators.IndexOf(c) >= 0)
+				if (LineSeparators.IndexOf(c) >= 0)
 				{
 					mNextLineNumber = mCurrentLineNumber + 1;
 					mNextPosition = 1;

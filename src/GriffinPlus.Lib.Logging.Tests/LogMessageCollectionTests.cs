@@ -69,7 +69,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="collection">Collection to check.</param>
 		/// <param name="expectedCount">Expected number of log messages in the collection.</param>
-		private void TestCollectionPropertyDefaults(LogMessageCollection<LogMessage> collection, long expectedCount)
+		private void TestCollectionPropertyDefaults(ILogMessageCollection<LogMessage> collection, long expectedCount)
 		{
 			using (var eventWatcher = collection.AttachEventWatcher())
 			{

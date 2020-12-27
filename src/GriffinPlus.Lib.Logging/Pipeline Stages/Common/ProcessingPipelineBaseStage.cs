@@ -10,7 +10,6 @@ using System.Threading;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable ForCanBeConvertedToForeach
-// ReSharper disable EmptyConstructor
 
 namespace GriffinPlus.Lib.Logging
 {

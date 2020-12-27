@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// An event handler item in the event manager.
 		/// </summary>
-		private struct Item
+		private readonly struct Item
 		{
 			public readonly SynchronizationContext SynchronizationContext;
 			public readonly EventHandler<T>        Handler;

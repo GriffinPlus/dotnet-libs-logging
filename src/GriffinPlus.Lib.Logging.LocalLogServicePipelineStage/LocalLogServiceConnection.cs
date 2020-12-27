@@ -668,29 +668,29 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timeout">Time to wait for the request to finish (in ms).</param>
 		/// <returns>The received reply.</returns>
 		/// <exception cref="LocalLogServiceCommunicationException">Communicating with the local log service failed.</exception>
+		// ReSharper disable once UnusedParameter.Local
 		private Reply SendRequest(Request request, int timeout = PipeRequestTimeout)
 		{
 			try
 			{
-				using (var pipe = new NamedPipeClientStream(".", mSinkServerPipeName, PipeDirection.InOut))
-				using (var reader = new MemoryReader(pipe))
-				using (var writer = new MemoryWriter(pipe))
-				{
-					// connect to the pipe or wait until the pipe is available
-					// (the local log service has a set of pipes to serve multiple clients, so waiting most likely
-					// indicates that the service is not running)
-					pipe.Connect(0);
-					pipe.ReadMode = PipeTransmissionMode.Message;
+				using var pipe = new NamedPipeClientStream(".", mSinkServerPipeName, PipeDirection.InOut);
+				using var reader = new MemoryReader(pipe);
+				using var writer = new MemoryWriter(pipe);
 
-					// TODO: configure timeout for writing and reading struct
-					//       (at the moment the pipe does not support setting ReadTimeout and WriteTimeout)
+				// connect to the pipe or wait until the pipe is available
+				// (the local log service has a set of pipes to serve multiple clients, so waiting most likely
+				// indicates that the service is not running)
+				pipe.Connect(0);
+				pipe.ReadMode = PipeTransmissionMode.Message;
 
-					// send the request to the local log service
-					writer.WriteStruct(request);
+				// TODO: configure timeout for writing and reading struct
+				//       (at the moment the pipe does not support setting ReadTimeout and WriteTimeout)
 
-					// wait for the reply
-					return reader.ReadStruct<Reply>();
-				}
+				// send the request to the local log service
+				writer.WriteStruct(request);
+
+				// wait for the reply
+				return reader.ReadStruct<Reply>();
 			}
 			catch (Exception ex)
 			{

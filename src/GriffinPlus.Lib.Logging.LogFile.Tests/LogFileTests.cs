@@ -57,11 +57,10 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
-				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
-				{
-					yield return new object[] { purpose, writeMode };
-				}
+				return
+					from LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose))
+					from LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode))
+					select new object[] { purpose, writeMode };
 			}
 		}
 
@@ -114,12 +113,10 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
-				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
-				foreach (bool usedOnly in new[] { false, true })
-				{
-					yield return new object[] { purpose, writeMode, usedOnly };
-				}
+				return from LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose))
+				       from LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode))
+				       from usedOnly in new[] { false, true }
+				       select new object[] { purpose, writeMode, usedOnly };
 			}
 		}
 
@@ -427,7 +424,7 @@ namespace GriffinPlus.Lib.Logging
 
 					// read messages in chunks of 999, so the last chunk does not return a full set
 					// (covers reading full set and partial set)
-					int chunkSize = 999;
+					const int chunkSize = 999;
 					for (int readMessageCount = 0; readMessageCount < totalMessageCount;)
 					{
 						var messages = file.Read(file.OldestMessageId + readMessageCount, chunkSize);
@@ -502,7 +499,7 @@ namespace GriffinPlus.Lib.Logging
 
 					// read messages in chunks of 999, so the last chunk does not return a full set
 					// (covers reading full set and partial set)
-					int chunkSize = 999;
+					const int chunkSize = 999;
 					for (int readMessageCount = 0; readMessageCount < totalMessageCount;)
 					{
 						int readMessagesInStep = 0;
@@ -550,13 +547,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
-				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
-				foreach (bool messagesOnly in new[] { false, true })
-				foreach (bool compact in new[] { false, true })
-				{
-					yield return new object[] { purpose, writeMode, messagesOnly, compact };
-				}
+				return
+					from LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose))
+					from LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode))
+					from messagesOnly in new[] { false, true }
+					from compact in new[] { false, true }
+					select new object[] { purpose, writeMode, messagesOnly, compact };
 			}
 		}
 

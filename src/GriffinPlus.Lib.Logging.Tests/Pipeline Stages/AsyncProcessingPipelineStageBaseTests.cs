@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Unit tests targeting the <see cref="AsyncProcessingPipelineStage{STAGE}" /> class as a base class for derived pipeline stages.
 	/// </summary>
-	public abstract class AsyncProcessingPipelineStageBaseTests<STAGE> where STAGE : AsyncProcessingPipelineStage<STAGE>
+	public abstract class AsyncProcessingPipelineStageBaseTests<TStage> where TStage : AsyncProcessingPipelineStage<TStage>
 	{
 		// ReSharper disable once StaticMemberInGenericType
 		internal static LocalLogMessagePool MessagePool = new LocalLogMessagePool();
@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <returns>The created stage.</returns>
-		protected abstract STAGE CreateStage(string name);
+		protected abstract TStage CreateStage(string name);
 
 		/// <summary>
 		/// Tests whether creating a new stage succeeds and the stage is in the expected state
@@ -60,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var stage1 = CreateStage("Stage1");
 			var stage2 = CreateStage("Stage2");
-			var stages12 = new HashSet<STAGE> { stage1, stage2 };
+			var stages12 = new HashSet<TStage> { stage1, stage2 };
 
 			// add stage 2 as follower of stage 1
 			stage1.AddNextStage(stage2);

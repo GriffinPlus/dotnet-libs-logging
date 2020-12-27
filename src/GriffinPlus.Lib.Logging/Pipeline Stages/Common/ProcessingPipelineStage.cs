@@ -7,7 +7,6 @@ using System;
 using System.Diagnostics;
 
 // ReSharper disable ForCanBeConvertedToForeach
-// ReSharper disable EmptyConstructor
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -17,8 +16,8 @@ namespace GriffinPlus.Lib.Logging
 	/// Messages are always processed in the context of the thread writing the message.
 	/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
 	/// </summary>
-	public abstract class ProcessingPipelineStage<STAGE> : ProcessingPipelineBaseStage
-		where STAGE : ProcessingPipelineStage<STAGE>
+	public abstract class ProcessingPipelineStage<TStage> : ProcessingPipelineBaseStage
+		where TStage : ProcessingPipelineStage<TStage>
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}" /> class.

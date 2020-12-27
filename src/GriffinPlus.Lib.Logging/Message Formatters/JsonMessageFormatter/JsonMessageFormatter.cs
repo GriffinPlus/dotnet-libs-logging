@@ -8,8 +8,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-// ReSharper disable EmptyConstructor
-
 namespace GriffinPlus.Lib.Logging
 {
 

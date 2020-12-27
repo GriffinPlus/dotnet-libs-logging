@@ -251,6 +251,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets a value indicating whether the shared memory queue is initialized.
 		/// </summary>
+		// ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
 		public bool IsInitialized => mInitialized;
 
 		/// <summary>

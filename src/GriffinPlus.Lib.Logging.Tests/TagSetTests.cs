@@ -226,7 +226,7 @@ namespace GriffinPlus.Lib.Logging
 		public void OperatorPlus_WithSingleTag_Success(string[] tags, string right, string[] expected)
 		{
 			var left = new TagSet(tags);
-			left = left + right;
+			left += right;
 			Assert.Equal(expected, left.ToArray());
 		}
 
@@ -287,7 +287,7 @@ namespace GriffinPlus.Lib.Logging
 		public void OperatorPlus_WithMultipleTags_Success(string[] tags, string[] right, string[] expected)
 		{
 			var left = new TagSet(tags);
-			left = left + right;
+			left += right;
 			Assert.Equal(expected, left.ToArray());
 		}
 
@@ -336,7 +336,7 @@ namespace GriffinPlus.Lib.Logging
 		public void OperatorMinus_WithSingleTag_Success(string[] tags, string right, string[] expected)
 		{
 			var left = new TagSet(tags);
-			left = left - right;
+			left -= right;
 			Assert.Equal(expected, left.ToArray());
 		}
 
@@ -397,7 +397,7 @@ namespace GriffinPlus.Lib.Logging
 		public void OperatorMinus_WithMultipleTags_Success(string[] tags, string[] right, string[] expected)
 		{
 			var left = new TagSet(tags);
-			left = left - right;
+			left -= right;
 			Assert.Equal(expected, left.ToArray());
 		}
 

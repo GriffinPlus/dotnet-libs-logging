@@ -14,8 +14,8 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Base class for a log message processing pipeline stage that logs messages as a formatted string (thread-safe).
 	/// </summary>
-	public abstract class TextWriterPipelineStage<STAGE> : AsyncProcessingPipelineStage<STAGE>
-		where STAGE : TextWriterPipelineStage<STAGE>
+	public abstract class TextWriterPipelineStage<TStage> : AsyncProcessingPipelineStage<TStage>
+		where TStage : TextWriterPipelineStage<TStage>
 	{
 		private readonly Queue<FormattedMessage> mFormattedMessageQueue = new Queue<FormattedMessage>();
 

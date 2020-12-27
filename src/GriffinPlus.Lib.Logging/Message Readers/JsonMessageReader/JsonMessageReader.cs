@@ -303,6 +303,9 @@ namespace GriffinPlus.Lib.Logging
 						mState = State.ExpectingCommaOrEndOfObject;
 						break;
 					}
+
+					default:
+						throw new NotImplementedException();
 				}
 			}
 
@@ -326,7 +329,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Throws a <see cref="JsonMessageReaderException" /> indicating that an unexpected token was found.
 		/// </summary>
 		/// <param name="token">The unexpected token.</param>
-		private void ThrowUnexpectedTokenException(ref JsonToken token)
+		private static void ThrowUnexpectedTokenException(ref JsonToken token)
 		{
 			throw new JsonMessageReaderException(
 				token.LineNumber,

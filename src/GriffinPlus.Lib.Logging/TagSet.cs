@@ -245,7 +245,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="tags">Tags to hash.</param>
 		/// <returns>The hash code of the tags.</returns>
-		private static int CalculateHashCode(List<string> tags)
+		private static int CalculateHashCode(IEnumerable<string> tags)
 		{
 			unchecked
 			{

@@ -12,6 +12,7 @@ using System.Linq;
 
 using Xunit;
 
+// ReSharper disable InvalidXmlDocComment
 // ReSharper disable RedundantCast
 
 namespace GriffinPlus.Lib.Logging

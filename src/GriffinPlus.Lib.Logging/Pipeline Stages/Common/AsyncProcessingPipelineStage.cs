@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-// ReSharper disable EmptyConstructor
 // ReSharper disable ForCanBeConvertedToForeach
 
 namespace GriffinPlus.Lib.Logging
@@ -20,8 +19,8 @@ namespace GriffinPlus.Lib.Logging
 	/// that might block should be done asynchronously only to ensure that the thread writing a message is
 	/// not blocked.
 	/// </summary>
-	public abstract class AsyncProcessingPipelineStage<STAGE> : ProcessingPipelineBaseStage
-		where STAGE : AsyncProcessingPipelineStage<STAGE>
+	public abstract class AsyncProcessingPipelineStage<TStage> : ProcessingPipelineBaseStage
+		where TStage : AsyncProcessingPipelineStage<TStage>
 	{
 		private Task                           mAsyncProcessingTask;
 		private AsyncAutoResetEvent            mTriggerAsyncProcessingEvent;

@@ -221,6 +221,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets a value indicating whether the log message is protected.
 		/// If <c>true</c>, property setters will throw <see cref="NotSupportedException"/> when invoked.
 		/// </summary>
+		// ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
 		public bool IsReadOnly => mIsReadOnly;
 
 		/// <summary>
@@ -371,18 +372,26 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		public bool Equals(ILogMessage other)
 		{
-			if (other == null) return false;
-			if (other is LogMessage otherLogMessage) return Equals(otherLogMessage);
-			return Id == other.Id &&
-			       Timestamp.Equals(other.Timestamp) &&
-			       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
-			       LogWriterName == other.LogWriterName &&
-			       LogLevelName == other.LogLevelName &&
-			       ApplicationName == other.ApplicationName &&
-			       ProcessName == other.ProcessName &&
-			       ProcessId == other.ProcessId &&
-			       Text == other.Text &&
-			       Equals(Tags, other.Tags);
+			switch (other)
+			{
+				case null:
+					return false;
+
+				case LogMessage otherLogMessage:
+					return Equals(otherLogMessage);
+
+				default:
+					return Id == other.Id &&
+					       Timestamp.Equals(other.Timestamp) &&
+					       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
+					       LogWriterName == other.LogWriterName &&
+					       LogLevelName == other.LogLevelName &&
+					       ApplicationName == other.ApplicationName &&
+					       ProcessName == other.ProcessName &&
+					       ProcessId == other.ProcessId &&
+					       Text == other.Text &&
+					       Equals(Tags, other.Tags);
+			}
 		}
 
 		/// <summary>

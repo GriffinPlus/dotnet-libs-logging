@@ -39,6 +39,7 @@ namespace GriffinPlus.Lib.Logging
 			var bucket = mTable[index];
 			if (bucket != null)
 			{
+				// ReSharper disable once ForCanBeConvertedToForeach
 				for (int i = 0; i < bucket.Length; i++)
 				{
 					string other = bucket[i];

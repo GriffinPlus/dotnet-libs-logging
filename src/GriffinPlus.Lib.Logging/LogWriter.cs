@@ -175,7 +175,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				for (int i = mSecondaryWriters.Count - 1; i >= 0; i--)
 				{
-					if (!mSecondaryWriters[i].TryGetTarget(out var writer))
+					if (!mSecondaryWriters[i].TryGetTarget(out _))
 					{
 						mSecondaryWriters.RemoveAt(i);
 					}
@@ -1713,8 +1713,7 @@ namespace GriffinPlus.Lib.Logging
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static object PrepareArgument<T>(T arg)
 		{
-			var exception = arg as Exception;
-			if (exception != null) return UnwrapException(exception);
+			if (arg is Exception exception) return UnwrapException(exception);
 			return arg;
 		}
 

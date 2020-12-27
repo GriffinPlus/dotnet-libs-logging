@@ -793,7 +793,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Throws a <see cref="LogFileTooLargeException" /> indicating that the backing log file contains too many messages
 		/// to be handled as a regular .NET collection that supports up to <seealso cref="int.MaxValue" /> items only.
 		/// </summary>
-		private void ThrowLogFileTooLargeException()
+		private static void ThrowLogFileTooLargeException()
 		{
 			throw new LogFileTooLargeException("The backing log file contains too many messages to be handled as a regular collection.");
 		}

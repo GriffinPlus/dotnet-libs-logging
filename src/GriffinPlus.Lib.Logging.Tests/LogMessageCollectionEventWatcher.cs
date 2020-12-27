@@ -130,7 +130,7 @@ namespace GriffinPlus.Lib.Logging
 					}
 					else
 					{
-						hashCode = hashCode * 397;
+						hashCode *= 397;
 					}
 
 					if (obj.NewItems != null)
@@ -142,7 +142,7 @@ namespace GriffinPlus.Lib.Logging
 					}
 					else
 					{
-						hashCode = hashCode * 397;
+						hashCode *= 397;
 					}
 
 					return hashCode;
@@ -214,20 +214,21 @@ namespace GriffinPlus.Lib.Logging
 
 					Assert.Equal(expected.Item1, watched.Item1);
 
-					if (expected.Item1 == nameof(INotifyPropertyChanged.PropertyChanged))
+					switch (expected.Item1)
 					{
-						Assert.Equal(
-							(PropertyChangedEventArgs)expected.Item2,
-							(PropertyChangedEventArgs)watched.Item2,
-							PropertyChangedEventArgsEqualityComparer.Instance);
-					}
+						case nameof(INotifyPropertyChanged.PropertyChanged):
+							Assert.Equal(
+								(PropertyChangedEventArgs)expected.Item2,
+								(PropertyChangedEventArgs)watched.Item2,
+								PropertyChangedEventArgsEqualityComparer.Instance);
+							break;
 
-					if (expected.Item1 == nameof(INotifyCollectionChanged.CollectionChanged))
-					{
-						Assert.Equal(
-							(NotifyCollectionChangedEventArgs)expected.Item2,
-							(NotifyCollectionChangedEventArgs)watched.Item2,
-							NotifyCollectionChangedEventArgsEqualityComparer.Instance);
+						case nameof(INotifyCollectionChanged.CollectionChanged):
+							Assert.Equal(
+								(NotifyCollectionChangedEventArgs)expected.Item2,
+								(NotifyCollectionChangedEventArgs)watched.Item2,
+								NotifyCollectionChangedEventArgsEqualityComparer.Instance);
+							break;
 					}
 				}
 			}

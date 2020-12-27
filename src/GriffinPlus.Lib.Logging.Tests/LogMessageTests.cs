@@ -11,6 +11,7 @@ using System.Reflection;
 using Xunit;
 
 using static GriffinPlus.Lib.Expressions.LambdaExpressionInliners;
+// ReSharper disable SwitchStatementHandlesSomeKnownEnumValuesWithDefault
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -111,12 +112,19 @@ namespace GriffinPlus.Lib.Logging
 
 			// extract information about the property to work with
 			PropertyInfo propertyInfo;
-			if (property.Body.NodeType == ExpressionType.MemberAccess)
-				propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
-			else if (property.Body.NodeType == ExpressionType.Convert)
-				propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
-			else
-				throw new NotImplementedException();
+			switch (property.Body.NodeType)
+			{
+				case ExpressionType.MemberAccess:
+					propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
+					break;
+
+				case ExpressionType.Convert:
+					propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
 
 			// invoke the getter of the property and compare to the expected default value
 			var value = propertyInfo.GetValue(message);
@@ -140,12 +148,19 @@ namespace GriffinPlus.Lib.Logging
 
 			// extract information about the property to work with
 			PropertyInfo propertyInfo;
-			if (property.Body.NodeType == ExpressionType.MemberAccess)
-				propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
-			else if (property.Body.NodeType == ExpressionType.Convert)
-				propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
-			else
-				throw new NotImplementedException();
+			switch (property.Body.NodeType)
+			{
+				case ExpressionType.MemberAccess:
+					propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
+					break;
+
+				case ExpressionType.Convert:
+					propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
 
 			var value = propertyInfo.GetValue(message);
 			Assert.Equal(expectedDefaultValue, value);
@@ -179,7 +194,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		private void Reset()
 		{
-			LogMessage message = new LogMessage()
+			LogMessage message = new LogMessage
 			{
 				Id = 0,
 				LostMessageCount = 0,
@@ -227,7 +242,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				LogMessage message = new LogMessage()
+				LogMessage message = new LogMessage
 				{
 					Id = 0,
 					LostMessageCount = 0,
@@ -310,7 +325,6 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// create a copy of the message using the copy constructor
 			// => the copy should equal the message
-			int messageHashCode = message.GetHashCode();
 			var otherMessage = new LogMessage(message);
 			bool isEqual = message.Equals(otherMessage);
 			Assert.True(isEqual);
@@ -370,12 +384,19 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// extract information about the property to work with
 			PropertyInfo propertyInfo;
-			if (property.Body.NodeType == ExpressionType.MemberAccess)
-				propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
-			else if (property.Body.NodeType == ExpressionType.Convert)
-				propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
-			else
-				throw new NotImplementedException();
+			switch (property.Body.NodeType)
+			{
+				case ExpressionType.MemberAccess:
+					propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
+					break;
+
+				case ExpressionType.Convert:
+					propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
 
 			// set property
 			propertyInfo.SetValue(message, valueToSet, null);

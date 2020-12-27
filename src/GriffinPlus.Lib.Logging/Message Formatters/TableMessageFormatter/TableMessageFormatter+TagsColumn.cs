@@ -62,7 +62,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="message">Message containing the tags to format.</param>
 			/// <returns>The formatted tags field.</returns>
-			private string GetOutputString(ILogMessage message)
+			private static string GetOutputString(ILogMessage message)
 			{
 				return string.Join(", ", message.Tags);
 			}

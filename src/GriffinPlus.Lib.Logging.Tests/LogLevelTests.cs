@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		#region Expected Results
 
-		private struct LogLevelItem
+		private readonly struct LogLevelItem
 		{
 			public readonly int    Id;
 			public readonly string Name;

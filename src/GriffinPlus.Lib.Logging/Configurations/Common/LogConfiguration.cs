@@ -19,8 +19,8 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// The base class for log configurations.
 	/// </summary>
-	public abstract class LogConfiguration<CONFIGURATION> : ILogConfiguration
-		where CONFIGURATION : LogConfiguration<CONFIGURATION>
+	public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
+		where TConfiguration : LogConfiguration<TConfiguration>
 	{
 		/// <summary>
 		/// Gets the object to use when synchronizing access to the log configuration.

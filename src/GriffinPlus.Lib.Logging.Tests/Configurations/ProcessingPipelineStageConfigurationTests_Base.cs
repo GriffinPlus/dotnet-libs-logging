@@ -19,14 +19,14 @@ namespace GriffinPlus.Lib.Logging
 	/// Common unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration" /> and the
 	/// <see cref="FileBackedProcessingPipelineConfiguration" /> class.
 	/// </summary>
-	public abstract class ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION> where CONFIGURATION : ProcessingPipelineStageConfigurationBase
+	public abstract class ProcessingPipelineStageConfigurationTests_Base<TConfiguration> where TConfiguration : ProcessingPipelineStageConfigurationBase
 	{
 		/// <summary>
 		/// Creates a new instance of the pipeline stage configuration to test.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
 		/// <returns>The created pipeline stage configuration.</returns>
-		protected abstract CONFIGURATION CreateConfiguration(string name);
+		protected abstract TConfiguration CreateConfiguration(string name);
 
 		public static IEnumerable<object[]> GetSetting_TestData
 		{
@@ -131,7 +131,7 @@ namespace GriffinPlus.Lib.Logging
 			GetSetting_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
 
 			// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<CONFIGURATION>)
+			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TConfiguration>)
 				.GetMethod(nameof(GetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
 				.MakeGenericMethod(type);
 			typedTestMethod.Invoke(this, new[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
