@@ -15,6 +15,8 @@ using Xunit;
 // ReSharper disable InvalidXmlDocComment
 // ReSharper disable RedundantCast
 
+#pragma warning disable CS1584 // XML comment has syntactically incorrect cref attribute
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -1661,3 +1663,5 @@ namespace GriffinPlus.Lib.Logging
 	}
 
 }
+
+#pragma warning restore CS1584 // XML comment has syntactically incorrect cref attribute

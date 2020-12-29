@@ -168,8 +168,8 @@ stages:
         configuration: '$(BuildConfiguration)'
         testSelector: 'testAssemblies'
         testAssemblyVer2: |
-          GriffinPlus.Lib.Logging.Tests\*\net461\GriffinPlus.Lib.Logging.Tests.dll
-          GriffinPlus.Lib.Logging.LogFile.Tests\*\net461\GriffinPlus.Lib.Logging.LogFile.Tests.dll
+          **\*Tests.dll
+          !**\.obj\**
         searchFolder: '$(Build.SourcesDirectory)/_build'
         runSettingsFile: '$(Build.SourcesDirectory)/src/tests.runsettings'
         otherConsoleOptions: '/Framework:.NETFramework,Version=v4.6.1'

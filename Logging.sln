@@ -66,6 +66,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "azure-pipelines", "azure-pi
 		build.vs\azure-pipelines\ci-csharp-netstandard20-with-deployment-on-tag.yml = build.vs\azure-pipelines\ci-csharp-netstandard20-with-deployment-on-tag.yml
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.TestCommon", "src\GriffinPlus.Lib.Logging.TestCommon\GriffinPlus.Lib.Logging.TestCommon.csproj", "{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -100,6 +102,10 @@ Global
 		{0FD81A8E-8645-46AA-B1A0-AE55386514E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FD81A8E-8645-46AA-B1A0-AE55386514E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FD81A8E-8645-46AA-B1A0-AE55386514E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
