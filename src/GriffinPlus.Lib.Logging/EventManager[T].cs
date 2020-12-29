@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 // ReSharper disable StaticMemberInGenericType
 
@@ -29,11 +30,13 @@ namespace GriffinPlus.Lib.Logging
 		{
 			public readonly SynchronizationContext SynchronizationContext;
 			public readonly EventHandler<T>        Handler;
+			public readonly bool                   ScheduleAlways;
 
-			public Item(SynchronizationContext context, EventHandler<T> handler)
+			public Item(SynchronizationContext context, EventHandler<T> handler, bool scheduleAlways)
 			{
 				SynchronizationContext = context;
 				Handler = handler;
+				ScheduleAlways = scheduleAlways;
 			}
 		}
 
@@ -48,18 +51,32 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="obj">Object providing the event.</param>
 		/// <param name="eventName">Name of the event.</param>
 		/// <param name="handler">Event handler to register.</param>
-		/// <param name="context">
-		/// Synchronization context to use when calling the event handler
-		/// (<c>null</c> to execute the event handler in the context of the thread firing the event).
+		/// <param name="context">Synchronization context to use when calling the event handler (may be null).</param>
+		/// <param name="scheduleAlways">
+		/// If <paramref name="context" /> is set:
+		/// <c>true</c> to always schedule the event handler in the specified synchronization context,
+		/// <c>false</c> to schedule the event handler in the specified context only, if the thread firing the event has some other synchronization context.
+		/// If <paramref name="context" /> is <c>null</c>:
+		/// <c>true</c> to always schedule the event handler in a worker thread,
+		/// <c>false</c> to invoke the event handler in the thread that is firing the event (direct call).
 		/// </param>
 		/// <returns>Total number of registered event handlers (including the specified event handler).</returns>
 		public static int RegisterEventHandler(
 			object                 obj,
 			string                 eventName,
 			EventHandler<T>        handler,
-			SynchronizationContext context)
+			SynchronizationContext context,
+			bool                   scheduleAlways)
 		{
-			return RegisterEventHandler(obj, eventName, handler, context, false, null, null);
+			return RegisterEventHandler(
+				obj,
+				eventName,
+				handler,
+				context,
+				scheduleAlways,
+				false,
+				null,
+				null);
 		}
 
 		/// <summary>
@@ -73,6 +90,14 @@ namespace GriffinPlus.Lib.Logging
 		/// Synchronization context to use when calling the event handler
 		/// (<c>null</c> to execute the event handler in the context of the thread firing the event).
 		/// </param>
+		/// <param name="scheduleAlways">
+		/// If <paramref name="context" /> is set:
+		/// <c>true</c> to always schedule the event handler in the specified synchronization context,
+		/// <c>false</c> to schedule the event handler in the specified context only, if the thread firing the event has some other synchronization context.
+		/// If <paramref name="context" /> is <c>null</c>:
+		/// <c>true</c> to always schedule the event handler in a worker thread,
+		/// <c>false</c> to invoke the event handler in the thread that is firing the event (direct call).
+		/// </param>
 		/// <param name="fireImmediately">
 		/// true to register and fire the event handler immediately after registration;
 		/// false to register the event handler only.
@@ -85,6 +110,7 @@ namespace GriffinPlus.Lib.Logging
 			string                 eventName,
 			EventHandler<T>        handler,
 			SynchronizationContext context,
+			bool                   scheduleAlways,
 			bool                   fireImmediately,
 			object                 sender,
 			T                      e)
@@ -105,13 +131,13 @@ namespace GriffinPlus.Lib.Logging
 				{
 					newItems = new Item[items.Length + 1];
 					Array.Copy(items, newItems, items.Length);
-					newItems[items.Length] = new Item(context, handler);
+					newItems[items.Length] = new Item(context, handler, scheduleAlways);
 					itemsByName[eventName] = newItems;
 				}
 				else
 				{
 					newItems = new Item[1];
-					newItems[0] = new Item(context, handler);
+					newItems[0] = new Item(context, handler, scheduleAlways);
 					itemsByName[eventName] = newItems;
 				}
 			}
@@ -120,11 +146,13 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (context != null)
 				{
-					context.Post(x => { handler(sender, e); }, null);
+					if (scheduleAlways) context.Post(_ => handler(sender, e), null);
+					else handler(sender, e);
 				}
 				else
 				{
-					handler(sender, e);
+					if (scheduleAlways) Task.Run(() => handler(sender, e));
+					else handler(sender, e);
 				}
 			}
 
@@ -148,10 +176,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (sSync)
 			{
 				if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out var items))
-				{
-					// specified event handler was not registered
-					return -1;
-				}
+					return -1; // specified event handler was not registered
 
 				for (int i = 0; i < items.Length; i++)
 				{
@@ -247,11 +272,18 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (item.SynchronizationContext != null)
 				{
-					item.SynchronizationContext.Post(x => { ((Item)x).Handler(sender, e); }, item);
+					// synchronization context was specified at registration
+					// => invoke the handler directly, if the current context is the same as the context at registration and scheduling is not enforced;
+					//    otherwise schedule the handler using the context specified at registration
+					if (!item.ScheduleAlways && ReferenceEquals(SynchronizationContext.Current, item.SynchronizationContext)) item.Handler(sender, e);
+					else item.SynchronizationContext.Post(x => ((Item)x).Handler(sender, e), item);
 				}
 				else
 				{
-					item.Handler(sender, e);
+					// synchronization context was not specified at registration
+					// => schedule handler in worker thread or invoke it directly
+					if (item.ScheduleAlways) Task.Run(() => item.Handler(sender, e));
+					else item.Handler(sender, e);
 				}
 			}
 		}
@@ -282,7 +314,11 @@ namespace GriffinPlus.Lib.Logging
 				{
 					handlers += (sender, e) =>
 					{
-						item.SynchronizationContext.Post(x => { ((Item)x).Handler(sender, e); }, item);
+						// synchronization context was specified at registration
+						// => invoke the handler directly, if the current context is the same as the context at registration and scheduling is not enforced;
+						//    otherwise schedule the handler using the context specified at registration
+						if (!item.ScheduleAlways && ReferenceEquals(SynchronizationContext.Current, item.SynchronizationContext)) item.Handler(sender, e);
+						else item.SynchronizationContext.Post(x => ((Item)x).Handler(sender, e), item);
 					};
 				}
 				else
@@ -290,7 +326,10 @@ namespace GriffinPlus.Lib.Logging
 					var itemCopy = item;
 					handlers += (sender, e) =>
 					{
-						itemCopy.Handler(sender, e);
+						// synchronization context was not specified at registration
+						// => schedule handler in worker thread or invoke it directly
+						if (itemCopy.ScheduleAlways) Task.Run(() => itemCopy.Handler(sender, e));
+						else itemCopy.Handler(sender, e);
 					};
 				}
 			}

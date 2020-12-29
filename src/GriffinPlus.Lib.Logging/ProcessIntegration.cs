@@ -37,7 +37,8 @@ namespace GriffinPlus.Lib.Logging
 				this,
 				nameof(OutputStreamReceivedText),
 				value,
-				SynchronizationContext.Current);
+				SynchronizationContext.Current,
+				false);
 
 			remove => EventManager<LineReceivedEventArgs>.UnregisterEventHandler(
 				this,
@@ -57,7 +58,8 @@ namespace GriffinPlus.Lib.Logging
 				this,
 				nameof(OutputStreamReceivedMessage),
 				value,
-				SynchronizationContext.Current);
+				SynchronizationContext.Current,
+				false);
 
 			remove => EventManager<MessageReceivedEventArgs>.UnregisterEventHandler(
 				this,
@@ -77,7 +79,8 @@ namespace GriffinPlus.Lib.Logging
 				this,
 				nameof(ErrorStreamReceivedText),
 				value,
-				SynchronizationContext.Current);
+				SynchronizationContext.Current,
+				false);
 
 			remove => EventManager<LineReceivedEventArgs>.UnregisterEventHandler(
 				this,
@@ -97,7 +100,8 @@ namespace GriffinPlus.Lib.Logging
 				this,
 				nameof(ErrorStreamReceivedMessage),
 				value,
-				SynchronizationContext.Current);
+				SynchronizationContext.Current,
+				false);
 
 			remove => EventManager<MessageReceivedEventArgs>.UnregisterEventHandler(
 				this,
