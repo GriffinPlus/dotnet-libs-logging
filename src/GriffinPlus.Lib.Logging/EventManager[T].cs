@@ -196,6 +196,8 @@ namespace GriffinPlus.Lib.Logging
 						}
 
 						itemsByName.Remove(eventName);
+						if (itemsByName.Count == 0) sItemsByObject.Remove(obj);
+
 						return 0;
 					}
 				}
