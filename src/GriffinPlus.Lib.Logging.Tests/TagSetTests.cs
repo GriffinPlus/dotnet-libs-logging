@@ -194,6 +194,68 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
+		#region Operator==
+
+		public static IEnumerable<object[]> OperatorEquality_TestData
+		{
+			get
+			{
+				// equal
+				yield return new object[] { true, null, null };
+				yield return new object[] { true, TagSet.Empty, TagSet.Empty };
+				yield return new object[] { true, new TagSet("A"), new TagSet("A") };
+				yield return new object[] { true, new TagSet("A", "B"), new TagSet("A", "B") };
+
+				// not equal
+				yield return new object[] { false, new TagSet("A"), null };
+				yield return new object[] { false, new TagSet("A"), TagSet.Empty };
+				yield return new object[] { false, null, new TagSet("A") };
+				yield return new object[] { false, TagSet.Empty, new TagSet("A") };
+				yield return new object[] { false, new TagSet("A"), new TagSet("B") };
+				yield return new object[] { false, new TagSet("A"), new TagSet("A", "B") };
+				yield return new object[] { false, new TagSet("A", "B"), new TagSet("A") };
+			}
+		}
+
+		/// <summary>
+		/// Tests whether operator== works properly.
+		/// </summary>
+		[Theory]
+		[MemberData(nameof(OperatorEquality_TestData))]
+		public void OperatorEquality(bool expected, TagSet left, TagSet right)
+		{
+			bool isEqual = left == right;
+			Assert.Equal(expected, isEqual);
+		}
+
+		#endregion
+
+		#region Operator!=
+
+		public static IEnumerable<object[]> OperatorInequality_TestData
+		{
+			get
+			{
+				foreach (var data in OperatorEquality_TestData)
+				{
+					yield return new[] { !(bool)data[0], data[1], data[2] };
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests whether operator!= works properly.
+		/// </summary>
+		[Theory]
+		[MemberData(nameof(OperatorInequality_TestData))]
+		public void OperatorInequality(bool expected, TagSet left, TagSet right)
+		{
+			bool isEqual = left != right;
+			Assert.Equal(expected, isEqual);
+		}
+
+		#endregion
+
 		#region Operator+
 
 		public static IEnumerable<object[]> OperatorPlus_WithSingleTag_TestData

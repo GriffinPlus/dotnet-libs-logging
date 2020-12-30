@@ -102,6 +102,32 @@ namespace GriffinPlus.Lib.Logging
 		public int Count => mTags.Count;
 
 		/// <summary>
+		/// Determines whether the left tag set and the right tag set are equal.
+		/// </summary>
+		/// <param name="left">Left tag set.</param>
+		/// <param name="right">Right tag set.</param>
+		/// <returns>true, if the specified tag sets are equal; otherwise false.</returns>
+		public static bool operator ==(TagSet left, TagSet right)
+		{
+			if (ReferenceEquals(left, null) && ReferenceEquals(right, null)) return true;
+			if (ReferenceEquals(left, null)) return false;
+			return left.Equals(right);
+		}
+
+		/// <summary>
+		/// Determines whether the left tag set and the right tag set are not equal.
+		/// </summary>
+		/// <param name="left">Left tag set.</param>
+		/// <param name="right">Right tag set.</param>
+		/// <returns>true, if the specified tag sets are not equal; otherwise false.</returns>
+		public static bool operator !=(TagSet left, TagSet right)
+		{
+			if (ReferenceEquals(left, null) && ReferenceEquals(right, null)) return false;
+			if (ReferenceEquals(left, null)) return true;
+			return !left.Equals(right);
+		}
+
+		/// <summary>
 		/// Adds the specified tag to the set returning a new set.
 		/// </summary>
 		/// <param name="left">The set to add the specified tag to.</param>
