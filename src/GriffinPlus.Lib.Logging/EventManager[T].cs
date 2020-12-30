@@ -208,6 +208,36 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Unregisters all event handlers from the specified event.
+		/// </summary>
+		/// <param name="obj">Object providing the event.</param>
+		/// <param name="eventName">Name of the event (<c>null</c> to remove all handlers attached to events of the specified object).</param>
+		/// <returns>
+		/// true, if a least one event handler has been removed;
+		/// false, if no event handler was registered.
+		/// </returns>
+		public static bool UnregisterEventHandlers(object obj, string eventName)
+		{
+			lock (sSync)
+			{
+				if (eventName != null)
+				{
+					// abort, if there is no event handler attached to the specified event
+					if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out var items))
+						return false;
+
+					// remove all handlers attached to the specified event
+					bool removed = itemsByName.Remove(eventName);
+					if (itemsByName.Count == 0) sItemsByObject.Remove(obj);
+					return removed;
+				}
+
+				// remove all handlers attached to events of the specified object
+				return sItemsByObject.Remove(obj);
+			}
+		}
+
+		/// <summary>
 		/// Checks whether the specified event has event handlers attached to it.
 		/// </summary>
 		/// <param name="obj">Object providing the event.</param>
