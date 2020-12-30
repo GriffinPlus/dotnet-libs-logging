@@ -160,7 +160,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Unregisters an event handler from the specified event.
+		/// Unregisters an event handler from the event.
 		/// </summary>
 		/// <param name="obj">Object providing the event.</param>
 		/// <param name="handler">Event handler to unregister.</param>
@@ -200,6 +200,22 @@ namespace GriffinPlus.Lib.Logging
 
 				// specified event handler was not registered
 				return -1;
+			}
+		}
+
+		/// <summary>
+		/// Unregisters all event handlers associated with the specified object.
+		/// </summary>
+		/// <param name="obj">Object providing the event.</param>
+		/// <returns>
+		/// true, if a least one event handler has been removed;
+		/// false, if no event handler was registered.
+		/// </returns>
+		public static bool UnregisterEventHandlers(object obj)
+		{
+			lock (sSync)
+			{
+				return sItemsByObject.Remove(obj);
 			}
 		}
 
