@@ -4,6 +4,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 // ReSharper disable NonReadonlyMemberInGetHashCode
@@ -12,10 +14,12 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// A log message for general purpose use.
+	/// A log message for general purpose use (thread-safe).
 	/// </summary>
-	public sealed class LogMessage : ILogMessage, IEquatable<ILogMessage>
+	public sealed class LogMessage : ILogMessage, IEquatable<ILogMessage>, INotifyPropertyChanged
 	{
+		private readonly object mSync = new object();
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessage" /> class.
 		/// </summary>
@@ -70,11 +74,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public long Id
 		{
-			get => mId;
+			get
+			{
+				lock (mSync) return mId;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mId = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mId != value)
+					{
+						mId = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -84,11 +101,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public int LostMessageCount
 		{
-			get => mLostMessageCount;
+			get
+			{
+				lock (mSync) return mLostMessageCount;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mLostMessageCount = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mLostMessageCount != value)
+					{
+						mLostMessageCount = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -97,11 +127,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public DateTimeOffset Timestamp
 		{
-			get => mTimestamp;
+			get
+			{
+				lock (mSync) return mTimestamp;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mTimestamp = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mTimestamp != value)
+					{
+						mTimestamp = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -111,11 +154,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public long HighPrecisionTimestamp
 		{
-			get => mHighPrecisionTimestamp;
+			get
+			{
+				lock (mSync) return mHighPrecisionTimestamp;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mHighPrecisionTimestamp = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mHighPrecisionTimestamp != value)
+					{
+						mHighPrecisionTimestamp = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -124,11 +180,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string LogWriterName
 		{
-			get => mLogWriterName;
+			get
+			{
+				lock (mSync) return mLogWriterName;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mLogWriterName = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mLogWriterName != value)
+					{
+						mLogWriterName = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -137,11 +206,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string LogLevelName
 		{
-			get => mLogLevelName;
+			get
+			{
+				lock (mSync) return mLogLevelName;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mLogLevelName = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mLogLevelName != value)
+					{
+						mLogLevelName = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -150,10 +232,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public TagSet Tags
 		{
-			get => mTags;
-			set {
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mTags = value;
+			get
+			{
+				lock (mSync) return mTags;
+			}
+
+			set
+			{
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mTags != value)
+					{
+						mTags = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -163,11 +259,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ApplicationName
 		{
-			get => mApplicationName;
+			get
+			{
+				lock (mSync) return mApplicationName;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mApplicationName = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mApplicationName != value)
+					{
+						mApplicationName = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -176,11 +285,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ProcessName
 		{
-			get => mProcessName;
+			get
+			{
+				lock (mSync) return mProcessName;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mProcessName = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mProcessName != value)
+					{
+						mProcessName = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -190,11 +312,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public int ProcessId
 		{
-			get => mProcessId;
+			get
+			{
+				lock (mSync) return mProcessId;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mProcessId = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mProcessId != value)
+					{
+						mProcessId = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -203,11 +338,24 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string Text
 		{
-			get => mText;
+			get
+			{
+				lock (mSync) return mText;
+			}
+
 			set
 			{
-				if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
-				mText = value;
+				lock (mSync)
+				{
+					if (mIsReadOnly)
+						throw new NotSupportedException("The log message is read-only.");
+
+					if (mText != value)
+					{
+						mText = value;
+						OnPropertyChanged();
+					}
+				}
 			}
 		}
 
@@ -219,17 +367,34 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a value indicating whether the log message is protected.
-		/// If <c>true</c>, property setters will throw <see cref="NotSupportedException"/> when invoked.
+		/// If <c>true</c>, property setters will throw <see cref="NotSupportedException" /> when invoked.
 		/// </summary>
-		// ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
-		public bool IsReadOnly => mIsReadOnly;
+		public bool IsReadOnly
+		{
+			get
+			{
+				lock (mSync) return mIsReadOnly;
+			}
+
+			private set
+			{
+				lock (mSync)
+				{
+					if (mIsReadOnly != value)
+					{
+						mIsReadOnly = value;
+						OnPropertyChanged();
+					}
+				}
+			}
+		}
 
 		/// <summary>
 		/// Protects the log message, so it cannot be modified any further.
 		/// </summary>
 		public void Protect()
 		{
-			mIsReadOnly = true;
+			IsReadOnly = true;
 		}
 
 		#endregion
@@ -321,21 +486,27 @@ namespace GriffinPlus.Lib.Logging
 			int            processId,
 			string         text)
 		{
-			if (mIsReadOnly) throw new NotSupportedException("The log message is read-only.");
+			lock (mSync)
+			{
+				if (mIsReadOnly)
+					throw new NotSupportedException("The log message is read-only.");
 
-			Id = id;
-			Timestamp = timestamp;
-			HighPrecisionTimestamp = highPrecisionTimestamp;
-			LostMessageCount = lostMessageCount;
-			LogWriterName = logWriterName;
-			LogLevelName = logLevelName;
-			Tags = tags;
-			ApplicationName = applicationName;
-			ProcessName = processName;
-			ProcessId = processId;
-			Text = text;
+				mId = id;
+				mTimestamp = timestamp;
+				mHighPrecisionTimestamp = highPrecisionTimestamp;
+				mLostMessageCount = lostMessageCount;
+				mLogWriterName = logWriterName;
+				mLogLevelName = logLevelName;
+				mTags = tags;
+				mApplicationName = applicationName;
+				mProcessName = processName;
+				mProcessId = processId;
+				mText = text;
 
-			return this;
+				OnPropertyChanged(null);
+
+				return this;
+			}
 		}
 
 		/// <summary>
@@ -344,18 +515,25 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		internal void Reset()
 		{
-			mId = -1;
-			mTimestamp = default;
-			mHighPrecisionTimestamp = 0;
-			mLostMessageCount = 0;
-			mLogWriterName = null;
-			mLogLevelName = null;
-			mTags = null;
-			mApplicationName = null;
-			mProcessName = null;
-			mProcessId = -1;
-			mText = null;
-			mIsReadOnly = false;
+			lock (mSync)
+			{
+				// set fields to defaults
+				mId = -1;
+				mTimestamp = default;
+				mHighPrecisionTimestamp = 0;
+				mLostMessageCount = 0;
+				mLogWriterName = null;
+				mLogLevelName = null;
+				mTags = null;
+				mApplicationName = null;
+				mProcessName = null;
+				mProcessId = -1;
+				mText = null;
+				mIsReadOnly = false;
+
+				// unregister event handlers that might have not been unregistered properly
+				PropertyChangedEventManager.UnregisterEventHandlers(this);
+			}
 		}
 
 		#endregion
@@ -381,24 +559,27 @@ namespace GriffinPlus.Lib.Logging
 					return Equals(otherLogMessage);
 
 				default:
-					return Id == other.Id &&
-					       Timestamp.Equals(other.Timestamp) &&
-					       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
-					       LogWriterName == other.LogWriterName &&
-					       LogLevelName == other.LogLevelName &&
-					       ApplicationName == other.ApplicationName &&
-					       ProcessName == other.ProcessName &&
-					       ProcessId == other.ProcessId &&
-					       Text == other.Text &&
-					       Equals(Tags, other.Tags);
+					lock (mSync)
+					{
+						return Id == other.Id &&
+						       Timestamp.Equals(other.Timestamp) &&
+						       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
+						       LogWriterName == other.LogWriterName &&
+						       LogLevelName == other.LogLevelName &&
+						       ApplicationName == other.ApplicationName &&
+						       ProcessName == other.ProcessName &&
+						       ProcessId == other.ProcessId &&
+						       Text == other.Text &&
+						       Equals(Tags, other.Tags);
+					}
 			}
 		}
 
 		/// <summary>
 		/// Checks whether the current log message equals the specified one.
 		/// The following properties are _not_ taken into account:
-		/// - <see cref="IsReadOnly"/>
-		/// - <see cref="RefCount"/>
+		/// - <see cref="IsReadOnly" />
+		/// - <see cref="RefCount" />
 		/// </summary>
 		/// <param name="other">Log message to compare with.</param>
 		/// <returns>
@@ -408,17 +589,21 @@ namespace GriffinPlus.Lib.Logging
 		public bool Equals(LogMessage other)
 		{
 			if (other == null) return false;
-			return Id == other.Id &&
-			       LostMessageCount == other.LostMessageCount &&
-			       Timestamp == other.Timestamp &&
-			       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
-			       LogWriterName == other.LogWriterName &&
-			       LogLevelName == other.LogLevelName &&
-			       ApplicationName == other.ApplicationName &&
-			       ProcessName == other.ProcessName &&
-			       ProcessId == other.ProcessId &&
-			       Text == other.Text &&
-			       Equals(Tags, other.Tags);
+
+			lock (mSync)
+			{
+				return Id == other.Id &&
+				       LostMessageCount == other.LostMessageCount &&
+				       Timestamp == other.Timestamp &&
+				       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
+				       LogWriterName == other.LogWriterName &&
+				       LogLevelName == other.LogLevelName &&
+				       ApplicationName == other.ApplicationName &&
+				       ProcessName == other.ProcessName &&
+				       ProcessId == other.ProcessId &&
+				       Text == other.Text &&
+				       Equals(Tags, other.Tags);
+			}
 		}
 
 		/// <summary>
@@ -437,27 +622,59 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the hash code of the log message.
 		/// The following properties are _not_ taken into account:
-		/// - <see cref="IsReadOnly"/>
-		/// - <see cref="RefCount"/>
+		/// - <see cref="IsReadOnly" />
+		/// - <see cref="RefCount" />
 		/// </summary>
 		/// <returns>Hash code of the log message.</returns>
 		public override int GetHashCode()
 		{
-			unchecked
+			lock (mSync)
 			{
-				int hashCode = Timestamp.GetHashCode();
-				hashCode = (hashCode * 397) ^ Id.GetHashCode();
-				hashCode = (hashCode * 397) ^ LostMessageCount;
-				hashCode = (hashCode * 397) ^ HighPrecisionTimestamp.GetHashCode();
-				hashCode = (hashCode * 397) ^ (LogWriterName != null ? LogWriterName.GetHashCode() : 0);
-				hashCode = (hashCode * 397) ^ (LogLevelName != null ? LogLevelName.GetHashCode() : 0);
-				hashCode = (hashCode * 397) ^ (Tags != null ? Tags.GetHashCode() : 0);
-				hashCode = (hashCode * 397) ^ (ApplicationName != null ? ApplicationName.GetHashCode() : 0);
-				hashCode = (hashCode * 397) ^ (ProcessName != null ? ProcessName.GetHashCode() : 0);
-				hashCode = (hashCode * 397) ^ ProcessId;
-				hashCode = (hashCode * 397) ^ (Text != null ? Text.GetHashCode() : 0);
-				return hashCode;
+				unchecked
+				{
+					int hashCode = Timestamp.GetHashCode();
+					hashCode = (hashCode * 397) ^ Id.GetHashCode();
+					hashCode = (hashCode * 397) ^ LostMessageCount;
+					hashCode = (hashCode * 397) ^ HighPrecisionTimestamp.GetHashCode();
+					hashCode = (hashCode * 397) ^ (LogWriterName != null ? LogWriterName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (LogLevelName != null ? LogLevelName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (Tags != null ? Tags.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (ApplicationName != null ? ApplicationName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (ProcessName != null ? ProcessName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ ProcessId;
+					hashCode = (hashCode * 397) ^ (Text != null ? Text.GetHashCode() : 0);
+					return hashCode;
+				}
 			}
+		}
+
+		#endregion
+
+		#region Implementation of INotifyPropertyChanged
+
+		/// <summary>
+		/// Occurs when one of the properties has changed.
+		/// The handler is invoked in the context of the thread that registers the event, if <see cref="SynchronizationContext.Current" /> is set appropriately.
+		/// If the synchronization context is the same when registering and firing the event, the handler is called directly (in the context of the thread
+		/// raising the event).
+		/// If the synchronization context is not set when registering the event, the handler is always called directly.
+		/// </summary>
+		public event PropertyChangedEventHandler PropertyChanged
+		{
+			add => PropertyChangedEventManager.RegisterEventHandler(this, value, SynchronizationContext.Current, false);
+			remove => PropertyChangedEventManager.UnregisterEventHandler(this, value);
+		}
+
+		/// <summary>
+		/// Raises the <see cref="PropertyChanged" /> event.
+		/// </summary>
+		/// <param name="propertyName">
+		/// Name of the property that has changed
+		/// (null to indicate that all properties (might) have changed).
+		/// </param>
+		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		{
+			PropertyChangedEventManager.FireEvent(this, propertyName);
 		}
 
 		#endregion
