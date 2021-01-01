@@ -322,10 +322,11 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Single(readMessages);
 
 				// the message returned by the log file should be the same as the inserted message
-				// (except the message id that is set by the log file)
+				// (except the message id that is set by the log file and the read-only state)
 				Assert.Equal(0, readMessages[0].Id);
 				message.Id = readMessages[0].Id;
-				Assert.Equal(message, readMessages[0]);
+				Assert.Equal(message, readMessages[0]); // does not take IsReadOnly into account
+				Assert.True(readMessages[0].IsReadOnly);
 
 				// the wrapping collection should also reflect the change
 				var collection = file.Messages;
@@ -334,7 +335,8 @@ namespace GriffinPlus.Lib.Logging
 
 				// the message returned by the collection should be the same as the inserted message
 				// (except the message id that is set by the log file, message id was adjusted above)
-				Assert.Equal(message, collection[0]);
+				Assert.Equal(message, collection[0]); // does not take IsReadOnly into account
+				Assert.True(collection[0].IsReadOnly);
 			}
 		}
 
@@ -373,13 +375,14 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(messages.Length, readMessages.Length);
 
 				// the messages returned by the log file should be the same as the inserted message
-				// (except the message id that is set by the log file)
+				// (except the message id that is set by the log file and the read-only state)
 				long expectedId = 0;
 				for (int i = 0; i < messages.Length; i++)
 				{
 					Assert.Equal(expectedId++, readMessages[i].Id);
 					messages[i].Id = readMessages[i].Id;
-					Assert.Equal(messages[i], readMessages[i]);
+					Assert.Equal(messages[i], readMessages[i]); // does not take IsReadOnly into account
+					Assert.True(readMessages[i].IsReadOnly);
 				}
 
 				// the wrapping collection should also reflect the change
@@ -388,7 +391,8 @@ namespace GriffinPlus.Lib.Logging
 
 				// the messages returned by the collection should be the same as the inserted messages
 				// (except the message id that is set by the log file, message id was adjusted above)
-				Assert.Equal(messages, collection.ToArray());
+				Assert.Equal(messages, collection.ToArray()); // does not take IsReadOnly into account
+				Assert.All(collection, message => Assert.True(message.IsReadOnly));
 			}
 		}
 
@@ -438,7 +442,8 @@ namespace GriffinPlus.Lib.Logging
 
 				// the list of read messages should now equal the original test data set
 				Assert.Equal(expectedMessages.Length, readMessages.Count);
-				Assert.Equal(expectedMessages, readMessages.ToArray());
+				Assert.Equal(expectedMessages, readMessages.ToArray()); // does not take IsReadOnly into account
+				Assert.All(readMessages, message => Assert.True(message.IsReadOnly));
 			}
 			finally
 			{
@@ -527,7 +532,8 @@ namespace GriffinPlus.Lib.Logging
 
 				// the list of read messages should now equal the original test data set
 				Assert.Equal(expectedMessages.Length, readMessages.Count);
-				Assert.Equal(expectedMessages, readMessages.ToArray());
+				Assert.Equal(expectedMessages, readMessages.ToArray()); // does not take IsReadOnly into account
+				Assert.All(readMessages, message => Assert.True(message.IsReadOnly));
 			}
 			finally
 			{
@@ -759,7 +765,8 @@ namespace GriffinPlus.Lib.Logging
 						Assert.Equal(expectedMessageCount, readMessages.Length);
 						Assert.Equal(
 							expectedMessages.Skip(expectedMessages.Length - expectedMessageCount).ToArray(),
-							readMessages);
+							readMessages); // does not take IsReadOnly into account
+						Assert.All(readMessages, message => Assert.True(message.IsReadOnly));
 					}
 					else
 					{
@@ -773,7 +780,8 @@ namespace GriffinPlus.Lib.Logging
 						Assert.Equal(expectedMessageCount, file.Messages.Count);
 						Assert.Equal(
 							expectedMessages.Skip(expectedMessages.Length - expectedMessageCount).ToArray(),
-							file.Messages.ToArray());
+							file.Messages.ToArray()); // does not take IsReadOnly into account
+						Assert.All(file.Messages, message => Assert.True(message.IsReadOnly));
 					}
 					else
 					{
@@ -927,7 +935,8 @@ namespace GriffinPlus.Lib.Logging
 					Assert.Equal(5000, file.MessageCount);
 					var readMessages = file.Read(file.OldestMessageId, (int)file.MessageCount + 1); // +1 to check for no more than the expected messages
 					Assert.Equal(file.MessageCount, readMessages.Length);
-					Assert.Equal(expectedMessages, readMessages);
+					Assert.Equal(expectedMessages, readMessages); // does not take IsReadOnly into account
+					Assert.All(readMessages, message => Assert.True(message.IsReadOnly));
 				}
 			}
 			finally

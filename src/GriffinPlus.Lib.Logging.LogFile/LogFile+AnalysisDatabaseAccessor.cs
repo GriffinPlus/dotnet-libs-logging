@@ -316,6 +316,9 @@ namespace GriffinPlus.Lib.Logging
 						// initialize tags, if there are tags associated with the message
 						if (hasTags) message.Tags = GetTagsOfMessage(messageId);
 
+						// protect message from changes
+						message.Protect();
+
 						if (!callback(message))
 							return false;
 					}

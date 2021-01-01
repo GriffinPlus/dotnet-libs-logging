@@ -23,6 +23,10 @@ namespace GriffinPlus.Lib.Logging
 		private readonly LogFileTestsFixture mFixture;
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollectionTests"/> class.
+		/// </summary>
+
+		/// <summary>
 		/// Creates a new instance of the collection class to test, pre-populated with the specified number of random log messages.
 		/// </summary>
 		/// <param name="count">Number of random log messages the collection should contain.</param>
@@ -51,6 +55,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="fixture">Fixture providing static test data.</param>
 		public FileBackedLogMessageCollectionTests(LogFileTestsFixture fixture)
 		{
+			CollectionProvidesProtectedMessages = true;
 			mFixture = fixture;
 		}
 

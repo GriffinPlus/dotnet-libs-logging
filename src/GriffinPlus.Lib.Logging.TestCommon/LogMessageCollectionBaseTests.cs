@@ -12,10 +12,12 @@ using System.Linq;
 
 using Xunit;
 
+
 // ReSharper disable InvalidXmlDocComment
 // ReSharper disable RedundantCast
 
-#pragma warning disable CS1584 // XML comment has syntactically incorrect cref attribute
+#pragma warning disable 1574
+#pragma warning disable 1584 // XML comment has syntactically incorrect cref attribute
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -40,6 +42,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets a value indicating whether the collection is expected to be read-only.
 		/// </summary>
 		protected bool CollectionIsReadOnly { get; set; } = false;
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the collection provides protected messages that cannot be modified.
+		/// </summary>
+		protected bool CollectionProvidesProtectedMessages { get; set; } = false;
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the collection has a fixed size.
@@ -414,8 +421,9 @@ namespace GriffinPlus.Lib.Logging
 			var eventWatcher = collection.AttachEventWatcher();
 
 			// run the operation and check whether the returned message equals the expected one
-			var message = operation(collection, indexOfMessageToGet);
-			Assert.Equal(messages[indexOfMessageToGet], message);
+			var message = (LogMessage)operation(collection, indexOfMessageToGet);
+			Assert.Equal(messages[indexOfMessageToGet], message); // does not take IsReadOnly into account
+			Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly);
 
 			// no events should have been raised
 			eventWatcher.CheckInvocations();
@@ -572,7 +580,8 @@ namespace GriffinPlus.Lib.Logging
 			if (enumerator is IEnumerator<LogMessage> genericEnumerator) genericEnumerator.Dispose();
 
 			// the enumerator should have iterated over all messages
-			Assert.Equal(expectedMessages, messagesInCollection.ToArray());
+			Assert.Equal(expectedMessages, messagesInCollection.ToArray()); // does not take IsReadOnly into account
+			Assert.All(messagesInCollection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
 
 			// no events should have been raised
 			eventWatcher.CheckInvocations();
@@ -682,7 +691,8 @@ namespace GriffinPlus.Lib.Logging
 				// check whether the collection contains the new message now
 				Assert.Equal(initialCollectionSize + 1, collection.Count);
 				var expectedMessages = new List<LogMessage>(messages) { newMessage };
-				Assert.Equal(expectedMessages.ToArray(), collection.ToArray());
+				Assert.Equal(expectedMessages.ToArray(), collection.ToArray()); // does not take IsReadOnly into account
+				Assert.All(collection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
 			}
 
 			// check events that should have been raised
@@ -792,7 +802,8 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(initialCollectionSize + numberOfMessagesToAdd, collection.Count);
 				var expectedMessages = new List<LogMessage>(messages);
 				expectedMessages.AddRange(newMessages);
-				Assert.Equal(expectedMessages.ToArray(), collection.ToArray());
+				Assert.Equal(expectedMessages.ToArray(), collection.ToArray()); // does not take IsReadOnly into account
+				Assert.All(collection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
 			}
 
 			// check events that should have been raised
@@ -1466,7 +1477,8 @@ namespace GriffinPlus.Lib.Logging
 			var expectedMessages = new List<LogMessage>();
 			for (int i = 0; i < startIndex; i++) expectedMessages.Add(null);
 			expectedMessages.AddRange(messages);
-			Assert.Equal(expectedMessages, destination);
+			Assert.Equal(expectedMessages, destination); // does not take IsReadOnly into account
+			Assert.All(destination.Skip(startIndex), message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
 
 			// no events should have been raised
 			eventWatcher.CheckInvocations();
