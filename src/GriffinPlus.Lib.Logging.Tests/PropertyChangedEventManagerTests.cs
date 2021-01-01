@@ -227,10 +227,10 @@ namespace GriffinPlus.Lib.Logging
 						{
 							Assert.NotNull(SynchronizationContext.Current);
 							PropertyChangedEventManager.FireEvent(this, PropertyName);
-							Assert.False(handlerCalledEvent.Wait(0), "Handler was invoked directly, should have been scheduled.");
+							Assert.False(handlerCalledEvent.IsSet, "Handler was invoked directly, should have been scheduled.");
 						});
 
-					Assert.True(handlerCalledEvent.Wait(0));
+					Assert.True(handlerCalledEvent.Wait(1000));
 					Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
 					Assert.Equal(PropertyName, changedPropertyName);
 				}
@@ -243,7 +243,7 @@ namespace GriffinPlus.Lib.Logging
 						{
 							Assert.NotNull(SynchronizationContext.Current);
 							PropertyChangedEventManager.FireEvent(this, PropertyName);
-							Assert.True(handlerCalledEvent.Wait(0), "Handler was not invoked directly");
+							Assert.True(handlerCalledEvent.IsSet, "Handler was not invoked directly");
 							Assert.Same(SynchronizationContext.Current, handlerThreadSynchronizationContext);
 							Assert.Equal(PropertyName, changedPropertyName);
 						});
@@ -305,7 +305,7 @@ namespace GriffinPlus.Lib.Logging
 							this,
 							PropertyName);
 						Assert.Equal(1, regCount1);
-						Assert.False(handlerCalledEvent.Wait(0), "Handler was invoked directly, should have been scheduled.");
+						Assert.False(handlerCalledEvent.IsSet, "Handler was invoked directly, should have been scheduled.");
 					});
 
 				Assert.True(handlerCalledEvent.Wait(1000));
@@ -328,7 +328,7 @@ namespace GriffinPlus.Lib.Logging
 							this,
 							PropertyName);
 						Assert.Equal(1, regCount1);
-						Assert.True(handlerCalledEvent.Wait(0), "Handler was not invoked directly");
+						Assert.True(handlerCalledEvent.IsSet, "Handler was not invoked directly");
 						Assert.Same(SynchronizationContext.Current, handlerThreadSynchronizationContext);
 						Assert.Equal(PropertyName, changedPropertyName);
 					});
@@ -402,11 +402,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// the handlers should be called directly
 				delegates[0](this, new PropertyChangedEventArgs("Test1"));
-				Assert.True(handlerCalledEvent1.Wait(0), "Handler was not invoked directly");
+				Assert.True(handlerCalledEvent1.IsSet, "Handler was not invoked directly");
 				Assert.Equal("Test1", changedPropertyName1);
 
 				delegates[1](this, new PropertyChangedEventArgs("Test2"));
-				Assert.True(handlerCalledEvent2.Wait(0), "Handler was not invoked directly");
+				Assert.True(handlerCalledEvent2.IsSet, "Handler was not invoked directly");
 				Assert.Equal("Test2", changedPropertyName2);
 			}
 		}

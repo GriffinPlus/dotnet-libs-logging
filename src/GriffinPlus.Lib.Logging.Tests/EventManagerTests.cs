@@ -233,7 +233,7 @@ namespace GriffinPlus.Lib.Logging
 						{
 							Assert.NotNull(SynchronizationContext.Current);
 							EventManager<EventManagerEventArgs>.FireEvent(this, EventName, this, new EventManagerEventArgs(testData));
-							Assert.False(handlerCalledEvent.Wait(0), "Handler was invoked directly, should have been scheduled.");
+							Assert.False(handlerCalledEvent.IsSet, "Handler was invoked directly, should have been scheduled.");
 						});
 
 					Assert.True(handlerCalledEvent.Wait(1000));
@@ -249,7 +249,7 @@ namespace GriffinPlus.Lib.Logging
 						{
 							Assert.NotNull(SynchronizationContext.Current);
 							EventManager<EventManagerEventArgs>.FireEvent(this, EventName, this, new EventManagerEventArgs(testData));
-							Assert.True(handlerCalledEvent.Wait(0), "Handler was not invoked directly");
+							Assert.True(handlerCalledEvent.IsSet, "Handler was not invoked directly");
 							Assert.Same(SynchronizationContext.Current, handlerThreadSynchronizationContext);
 							Assert.Equal(testData, handlerData);
 						});
@@ -314,7 +314,7 @@ namespace GriffinPlus.Lib.Logging
 							this,
 							new EventManagerEventArgs(testData));
 						Assert.Equal(1, regCount1);
-						Assert.False(handlerCalledEvent.Wait(0), "Handler was invoked directly, should have been scheduled.");
+						Assert.False(handlerCalledEvent.IsSet, "Handler was invoked directly, should have been scheduled.");
 					});
 
 				Assert.True(handlerCalledEvent.Wait(1000));
@@ -338,7 +338,7 @@ namespace GriffinPlus.Lib.Logging
 							this,
 							new EventManagerEventArgs(testData));
 						Assert.Equal(1, regCount1);
-						Assert.True(handlerCalledEvent.Wait(0), "Handler was not invoked directly");
+						Assert.True(handlerCalledEvent.IsSet, "Handler was not invoked directly");
 						Assert.Same(SynchronizationContext.Current, handlerThreadSynchronizationContext);
 						Assert.Equal(testData, handlerData);
 					});
@@ -414,11 +414,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// the handlers should be called directly
 				delegates[0](this, new EventManagerEventArgs("Test1"));
-				Assert.True(handlerCalledEvent1.Wait(0), "Handler was not invoked directly");
+				Assert.True(handlerCalledEvent1.IsSet, "Handler was not invoked directly");
 				Assert.Equal("Test1", handlerData1);
 
 				delegates[1](this, new EventManagerEventArgs("Test2"));
-				Assert.True(handlerCalledEvent2.Wait(0), "Handler was not invoked directly");
+				Assert.True(handlerCalledEvent2.IsSet, "Handler was not invoked directly");
 				Assert.Equal("Test2", handlerData2);
 			}
 		}
