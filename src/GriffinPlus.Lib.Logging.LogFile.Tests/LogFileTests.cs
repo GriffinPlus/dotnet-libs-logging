@@ -42,8 +42,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		private void GetSqliteVersion()
 		{
-			// TODO: Replace nuget package with fixed one and enable test again.
-			// Assert.Equal("3.32.1", LogFile.SqliteVersion);
+			Assert.Equal("3.32.1", LogFile.SqliteVersion);
 		}
 
 		#endregion
