@@ -65,17 +65,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">Index of the log message to get.</param>
 		/// <returns>The log message at the specified index.</returns>
-		/// <exception cref="NotSupportedException">Setting a log message is not supported.</exception>
-		public TMessage this[long index]
-		{
-			get
-			{
-				if (index < 0 || index > int.MaxValue) throw new ArgumentOutOfRangeException(nameof(index));
-				return mMessages[(int)index];
-			}
-
-			set => throw new NotSupportedException("Setting a log message is not supported.");
-		}
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is out of bounds.</exception>
+		public TMessage this[long index] => mMessages[(int)index]; // can throw ArgumentOutOfRangeException
 
 		/// <summary>
 		/// Gets a value indicating whether the collection is read-only (always false).
@@ -115,7 +106,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Adds a log message to the collection.
 		/// </summary>
 		/// <param name="message">Log message to add.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="message" /> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="message" /> is <c>null</c>.</exception>
 		public void Add(TMessage message)
 		{
 			if (message == null) throw new ArgumentNullException(nameof(message));
@@ -133,7 +124,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Adds multiple log messages to the collection at once.
 		/// </summary>
 		/// <param name="messages">Log messages to add.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="messages" /> is null.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="messages" /> is <c>null</c>.</exception>
 		public void AddRange(IEnumerable<TMessage> messages)
 		{
 			if (messages == null) throw new ArgumentNullException(nameof(messages));
@@ -162,7 +153,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">The zero-based index at which value should be inserted.</param>
 		/// <param name="item">The log message to insert into the collection.</param>
-		/// <exception cref="NotSupportedException">Inserting is not supported.</exception>
+		/// <exception cref="NotSupportedException">Inserting log messages is not supported.</exception>
 		public void Insert(int index, TMessage item)
 		{
 			throw new NotSupportedException("Inserting log messages is not supported.");
@@ -232,11 +223,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">Index of the log message to get.</param>
 		/// <returns>The log message at the specified index.</returns>
-		/// <exception cref="NotSupportedException">Setting a log message is not supported.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is out of bounds.</exception>
+		/// <exception cref="NotSupportedException">Setting log messages is not supported.</exception>
 		object IList.this[int index]
 		{
-			get => mMessages[index];
-			set => throw new NotSupportedException("Setting a log message is not supported.");
+			get => mMessages[index]; // can throw ArgumentOutOfRangeException
+			set => throw new NotSupportedException("Setting log messages is not supported.");
 		}
 
 		/// <summary>
@@ -292,7 +284,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">The zero-based index at which the log message should be inserted.</param>
 		/// <param name="item">The log message to insert into the collection.</param>
-		/// <exception cref="NotSupportedException">Inserting is not supported.</exception>
+		/// <exception cref="NotSupportedException">Inserting log messages is not supported.</exception>
 		void IList.Insert(int index, object item)
 		{
 			Insert(index, (TMessage)item);
@@ -345,11 +337,11 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">Index of the log message to get.</param>
 		/// <returns>The log message at the specified index.</returns>
-		/// <exception cref="NotSupportedException">Setting a log message is not supported.</exception>
+		/// <exception cref="NotSupportedException">Setting log messages is not supported.</exception>
 		TMessage IList<TMessage>.this[int index]
 		{
 			get => mMessages[index];
-			set => throw new NotSupportedException("Setting a log message is not supported.");
+			set => throw new NotSupportedException("Setting log messages is not supported.");
 		}
 
 		/// <summary>

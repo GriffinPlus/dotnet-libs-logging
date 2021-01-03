@@ -12,6 +12,11 @@ namespace GriffinPlus.Lib.Logging
 	public enum LogFilePurpose
 	{
 		/// <summary>
+		/// Not specified.
+		/// </summary>
+		NotSpecified = 0,
+
+		/// <summary>
 		/// The log file is primarily used for recording messages (optimized for writing, not for analysis).
 		/// </summary>
 		Recording = 1,

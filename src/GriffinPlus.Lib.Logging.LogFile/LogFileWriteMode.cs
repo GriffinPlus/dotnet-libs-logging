@@ -12,6 +12,11 @@ namespace GriffinPlus.Lib.Logging
 	public enum LogFileWriteMode
 	{
 		/// <summary>
+		/// Not specified.
+		/// </summary>
+		NotSpecified = 0,
+
+		/// <summary>
 		/// Write to the log file in a way that always keeps the log file consistent - even in case of sudden power loss.
 		/// </summary>
 		Robust = 1,

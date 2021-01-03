@@ -37,12 +37,12 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(TestFilePath_Recording_RandomMessages_10K);
 			File.Delete(TestFilePath_Analysis_RandomMessages_10K);
 
-			using (var file = new LogFile(TestFilePath_Recording_RandomMessages_10K, LogFilePurpose.Recording, LogFileWriteMode.Fast))
+			using (var file = LogFile.OpenOrCreate(TestFilePath_Recording_RandomMessages_10K, LogFilePurpose.Recording, LogFileWriteMode.Fast))
 			{
 				file.Write(messages);
 			}
 
-			using (var file = new LogFile(TestFilePath_Analysis_RandomMessages_10K, LogFilePurpose.Analysis, LogFileWriteMode.Fast))
+			using (var file = LogFile.OpenOrCreate(TestFilePath_Analysis_RandomMessages_10K, LogFilePurpose.Analysis, LogFileWriteMode.Fast))
 			{
 				file.Write(messages);
 			}

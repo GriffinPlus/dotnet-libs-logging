@@ -10,7 +10,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Extension methods for the <see cref="ILogMessageCollection{TMessage}"/> interface.
+	/// Extension methods for the <see cref="ILogMessageCollection{TMessage}" /> interface.
 	/// </summary>
 	public static class LogMessageCollectionEventWatcherExtensions
 	{

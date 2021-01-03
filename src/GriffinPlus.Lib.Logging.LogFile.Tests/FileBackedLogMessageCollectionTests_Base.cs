@@ -17,14 +17,11 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Unit tests targeting the <see cref="FileBackedLogMessageCollection" /> class.
 	/// </summary>
-	[Collection("LogFileTests")]
-	public class FileBackedLogMessageCollectionTests : LogMessageCollectionBaseTests, IClassFixture<LogFileTestsFixture>
+	public abstract class FileBackedLogMessageCollectionTests_Base : LogMessageCollectionBaseTests, IClassFixture<LogFileTestsFixture>
 	{
-		private readonly LogFileTestsFixture mFixture;
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollectionTests"/> class.
-		/// </summary>
+		protected static readonly LogFilePurpose[]    LogFilePurposes   = { LogFilePurpose.Recording, LogFilePurpose.Analysis };
+		protected static readonly LogFileWriteMode[]  LogFileWriteModes = { LogFileWriteMode.Robust, LogFileWriteMode.Fast };
+		protected readonly        LogFileTestsFixture Fixture;
 
 		/// <summary>
 		/// Creates a new instance of the collection class to test, pre-populated with the specified number of random log messages.
@@ -40,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 			if (count > 0) collection.AddRange(messages);
 
 			// the collection should now have the default state
-			TestCollectionPropertyDefaults(collection, count);
+			TestCollectionPropertyDefaults(collection, count, false);
 
 			// the collection should now contain the messages written into it
 			// (the file-backed collection assigns message ids on its own, but they should be the same as the ids assigned to the test set)
@@ -50,13 +47,13 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes an instance of the <see cref="FileBackedLogMessageCollectionTests" /> class.
+		/// Initializes an instance of the <see cref="FileBackedLogMessageCollectionTests_Base" /> class.
 		/// </summary>
 		/// <param name="fixture">Fixture providing static test data.</param>
-		public FileBackedLogMessageCollectionTests(LogFileTestsFixture fixture)
+		protected FileBackedLogMessageCollectionTests_Base(LogFileTestsFixture fixture)
 		{
 			CollectionProvidesProtectedMessages = true;
-			mFixture = fixture;
+			Fixture = fixture;
 		}
 
 		#region Construction
@@ -68,8 +65,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
-				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
+				foreach (var purpose in LogFilePurposes)
+				foreach (var writeMode in LogFileWriteModes)
 				{
 					yield return new object[] { purpose, writeMode };
 				}
@@ -83,7 +80,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="writeMode">Log file write mode to test.</param>
 		[Theory]
 		[MemberData(nameof(CreateTestData))]
-		private void Create_WithPath_CreateNewLogFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		private void OpenOrCreate_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			string backingFilePath = Path.Combine(Environment.CurrentDirectory, "FileBackedLogMessageCollectionBuffer.gplog");
 
@@ -93,11 +90,11 @@ namespace GriffinPlus.Lib.Logging
 
 			try
 			{
-				using (var collection = new FileBackedLogMessageCollection(backingFilePath, purpose, writeMode))
+				using (var collection = FileBackedLogMessageCollection.OpenOrCreate(backingFilePath, purpose, writeMode))
 				{
 					Assert.True(File.Exists(backingFilePath));
 					Assert.Equal(backingFilePath, collection.FilePath);
-					TestCollectionPropertyDefaults(collection, 0);
+					TestCollectionPropertyDefaults(collection, 0, false);
 				}
 
 				// the file should persist after disposing the collection
@@ -116,21 +113,21 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="writeMode">Log file write mode to test.</param>
 		[Theory]
 		[MemberData(nameof(CreateTestData))]
-		private void Create_WithPath_OnExistingLogFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		private void OpenOrCreate_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			string path = purpose == LogFilePurpose.Recording
-				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
-				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+				              ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : Fixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
 			try
 			{
 				Assert.True(File.Exists(path));
 
-				using (var collection = new FileBackedLogMessageCollection(path, purpose, writeMode))
+				using (var collection = FileBackedLogMessageCollection.OpenOrCreate(path, purpose, writeMode))
 				{
 					Assert.True(File.Exists(path));
 					Assert.Equal(path, collection.FilePath);
-					TestCollectionPropertyDefaults(collection, 10000);
+					TestCollectionPropertyDefaults(collection, 10000, false);
 				}
 
 				// the file should persist after disposing the collection
@@ -144,30 +141,76 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection" /> class with an existing <see cref="LogFile" /> instance.
+		/// Test data for test methods testing the instantiation of the collection.
+		/// </summary>
+		public static IEnumerable<object[]> OpenTestData
+		{
+			get
+			{
+				foreach (var purpose in LogFilePurposes)
+				foreach (var writeMode in LogFileWriteModes)
+				{
+					yield return new object[] { purpose, writeMode };
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection" /> class with an existing backing log file.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		[Theory]
-		[MemberData(nameof(CreateTestData))]
-		private void Create_WithLogFile_OnExistingLogFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		[MemberData(nameof(OpenTestData))]
+		private void Open(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			string path = purpose == LogFilePurpose.Recording
-				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
-				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
-
-			var messages = mFixture.GetLogMessages_Random_10K();
+				              ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : Fixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
 			try
 			{
 				Assert.True(File.Exists(path));
 
-				using (var file = new LogFile(path, purpose, writeMode))
-				using (var collection = new FileBackedLogMessageCollection(file))
+				using (var collection = FileBackedLogMessageCollection.Open(path, writeMode))
 				{
 					Assert.True(File.Exists(path));
 					Assert.Equal(path, collection.FilePath);
-					TestCollectionPropertyDefaults(collection, messages.Length);
+					TestCollectionPropertyDefaults(collection, 10000, false);
+				}
+
+				// the file should persist after disposing the collection
+				Assert.True(File.Exists(path));
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
+		}
+
+		/// <summary>
+		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection" /> class with an existing backing log file.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		[Theory]
+		[MemberData(nameof(OpenTestData))]
+		private void OpenReadOnly(LogFilePurpose purpose, LogFileWriteMode writeMode)
+		{
+			string path = purpose == LogFilePurpose.Recording
+				              ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : Fixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			try
+			{
+				Assert.True(File.Exists(path));
+
+				using (var collection = FileBackedLogMessageCollection.OpenReadOnly(path))
+				{
+					Assert.True(File.Exists(path));
+					Assert.Equal(path, collection.FilePath);
+					TestCollectionPropertyDefaults(collection, 10000, true);
 				}
 
 				// the file should persist after disposing the collection
@@ -192,8 +235,8 @@ namespace GriffinPlus.Lib.Logging
 			get
 			{
 				foreach (bool deleteAutomatically in new[] { false, true })
-				foreach (LogFilePurpose purpose in Enum.GetValues(typeof(LogFilePurpose)))
-				foreach (LogFileWriteMode writeMode in Enum.GetValues(typeof(LogFileWriteMode)))
+				foreach (var purpose in LogFilePurposes)
+				foreach (var writeMode in LogFileWriteModes)
 				{
 					yield return new object[] { null, deleteAutomatically, purpose, writeMode };                         // default temporary folder
 					yield return new object[] { Environment.CurrentDirectory, deleteAutomatically, purpose, writeMode }; // specific temporary folder
@@ -233,7 +276,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				Assert.True(File.Exists(collection.FilePath));
 				Assert.Equal(effectiveTemporaryFolderPath, Path.GetDirectoryName(collection.FilePath));
-				TestCollectionPropertyDefaults(collection, 0);
+				TestCollectionPropertyDefaults(collection, 0, false);
 
 				backingFilePath = collection.FilePath;
 			}
@@ -247,21 +290,23 @@ namespace GriffinPlus.Lib.Logging
 		#region LogFile and FilePath
 
 		/// <summary>
-		/// Tests whether the collection provides its backing <see cref="LogFile"/> instance via its
-		/// <see cref="FileBackedLogMessageCollection.LogFile"/> property and whether the <see cref="FileBackedLogMessageCollection.FilePath"/>
+		/// Tests whether the collection provides its backing <see cref="LogFile" /> instance via its
+		/// <see cref="FileBackedLogMessageCollection.LogFile" /> property and whether the <see cref="FileBackedLogMessageCollection.FilePath" />
 		/// property returns the same path as the log file.
 		/// </summary>
 		[Fact]
 		protected virtual void LogFileAndFilePath()
 		{
-			var collection = (FileBackedLogMessageCollection)CreateCollection(0, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = (FileBackedLogMessageCollection)CreateCollection(0, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// check whether the actual state of the property matches the expected state
-			Assert.Equal(100, collection.CachePageCapacity);
+				// check whether the actual state of the property matches the expected state
+				Assert.Equal(100, collection.CachePageCapacity);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -274,7 +319,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="collection">Collection to check.</param>
 		/// <param name="expectedCount">Expected number of log messages in the collection.</param>
-		private void TestCollectionPropertyDefaults(FileBackedLogMessageCollection collection, long expectedCount)
+		/// <param name="isReadOnly">true, if the collection is read-only; otherwise false.</param>
+		protected void TestCollectionPropertyDefaults(FileBackedLogMessageCollection collection, long expectedCount, bool isReadOnly)
 		{
 			using (var eventWatcher = collection.AttachEventWatcher())
 			{
@@ -292,7 +338,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					var list = collection as IList;
 					Assert.Equal(expectedCount, list.Count);
-					Assert.Equal(CollectionIsReadOnly, list.IsReadOnly);
+					Assert.Equal(isReadOnly, list.IsReadOnly);
 					Assert.Equal(CollectionIsFixedSize, list.IsFixedSize);
 					Assert.Equal(CollectionIsSynchronized, list.IsSynchronized);
 					Assert.NotSame(collection, list.SyncRoot); // sync root must not be the same as the collection to avoid deadlocks
@@ -301,7 +347,7 @@ namespace GriffinPlus.Lib.Logging
 				// check properties exposed by IList<T> implementation
 				{
 					var list = collection as IList<LogMessage>;
-					Assert.False(list.IsReadOnly);
+					Assert.Equal(isReadOnly, list.IsReadOnly);
 					Assert.Equal(expectedCount, list.Count);
 				}
 

@@ -29,6 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">Index of the log message to get.</param>
 		/// <returns>Log message at the specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is out of bounds.</exception>
 		TMessage this[long index] { get; }
 
 		/// <summary>

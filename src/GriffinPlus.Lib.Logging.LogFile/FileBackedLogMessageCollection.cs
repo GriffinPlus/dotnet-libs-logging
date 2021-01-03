@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 
 	/// <summary>
 	/// A log message collection that uses a log file to keep log entries that are currently not needed
-	/// (the most frequently used log messages are cached to reduce i/o load).
+	/// (frequently used log messages are cached to reduce i/o load).
 	/// </summary>
 	public partial class FileBackedLogMessageCollection : ILogMessageCollection<LogMessage>
 	{
@@ -53,7 +53,6 @@ namespace GriffinPlus.Lib.Logging
 		private          int                   mMaxCachePageCount = DefaultMaxCachePageCount;
 		private          int                   mCachePageCapacity = DefaultCachePageCapacity;
 		private          int                   mChangeCounter;
-		private          bool                  mAutoDelete;
 		private          bool                  mDisposed;
 
 		#endregion
@@ -75,30 +74,14 @@ namespace GriffinPlus.Lib.Logging
 		#region Construction and Disposal
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollection" /> class.
-		/// </summary>
-		/// <param name="path">Path of the log file to open/create.</param>
-		/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
-		/// <param name="mode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
-		public FileBackedLogMessageCollection(
-			string           path,
-			LogFilePurpose   purpose = LogFilePurpose.Analysis,
-			LogFileWriteMode mode    = LogFileWriteMode.Fast)
-		{
-			LogFile = new LogFile(path, purpose, mode, this);
-			FilePath = LogFile.FilePath;
-			mCacheStartMessageId = LogFile.OldestMessageId;
-			if (mCacheStartMessageId < 0) mCacheStartMessageId = 0;
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollection" /> class.
+		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollection" /> class backed by
+		/// a <see cref="LogFile"/>.
 		/// </summary>
 		/// <param name="file">Log file to work on.</param>
-		public FileBackedLogMessageCollection(LogFile file)
+		/// <exception cref="ArgumentNullException"><paramref name="file"/> is <c>null</c>.</exception>
+		internal FileBackedLogMessageCollection(LogFile file)
 		{
 			LogFile = file ?? throw new ArgumentNullException(nameof(file));
-			FilePath = LogFile.FilePath;
 			mCacheStartMessageId = LogFile.OldestMessageId;
 			if (mCacheStartMessageId < 0) mCacheStartMessageId = 0;
 		}
@@ -112,7 +95,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				string path = LogFile.FilePath;
 				LogFile.Dispose();
-				if (mAutoDelete)
+				if (AutoDelete)
 				{
 					try { File.Delete(path); }
 					catch
@@ -124,6 +107,54 @@ namespace GriffinPlus.Lib.Logging
 				mCachePages.Clear();
 				mDisposed = true;
 			}
+		}
+
+		#endregion
+
+		#region Creating a Collection
+
+		/// <summary>
+		/// Creates a <see cref="FileBackedLogMessageCollection" /> backed by the specified log file.
+		/// The log file is created, if it does not exist, yet.
+		/// </summary>
+		/// <param name="path">Path of the log file to open/create.</param>
+		/// <param name="purpose">
+		/// Purpose of the log file determining whether the log file is primarily used for recording or for analysis
+		/// (does not have any effect, if the log file exists already).
+		/// </param>
+		/// <param name="mode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		public static FileBackedLogMessageCollection OpenOrCreate(
+			string           path,
+			LogFilePurpose   purpose,
+			LogFileWriteMode mode)
+		{
+			return LogFile.OpenOrCreate(path, purpose, mode).Messages;
+		}
+
+		/// <summary>
+		/// Creates a <see cref="FileBackedLogMessageCollection" /> backed by an existing log file.
+		/// The log file is opened for reading and writing.
+		/// </summary>
+		/// <param name="path">Path of the log file to open.</param>
+		/// <param name="mode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
+		/// <exception cref="FileNotFoundException">The specified file does not exist.</exception>
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		public static FileBackedLogMessageCollection Open(string path, LogFileWriteMode mode)
+		{
+			return LogFile.Open(path, mode).Messages;
+		}
+
+		/// <summary>
+		/// Creates a <see cref="FileBackedLogMessageCollection" /> backed by an existing log file.
+		/// The log file is opened read-only.
+		/// </summary>
+		/// <param name="path">Path of the log file to open.</param>
+		/// <exception cref="FileNotFoundException">The specified file does not exist.</exception>
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		public static FileBackedLogMessageCollection OpenReadOnly(string path)
+		{
+			return LogFile.OpenReadOnly(path).Messages;
 		}
 
 		#endregion
@@ -164,8 +195,9 @@ namespace GriffinPlus.Lib.Logging
 			// create a collection with a temporary database backing the collection
 			string path = Path.Combine(temporaryDirectoryPath, "[LOG-BUFFER] " + Guid.NewGuid().ToString("D").ToUpper());
 			if (deleteAutomatically) path += " [AUTO DELETE]";
-			var collection = new FileBackedLogMessageCollection(path, purpose, mode) { mAutoDelete = deleteAutomatically };
-			return collection;
+			var file = LogFile.OpenOrCreate(path, purpose, mode);
+			file.Messages.AutoDelete = deleteAutomatically;
+			return file.Messages;
 		}
 
 		/// <summary>
@@ -204,12 +236,17 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the path of the log file backing the collection.
 		/// </summary>
-		public string FilePath { get; }
+		public string FilePath => LogFile.FilePath;
 
 		/// <summary>
 		/// Gets the log file backing the collection.
 		/// </summary>
 		public LogFile LogFile { get; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the backing log file is deleted when the collection is disposed.
+		/// </summary>
+		public bool AutoDelete { get; set; }
 
 		/// <summary>
 		/// Gets or sets the maximum number of cache pages buffering messages in memory.
@@ -262,16 +299,15 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">Index of the log message to get.</param>
 		/// <returns>The log message at the specified index.</returns>
-		/// <exception cref="NotSupportedException">Setting a log message is not supported.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is out of bounds.</exception>
 		public LogMessage this[long index]
 		{
 			get
 			{
+				if (index < 0 || index >= LogFile.MessageCount) throw new ArgumentOutOfRangeException(nameof(index));
 				long messageId = LogFile.OldestMessageId + index;
 				return GetMessage(messageId);
 			}
-
-			set => throw new NotSupportedException("Setting a log message is not supported.");
 		}
 
 		#endregion
@@ -291,7 +327,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the total number of log messages in the collection.
 		/// </summary>
-		/// <exception cref="LogFileTooLargeException">The log message contains too many messages to be handled as a regular collection..</exception>
+		/// <exception cref="LogFileTooLargeException">The log message contains too many messages to be handled as a regular collection.</exception>
 		int ICollection<LogMessage>.Count
 		{
 			get
@@ -321,7 +357,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">Index of the log message to get.</param>
 		/// <returns>The log message at the specified index.</returns>
-		/// <exception cref="NotSupportedException">Setting a log message is not supported.</exception>
+		/// <exception cref="NotSupportedException">Setting log messages is not supported.</exception>
 		object IList.this[int index]
 		{
 			get => this[index];
@@ -329,9 +365,9 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a value indicating whether the collection is read-only (always false).
+		/// Gets a value indicating whether the collection is read-only.
 		/// </summary>
-		public bool IsReadOnly => false;
+		public bool IsReadOnly => LogFile.IsReadOnly;
 
 		/// <summary>
 		/// Gets a value indicating whether the collection is of fixed size (always false).
@@ -370,8 +406,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Adds a log message to the collection.
 		/// </summary>
 		/// <param name="item">Log message to add.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="item"/> is <c>null</c>.</exception>
+		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		int IList.Add(object item)
 		{
+			if (item == null) throw new ArgumentNullException(nameof(item));
+			if (IsReadOnly) throw new NotSupportedException("The collection is read-only.");
 			long index = LogFile.MessageCount;
 			if (index >= int.MaxValue) ThrowLogFileTooLargeException();
 			Add((LogMessage)item);
@@ -383,7 +423,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">The zero-based index at which the log message should be inserted.</param>
 		/// <param name="item">The log message to insert into the collection.</param>
-		/// <exception cref="NotSupportedException">Inserting is not supported.</exception>
+		/// <exception cref="NotSupportedException">Inserting log messages is not supported.</exception>
 		void IList.Insert(int index, object item)
 		{
 			Insert(index, (LogMessage)item);
@@ -414,8 +454,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Removes all log messages from the collection.
 		/// </summary>
+		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		public void Clear()
 		{
+			if (IsReadOnly) throw new NotSupportedException("The collection is read-only.");
+
 			if (LogFile.MessageCount > 0)
 			{
 				mCachePages.Clear();
@@ -428,6 +471,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="array">Array to copy the log messages into.</param>
 		/// <param name="arrayIndex">Index in the array to start copying to.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+		/// <exception cref="ArgumentException"><paramref name="array"/> is not a one-dimensional array of <see cref="LogMessage"/>.</exception>
 		void ICollection.CopyTo(Array array, int arrayIndex)
 		{
 			if (array == null) throw new ArgumentNullException(nameof(array));
@@ -444,11 +489,13 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">Index of the log message to get.</param>
 		/// <returns>The log message at the specified index.</returns>
-		/// <exception cref="NotSupportedException">Setting a log message is not supported.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is out of bounds.</exception>
+		/// <exception cref="NotSupportedException">Setting log messages is not supported.</exception>
 		public LogMessage this[int index]
 		{
 			get
 			{
+				if (index < 0 || index >= LogFile.MessageCount) throw new ArgumentOutOfRangeException(nameof(index));
 				long messageId = LogFile.OldestMessageId + index;
 				return GetMessage(messageId);
 			}
@@ -522,8 +569,12 @@ namespace GriffinPlus.Lib.Logging
 		/// (does not add the message itself, it simply writes the message into the underlying file; a following read will return a new instance)
 		/// </summary>
 		/// <param name="item">Log message to add.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="item"/> is <c>null</c>.</exception>
+		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		public void Add(LogMessage item)
 		{
+			if (item == null) throw new ArgumentNullException(nameof(item));
+			if (IsReadOnly) throw new NotSupportedException("The collection is read-only.");
 			LogFile.Write(item);
 		}
 
@@ -532,7 +583,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="index">The zero-based index at which value should be inserted.</param>
 		/// <param name="item">The log message to insert into the collection.</param>
-		/// <exception cref="NotSupportedException">Inserting is not supported.</exception>
+		/// <exception cref="NotSupportedException">Inserting log messages is not supported.</exception>
 		public void Insert(int index, LogMessage item)
 		{
 			// inserting log messages is not supported as this would mess up message counting and ordering
@@ -556,6 +607,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="array">Array to copy the log messages into.</param>
 		/// <param name="arrayIndex">Index in the array to start copying to.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+		/// <exception cref="ArgumentException"><paramref name="array"/> is no a one-dimensional array or the array is too small to store all messages.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="arrayIndex"/> is out of bounds.</exception>
 		public void CopyTo(LogMessage[] array, int arrayIndex)
 		{
 			if (array == null) throw new ArgumentNullException(nameof(array));
@@ -583,12 +637,15 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Adds multiple log messages to the collection at once
-		/// (does not influence cached log messages to avoid evicting cache pages that are still needed).
+		/// (does not add the messages themselves, it simply writes the messages into the underlying file; a following read will return a new instance)
 		/// </summary>
 		/// <param name="items">Log messages to add.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="items"/> is <c>null</c>.</exception>
+		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		public void AddRange(IEnumerable<LogMessage> items)
 		{
 			if (items == null) throw new ArgumentNullException(nameof(items));
+			if (IsReadOnly) throw new NotSupportedException("The collection is read-only.");
 			LogFile.Write(items);
 		}
 
@@ -598,6 +655,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="destination">Collection to copy log messages into.</param>
 		/// <param name="firstIndex">Index of the first message to copy.</param>
 		/// <param name="count">Number of messages to copy.</param>
+		/// <exception cref="ArgumentNullException"><paramref name="destination"/> is <c>null</c>.</exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// <paramref name="firstIndex"/> or <paramref name="firstIndex"/> + <paramref name="count"/> is out of bounds.
+		/// </exception>
 		public void CopyTo(FileBackedLogMessageCollection destination, int firstIndex, int count)
 		{
 			if (destination == null) throw new ArgumentNullException(nameof(destination));

@@ -68,16 +68,17 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		protected virtual void INotifyCollectionChanged_CollectionChanged()
 		{
-			var collection = CreateCollection(0, out _);
-
 			void Handler(object sender, NotifyCollectionChangedEventArgs args)
 			{
 			}
 
-			// register and unregister the event
-			// (firing event is tested as part of the methods modifying the collection)
-			collection.CollectionChanged += Handler;
-			collection.CollectionChanged -= Handler;
+			using (var collection = CreateCollection(0, out _))
+			{
+				// register and unregister the event
+				// (firing event is tested as part of the methods modifying the collection)
+				collection.CollectionChanged += Handler;
+				collection.CollectionChanged -= Handler;
+			}
 		}
 
 		#endregion
@@ -90,16 +91,17 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		protected virtual void INotifyPropertyChanged_PropertyChanged()
 		{
-			var collection = CreateCollection(0, out _);
-
 			void Handler(object sender, PropertyChangedEventArgs args)
 			{
 			}
 
-			// register and unregister the event
-			// (firing event is tested as part of the methods modifying the collection)
-			collection.PropertyChanged += Handler;
-			collection.PropertyChanged -= Handler;
+			using (var collection = CreateCollection(0, out _))
+			{
+				// register and unregister the event
+				// (firing event is tested as part of the methods modifying the collection)
+				collection.PropertyChanged += Handler;
+				collection.PropertyChanged -= Handler;
+			}
 		}
 
 		#endregion
@@ -163,15 +165,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                           initialCollectionSize,
 			Func<ILogMessageCollection<LogMessage>, long> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and compare with the expected count
-			long count = operation(collection);
-			Assert.Equal(initialCollectionSize, count);
+				// run operation and compare with the expected count
+				long count = operation(collection);
+				Assert.Equal(initialCollectionSize, count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -219,15 +223,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                           initialCollectionSize,
 			Func<ILogMessageCollection<LogMessage>, bool> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and compare with the expected state
-			bool isReadOnly = operation(collection);
-			Assert.Equal(CollectionIsReadOnly, isReadOnly);
+				// run operation and compare with the expected state
+				bool isReadOnly = operation(collection);
+				Assert.Equal(CollectionIsReadOnly, isReadOnly);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -243,14 +249,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(1)]
 		protected virtual void IList_IsFixedSize(int initialCollectionSize)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// check whether the actual state of the property matches the expected state
-			Assert.Equal(CollectionIsFixedSize, ((IList)collection).IsFixedSize);
+				// check whether the actual state of the property matches the expected state
+				Assert.Equal(CollectionIsFixedSize, ((IList)collection).IsFixedSize);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -264,17 +272,19 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		protected virtual void ICollection_SyncRoot()
 		{
-			var collection = CreateCollection(0, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(0, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// check whether the sync root is not a null reference and whether it is not the same as the collection itself
-			// (can cause deadlocks, if the collection itself is used for synchronization as well)
-			var syncRoot = ((ICollection)collection).SyncRoot;
-			Assert.NotNull(syncRoot);
-			Assert.NotSame(collection, syncRoot);
+				// check whether the sync root is not a null reference and whether it is not the same as the collection itself
+				// (can cause deadlocks, if the collection itself is used for synchronization as well)
+				var syncRoot = ((ICollection)collection).SyncRoot;
+				Assert.NotNull(syncRoot);
+				Assert.NotSame(collection, syncRoot);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -287,14 +297,16 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		protected virtual void ICollection_IsSynchronized()
 		{
-			var collection = CreateCollection(0, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(0, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// check whether the actual state of the property matches the expected state
-			Assert.Equal(CollectionIsSynchronized, ((ICollection)collection).IsSynchronized);
+				// check whether the actual state of the property matches the expected state
+				Assert.Equal(CollectionIsSynchronized, ((ICollection)collection).IsSynchronized);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -417,16 +429,18 @@ namespace GriffinPlus.Lib.Logging
 			int                                                  indexOfMessageToGet,
 			Func<ILogMessageCollection<LogMessage>, int, object> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out var messages);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out var messages))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run the operation and check whether the returned message equals the expected one
-			var message = (LogMessage)operation(collection, indexOfMessageToGet);
-			Assert.Equal(messages[indexOfMessageToGet], message); // does not take IsReadOnly into account
-			Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly);
+				// run the operation and check whether the returned message equals the expected one
+				var message = (LogMessage)operation(collection, indexOfMessageToGet);
+				Assert.Equal(messages[indexOfMessageToGet], message); // does not take IsReadOnly into account
+				Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		/// <summary>
@@ -441,14 +455,16 @@ namespace GriffinPlus.Lib.Logging
 			int                                                  indexOfMessageToGet,
 			Func<ILogMessageCollection<LogMessage>, int, object> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run the operation and ensure that the appropriate exception is thrown
-			Assert.Throws<ArgumentOutOfRangeException>(() => operation(collection, indexOfMessageToGet));
+				// run the operation and ensure that the appropriate exception is thrown
+				Assert.Throws<ArgumentOutOfRangeException>(() => operation(collection, indexOfMessageToGet));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -509,15 +525,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                                        indexOfMessageToSet,
 			Action<ILogMessageCollection<LogMessage>, int, LogMessage> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0];
-			Assert.Throws<NotSupportedException>(() => operation(collection, indexOfMessageToSet, newMessage));
+				// run operation and ensure that the appropriate exception is thrown
+				var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0];
+				Assert.Throws<NotSupportedException>(() => operation(collection, indexOfMessageToSet, newMessage));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -567,24 +585,26 @@ namespace GriffinPlus.Lib.Logging
 			int                                                  initialCollectionSize,
 			Func<ILogMessageCollection<LogMessage>, IEnumerator> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out var expectedMessages);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out var expectedMessages))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// iterate over all messages in the collection and collect them in a list
-			var messagesInCollection = new List<LogMessage>();
-			var enumerator = operation(collection);
-			while (enumerator.MoveNext()) messagesInCollection.Add((LogMessage)enumerator.Current);
+				// iterate over all messages in the collection and collect them in a list
+				var messagesInCollection = new List<LogMessage>();
+				var enumerator = operation(collection);
+				while (enumerator.MoveNext()) messagesInCollection.Add((LogMessage)enumerator.Current);
 
-			// dispose the enumerator, if it is IEnumerator<T>
-			// (the IEnumerator interface dos not support disposing)
-			if (enumerator is IEnumerator<LogMessage> genericEnumerator) genericEnumerator.Dispose();
+				// dispose the enumerator, if it is IEnumerator<T>
+				// (the IEnumerator interface dos not support disposing)
+				if (enumerator is IEnumerator<LogMessage> genericEnumerator) genericEnumerator.Dispose();
 
-			// the enumerator should have iterated over all messages
-			Assert.Equal(expectedMessages, messagesInCollection.ToArray()); // does not take IsReadOnly into account
-			Assert.All(messagesInCollection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
+				// the enumerator should have iterated over all messages
+				Assert.Equal(expectedMessages, messagesInCollection.ToArray()); // does not take IsReadOnly into account
+				Assert.All(messagesInCollection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -593,7 +613,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests adding a log message the the collection using <see cref="IList.Add" />.
-		/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
+		/// Should throw <see cref="NotSupportedException" />, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -625,7 +645,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests adding a log message the the collection using <see cref="ICollection{T}.Add" />.
-		/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
+		/// Should throw <see cref="NotSupportedException" />, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -666,40 +686,44 @@ namespace GriffinPlus.Lib.Logging
 			Action<ILogMessageCollection<LogMessage>, LogMessage> operation)
 		{
 			// create collection to test
-			var collection = CreateCollection(initialCollectionSize, out var messages);
-			var eventWatcher = collection.AttachEventWatcher();
-
-			// create new message that is not in the collection, yet
-			// (use seed 1 to generate a message that differs from the messages generated by default)
-			var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0];
-
-			if (CollectionIsReadOnly)
+			using (var collection = CreateCollection(initialCollectionSize, out var messages))
 			{
-				// collection is read-only and should throw exception
-				Assert.Throws<NotSupportedException>(() => operation(collection, newMessage));
-				Assert.Equal(initialCollectionSize, collection.Count);
+				var eventWatcher = collection.AttachEventWatcher();
+
+				// create new message that is not in the collection, yet
+				// (use seed 1 to generate a message that differs from the messages generated by default)
+				var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0];
+
+				if (CollectionIsReadOnly)
+				{
+					// collection is read-only and should throw exception
+					Assert.Throws<NotSupportedException>(() => operation(collection, newMessage));
+					Assert.Equal(initialCollectionSize, collection.Count);
+				}
+				else
+				{
+					// add message to the collection
+					operation(collection, newMessage);
+
+					// the collection may change the id of the message => adjust it before comparing
+					// (message id starts at 0, so this should be the correct message id)
+					newMessage.Id = initialCollectionSize;
+
+					// check whether the collection contains the new message now
+					Assert.Equal(initialCollectionSize + 1, collection.Count);
+					var expectedMessages = new List<LogMessage>(messages) { newMessage };
+					Assert.Equal(expectedMessages.ToArray(), collection.ToArray()); // does not take IsReadOnly into account
+					Assert.All(collection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
+
+					// add expected events that should have been raised
+					eventWatcher.ExpectCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new[] { newMessage }, initialCollectionSize));
+					eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
+					eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+				}
+
+				// check events that should have been raised
+				eventWatcher.CheckInvocations();
 			}
-			else
-			{
-				// add message to the collection
-				operation(collection, newMessage);
-
-				// the collection may change the id of the message => adjust it before comparing
-				// (message id starts at 0, so this should be the correct message id)
-				newMessage.Id = initialCollectionSize;
-
-				// check whether the collection contains the new message now
-				Assert.Equal(initialCollectionSize + 1, collection.Count);
-				var expectedMessages = new List<LogMessage>(messages) { newMessage };
-				Assert.Equal(expectedMessages.ToArray(), collection.ToArray()); // does not take IsReadOnly into account
-				Assert.All(collection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
-			}
-
-			// check events that should have been raised
-			eventWatcher.ExpectCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new[] { newMessage }, initialCollectionSize));
-			eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
-			eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-			eventWatcher.CheckInvocations();
 		}
 
 		/// <summary>
@@ -712,15 +736,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                       initialCollectionSize,
 			Action<ILogMessageCollection<LogMessage>> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			Assert.Throws<ArgumentNullException>(() => operation(collection));
-			Assert.Equal(initialCollectionSize, collection.Count);
+				// run operation and ensure that the appropriate exception is thrown
+				Assert.Throws<ArgumentNullException>(() => operation(collection));
+				Assert.Equal(initialCollectionSize, collection.Count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -729,7 +755,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests adding multiple log messages the the collection using <see cref="ILogMessageCollection{TMessage}.AddRange" />.
-		/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
+		/// Should throw <see cref="NotSupportedException" />, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="numberOfMessagesToAdd">Number of messages to add at once.</param>
@@ -776,49 +802,53 @@ namespace GriffinPlus.Lib.Logging
 			Action<ILogMessageCollection<LogMessage>, IEnumerable<LogMessage>> operation)
 		{
 			// create collection to test
-			var collection = CreateCollection(initialCollectionSize, out var messages);
-			var eventWatcher = collection.AttachEventWatcher();
-
-			// create new messages that is not in the collection, yet
-			// (use seed 1 to generate a message that differs from the messages generated by default)
-			var newMessages = LoggingTestHelpers.GetTestMessages(numberOfMessagesToAdd, 1);
-
-			if (CollectionIsReadOnly)
+			using (var collection = CreateCollection(initialCollectionSize, out var messages))
 			{
-				// collection is read-only and should throw exception
-				Assert.Throws<NotSupportedException>(() => operation(collection, newMessages));
-				Assert.Equal(initialCollectionSize, collection.Count);
+				var eventWatcher = collection.AttachEventWatcher();
+
+				// create new messages that is not in the collection, yet
+				// (use seed 1 to generate a message that differs from the messages generated by default)
+				var newMessages = LoggingTestHelpers.GetTestMessages(numberOfMessagesToAdd, 1);
+
+				if (CollectionIsReadOnly)
+				{
+					// collection is read-only and should throw exception
+					Assert.Throws<NotSupportedException>(() => operation(collection, newMessages));
+					Assert.Equal(initialCollectionSize, collection.Count);
+				}
+				else
+				{
+					// add message to the collection
+					operation(collection, newMessages);
+
+					// the collection may change the id of the message => adjust it before comparing
+					// (message id starts at 0, so this should be the correct message id)
+					for (int i = 0; i < numberOfMessagesToAdd; i++) newMessages[i].Id = initialCollectionSize + i;
+
+					// check whether the collection contains the new message now
+					Assert.Equal(initialCollectionSize + numberOfMessagesToAdd, collection.Count);
+					var expectedMessages = new List<LogMessage>(messages);
+					expectedMessages.AddRange(newMessages);
+					Assert.Equal(expectedMessages.ToArray(), collection.ToArray()); // does not take IsReadOnly into account
+					Assert.All(collection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
+
+					// add events that should have been raised
+					for (int i = 0; i < numberOfMessagesToAdd; i++)
+					{
+						eventWatcher.ExpectCollectionChanged(
+							new NotifyCollectionChangedEventArgs(
+								NotifyCollectionChangedAction.Add,
+								new[] { newMessages[i] },
+								initialCollectionSize + i));
+					}
+
+					eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
+					eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+				}
+
+				// check events that should have been raised
+				eventWatcher.CheckInvocations();
 			}
-			else
-			{
-				// add message to the collection
-				operation(collection, newMessages);
-
-				// the collection may change the id of the message => adjust it before comparing
-				// (message id starts at 0, so this should be the correct message id)
-				for (int i = 0; i < numberOfMessagesToAdd; i++) newMessages[i].Id = initialCollectionSize + i;
-
-				// check whether the collection contains the new message now
-				Assert.Equal(initialCollectionSize + numberOfMessagesToAdd, collection.Count);
-				var expectedMessages = new List<LogMessage>(messages);
-				expectedMessages.AddRange(newMessages);
-				Assert.Equal(expectedMessages.ToArray(), collection.ToArray()); // does not take IsReadOnly into account
-				Assert.All(collection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
-			}
-
-			// check events that should have been raised
-			for (int i = 0; i < numberOfMessagesToAdd; i++)
-			{
-				eventWatcher.ExpectCollectionChanged(
-					new NotifyCollectionChangedEventArgs(
-						NotifyCollectionChangedAction.Add,
-						new[] { newMessages[i] },
-						initialCollectionSize + i));
-			}
-
-			eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
-			eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-			eventWatcher.CheckInvocations();
 		}
 
 		/// <summary>
@@ -831,15 +861,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                       initialCollectionSize,
 			Action<ILogMessageCollection<LogMessage>> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			Assert.Throws<ArgumentNullException>(() => operation(collection));
-			Assert.Equal(initialCollectionSize, collection.Count);
+				// run operation and ensure that the appropriate exception is thrown
+				Assert.Throws<ArgumentNullException>(() => operation(collection));
+				Assert.Equal(initialCollectionSize, collection.Count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -896,16 +928,18 @@ namespace GriffinPlus.Lib.Logging
 			int                                                   initialCollectionSize,
 			Action<ILogMessageCollection<LogMessage>, LogMessage> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0];
-			Assert.Throws<NotSupportedException>(() => operation(collection, newMessage));
-			Assert.Equal(initialCollectionSize, collection.Count);
+				// run operation and ensure that the appropriate exception is thrown
+				var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0];
+				Assert.Throws<NotSupportedException>(() => operation(collection, newMessage));
+				Assert.Equal(initialCollectionSize, collection.Count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -956,34 +990,37 @@ namespace GriffinPlus.Lib.Logging
 			int                                       initialCollectionSize,
 			Action<ILogMessageCollection<LogMessage>> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
-
-			Assert.Equal(initialCollectionSize, collection.Count);
-
-			if (CollectionIsReadOnly)
+			using (var collection = CreateCollection(initialCollectionSize, out _))
 			{
-				// run operation and ensure that the appropriate exception is thrown
-				Assert.Throws<NotSupportedException>(() => operation(collection));
+				var eventWatcher = collection.AttachEventWatcher();
+
 				Assert.Equal(initialCollectionSize, collection.Count);
-			}
-			else
-			{
-				// run operation and ensure that the collection is empty afterwards
-				operation(collection);
-				Assert.Equal(0, collection.Count);
-				Assert.Empty(collection);
-			}
 
-			// check events that should have been raised
-			if (initialCollectionSize > 0)
-			{
-				eventWatcher.ExpectCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-				eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
-				eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-			}
+				if (CollectionIsReadOnly)
+				{
+					// run operation and ensure that the appropriate exception is thrown
+					Assert.Throws<NotSupportedException>(() => operation(collection));
+					Assert.Equal(initialCollectionSize, collection.Count);
+				}
+				else
+				{
+					// run operation and ensure that the collection is empty afterwards
+					operation(collection);
+					Assert.Equal(0, collection.Count);
+					Assert.Empty(collection);
 
-			eventWatcher.CheckInvocations();
+					// add events that should have been raised
+					if (initialCollectionSize > 0)
+					{
+						eventWatcher.ExpectCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+						eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
+						eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+					}
+				}
+
+				// check events that should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -1104,15 +1141,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                                       indexOfMessageToCheck,
 			Func<ILogMessageCollection<LogMessage>, LogMessage, bool> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out var messages);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out var messages))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the message was found
-			var messageCopy = new LogMessage(messages[indexOfMessageToCheck]); // use copy of log message to check whether equality check works
-			Assert.True(operation(collection, messageCopy));
+				// run operation and ensure that the message was found
+				var messageCopy = new LogMessage(messages[indexOfMessageToCheck]); // use copy of log message to check whether equality check works
+				Assert.True(operation(collection, messageCopy));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		/// <summary>
@@ -1125,15 +1164,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                                       initialCollectionSize,
 			Func<ILogMessageCollection<LogMessage>, LogMessage, bool> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the message was not found
-			var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0]; // use seed 1 to generate messages different from the default set
-			Assert.False(operation(collection, newMessage));
+				// run operation and ensure that the message was not found
+				var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0]; // use seed 1 to generate messages different from the default set
+				Assert.False(operation(collection, newMessage));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		/// <summary>
@@ -1146,15 +1187,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                           initialCollectionSize,
 			Func<ILogMessageCollection<LogMessage>, bool> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that false is returned
-			bool result = operation(collection);
-			Assert.False(result);
+				// run operation and ensure that false is returned
+				bool result = operation(collection);
+				Assert.False(result);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -1275,15 +1318,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                                      indexOfMessageToCheck,
 			Func<ILogMessageCollection<LogMessage>, LogMessage, int> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out var messages);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out var messages))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the message was found
-			var messageCopy = new LogMessage(messages[indexOfMessageToCheck]); // use copy of log message to check whether equality check works
-			Assert.Equal(indexOfMessageToCheck, operation(collection, messageCopy));
+				// run operation and ensure that the message was found
+				var messageCopy = new LogMessage(messages[indexOfMessageToCheck]); // use copy of log message to check whether equality check works
+				Assert.Equal(indexOfMessageToCheck, operation(collection, messageCopy));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		/// <summary>
@@ -1296,15 +1341,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                                      initialCollectionSize,
 			Func<ILogMessageCollection<LogMessage>, LogMessage, int> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the message was not found
-			var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0]; // use seed 1 to generate messages different from the default set
-			Assert.Equal(-1, operation(collection, newMessage));
+				// run operation and ensure that the message was not found
+				var newMessage = LoggingTestHelpers.GetTestMessages(1, 1)[0]; // use seed 1 to generate messages different from the default set
+				Assert.Equal(-1, operation(collection, newMessage));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		/// <summary>
@@ -1317,15 +1364,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                          initialCollectionSize,
 			Func<ILogMessageCollection<LogMessage>, int> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that -1 is returned
-			int result = operation(collection);
-			Assert.Equal(-1, result);
+				// run operation and ensure that -1 is returned
+				int result = operation(collection);
+				Assert.Equal(-1, result);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -1466,22 +1515,24 @@ namespace GriffinPlus.Lib.Logging
 			Action<ILogMessageCollection<LogMessage>, LogMessage[]> operation)
 		{
 			// create collection with the specified number of messages
-			var collection = CreateCollection(initialCollectionSize, out var messages);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out var messages))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// create destination array and copy messages into it
-			var destination = new LogMessage[destinationBufferSize];
-			operation(collection, destination);
+				// create destination array and copy messages into it
+				var destination = new LogMessage[destinationBufferSize];
+				operation(collection, destination);
 
-			// check whether the destination array contains the expected messages
-			var expectedMessages = new List<LogMessage>();
-			for (int i = 0; i < startIndex; i++) expectedMessages.Add(null);
-			expectedMessages.AddRange(messages);
-			Assert.Equal(expectedMessages, destination); // does not take IsReadOnly into account
-			Assert.All(destination.Skip(startIndex), message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
+				// check whether the destination array contains the expected messages
+				var expectedMessages = new List<LogMessage>();
+				for (int i = 0; i < startIndex; i++) expectedMessages.Add(null);
+				expectedMessages.AddRange(messages);
+				Assert.Equal(expectedMessages, destination); // does not take IsReadOnly into account
+				Assert.All(destination.Skip(startIndex), message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		/// <summary>
@@ -1498,15 +1549,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                                          startIndex,
 			Action<ILogMessageCollection<LogMessage>, LogMessage[], int> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			var destination = new LogMessage[destinationBufferSize];
-			Assert.Throws<ArgumentOutOfRangeException>(() => operation(collection, destination, startIndex));
+				// run operation and ensure that the appropriate exception is thrown
+				var destination = new LogMessage[destinationBufferSize];
+				Assert.Throws<ArgumentOutOfRangeException>(() => operation(collection, destination, startIndex));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		/// <summary>
@@ -1523,15 +1576,17 @@ namespace GriffinPlus.Lib.Logging
 			int                                                          startIndex,
 			Action<ILogMessageCollection<LogMessage>, LogMessage[], int> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			var destination = new LogMessage[destinationBufferSize];
-			Assert.Throws<ArgumentException>(() => operation(collection, destination, startIndex));
+				// run operation and ensure that the appropriate exception is thrown
+				var destination = new LogMessage[destinationBufferSize];
+				Assert.Throws<ArgumentException>(() => operation(collection, destination, startIndex));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -1588,17 +1643,19 @@ namespace GriffinPlus.Lib.Logging
 			int                                                   indexOfMessageToRemove,
 			Action<ILogMessageCollection<LogMessage>, LogMessage> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out var messages);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out var messages))
+			{
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			var messageToRemove = new LogMessage(messages[indexOfMessageToRemove]);
-			Assert.Equal(initialCollectionSize, collection.Count);
-			Assert.Throws<NotSupportedException>(() => operation(collection, messageToRemove));
-			Assert.Equal(initialCollectionSize, collection.Count);
+				// run operation and ensure that the appropriate exception is thrown
+				var messageToRemove = new LogMessage(messages[indexOfMessageToRemove]);
+				Assert.Equal(initialCollectionSize, collection.Count);
+				Assert.Throws<NotSupportedException>(() => operation(collection, messageToRemove));
+				Assert.Equal(initialCollectionSize, collection.Count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion
@@ -1659,16 +1716,19 @@ namespace GriffinPlus.Lib.Logging
 			int                                            indexOfMessageToRemove,
 			Action<ILogMessageCollection<LogMessage>, int> operation)
 		{
-			var collection = CreateCollection(initialCollectionSize, out _);
-			var eventWatcher = collection.AttachEventWatcher();
+			using (var collection = CreateCollection(initialCollectionSize, out _))
+			{
 
-			// run operation and ensure that the appropriate exception is thrown
-			Assert.Equal(initialCollectionSize, collection.Count);
-			Assert.Throws<NotSupportedException>(() => operation(collection, indexOfMessageToRemove));
-			Assert.Equal(initialCollectionSize, collection.Count);
+				var eventWatcher = collection.AttachEventWatcher();
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+				// run operation and ensure that the appropriate exception is thrown
+				Assert.Equal(initialCollectionSize, collection.Count);
+				Assert.Throws<NotSupportedException>(() => operation(collection, indexOfMessageToRemove));
+				Assert.Equal(initialCollectionSize, collection.Count);
+
+				// no events should have been raised
+				eventWatcher.CheckInvocations();
+			}
 		}
 
 		#endregion

@@ -21,31 +21,74 @@ namespace GriffinPlus.Lib.Logging
 		private readonly FileBackedLogMessageCollection mMessageCollection;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogFile" /> class.
+		/// Opens an existing log file for reading and writing.
+		/// Creates a new log file, if the file does not exist, yet.
 		/// </summary>
 		/// <param name="path">Log file to open/create.</param>
-		/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
+		/// <param name="purpose">
+		/// Purpose of the log file determining whether the log file is primarily used for recording or for analysis
+		/// (does not have any effect, if the log file exists already).
+		/// </param>
 		/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
-		public LogFile(
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		private LogFile(
 			string           path,
 			LogFilePurpose   purpose,
-			LogFileWriteMode writeMode = LogFileWriteMode.Robust) : this(path, purpose, writeMode, null)
+			LogFileWriteMode writeMode) : this(path, true, purpose, writeMode, false, null)
 		{
 			mMessageCollection = new FileBackedLogMessageCollection(this);
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogFile" /> class.
+		/// Opens an existing log file for reading and writing.
+		/// Throws an exception, if the file does not exist.
+		/// </summary>
+		/// <param name="path">Log file to open.</param>
+		/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
+		/// <exception cref="FileNotFoundException">The specified file does not exist.</exception>
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		private LogFile(
+			string           path,
+			LogFileWriteMode writeMode) : this(path, false, LogFilePurpose.NotSpecified, writeMode, false, null)
+		{
+			mMessageCollection = new FileBackedLogMessageCollection(this);
+		}
+
+		/// <summary>
+		/// Opens an existing log file for reading only.
+		/// Throws an exception, if the file does not exist.
+		/// </summary>
+		/// <param name="path">Log file to open.</param>
+		/// <exception cref="FileNotFoundException">The specified file does not exist.</exception>
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		private LogFile(string path) : this(path, false, LogFilePurpose.NotSpecified, LogFileWriteMode.Fast, true, null)
+		{
+			mMessageCollection = new FileBackedLogMessageCollection(this);
+		}
+
+		/// <summary>
+		/// Constructor providing functionality common to other constructors (for internal use only).
 		/// </summary>
 		/// <param name="path">Log file to open/create.</param>
+		/// <param name="createIfNotExist">
+		/// true to create the specified log file, if it does not exist, yet;
+		/// false to throw an exception, if the file does not exist.
+		/// </param>
 		/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 		/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
+		/// <param name="isReadOnly">
+		/// true to open the log file in read-only mode;
+		/// false to open the log file in read/write mode.
+		/// </param>
 		/// <param name="collection">Collection that works upon the log file.</param>
+		/// <exception cref="FileNotFoundException"><paramref name="createIfNotExist" /> is <c>false</c> and the specified file does not exist.</exception>
 		/// <exception cref="LogFileException">Opening/Creating the log file failed.</exception>
 		internal LogFile(
 			string                         path,
+			bool                           createIfNotExist,
 			LogFilePurpose                 purpose,
 			LogFileWriteMode               writeMode,
+			bool                           isReadOnly,
 			FileBackedLogMessageCollection collection)
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
@@ -57,10 +100,14 @@ namespace GriffinPlus.Lib.Logging
 			// check whether the log file exists already
 			bool fileExists = File.Exists(mFilePath);
 
+			// abort, if the file does not exist and creating a new file is not allowed
+			if (!fileExists && !createIfNotExist)
+				throw new FileNotFoundException($"Log file {path} does not exist.");
+
 			try
 			{
 				// open database file (creates a new one, if it does not exist)
-				var connection = new SQLiteConnection($"Data Source={mFilePath};Version=3");
+				var connection = new SQLiteConnection($"Data Source={mFilePath};Version=3;Read Only={isReadOnly}");
 				connection.Open();
 
 				// open/create the database
@@ -77,11 +124,11 @@ namespace GriffinPlus.Lib.Logging
 					switch (userVersion)
 					{
 						case 1:
-							mDatabaseAccessor = new RecordingDatabaseAccessor(connection, writeMode, false);
+							mDatabaseAccessor = new RecordingDatabaseAccessor(connection, writeMode, isReadOnly, false);
 							break;
 
 						case 2:
-							mDatabaseAccessor = new AnalysisDatabaseAccessor(connection, writeMode, false);
+							mDatabaseAccessor = new AnalysisDatabaseAccessor(connection, writeMode, isReadOnly, false);
 							break;
 
 						default:
@@ -93,11 +140,11 @@ namespace GriffinPlus.Lib.Logging
 					switch (purpose)
 					{
 						case LogFilePurpose.Recording:
-							mDatabaseAccessor = new RecordingDatabaseAccessor(connection, writeMode, true);
+							mDatabaseAccessor = new RecordingDatabaseAccessor(connection, writeMode, isReadOnly, true);
 							break;
 
 						case LogFilePurpose.Analysis:
-							mDatabaseAccessor = new AnalysisDatabaseAccessor(connection, writeMode, true);
+							mDatabaseAccessor = new AnalysisDatabaseAccessor(connection, writeMode, isReadOnly, true);
 							break;
 
 						default:
@@ -123,9 +170,62 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Opens an existing log file in read/write mode, creates a new log file, if the file does not exist, yet.
+		/// </summary>
+		/// <param name="path">Log file to open/create.</param>
+		/// <param name="purpose">
+		/// Purpose of the log file determining whether the log file is primarily used for recording or for analysis
+		/// (does not have any effect, if the log file exists already).
+		/// </param>
+		/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		public static LogFile OpenOrCreate(
+			string           path,
+			LogFilePurpose   purpose,
+			LogFileWriteMode writeMode)
+		{
+			return new LogFile(path, purpose, writeMode);
+		}
+
+		/// <summary>
+		/// Opens an existing log file for reading and writing.
+		/// </summary>
+		/// <param name="path">Log file to open.</param>
+		/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
+		/// <exception cref="FileNotFoundException">The specified file does not exist.</exception>
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		public static LogFile Open(string path, LogFileWriteMode writeMode)
+		{
+			return new LogFile(path, writeMode);
+		}
+
+		/// <summary>
+		/// Opens an existing log file for reading only.
+		/// </summary>
+		/// <param name="path">Path of the log file to open.</param>
+		/// <exception cref="FileNotFoundException">The specified file does not exist.</exception>
+		/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
+		public static LogFile OpenReadOnly(string path)
+		{
+			return new LogFile(path);
+		}
+
+		/// <summary>
 		/// Gets the version of the used SQLite implementation.
 		/// </summary>
 		public static string SqliteVersion => DatabaseAccessor.SqliteVersion;
+
+		/// <summary>
+		/// Gets a value determining whether the log file is opened for reading and writing (<c>false</c>) or for reading only (<c>true</c>).
+		/// </summary>
+		public bool IsReadOnly
+		{
+			get
+			{
+				CheckDisposed();
+				return mDatabaseAccessor.IsReadOnly;
+			}
+		}
 
 		/// <summary>
 		/// Gets the full path of the log file.
@@ -437,6 +537,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Log message to write.</param>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
+		/// <exception cref="NotSupportedException">The file is read-only.</exception>
 		/// <exception cref="LogFileException">Writing failed (see inner exception for details).</exception>
 		public void Write(ILogMessage message)
 		{
@@ -463,6 +564,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="messages">Log messages to write.</param>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
+		/// <exception cref="NotSupportedException">The file is read-only.</exception>
 		/// <exception cref="LogFileException">Writing failed (see inner exception for details).</exception>
 		public void Write(IEnumerable<ILogMessage> messages)
 		{
@@ -502,6 +604,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The message limit must be > 0 to limit the number of message or -1 to disable the limit.
 		/// </exception>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
+		/// <exception cref="NotSupportedException">The file is read-only.</exception>
 		/// <exception cref="LogFileException">Cleaning up failed (see inner exception for details).</exception>
 		public void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp, bool compact = false)
 		{
@@ -535,6 +638,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Compacts the log file.
 		/// </summary>
+		/// <exception cref="NotSupportedException">The file is read-only.</exception>
 		public void Compact()
 		{
 			CheckDisposed();
@@ -556,6 +660,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="path">Path of the file to save the snapshot to.</param>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
+		/// <exception cref="NotSupportedException">The file is read-only.</exception>
 		/// <exception cref="LogFileException">Saving snapshot failed (see inner exception for details).</exception>
 		public void SaveSnapshot(string path)
 		{

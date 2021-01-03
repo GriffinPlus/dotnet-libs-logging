@@ -122,34 +122,6 @@ namespace GriffinPlus.Lib.Logging
 			};
 
 			/// <summary>
-			/// Commands that are needed to configure the database to run in 'robust' mode.
-			/// </summary>
-			private static readonly string[] sSetRobustWriteModeCommands =
-			{
-				"PRAGMA synchronous = NORMAL;", // FULL is not needed for preserving consistency in WAL mode (see http://www.sqlite.org/pragma.html#pragma_synchronous)
-				"PRAGMA journal_mode = WAL;",
-				"PRAGMA temp_store = MEMORY;",
-				"PRAGMA busy_timeout = 5000;",
-				"PRAGMA locking_mode = EXCLUSIVE;",
-				"BEGIN EXCLUSIVE;", // first access acquires the file lock exclusively as long as the connection is opened
-				"COMMIT;"
-			};
-
-			/// <summary>
-			/// Commands that are needed to configure the database to run in 'fast' mode.
-			/// </summary>
-			private static readonly string[] sSetFastWriteModeCommands =
-			{
-				"PRAGMA synchronous = OFF;",
-				"PRAGMA journal_mode = OFF;",
-				"PRAGMA temp_store = MEMORY;",
-				"PRAGMA busy_timeout = 5000;",
-				"PRAGMA locking_mode = EXCLUSIVE;",
-				"BEGIN EXCLUSIVE;", // first access acquires the file lock exclusively as long as the connection is opened
-				"COMMIT;"
-			};
-
-			/// <summary>
 			/// Initializes the <see cref="DatabaseAccessor" /> class.
 			/// </summary>
 			static DatabaseAccessor()
@@ -170,6 +142,10 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
+			/// <param name="isReadOnly">
+			/// true, if the log file is opened in read-only mode;
+			/// false, if the log file is opened in read/write mode.
+			/// </param>
 			/// <param name="create">
 			/// true to create the database;
 			/// false to just use it.
@@ -177,10 +153,12 @@ namespace GriffinPlus.Lib.Logging
 			protected DatabaseAccessor(
 				SQLiteConnection connection,
 				LogFileWriteMode writeMode,
+				bool             isReadOnly,
 				bool             create)
 			{
 				mConnection = connection;
 				mCommands = new List<SQLiteCommand>();
+				IsReadOnly = isReadOnly;
 				WriteMode = writeMode;
 
 				// commands to begin, commit and roll back a transaction
@@ -287,21 +265,39 @@ namespace GriffinPlus.Lib.Logging
 					ExecuteNonQueryCommands(sCreateDatabaseCommands_CommonIndices);
 				}
 
-				// configure mode of operation (robust or fast)
-				switch (WriteMode)
+				// store temporary data in memory
+				ExecuteNonQueryCommand(connection, "PRAGMA temp_store = MEMORY;");
+
+				// set busy timeout to 5 seconds
+				ExecuteNonQueryCommand(connection, "PRAGMA busy_timeout = 5000;");
+
+				// enable exclusive locking
+				// (does not lock the database, yet - see below)
+				ExecuteNonQueryCommand(connection, "PRAGMA locking_mode = EXCLUSIVE;");
+
+				if (!isReadOnly)
 				{
-					case LogFileWriteMode.Robust:
-						ExecuteNonQueryCommands(sSetRobustWriteModeCommands);
-						mCanRollback = true; // robust mode uses a journal and can therefore roll back
-						break;
+					// configure mode of operation (robust or fast)
+					switch (WriteMode)
+					{
+						case LogFileWriteMode.Robust:
+							ExecuteNonQueryCommand(connection, "PRAGMA synchronous = NORMAL;"); // FULL is not needed for preserving consistency in WAL mode (see http://www.sqlite.org/pragma.html#pragma_synchronous)
+							ExecuteNonQueryCommand(connection, "PRAGMA journal_mode = WAL;");
+							mCanRollback = true; // robust mode uses a journal and can therefore roll back
+							break;
 
-					case LogFileWriteMode.Fast:
-						ExecuteNonQueryCommands(sSetFastWriteModeCommands);
-						mCanRollback = false; // fast mode does not use a journal and cannot roll back, behavior is undefined in these cases
-						break;
+						case LogFileWriteMode.Fast:
+							ExecuteNonQueryCommand(connection, "PRAGMA synchronous = OFF;");
+							ExecuteNonQueryCommand(connection, "PRAGMA journal_mode = OFF;");
+							mCanRollback = false; // fast mode does not use a journal and cannot roll back, behavior is undefined in these cases
+							break;
 
-					default:
-						throw new NotSupportedException($"The specified write mode({WriteMode}) is not supported.");
+						default:
+							throw new NotSupportedException($"The specified write mode({WriteMode}) is not supported.");
+					}
+
+					// put the exclusive lock in place
+					ExecuteNonQueryCommand(connection, "BEGIN EXCLUSIVE; COMMIT;");
 				}
 			}
 
@@ -332,6 +328,11 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>Version of the sqlite implementation.</returns>
 			// ReSharper disable once MemberHidesStaticFromOuterClass
 			public static string SqliteVersion { get; }
+
+			/// <summary>
+			/// Gets a value determining whether the log file is opened for reading and writing (<c>false</c>) or for reading only (<c>true</c>).
+			/// </summary>
+			public bool IsReadOnly { get; }
 
 			/// <summary>
 			/// Gets the purpose the log format is used for.
@@ -444,8 +445,11 @@ namespace GriffinPlus.Lib.Logging
 			/// true to remove messages only;
 			/// false to remove processes, applications, log writers, log levels and tags as well.
 			/// </param>
+			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public virtual void Clear(bool messagesOnly)
 			{
+				CheckReadOnly();
+
 				void Operation()
 				{
 					if (!messagesOnly)
@@ -515,8 +519,11 @@ namespace GriffinPlus.Lib.Logging
 			/// Writes a log message into the log file.
 			/// </summary>
 			/// <param name="message">Log message to write.</param>
+			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public virtual void Write(ILogMessage message)
 			{
+				CheckReadOnly();
+
 				long messageId = NewestMessageId;
 
 				void Operation()
@@ -535,8 +542,11 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="messages">Log messages to write.</param>
 			/// <returns>Number of messages written (should always be all messages).</returns>
+			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public virtual long Write(IEnumerable<ILogMessage> messages)
 			{
+				CheckReadOnly();
+
 				long count = 0;
 
 				void Operation()
@@ -567,6 +577,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Point in time (UTC) to keep messages after (includes the exact point in time);
 			/// <seealso cref="DateTime.MinValue" /> to disable removing messages by age.
 			/// </param>
+			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public abstract void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp);
 
 			/// <summary>
@@ -592,8 +603,10 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// Compacts the database file.
 			/// </summary>
+			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public void Vacuum()
 			{
+				CheckReadOnly();
 				ExecuteNonQueryCommand(mVacuumCommand);
 			}
 
@@ -984,6 +997,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 			}
 
+			/*
 			/// <summary>
 			/// Executes the specified action in a sqlite transaction.
 			/// </summary>
@@ -1028,6 +1042,7 @@ namespace GriffinPlus.Lib.Logging
 					throw;
 				}
 			}
+			*/
 
 			/// <summary>
 			/// Executes the specified sqlite command and returns the first column and the first row of the result set,
@@ -1121,6 +1136,15 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				return list.ToArray();
+			}
+
+			/// <summary>
+			/// Checks whether the log file is read-only and throws an exception, if so.
+			/// </summary>
+			/// <exception cref="NotSupportedException">The log file is read-only.</exception>
+			protected void CheckReadOnly()
+			{
+				if (IsReadOnly) throw new NotSupportedException("The log file is read-only.");
 			}
 
 			#endregion

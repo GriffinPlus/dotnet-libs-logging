@@ -81,12 +81,19 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
+			/// <param name="isReadOnly">
+			/// true, if the log file is opened in read-only mode;
+			/// false, if the log file is opened in read/write mode.
+			/// </param>
 			/// <param name="create">
 			/// true to create the database;
 			/// false to just use it.
 			/// </param>
-			public AnalysisDatabaseAccessor(SQLiteConnection connection, LogFileWriteMode writeMode, bool create) :
-				base(connection, writeMode, create)
+			public AnalysisDatabaseAccessor(
+				SQLiteConnection connection,
+				LogFileWriteMode writeMode,
+				bool             isReadOnly,
+				bool             create) : base(connection, writeMode, isReadOnly, create)
 			{
 				// commands to get the lowest and the highest message id
 				mGetOldestMessageIdCommand = PrepareCommand("SELECT id FROM messages ORDER BY id ASC  LIMIT 1;");
@@ -383,8 +390,11 @@ namespace GriffinPlus.Lib.Logging
 			/// Point in time (UTC) to keep messages after (includes the exact point in time);
 			/// <seealso cref="DateTime.MinValue" /> to disable removing messages by age.
 			/// </param>
+			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public override void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp)
 			{
+				CheckReadOnly();
+
 				// abort, if the database is empty
 				if (OldestMessageId < 0)
 					return;

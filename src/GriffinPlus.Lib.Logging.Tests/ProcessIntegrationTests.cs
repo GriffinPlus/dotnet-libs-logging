@@ -333,7 +333,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// determine the path of the output directory
 			var codeBaseUrl = new Uri(Assembly.GetExecutingAssembly().CodeBase);
-			var codeBasePath = Uri.UnescapeDataString(codeBaseUrl.AbsolutePath);
+			string codeBasePath = Uri.UnescapeDataString(codeBaseUrl.AbsolutePath);
 			string directory = Path.GetDirectoryName(codeBasePath);
 			Assert.NotNull(directory);
 
