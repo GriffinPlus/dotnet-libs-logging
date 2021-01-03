@@ -316,8 +316,28 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (!mDisposed)
 				{
+					// if the database file has been opened in WAL mode, revert to delete mode, before closing the file
+					// (opening a file that has been opened in WAL mode read-only, creates -shm and -wal files that are
+					// not removed when the database is closed)
+					if (WriteMode == LogFileWriteMode.Robust)
+					{
+						try
+						{
+							ExecuteNonQueryCommand(mConnection, "PRAGMA journal_mode = delete");
+						}
+						catch
+						{
+							/* swallow */
+						}
+					}
+
+					// dispose prepared statements
 					foreach (var command in mCommands) command.Dispose();
+
+					// close connection to the database
 					mConnection?.Dispose();
+
+					// the accessor is disposed now...
 					mDisposed = true;
 				}
 			}
