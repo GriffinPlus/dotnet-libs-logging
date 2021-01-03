@@ -112,6 +112,9 @@ namespace GriffinPlus.Lib.Logging
 
 			// the file should not persist after disposing the collection, if auto-deletion is enabled
 			Assert.Equal(deleteAutomatically, !File.Exists(backingFilePath));
+
+			// delete the file, if it still exists to avoid polluting the output directory
+			File.Delete(backingFilePath);
 		}
 
 		#endregion
