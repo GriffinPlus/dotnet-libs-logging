@@ -54,6 +54,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the field names defining how to map JSON keys to fields in <see cref="ILogMessage" />.
 		/// </summary>
+		// ReSharper disable once ConvertToAutoPropertyWhenPossible
 		public JsonMessageFieldNames FieldNames => mFieldNames;
 
 		/// <summary>

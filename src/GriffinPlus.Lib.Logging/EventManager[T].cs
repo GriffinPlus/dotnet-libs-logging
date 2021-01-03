@@ -223,7 +223,7 @@ namespace GriffinPlus.Lib.Logging
 				if (eventName != null)
 				{
 					// abort, if there is no event handler attached to the specified event
-					if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out var items))
+					if (!sItemsByObject.TryGetValue(obj, out var itemsByName) || !itemsByName.TryGetValue(eventName, out _))
 						return false;
 
 					// remove all handlers attached to the specified event
