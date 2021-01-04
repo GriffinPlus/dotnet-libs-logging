@@ -33,11 +33,13 @@ namespace GriffinPlus.Lib.Logging
 		public static LogMessagePool Default { get; } = new LogMessagePool();
 
 		/// <summary>
-		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
-		/// Call <see cref="LogMessage.InitWith" /> to initialize it.
+		/// Gets an empty log message from the pool.
+		/// Creates a new log message, if the pool is empty.
+		/// Call <see cref="LogMessage.InitWith" /> or <see cref="LogMessage"/> properties to initialize it.
+		/// The <see cref="LogMessage.IsInitialized"/> property is <c>true</c> right from start.
 		/// </summary>
 		/// <returns>The requested log message.</returns>
-		public LogMessage GetUninitializedMessage()
+		public LogMessage GetMessage()
 		{
 			if (mMessages.TryTake(out var message))
 			{
@@ -54,7 +56,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a log message from the pool, creates a new one, if the pool is empty.
+		/// Gets a log message from the pool and initializes it.
+		/// Creates a new log message, if the pool is empty.
 		/// </summary>
 		/// <param name="id">
 		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file;
@@ -116,6 +119,43 @@ namespace GriffinPlus.Lib.Logging
 				processName,
 				processId,
 				text);
+
+			return message;
+		}
+
+		/// <summary>
+		/// Gets an uninitialized log message from the pool and prepares it for asynchronous initialization.
+		/// Creates a new log message, if the pool is empty.
+		/// The <see cref="LogMessage.IsInitialized"/> property is <c>false</c> at start and set to <c>true</c>
+		/// when <see cref="ILogMessageInitializer.Initialize" /> is called to initialize the message later on.
+		/// </summary>
+		/// <param name="readOnly">
+		/// true to get a read-only message that can only be set by the returned initializer, but not using any properties or <see cref="LogMessage.InitWith"/>;
+		/// false to get a regular message that can be modified as usual using properties and <see cref="LogMessage.InitWith"/> after it has been initialized asynchronously.
+		/// </param>
+		/// <param name="initializer">Receives the initializer that allows to initialize the log message.</param>
+		/// <returns>The requested log message.</returns>
+		public LogMessage GetMessageWithAsyncInit(bool readOnly, out ILogMessageInitializer initializer)
+		{
+			if (mMessages.TryTake(out var message))
+			{
+				// ReSharper disable once RedundantAssignment
+				int refCount = message.AddRef();
+				Debug.Assert(refCount == 1);
+			}
+			else
+			{
+				message = new LogMessage(this);
+			}
+
+			// update the administrative state
+			message.IsInitializedInternal = false;
+			message.IsAsyncInitPending = true;
+			message.IsReadOnlyInternal = readOnly;
+
+			// the message is its own initializer
+			initializer = message;
+
 			return message;
 		}
 

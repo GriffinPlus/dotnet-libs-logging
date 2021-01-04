@@ -67,7 +67,313 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var pool = new LogMessagePool();
 			var message = new LogMessage(pool);
-			CheckDefaultState(message, pool);
+			CheckDefaultState(message, true, false, pool);
+		}
+
+		#endregion
+
+		#region CreateWithAsyncInit()
+
+		/// <summary>
+		/// Tests creating a log message that must be initialized asynchronously, but does not initialize it.
+		/// </summary>
+		/// <param name="readOnly">
+		/// true to create a read-only message;
+		/// false to create a regular message.
+		/// </param>
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		private void CreateWithAsyncInit_CreateOnly(bool readOnly)
+		{
+			// create a new message with asynchronous initializer
+			var message = LogMessage.CreateWithAsyncInit(readOnly, out _);
+			CheckDefaultState(message, false, readOnly);
+
+			// check that the message is marked for asynchronous initialization
+			Assert.True(message.IsAsyncInitPending);
+
+			// check whether the message reflects the desired read-only state
+			Assert.Equal(readOnly, message.IsReadOnly);
+		}
+
+		/// <summary>
+		/// Test data for <see cref="CreateWithAsyncInit_FollowedByInitialize" />.
+		/// </summary>
+		public static IEnumerable<object[]> CreateWithAsyncInitTestData_FollowedByInitialize
+		{
+			get
+			{
+				foreach (bool readOnly in new[] { false, true })
+				foreach (bool initInSameThread in new[] { false, true })
+				foreach (bool withPropertyChanged in new[] { false, true })
+				{
+					yield return new object[] { readOnly, initInSameThread, withPropertyChanged };
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests creating a log message that must be initialized asynchronously abd initializes it.
+		/// </summary>
+		/// <param name="readOnly">
+		/// true to create a read-only message;
+		/// false to create a regular message.
+		/// </param>
+		/// <param name="initInSameThread">
+		/// true to initialize the message in the thread that registers the event;
+		/// false to initialize the message and raise the event in some other thread.
+		/// </param>
+		/// <param name="withPropertyChanged">
+		/// true to register the <see cref="LogMessage.PropertyChanged" /> event and check whether it is fired correctly;
+		/// otherwise false.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(CreateWithAsyncInitTestData_FollowedByInitialize))]
+		private async Task CreateWithAsyncInit_FollowedByInitialize(bool readOnly, bool initInSameThread, bool withPropertyChanged)
+		{
+			// create a new message with asynchronous initializer
+			var message = LogMessage.CreateWithAsyncInit(readOnly, out var initializer);
+			CheckDefaultState(message, false, readOnly); // checks IsInitialized
+
+			// check that the message is marked for asynchronous initialization
+			Assert.True(message.IsAsyncInitPending);
+
+			// prepare data pulling some information out of the event handler
+			SynchronizationContext handlerThreadSynchronizationContext = null;
+			var changedPropertyNames = new List<string>();
+			var handlerCalledEvent = new ManualResetEventSlim(false);
+
+			// the handler that is expected to be called on changes
+			void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+			{
+				handlerThreadSynchronizationContext = SynchronizationContext.Current;
+				changedPropertyNames.Add(e.PropertyName);
+				handlerCalledEvent.Set();
+			}
+
+			// run test in a separate thread that provides a synchronization context that allows to
+			// marshal calls into that thread
+			await mThread.Factory.Run(() => { Assert.NotNull(SynchronizationContext.Current); });
+
+			// register the PropertyChanged event
+			if (withPropertyChanged)
+			{
+				await mThread.Factory.Run(() => { message.PropertyChanged += PropertyChangedHandler; });
+			}
+
+			// callback that initializes the message
+			void InitializeTest()
+			{
+				initializer.Initialize(
+					1,
+					DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"),
+					2,
+					3,
+					"Log Writer",
+					"Log Level",
+					new TagSet("Tag"),
+					"Application",
+					"Process",
+					42,
+					"Some text");
+
+				// check administrative properties
+				Assert.Equal(1, initializer.RefCount);
+				Assert.True(message.IsInitialized);
+				Assert.False(message.IsAsyncInitPending);
+
+				// check message properties
+				Assert.Equal(1,                                                 message.Id);
+				Assert.Equal(DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"), message.Timestamp);
+				Assert.Equal(2,                                                 message.HighPrecisionTimestamp);
+				Assert.Equal(3,                                                 message.LostMessageCount);
+				Assert.Equal("Log Writer",                                      message.LogWriterName);
+				Assert.Equal("Log Level",                                       message.LogLevelName);
+				Assert.Equal(new TagSet("Tag"),                                 message.Tags);
+				Assert.Equal("Application",                                     message.ApplicationName);
+				Assert.Equal("Process",                                         message.ProcessName);
+				Assert.Equal(42,                                                message.ProcessId);
+				Assert.Equal("Some text",                                       message.Text);
+
+				if (initInSameThread)
+				{
+					if (withPropertyChanged)
+					{
+						// the event handler should have been called only once in the same thread
+						// (the event handler is called directly as the registering thread is the same as the thread raising the event)
+						Assert.True(handlerCalledEvent.IsSet);
+						Assert.Equal(new string[] { null }, changedPropertyNames.ToArray()); // null => all properties
+					}
+					else
+					{
+						// the event handler should not have been called
+						Assert.False(handlerCalledEvent.IsSet);
+					}
+				}
+			}
+
+			// initialize the message either in the context of the thread that registered the handler
+			// or in a different - the current - thread
+			if (initInSameThread) await mThread.Factory.Run(InitializeTest);
+			else InitializeTest();
+
+			if (!initInSameThread)
+			{
+				// the thread registering the event and the thread initializing the message are different
+				if (withPropertyChanged)
+				{
+					// event handler should run in the context of the thread that registered it
+					Assert.True(handlerCalledEvent.Wait(1000));
+					Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
+					Assert.Equal(new string[] { null }, changedPropertyNames.ToArray());
+				}
+				else
+				{
+					// the event handler should not have been called
+					Assert.False(handlerCalledEvent.Wait(1000));
+				}
+			}
+		}
+
+		#endregion
+
+		#region InitWith()
+
+		/// <summary>
+		/// Test data for <see cref="InitWith" />.
+		/// </summary>
+		public static IEnumerable<object[]> InitWithTestData
+		{
+			get
+			{
+				foreach (bool initInSameThread in new[] { false, true })
+				foreach (bool withPropertyChanged in new[] { false, true })
+				{
+					yield return new object[] { initInSameThread, withPropertyChanged };
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests <see cref="LogMessage.InitWith" />.
+		/// </summary>
+		/// <param name="initInSameThread">
+		/// true to initialize the message in the thread that registers the event;
+		/// false to initialize the message and raise the event in some other thread.
+		/// </param>
+		/// <param name="withPropertyChanged">
+		/// true to register the <see cref="LogMessage.PropertyChanged" /> event and check whether it is fired correctly;
+		/// otherwise false.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(InitWithTestData))]
+		private async Task InitWith(bool initInSameThread, bool withPropertyChanged)
+		{
+			// create a new message
+			var message = new LogMessage();
+			Assert.False(message.IsReadOnly);
+			CheckDefaultState(message, true, false);
+
+			// ensure that the message is not marked for asynchronous initialization
+			Assert.False(message.IsAsyncInitPending);
+
+			// prepare data pulling some information out of the event handler
+			SynchronizationContext handlerThreadSynchronizationContext = null;
+			var changedPropertyNames = new List<string>();
+			var handlerCalledEvent = new ManualResetEventSlim(false);
+
+			// the handler that is expected to be called on changes
+			void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+			{
+				handlerThreadSynchronizationContext = SynchronizationContext.Current;
+				changedPropertyNames.Add(e.PropertyName);
+				handlerCalledEvent.Set();
+			}
+
+			// run test in a separate thread that provides a synchronization context that allows to
+			// marshal calls into that thread
+			await mThread.Factory.Run(() => { Assert.NotNull(SynchronizationContext.Current); });
+
+			// register the PropertyChanged event
+			if (withPropertyChanged)
+			{
+				await mThread.Factory.Run(() => { message.PropertyChanged += PropertyChangedHandler; });
+			}
+
+			// callback that initializes the message
+			void InitializeTest()
+			{
+				// init the message
+				message.InitWith(
+					1,
+					DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"),
+					2,
+					3,
+					"Log Writer",
+					"Log Level",
+					new TagSet("Tag"),
+					"Application",
+					"Process",
+					42,
+					"Some Text");
+
+				// check administrative properties
+				Assert.Equal(1, message.RefCount);
+				Assert.True(message.IsInitialized);
+				Assert.False(message.IsAsyncInitPending);
+
+				// check message properties
+				Assert.Equal(1,                                                 message.Id);
+				Assert.Equal(DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"), message.Timestamp);
+				Assert.Equal(2,                                                 message.HighPrecisionTimestamp);
+				Assert.Equal(3,                                                 message.LostMessageCount);
+				Assert.Equal("Log Writer",                                      message.LogWriterName);
+				Assert.Equal("Log Level",                                       message.LogLevelName);
+				Assert.Equal(new TagSet("Tag"),                                 message.Tags);
+				Assert.Equal("Application",                                     message.ApplicationName);
+				Assert.Equal("Process",                                         message.ProcessName);
+				Assert.Equal(42,                                                message.ProcessId);
+				Assert.Equal("Some Text",                                       message.Text);
+
+				if (initInSameThread)
+				{
+					if (withPropertyChanged)
+					{
+						// the event handler should have been called only once in the same thread
+						// (the event handler is called directly as the registering thread is the same as the thread raising the event)
+						Assert.True(handlerCalledEvent.IsSet);
+						Assert.Equal(new string[] { null }, changedPropertyNames.ToArray()); // null => all properties
+					}
+					else
+					{
+						// the event handler should not have been called
+						Assert.False(handlerCalledEvent.IsSet);
+					}
+				}
+			}
+
+			// initialize the message either in the context of the thread that registered the handler
+			// or in a different - the current - thread
+			if (initInSameThread) await mThread.Factory.Run(InitializeTest);
+			else InitializeTest();
+
+			if (!initInSameThread)
+			{
+				// the thread registering the event and the thread initializing the message are different
+				if (withPropertyChanged)
+				{
+					// event handler should run in the context of the thread that registered it
+					Assert.True(handlerCalledEvent.Wait(1000));
+					Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
+					Assert.Equal(new string[] { null }, changedPropertyNames.ToArray());
+				}
+				else
+				{
+					// the event handler should not have been called
+					Assert.False(handlerCalledEvent.Wait(1000));
+				}
+			}
 		}
 
 		#endregion
@@ -398,62 +704,16 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region InitWith()
-
-		/// <summary>
-		/// Tests <see cref="LogMessage.InitWith" />.
-		/// </summary>
-		[Theory]
-		[InlineData(false)]
-		[InlineData(true)]
-		private void InitWith(bool withPropertyChanged)
-		{
-			// create a new message
-			var message = new LogMessage();
-			Assert.False(message.IsReadOnly);
-
-			// prepare data pulling some information out of the event handler
-			var changedPropertyNames = new List<string>();
-
-			// the handler that is expected to be called on changes
-			void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
-			{
-				changedPropertyNames.Add(e.PropertyName);
-			}
-
-			// register event handler, if required
-			if (withPropertyChanged) message.PropertyChanged += PropertyChangedHandler;
-
-			// init the message
-			message.InitWith(
-				1000,
-				DateTimeOffset.Now,
-				1000,
-				1000,
-				"My Log Writer",
-				"My Log Level",
-				new TagSet("ABC"),
-				"My Application",
-				"My Process",
-				42,
-				"Some Text");
-
-			// the event handler should have been called only once
-			// (the event handler is always called directly, if the registering thread is the same as the thread raising the event)
-			if (withPropertyChanged)
-			{
-				Assert.Equal(new string[] { null }, changedPropertyNames.ToArray()); // null => all properties
-			}
-		}
-
-		#endregion
-
 		#region Reset to Defaults
 
 		/// <summary>
 		/// Tests resetting a log message to defaults using <see cref="LogMessage.Reset" />.
 		/// Used internally by the pool.
 		/// </summary>
+		/// <param name="withPropertyChanged">
+		/// true to register the <see cref="LogMessage.PropertyChanged" /> event and check whether it is fired correctly;
+		/// otherwise false.
+		/// </param>
 		[Theory]
 		[InlineData(false)]
 		[InlineData(true)]
@@ -461,8 +721,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var message = new LogMessage
 			{
-				Id = 0,
-				LostMessageCount = 0,
+				Id = 1,
+				LostMessageCount = 2,
 				Timestamp = DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"),
 				HighPrecisionTimestamp = 0,
 				LogWriterName = "Log Writer",
@@ -470,7 +730,7 @@ namespace GriffinPlus.Lib.Logging
 				Tags = new TagSet("Tag"),
 				ApplicationName = "Application",
 				ProcessName = "Process",
-				ProcessId = 0,
+				ProcessId = 42,
 				Text = "Text"
 			};
 
@@ -514,43 +774,115 @@ namespace GriffinPlus.Lib.Logging
 		#region Write Protection
 
 		/// <summary>
+		/// Test data for <see cref="Protect" />.
+		/// </summary>
+		public static IEnumerable<object[]> ProtectTestData
+		{
+			get
+			{
+				foreach (bool initInSameThread in new[] { false, true })
+				foreach (bool withPropertyChanged in new[] { false, true })
+				{
+					yield return new object[] { initInSameThread, withPropertyChanged };
+				}
+			}
+		}
+
+		/// <summary>
 		/// Tests whether <see cref="LogMessage.Protect" /> sets the <see cref="LogMessage.IsReadOnly" /> property to <c>true</c>.
 		/// </summary>
+		/// <param name="protectInSameThread">
+		/// true to protect the message in the thread that registers the event;
+		/// false to protect the message and raise the event in some other thread.
+		/// </param>
+		/// <param name="withPropertyChanged">
+		/// true to register the <see cref="LogMessage.PropertyChanged" /> event and check whether it is fired correctly;
+		/// otherwise false.
+		/// </param>
 		[Theory]
-		[InlineData(false)]
-		[InlineData(true)]
-		private void Protect(bool withPropertyChanged)
+		[MemberData(nameof(InitWithTestData))]
+		private async Task Protect(bool protectInSameThread, bool withPropertyChanged)
 		{
 			// create a new message
 			var message = new LogMessage();
 			Assert.False(message.IsReadOnly);
+			CheckDefaultState(message, true, false);
+
+			// ensure that the message is not marked for asynchronous initialization
+			Assert.False(message.IsAsyncInitPending);
 
 			// prepare data pulling some information out of the event handler
+			SynchronizationContext handlerThreadSynchronizationContext = null;
 			var changedPropertyNames = new List<string>();
 			var handlerCalledEvent = new ManualResetEventSlim(false);
 
 			// the handler that is expected to be called on changes
 			void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
 			{
+				handlerThreadSynchronizationContext = SynchronizationContext.Current;
 				changedPropertyNames.Add(e.PropertyName);
 				handlerCalledEvent.Set();
 			}
 
-			// register event handler, if required
-			if (withPropertyChanged) message.PropertyChanged += PropertyChangedHandler;
+			// run test in a separate thread that provides a synchronization context that allows to
+			// marshal calls into that thread
+			await mThread.Factory.Run(() => { Assert.NotNull(SynchronizationContext.Current); });
 
-			// protect the message
-			message.Protect();
-
-			// the IsReadOnly property should be true now
-			Assert.True(message.IsReadOnly);
-
-			// the event handler should have been called
-			// (the event handler is always called directly, if the registering thread is the same as the thread raising the event)
+			// register the PropertyChanged event
 			if (withPropertyChanged)
 			{
-				Assert.True(handlerCalledEvent.IsSet);
-				Assert.Equal(new[] { "IsReadOnly" }, changedPropertyNames.ToArray());
+				await mThread.Factory.Run(() => { message.PropertyChanged += PropertyChangedHandler; });
+			}
+
+			// callback that initializes the message
+			void ProtectTest()
+			{
+				// protect the message
+				message.Protect();
+
+				// check administrative properties
+				Assert.Equal(1, message.RefCount);        // unchanged
+				Assert.True(message.IsInitialized);       // unchanged
+				Assert.False(message.IsAsyncInitPending); // unchanged
+				Assert.True(message.IsReadOnly);
+
+				if (protectInSameThread)
+				{
+					if (withPropertyChanged)
+					{
+						// the event handler should have been called only once in the same thread
+						// (the event handler is called directly as the registering thread is the same as the thread raising the event)
+						Assert.True(handlerCalledEvent.IsSet);
+						Assert.Equal(new[] { "IsReadOnly" }, changedPropertyNames.ToArray());
+					}
+					else
+					{
+						// the event handler should not have been called
+						Assert.False(handlerCalledEvent.IsSet);
+					}
+				}
+			}
+
+			// protect the message either in the context of the thread that registered the handler
+			// or in a different - the current - thread
+			if (protectInSameThread) await mThread.Factory.Run(ProtectTest);
+			else ProtectTest();
+
+			if (!protectInSameThread)
+			{
+				// the thread registering the event and the thread protecting the message are different
+				if (withPropertyChanged)
+				{
+					// event handler should run in the context of the thread that registered it
+					Assert.True(handlerCalledEvent.Wait(1000));
+					Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
+					Assert.Equal(new string[] { "IsReadOnly" }, changedPropertyNames.ToArray());
+				}
+				else
+				{
+					// the event handler should not have been called
+					Assert.False(handlerCalledEvent.Wait(1000));
+				}
 			}
 		}
 
@@ -674,13 +1006,26 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests whether the specified log message has the expected default state.
 		/// </summary>
 		/// <param name="message">Log message to check.</param>
+		/// <param name="inited">true, if the message is initialized; otherwise false.</param>
+		/// <param name="readOnly">true, if the message is readOnly, otherwise false.</param>
 		/// <param name="pool">Pool the log message belongs to (null, if the message is not pooled).</param>
-		private static void CheckDefaultState(LogMessage message, LogMessagePool pool = null)
+		private static void CheckDefaultState(
+			LogMessage     message,
+			bool           inited   = true,
+			bool           readOnly = false,
+			LogMessagePool pool     = null)
 		{
-			Assert.Equal(-1, message.Id);
-			Assert.Equal(0, message.LostMessageCount);
+			// check administrative properties
+			Assert.Equal(inited,   message.IsInitialized);
+			Assert.Equal(readOnly, message.IsReadOnly);
+			Assert.Equal(1,        message.RefCount);
+			Assert.Same(pool, message.Pool);
+
+			// check message specific properties
+			Assert.Equal(-1,      message.Id);
+			Assert.Equal(0,       message.LostMessageCount);
 			Assert.Equal(default, message.Timestamp);
-			Assert.Equal(0, message.HighPrecisionTimestamp);
+			Assert.Equal(0,       message.HighPrecisionTimestamp);
 			Assert.Null(message.LogWriterName);
 			Assert.Null(message.LogLevelName);
 			Assert.Null(message.Tags);
@@ -688,9 +1033,6 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Null(message.ProcessName);
 			Assert.Equal(-1, message.ProcessId);
 			Assert.Null(message.Text);
-			Assert.False(message.IsReadOnly);
-			Assert.Same(pool, message.Pool);
-			Assert.Equal(1, message.RefCount);
 		}
 
 		/// <summary>

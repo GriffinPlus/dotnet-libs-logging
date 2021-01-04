@@ -5,6 +5,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -16,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log message for general purpose use (thread-safe).
 	/// </summary>
-	public sealed class LogMessage : ILogMessage, IEquatable<ILogMessage>, INotifyPropertyChanged
+	public sealed class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMessage>, INotifyPropertyChanged
 	{
 		private readonly object mSync = new object();
 
@@ -54,6 +55,199 @@ namespace GriffinPlus.Lib.Logging
 			mText = other.Text;
 		}
 
+		#region Initialization (Common)
+
+		internal bool IsInitializedInternal = true;
+
+		/// <summary>
+		/// Gets a value indicating whether the log message is initialized.
+		/// (This property can be <c>false</c>, if the log message is initialized asynchronously, but has not received it's data, yet).
+		/// </summary>
+		public bool IsInitialized
+		{
+			get
+			{
+				lock (mSync) return IsInitializedInternal;
+			}
+		}
+
+		#endregion
+
+		#region Synchronous Initialization
+
+		/// <summary>
+		/// Initializes the log message atomically.
+		/// The <see cref="PropertyChanged" /> event is only fired once.
+		/// </summary>
+		/// <param name="id">
+		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file;
+		/// -1, if the id is invalid.
+		/// </param>
+		/// <param name="timestamp">Time the message was written to the log.</param>
+		/// <param name="highPrecisionTimestamp">
+		/// Timestamp for relative time measurements with high precision
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
+		/// </param>
+		/// <param name="lostMessageCount">
+		/// Gets or sets the number of preceding messages that have been lost before this message
+		/// (useful when dealing with message streams).
+		/// </param>
+		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
+		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
+		/// <param name="tags">Tags that are associated with the message.</param>
+		/// <param name="applicationName">
+		/// Name of the application emitting the log message
+		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// </param>
+		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="processId">Id of the process emitting the log message.</param>
+		/// <param name="text">The actual text the log message is about.</param>
+		/// <returns>The log message itself.</returns>
+		/// <exception cref="NotSupportedException">The log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Initializing manually is not allowed as an asynchronous initialization is pending.</exception>
+		public LogMessage InitWith(
+			long           id,
+			DateTimeOffset timestamp,
+			long           highPrecisionTimestamp,
+			int            lostMessageCount,
+			string         logWriterName,
+			string         logLevelName,
+			TagSet         tags,
+			string         applicationName,
+			string         processName,
+			int            processId,
+			string         text)
+		{
+			lock (mSync)
+			{
+				if (IsReadOnlyInternal)
+					throw new NotSupportedException("The log message is read-only.");
+
+				if (IsAsyncInitPending)
+					throw new InvalidOperationException("Initializing manually is not allowed as an asynchronous initialization is pending.");
+
+				mId = id;
+				mTimestamp = timestamp;
+				mHighPrecisionTimestamp = highPrecisionTimestamp;
+				mLostMessageCount = lostMessageCount;
+				mLogWriterName = logWriterName;
+				mLogLevelName = logLevelName;
+				mTags = tags;
+				mApplicationName = applicationName;
+				mProcessName = processName;
+				mProcessId = processId;
+				mText = text;
+
+				IsInitializedInternal = true;
+
+				OnPropertyChanged(null);
+
+				return this;
+			}
+		}
+
+		#endregion
+
+		#region Asynchronous Initialization
+
+		internal bool IsAsyncInitPending;
+
+		/// <summary>
+		/// Creates a new log message and prepares it for asynchronous initialization.
+		/// (<see cref="IsInitialized" /> is <c>false</c> at first and set to <c>true</c> as soon as the message is initialized).
+		/// </summary>
+		/// <param name="readOnly">
+		/// true to create a read-only message that can only be set by the returned initializer;
+		/// otherwise false.
+		/// </param>
+		/// <param name="initializer">Receives the initializer that allows to update the log message.</param>
+		/// <returns>The created log message.</returns>
+		public static LogMessage CreateWithAsyncInit(bool readOnly, out ILogMessageInitializer initializer)
+		{
+			var message = new LogMessage
+			{
+				IsInitializedInternal = false,
+				IsAsyncInitPending = true,
+				IsReadOnlyInternal = readOnly
+			};
+
+			initializer = message;
+			return message;
+		}
+
+		/// <summary>
+		/// Initializes the log message.
+		/// </summary>
+		/// <param name="id">
+		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file;
+		/// -1, if the id is invalid.
+		/// </param>
+		/// <param name="timestamp">Time the message was written to the log.</param>
+		/// <param name="highPrecisionTimestamp">
+		/// Timestamp for relative time measurements with high precision
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
+		/// </param>
+		/// <param name="lostMessageCount">
+		/// Gets or sets the number of preceding messages that have been lost before this message
+		/// (useful when dealing with message streams).
+		/// </param>
+		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
+		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
+		/// <param name="tags">Tags that are associated with the message.</param>
+		/// <param name="applicationName">
+		/// Name of the application emitting the log message
+		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// </param>
+		/// <param name="processName">Name of the process emitting the log message.</param>
+		/// <param name="processId">Id of the process emitting the log message.</param>
+		/// <param name="text">The actual text the log message is about.</param>
+		/// <returns>The initialized log message.</returns>
+		/// <exception cref="InvalidOperationException">The log message has not been prepared for asynchronous initialization.</exception>
+		/// <exception cref="InvalidOperationException">The log message is already initialized.</exception>
+		LogMessage ILogMessageInitializer.Initialize(
+			long           id,
+			DateTimeOffset timestamp,
+			long           highPrecisionTimestamp,
+			int            lostMessageCount,
+			string         logWriterName,
+			string         logLevelName,
+			TagSet         tags,
+			string         applicationName,
+			string         processName,
+			int            processId,
+			string         text)
+		{
+			lock (mSync)
+			{
+				if (!IsAsyncInitPending)
+					throw new InvalidOperationException("The log message is not prepared for asynchronous initialization.");
+
+				if (IsInitializedInternal)
+					throw new InvalidOperationException("The log message is already initialized.");
+
+				mId = id;
+				mTimestamp = timestamp;
+				mHighPrecisionTimestamp = highPrecisionTimestamp;
+				mLostMessageCount = lostMessageCount;
+				mLogWriterName = logWriterName;
+				mLogLevelName = logLevelName;
+				mTags = tags;
+				mApplicationName = applicationName;
+				mProcessName = processName;
+				mProcessId = processId;
+				mText = text;
+
+				IsAsyncInitPending = false;
+				IsInitializedInternal = true;
+
+				OnPropertyChanged(null);
+
+				return this;
+			}
+		}
+
+		#endregion
+
 		#region Message Properties
 
 		private long           mId = -1;
@@ -72,6 +266,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the id uniquely identifying the message in a certain context, e.g. a collection or log file
 		/// (-1, if the id is invalid).
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public long Id
 		{
 			get
@@ -83,8 +279,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mId != value)
 					{
@@ -99,6 +298,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the number of preceding messages that have been lost before this message
 		/// (useful when dealing with message streams).
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public int LostMessageCount
 		{
 			get
@@ -110,8 +311,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mLostMessageCount != value)
 					{
@@ -125,6 +329,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the date/time the message was written to the log.
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public DateTimeOffset Timestamp
 		{
 			get
@@ -136,8 +342,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mTimestamp != value)
 					{
@@ -152,6 +361,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the timestamp for relative time measurements with high precision
 		/// (in nanoseconds, but the actual precision depends on the system timer).
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public long HighPrecisionTimestamp
 		{
 			get
@@ -163,8 +374,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mHighPrecisionTimestamp != value)
 					{
@@ -178,6 +392,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the name of the log writer associated with the log message.
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public string LogWriterName
 		{
 			get
@@ -189,8 +405,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mLogWriterName != value)
 					{
@@ -204,6 +423,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the name of the log level associated with the log message.
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public string LogLevelName
 		{
 			get
@@ -215,8 +436,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mLogLevelName != value)
 					{
@@ -230,6 +454,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets tags attached to the log message.
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public TagSet Tags
 		{
 			get
@@ -241,8 +467,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mTags != value)
 					{
@@ -257,6 +486,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public string ApplicationName
 		{
 			get
@@ -268,8 +499,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mApplicationName != value)
 					{
@@ -283,6 +517,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the name of the process emitting the log message.
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public string ProcessName
 		{
 			get
@@ -294,8 +530,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mProcessName != value)
 					{
@@ -310,6 +549,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the id of the process emitting the log message
 		/// (-1, if the process id is invalid/unset).
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public int ProcessId
 		{
 			get
@@ -321,8 +562,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mProcessId != value)
 					{
@@ -336,6 +580,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the actual text the log message is about.
 		/// </summary>
+		/// <exception cref="NotSupportedException">The property was set, but the log message is read-only.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
 		public string Text
 		{
 			get
@@ -347,8 +593,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly)
+					if (IsReadOnlyInternal)
 						throw new NotSupportedException("The log message is read-only.");
+
+					if (IsAsyncInitPending)
+						throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
 
 					if (mText != value)
 					{
@@ -363,7 +612,7 @@ namespace GriffinPlus.Lib.Logging
 
 		#region Write Protection
 
-		private bool mIsReadOnly;
+		internal bool IsReadOnlyInternal;
 
 		/// <summary>
 		/// Gets a value indicating whether the log message is protected.
@@ -373,16 +622,16 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				lock (mSync) return mIsReadOnly;
+				lock (mSync) return IsReadOnlyInternal;
 			}
 
 			private set
 			{
 				lock (mSync)
 				{
-					if (mIsReadOnly != value)
+					if (IsReadOnlyInternal != value)
 					{
-						mIsReadOnly = value;
+						IsReadOnlyInternal = value;
 						OnPropertyChanged();
 					}
 				}
@@ -447,69 +696,6 @@ namespace GriffinPlus.Lib.Logging
 		internal LogMessagePool Pool { get; }
 
 		/// <summary>
-		/// Initializes the log message
-		/// </summary>
-		/// <param name="id">
-		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file;
-		/// -1, if the id is invalid.
-		/// </param>
-		/// <param name="timestamp">Time the message was written to the log.</param>
-		/// <param name="highPrecisionTimestamp">
-		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
-		/// </param>
-		/// <param name="lostMessageCount">
-		/// Gets or sets the number of preceding messages that have been lost before this message
-		/// (useful when dealing with message streams).
-		/// </param>
-		/// <param name="logWriterName">Name of the log writer that was used to emit the message.</param>
-		/// <param name="logLevelName">Name of the log level that is associated with the message.</param>
-		/// <param name="tags">Tags that are associated with the message.</param>
-		/// <param name="applicationName">
-		/// Name of the application emitting the log message
-		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
-		/// </param>
-		/// <param name="processName">Name of the process emitting the log message.</param>
-		/// <param name="processId">Id of the process emitting the log message.</param>
-		/// <param name="text">The actual text the log message is about.</param>
-		/// <returns>The log message itself.</returns>
-		public LogMessage InitWith(
-			long           id,
-			DateTimeOffset timestamp,
-			long           highPrecisionTimestamp,
-			int            lostMessageCount,
-			string         logWriterName,
-			string         logLevelName,
-			TagSet         tags,
-			string         applicationName,
-			string         processName,
-			int            processId,
-			string         text)
-		{
-			lock (mSync)
-			{
-				if (mIsReadOnly)
-					throw new NotSupportedException("The log message is read-only.");
-
-				mId = id;
-				mTimestamp = timestamp;
-				mHighPrecisionTimestamp = highPrecisionTimestamp;
-				mLostMessageCount = lostMessageCount;
-				mLogWriterName = logWriterName;
-				mLogLevelName = logLevelName;
-				mTags = tags;
-				mApplicationName = applicationName;
-				mProcessName = processName;
-				mProcessId = processId;
-				mText = text;
-
-				OnPropertyChanged(null);
-
-				return this;
-			}
-		}
-
-		/// <summary>
 		/// Resets the log message to defaults
 		/// (called by the pool to prepare the log message for re-use).
 		/// </summary>
@@ -517,7 +703,14 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
-				// set fields to defaults
+				Contract.Assert(!IsAsyncInitPending, "Asynchronous initialization must not be pending any more to avoid havoc when re-using the message.");
+
+				// set administrative state to defaults
+				IsInitializedInternal = true;
+				IsAsyncInitPending = false;
+				IsReadOnlyInternal = false;
+
+				// set message fields to defaults
 				mId = -1;
 				mTimestamp = default;
 				mHighPrecisionTimestamp = 0;
@@ -529,7 +722,6 @@ namespace GriffinPlus.Lib.Logging
 				mProcessName = null;
 				mProcessId = -1;
 				mText = null;
-				mIsReadOnly = false;
 
 				// unregister event handlers that might have not been unregistered properly
 				PropertyChangedEventManager.UnregisterEventHandlers(this);
@@ -561,15 +753,15 @@ namespace GriffinPlus.Lib.Logging
 				default:
 					lock (mSync)
 					{
-						return Id == other.Id &&
-						       Timestamp.Equals(other.Timestamp) &&
+						return Id == other.Id                                         &&
+						       Timestamp.Equals(other.Timestamp)                      &&
 						       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
-						       LogWriterName == other.LogWriterName &&
-						       LogLevelName == other.LogLevelName &&
-						       ApplicationName == other.ApplicationName &&
-						       ProcessName == other.ProcessName &&
-						       ProcessId == other.ProcessId &&
-						       Text == other.Text &&
+						       LogWriterName          == other.LogWriterName          &&
+						       LogLevelName           == other.LogLevelName           &&
+						       ApplicationName        == other.ApplicationName        &&
+						       ProcessName            == other.ProcessName            &&
+						       ProcessId              == other.ProcessId              &&
+						       Text                   == other.Text                   &&
 						       Equals(Tags, other.Tags);
 					}
 			}
@@ -592,17 +784,18 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (mSync)
 			{
-				return Id == other.Id &&
-				       LostMessageCount == other.LostMessageCount &&
-				       Timestamp == other.Timestamp &&
-				       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
-				       LogWriterName == other.LogWriterName &&
-				       LogLevelName == other.LogLevelName &&
-				       ApplicationName == other.ApplicationName &&
-				       ProcessName == other.ProcessName &&
-				       ProcessId == other.ProcessId &&
-				       Text == other.Text &&
-				       Equals(Tags, other.Tags);
+				return IsInitializedInternal   == other.IsInitializedInternal   &&
+				       mId                     == other.mId                     &&
+				       mLostMessageCount       == other.mLostMessageCount       &&
+				       mTimestamp              == other.mTimestamp              &&
+				       mHighPrecisionTimestamp == other.mHighPrecisionTimestamp &&
+				       mLogWriterName          == other.mLogWriterName          &&
+				       mLogLevelName           == other.mLogLevelName           &&
+				       mApplicationName        == other.mApplicationName        &&
+				       mProcessName            == other.mProcessName            &&
+				       mProcessId              == other.mProcessId              &&
+				       mText                   == other.mText                   &&
+				       Equals(mTags, other.mTags);
 			}
 		}
 
@@ -632,17 +825,18 @@ namespace GriffinPlus.Lib.Logging
 			{
 				unchecked
 				{
-					int hashCode = Timestamp.GetHashCode();
-					hashCode = (hashCode * 397) ^ Id.GetHashCode();
-					hashCode = (hashCode * 397) ^ LostMessageCount;
-					hashCode = (hashCode * 397) ^ HighPrecisionTimestamp.GetHashCode();
-					hashCode = (hashCode * 397) ^ (LogWriterName != null ? LogWriterName.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (LogLevelName != null ? LogLevelName.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (Tags != null ? Tags.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (ApplicationName != null ? ApplicationName.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (ProcessName != null ? ProcessName.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ ProcessId;
-					hashCode = (hashCode * 397) ^ (Text != null ? Text.GetHashCode() : 0);
+					int hashCode = IsInitializedInternal.GetHashCode();
+					hashCode = (hashCode * 397) ^ mId.GetHashCode();
+					hashCode = (hashCode * 397) ^ mTimestamp.GetHashCode();
+					hashCode = (hashCode * 397) ^ mHighPrecisionTimestamp.GetHashCode();
+					hashCode = (hashCode * 397) ^ mLostMessageCount;
+					hashCode = (hashCode * 397) ^ (mLogWriterName   != null ? mLogWriterName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (mLogLevelName    != null ? mLogLevelName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (mTags            != null ? mTags.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (mApplicationName != null ? mApplicationName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (mProcessName     != null ? mProcessName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ mProcessId;
+					hashCode = (hashCode * 397) ^ (mText != null ? mText.GetHashCode() : 0);
 					return hashCode;
 				}
 			}
