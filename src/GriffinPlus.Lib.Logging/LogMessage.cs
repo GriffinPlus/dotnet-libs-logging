@@ -61,7 +61,8 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a value indicating whether the log message is initialized.
-		/// (This property can be <c>false</c>, if the log message is initialized asynchronously, but has not received it's data, yet).
+		/// (This property can be <c>false</c>, if the log message is configured to be initialized asynchronously,
+		/// but has not been initialized, yet).
 		/// </summary>
 		public bool IsInitialized
 		{
@@ -139,11 +140,11 @@ namespace GriffinPlus.Lib.Logging
 				mText = text;
 
 				IsInitializedInternal = true;
-
-				OnPropertyChanged(null);
-
-				return this;
 			}
+
+			OnPropertyChanged(null);
+
+			return this;
 		}
 
 		#endregion
@@ -239,11 +240,11 @@ namespace GriffinPlus.Lib.Logging
 
 				IsAsyncInitPending = false;
 				IsInitializedInternal = true;
-
-				OnPropertyChanged(null);
-
-				return this;
 			}
+
+			OnPropertyChanged(null);
+
+			return this;
 		}
 
 		#endregion
@@ -277,6 +278,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -288,9 +291,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mId != value)
 					{
 						mId = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -309,6 +315,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -320,9 +328,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mLostMessageCount != value)
 					{
 						mLostMessageCount = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -340,6 +351,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -351,9 +364,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mTimestamp != value)
 					{
 						mTimestamp = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -372,6 +388,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -383,9 +401,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mHighPrecisionTimestamp != value)
 					{
 						mHighPrecisionTimestamp = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -403,6 +424,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -414,9 +437,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mLogWriterName != value)
 					{
 						mLogWriterName = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -434,6 +460,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -445,9 +473,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mLogLevelName != value)
 					{
 						mLogLevelName = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -465,6 +496,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -476,9 +509,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mTags != value)
 					{
 						mTags = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -497,6 +533,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -508,9 +546,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mApplicationName != value)
 					{
 						mApplicationName = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -528,6 +569,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -539,9 +582,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mProcessName != value)
 					{
 						mProcessName = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -560,6 +606,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -571,9 +619,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mProcessId != value)
 					{
 						mProcessId = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -591,6 +642,8 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal)
@@ -602,9 +655,12 @@ namespace GriffinPlus.Lib.Logging
 					if (mText != value)
 					{
 						mText = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
@@ -627,14 +683,19 @@ namespace GriffinPlus.Lib.Logging
 
 			private set
 			{
+				bool changed = false;
+
 				lock (mSync)
 				{
 					if (IsReadOnlyInternal != value)
 					{
 						IsReadOnlyInternal = value;
-						OnPropertyChanged();
+						changed = true;
 					}
 				}
+
+				if (changed)
+					OnPropertyChanged();
 			}
 		}
 
