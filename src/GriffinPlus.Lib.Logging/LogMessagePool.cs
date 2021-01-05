@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 
 // ReSharper disable UnusedMember.Global
 
@@ -185,6 +186,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="message">Message to return to the pool.</param>
 		internal void ReturnMessage(LogMessage message)
 		{
+			Contract.Assert(message.IsAsyncInitPending, "Returning a log message with pending asynchronous initialization is not allowed.");
+
+			if (message.IsAsyncInitPending)
+				return;
+
 			message.Reset();
 			mMessages.Add(message);
 		}
