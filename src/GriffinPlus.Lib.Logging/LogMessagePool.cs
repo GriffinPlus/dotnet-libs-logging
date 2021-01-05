@@ -38,7 +38,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Call <see cref="LogMessage.InitWith" /> or <see cref="LogMessage"/> properties to initialize it.
 		/// The <see cref="LogMessage.IsInitialized"/> property is <c>true</c> right from start.
 		/// </summary>
-		/// <returns>The requested log message.</returns>
+		/// <returns>
+		/// The requested log message.
+		/// Please call <see cref="IReferenceManagement.Release()"/> to return it to the pool.
+		/// Not releasing the message properly will not allow the pool to re-use messages.
+		/// </returns>
 		public LogMessage GetMessage()
 		{
 			if (mMessages.TryTake(out var message))
@@ -82,7 +86,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="processName">Name of the process emitting the log message.</param>
 		/// <param name="processId">Id of the process emitting the log message.</param>
 		/// <param name="text">The actual text the log message is about.</param>
-		/// <returns>The requested log message.</returns>
+		/// <returns>
+		/// The requested log message.
+		/// Please call <see cref="IReferenceManagement.Release()"/> to return it to the pool.
+		/// Not releasing the message properly will not allow the pool to re-use messages.
+		/// </returns>
 		public LogMessage GetMessage(
 			long           id,
 			DateTimeOffset timestamp,
@@ -133,8 +141,19 @@ namespace GriffinPlus.Lib.Logging
 		/// true to get a read-only message that can only be set by the returned initializer, but not using any properties or <see cref="LogMessage.InitWith"/>;
 		/// false to get a regular message that can be modified as usual using properties and <see cref="LogMessage.InitWith"/> after it has been initialized asynchronously.
 		/// </param>
-		/// <param name="initializer">Receives the initializer that allows to initialize the log message.</param>
-		/// <returns>The requested log message.</returns>
+		/// <param name="initializer">
+		/// Receives the initializer that allows to initialize the log message.
+		/// If you intend to store the initializer somewhere to initialize the message later on, please call
+		/// <see cref="IReferenceManagement.AddRef"/> to increment the reference counter and signal that the
+		/// message is referenced somewhere else. This avoids returning the message to the pool although
+		/// initialization is still pending.
+		/// gets 0.
+		/// </param>
+		/// <returns>
+		/// The requested log message.
+		/// Please call <see cref="IReferenceManagement.Release()"/> to return it to the pool.
+		/// Not releasing the message properly will not allow the pool to re-use messages.
+		/// </returns>
 		public LogMessage GetMessageWithAsyncInit(bool readOnly, out ILogMessageInitializer initializer)
 		{
 			if (mMessages.TryTake(out var message))
