@@ -11,7 +11,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Delegate for callbacks that are invoked to set up a <see cref="LogWriterConfiguration" /> using a <see cref="LogWriterConfigurationBuilder" />.
+	/// Delegate for callbacks that are invoked to set up a <see cref="LogWriterConfiguration"/> using a <see cref="LogWriterConfigurationBuilder"/>.
 	/// </summary>
 	/// <param name="writer"></param>
 	public delegate void LogWriterConfigurationCallback(LogWriterConfigurationBuilder writer);
@@ -133,7 +133,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Adds a log writer configuration for the internal 'Timing' log writer.
-		/// By default, the log writer is used by <see cref="TimingLogger" /> when logging time measurements.
+		/// By default, the log writer is used by <see cref="TimingLogger"/> when logging time measurements.
 		/// </summary>
 		public void AddLogWriterTiming()
 		{

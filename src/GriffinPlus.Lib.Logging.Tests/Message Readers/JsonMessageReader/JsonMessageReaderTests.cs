@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="JsonMessageReader" /> class.
+	/// Unit tests targeting the <see cref="JsonMessageReader"/> class.
 	/// </summary>
 	public class JsonMessageReaderTests
 	{
@@ -115,7 +115,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a test data set with JSON documents combined from data returned by <see cref="ProcessTestData_SingleMessage" />.
+		/// Gets a test data set with JSON documents combined from data returned by <see cref="ProcessTestData_SingleMessage"/>.
 		/// </summary>
 		/// <param name="testSetCount">Number of test data sets.</param>
 		/// <param name="minMessageCount">Minimum number of messages in a test data set.</param>

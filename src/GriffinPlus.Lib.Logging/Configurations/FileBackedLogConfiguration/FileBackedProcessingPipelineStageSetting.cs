@@ -9,7 +9,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// A setting in a <see cref="FileBackedProcessingPipelineStageConfiguration" />.
+	/// A setting in a <see cref="FileBackedProcessingPipelineStageConfiguration"/>.
 	/// </summary>
 	/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
 	public class FileBackedProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>, IUntypedProcessingPipelineStageSetting
@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		private          T                                                                    mCachedValue;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageSetting{T}" /> class.
+		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageSetting{T}"/> class.
 		/// </summary>
 		/// <param name="rawSetting">The corresponding raw setting in the configuration.</param>
 		/// <param name="valueFromStringConverter">Delegate that converts the setting value to a string.</param>

@@ -11,7 +11,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="TextWriterPipelineStage{STAGE}" /> class as a base class for derived pipeline stages.
+	/// Unit tests targeting the <see cref="TextWriterPipelineStage{STAGE}"/> class as a base class for derived pipeline stages.
 	/// </summary>
 	public abstract class TextWriterPipelineStageBaseTests<TStage> : AsyncProcessingPipelineStageBaseTests<TStage>
 		where TStage : TextWriterPipelineStage<TStage>
@@ -31,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether setting the formatter using <see cref="TextWriterPipelineStage{STAGE}.Formatter" /> succeeds.
+		/// Tests whether setting the formatter using <see cref="TextWriterPipelineStage{STAGE}.Formatter"/> succeeds.
 		/// </summary>
 		[Fact]
 		public void Formatter_SetSuccessfully()
@@ -43,7 +43,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether setting the formatter using <see cref="TextWriterPipelineStage{STAGE}.Formatter" /> throws an exception,
+		/// Tests whether setting the formatter using <see cref="TextWriterPipelineStage{STAGE}.Formatter"/> throws an exception,
 		/// if a null reference is specified.
 		/// </summary>
 		[Fact]
@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether setting the formatter using <see cref="TextWriterPipelineStage{STAGE}.Formatter" /> throws an exception,
+		/// Tests whether setting the formatter using <see cref="TextWriterPipelineStage{STAGE}.Formatter"/> throws an exception,
 		/// if the pipeline stage is already initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]

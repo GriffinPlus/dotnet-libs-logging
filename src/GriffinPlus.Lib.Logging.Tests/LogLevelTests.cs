@@ -11,7 +11,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="LogLevel" /> class.
+	/// Unit tests targeting the <see cref="LogLevel"/> class.
 	/// </summary>
 	public class LogLevelTests
 	{

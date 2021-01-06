@@ -34,7 +34,7 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly LogWriter                     sLog = GetWriter("Logging");
 
 		/// <summary>
-		/// Initializes the <see cref="Log" /> class.
+		/// Initializes the <see cref="Log"/> class.
 		/// </summary>
 		static Log()
 		{
@@ -55,8 +55,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets all log writers that have been registered using <see cref="GetWriter{T}" /> or <see cref="GetWriter(string)" />.
-		/// The index of the log writer in the list corresponds to <see cref="LogWriter.Id" />.
+		/// Gets all log writers that have been registered using <see cref="GetWriter{T}"/> or <see cref="GetWriter(string)"/>.
+		/// The index of the log writer in the list corresponds to <see cref="LogWriter.Id"/>.
 		/// </summary>
 		public static IReadOnlyList<LogWriter> KnownWriters => sLogWritersById;
 

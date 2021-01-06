@@ -7,7 +7,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// JSON tokens emitted by the <see cref="JsonTokenizer" />.
+	/// JSON tokens emitted by the <see cref="JsonTokenizer"/>.
 	/// </summary>
 	enum JsonTokenType
 	{

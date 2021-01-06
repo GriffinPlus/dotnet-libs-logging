@@ -26,7 +26,7 @@ namespace GriffinPlus.Lib.Logging
 			public readonly List<LogMessage> Messages;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="CachePage" /> class.
+			/// Initializes a new instance of the <see cref="CachePage"/> class.
 			/// </summary>
 			/// <param name="firstMessageId">Id of the first message in the cache page.</param>
 			/// <param name="capacity">Capacity of the cache page.</param>

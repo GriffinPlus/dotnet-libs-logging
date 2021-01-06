@@ -14,8 +14,8 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// A test helper class that registers the <see cref="INotifyPropertyChanged.PropertyChanged" /> event and the
-	/// <see cref="INotifyCollectionChanged.CollectionChanged" /> event and helps to check whether these events are
+	/// A test helper class that registers the <see cref="INotifyPropertyChanged.PropertyChanged"/> event and the
+	/// <see cref="INotifyCollectionChanged.CollectionChanged"/> event and helps to check whether these events are
 	/// raised as expected.
 	/// </summary>
 	public class LogMessageCollectionEventWatcher : IDisposable
@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 		#region PropertyChangedEventArgsEqualityComparer
 
 		/// <summary>
-		/// Equality comparer for the <see cref="PropertyChangedEventArgs" /> class.
+		/// Equality comparer for the <see cref="PropertyChangedEventArgs"/> class.
 		/// </summary>
 		private class PropertyChangedEventArgsEqualityComparer : IEqualityComparer<PropertyChangedEventArgs>
 		{
@@ -57,7 +57,7 @@ namespace GriffinPlus.Lib.Logging
 		#region NotifyCollectionChangedEventArgsEqualityComparer
 
 		/// <summary>
-		/// Equality comparer for the <see cref="NotifyCollectionChangedEventArgs" /> class.
+		/// Equality comparer for the <see cref="NotifyCollectionChangedEventArgs"/> class.
 		/// </summary>
 		private class NotifyCollectionChangedEventArgsEqualityComparer : IEqualityComparer<NotifyCollectionChangedEventArgs>
 		{
@@ -157,7 +157,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly List<Tuple<string, EventArgs>>    mExpectedEventInvocations = new List<Tuple<string, EventArgs>>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessageCollectionEventWatcher" /> class.
+		/// Initializes a new instance of the <see cref="LogMessageCollectionEventWatcher"/> class.
 		/// </summary>
 		/// <param name="collection">Collection to watch.</param>
 		public LogMessageCollectionEventWatcher(ILogMessageCollection<LogMessage> collection)
@@ -177,7 +177,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Adds an expected invocation of the <see cref="INotifyPropertyChanged.PropertyChanged" /> event handler.
+		/// Adds an expected invocation of the <see cref="INotifyPropertyChanged.PropertyChanged"/> event handler.
 		/// </summary>
 		/// <param name="e">Expected event arguments.</param>
 		public void ExpectPropertyChanged(PropertyChangedEventArgs e)
@@ -186,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Adds an expected invocation of the <see cref="INotifyCollectionChanged.CollectionChanged" /> event handler.
+		/// Adds an expected invocation of the <see cref="INotifyCollectionChanged.CollectionChanged"/> event handler.
 		/// </summary>
 		/// <param name="e">Expected event arguments.</param>
 		public void ExpectCollectionChanged(NotifyCollectionChangedEventArgs e)

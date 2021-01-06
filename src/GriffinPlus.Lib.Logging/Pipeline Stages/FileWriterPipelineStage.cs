@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileWriterPipelineStage" /> class.
+		/// Initializes a new instance of the <see cref="FileWriterPipelineStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="path">Path of the file to write to.</param>
@@ -72,7 +72,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Performs pipeline stage specific initialization tasks that must run when the pipeline stage is attached to the
-		/// logging subsystem. This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync" />).
+		/// logging subsystem. This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync"/>).
 		/// </summary>
 		protected override void OnInitialize()
 		{
@@ -84,7 +84,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Performs pipeline stage specific cleanup tasks that must run when the pipeline stage is about to be detached
-		/// from the logging subsystem. This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync" />).
+		/// from the logging subsystem. This method is called from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync"/>).
 		/// </summary>
 		protected internal override void OnShutdown()
 		{

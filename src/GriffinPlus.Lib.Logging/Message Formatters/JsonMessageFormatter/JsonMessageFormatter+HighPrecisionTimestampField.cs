@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 		private sealed class HighPrecisionTimestampField : FieldBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="HighPrecisionTimestampField" /> class.
+			/// Initializes a new instance of the <see cref="HighPrecisionTimestampField"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>

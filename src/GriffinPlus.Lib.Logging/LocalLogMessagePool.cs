@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly ConcurrentBag<LocalLogMessage> mMessages;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogMessagePool" /> class.
+		/// Initializes a new instance of the <see cref="LocalLogMessagePool"/> class.
 		/// </summary>
 		public LocalLogMessagePool()
 		{
@@ -32,7 +32,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a log message from the pool, creates a new one, if the pool is empty. The returned message is not initialized.
-		/// Call <see cref="LocalLogMessage.InitWith" /> to initialize it.
+		/// Call <see cref="LocalLogMessage.InitWith"/> to initialize it.
 		/// </summary>
 		/// <returns>The requested log message.</returns>
 		public LocalLogMessage GetUninitializedMessage()
@@ -56,7 +56,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="logWriter">Log writer that was used to emit the message.</param>
 		/// <param name="logLevel">Log level that is associated with the message.</param>

@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly        List<WeakReference<LogWriter>> mSecondaryWriters;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriter" /> class (for primary writers).
+		/// Initializes a new instance of the <see cref="LogWriter"/> class (for primary writers).
 		/// </summary>
 		/// <param name="name">Name of the log writer.</param>
 		internal LogWriter(string name)
@@ -40,7 +40,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriter" /> class (for secondary writers).
+		/// Initializes a new instance of the <see cref="LogWriter"/> class (for secondary writers).
 		/// </summary>
 		/// <param name="writer">The original (non-tagging) log writer.</param>
 		/// <param name="tags">Tags the tagging log writer should attach to written messages.</param>

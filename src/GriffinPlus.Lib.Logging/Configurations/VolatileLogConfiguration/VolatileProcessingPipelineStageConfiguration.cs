@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly Dictionary<string, IUntypedProcessingPipelineStageSetting>    mSettings    = new Dictionary<string, IUntypedProcessingPipelineStageSetting>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration" /> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
 		/// <param name="sync">

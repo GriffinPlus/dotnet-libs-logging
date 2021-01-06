@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly object           mSync            = new object();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TableMessageFormatter" /> class.
+		/// Initializes a new instance of the <see cref="TableMessageFormatter"/> class.
 		/// The formatter contains no preconfigured columns.
 		/// The columns must be added explicitly afterwards using the 'Add...Column()' methods.
 		/// </summary>
@@ -66,7 +66,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the format provider to use when formatting log messages.
-		/// By default <see cref="CultureInfo.InvariantCulture" /> is used.
+		/// By default <see cref="CultureInfo.InvariantCulture"/> is used.
 		/// </summary>
 		public IFormatProvider FormatProvider
 		{

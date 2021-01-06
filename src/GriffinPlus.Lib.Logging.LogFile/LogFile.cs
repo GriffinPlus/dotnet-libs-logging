@@ -81,7 +81,7 @@ namespace GriffinPlus.Lib.Logging
 		/// false to open the log file in read/write mode.
 		/// </param>
 		/// <param name="collection">Collection that works upon the log file.</param>
-		/// <exception cref="FileNotFoundException"><paramref name="createIfNotExist" /> is <c>false</c> and the specified file does not exist.</exception>
+		/// <exception cref="FileNotFoundException"><paramref name="createIfNotExist"/> is <c>false</c> and the specified file does not exist.</exception>
 		/// <exception cref="LogFileException">Opening/Creating the log file failed.</exception>
 		internal LogFile(
 			string                         path,
@@ -482,8 +482,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="fromId">Id of the message to start at.</param>
 		/// <param name="count">Number of log messages to get.</param>
 		/// <returns>The requested log messages.</returns>
-		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> is not in the interval [OldestMessageId,NewestMessageId].</exception>
-		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
 		/// <exception cref="LogFileException">Reading failed (see inner exception for details).</exception>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		public LogMessage[] Read(long fromId, int count)
@@ -512,8 +512,8 @@ namespace GriffinPlus.Lib.Logging
 		/// true, if reading ran to completion;
 		/// false, if reading was cancelled.
 		/// </returns>
-		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> is not in the interval [OldestMessageId,NewestMessageId].</exception>
-		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
+		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
 		/// <exception cref="LogFileException">Reading failed (see inner exception for details).</exception>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		public bool Read(long fromId, long count, ReadMessageCallback callback)
@@ -594,7 +594,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </param>
 		/// <param name="minimumMessageTimestamp">
 		/// Point in time (UTC) to keep messages after (includes the exact point in time);
-		/// <seealso cref="DateTime.MinValue" /> to disable removing messages by age.
+		/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
 		/// </param>
 		/// <param name="compact">
 		/// true to compact the log file after removing log messages;

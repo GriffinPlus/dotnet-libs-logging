@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="ProcessIntegration" /> class.
+	/// Unit tests targeting the <see cref="ProcessIntegration"/> class.
 	/// </summary>
 	public class ProcessIntegrationTests
 	{
@@ -324,13 +324,12 @@ namespace GriffinPlus.Lib.Logging
 			string dotnetExecutable = Environment.OSVersion.Platform == PlatformID.Win32NT ? "dotnet.exe" : "dotnet";
 			string consolePrinterPath = Path.Combine(directory, "ConsolePrinter.dll");
 			Assert.True(File.Exists(consolePrinterPath), $"{consolePrinterPath} does not exist.");
-			ProcessStartInfo startInfo = new ProcessStartInfo(dotnetExecutable, $"\"{consolePrinterPath}\" {stream} {testDataFile}") { WorkingDirectory = directory };
-			Process process = new Process { StartInfo = startInfo };
-			ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
+			var startInfo = new ProcessStartInfo(dotnetExecutable, $"\"{consolePrinterPath}\" {stream} {testDataFile}") { WorkingDirectory = directory };
+			var process = new Process { StartInfo = startInfo };
+			var integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal($"External Process ({dotnetExecutable})", integration.LogWriter.Name);
 
 #elif NETFRAMEWORK
-
 			// determine the path of the output directory
 			var codeBaseUrl = new Uri(Assembly.GetExecutingAssembly().CodeBase);
 			string codeBasePath = Uri.UnescapeDataString(codeBaseUrl.AbsolutePath);

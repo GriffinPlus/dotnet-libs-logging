@@ -13,7 +13,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="ProcessingPipelineStage{STAGE}" /> class as a base class for derived pipeline stages.
+	/// Unit tests targeting the <see cref="ProcessingPipelineStage{STAGE}"/> class as a base class for derived pipeline stages.
 	/// </summary>
 	public abstract class ProcessingPipelineStageBaseTests<TStage> where TStage : ProcessingPipelineStage<TStage>
 	{
@@ -51,9 +51,9 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests adding and getting following stages using
-		/// - <see cref="ProcessingPipelineStage{STAGE}.AddNextStage(IProcessingPipelineStage)" />
-		/// - <see cref="ProcessingPipelineStage{STAGE}.NextStages" />
-		/// - <see cref="ProcessingPipelineStage{STAGE}.GetAllStages(System.Collections.Generic.HashSet{GriffinPlus.Lib.Logging.IProcessingPipelineStage})" />
+		/// - <see cref="ProcessingPipelineStage{STAGE}.AddNextStage(IProcessingPipelineStage)"/>
+		/// - <see cref="ProcessingPipelineStage{STAGE}.NextStages"/>
+		/// - <see cref="ProcessingPipelineStage{STAGE}.GetAllStages(System.Collections.Generic.HashSet{GriffinPlus.Lib.Logging.IProcessingPipelineStage})"/>
 		/// </summary>
 		[Fact]
 		public void Adding_And_Getting_Next_Stages()
@@ -87,7 +87,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize" /> succeeds,
+		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> succeeds,
 		/// if the stage does not have following stages. The stage should be initialized after this.
 		/// </summary>
 		[Fact]
@@ -100,7 +100,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize" /> succeeds,
+		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> succeeds,
 		/// if the stage has a following stage. Both stages should be initialized after this.
 		/// </summary>
 		[Fact]
@@ -117,7 +117,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Test whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize" /> throws an exception,
+		/// Test whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> throws an exception,
 		/// if the stage is already initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]
@@ -135,7 +135,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether shutting down the pipeline stage using <see cref="IProcessingPipelineStage.Shutdown" /> succeeds,
+		/// Tests whether shutting down the pipeline stage using <see cref="IProcessingPipelineStage.Shutdown"/> succeeds,
 		/// if the stage does not have following stages. The stage should not be initialized after this.
 		/// </summary>
 		[Fact]
@@ -154,7 +154,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether shutting down the pipeline stage using <see cref="IProcessingPipelineStage.Shutdown" /> succeeds,
+		/// Tests whether shutting down the pipeline stage using <see cref="IProcessingPipelineStage.Shutdown"/> succeeds,
 		/// if the stage has a following stage. Both stages should not be initialized after this.
 		/// </summary>
 		[Fact]
@@ -178,7 +178,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Test whether <see cref="IProcessingPipelineStage.ProcessMessage" /> throws an exception,
+		/// Test whether <see cref="IProcessingPipelineStage.ProcessMessage"/> throws an exception,
 		/// if the message to process is a null reference.
 		/// </summary>
 		[Fact]
@@ -189,7 +189,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Test whether <see cref="IProcessingPipelineStage.ProcessMessage" /> throws an exception,
+		/// Test whether <see cref="IProcessingPipelineStage.ProcessMessage"/> throws an exception,
 		/// if the stage is not initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]

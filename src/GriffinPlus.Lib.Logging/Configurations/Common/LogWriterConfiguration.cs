@@ -28,15 +28,15 @@ namespace GriffinPlus.Lib.Logging
 		internal readonly        List<string>        mExcludes      = new List<string>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriterConfiguration" /> class (for internal use only).
-		/// Please use <see cref="LogWriterConfigurationBuilder" /> instead.
+		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class (for internal use only).
+		/// Please use <see cref="LogWriterConfigurationBuilder"/> instead.
 		/// </summary>
 		internal LogWriterConfiguration()
 		{
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriterConfiguration" /> class by copying another instance.
+		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class by copying another instance.
 		/// </summary>
 		/// <param name="other">Instance to copy.</param>
 		internal LogWriterConfiguration(LogWriterConfiguration other)
@@ -50,7 +50,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriterConfiguration" /> class.
+		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class.
 		/// </summary>
 		/// <param name="namePattern">Pattern that determines for which log writers names the settings apply.</param>
 		/// <param name="tagPatterns">Pattern that determines for which message tags the settings apply.</param>
@@ -194,12 +194,12 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Get the list of names of log levels (or aspects) to include in addition to those already enabled
-		/// via <see cref="BaseLevel" />.
+		/// via <see cref="BaseLevel"/>.
 		/// </summary>
 		public IEnumerable<string> Includes => mIncludes;
 
 		/// <summary>
-		/// Get the list of names of log levels (or aspects) to exclude although covered by <see cref="BaseLevel" />.
+		/// Get the list of names of log levels (or aspects) to exclude although covered by <see cref="BaseLevel"/>.
 		/// </summary>
 		public IEnumerable<string> Excludes => mExcludes;
 
@@ -210,7 +210,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets the hash code of the object
-		/// (does not take the <see cref="IsDefault" /> property into account).
+		/// (does not take the <see cref="IsDefault"/> property into account).
 		/// </summary>
 		/// <returns></returns>
 		public override int GetHashCode()
@@ -228,7 +228,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Checks whether the specified object equals the current one
-		/// (does not take the <see cref="IsDefault" /> property into account).
+		/// (does not take the <see cref="IsDefault"/> property into account).
 		/// </summary>
 		/// <param name="other">Object to compare with.</param>
 		/// <returns>true, if the specified object equals the current one; otherwise false.</returns>

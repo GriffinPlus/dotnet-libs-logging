@@ -66,7 +66,7 @@ namespace GriffinPlus.Lib.Logging
 			};
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="RecordingDatabaseAccessor" /> class.
+			/// Initializes a new instance of the <see cref="RecordingDatabaseAccessor"/> class.
 			/// </summary>
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
@@ -244,8 +244,8 @@ namespace GriffinPlus.Lib.Logging
 			/// true, if reading ran to completion;
 			/// false, if reading was cancelled.
 			/// </returns>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> is not in the interval [OldestMessageId,NewestMessageId].</exception>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
 			public override bool Read(long fromId, long count, ReadMessageCallback callback)
 			{
 				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
@@ -363,7 +363,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </param>
 			/// <param name="minimumMessageTimestamp">
 			/// Point in time (UTC) to keep messages after (includes the exact point in time);
-			/// <seealso cref="DateTime.MinValue" /> to disable removing messages by age.
+			/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
 			/// </param>
 			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public override void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp)

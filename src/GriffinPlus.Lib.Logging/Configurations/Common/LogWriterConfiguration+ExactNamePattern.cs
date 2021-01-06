@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		public class ExactNamePattern : INamePattern
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="ExactNamePattern" /> class.
+			/// Initializes a new instance of the <see cref="ExactNamePattern"/> class.
 			/// </summary>
 			/// <param name="name">The name to match.</param>
 			public ExactNamePattern(string name)

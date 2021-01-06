@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		where TStage : ProcessingPipelineStage<TStage>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}" /> class.
+		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		protected ProcessingPipelineStage(string name) : base(name)
@@ -70,7 +70,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Processing Messages
 
 		/// <summary>
-		/// Is called on behalf of <see cref="IProcessingPipelineStage.Shutdown" /> (for internal use only).
+		/// Is called on behalf of <see cref="IProcessingPipelineStage.Shutdown"/> (for internal use only).
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
@@ -97,7 +97,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// When overridden in a derived class, processes the specified log message synchronously.
-		/// This method is called by the thread writing the message and from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync" />).
+		/// This method is called by the thread writing the message and from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync"/>).
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
@@ -106,8 +106,8 @@ namespace GriffinPlus.Lib.Logging
 		/// otherwise false.
 		/// </returns>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		protected virtual bool ProcessSync(LocalLogMessage message)

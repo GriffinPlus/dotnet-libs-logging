@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="PropertyChangedEventManager" /> class.
+	/// Unit tests targeting the <see cref="PropertyChangedEventManager"/> class.
 	/// </summary>
 	public class PropertyChangedEventManagerTests : IDisposable
 	{
@@ -37,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes an instance the <see cref="PropertyChangedEventManagerTests" /> class performing common initialization before running a test.
+		/// Initializes an instance the <see cref="PropertyChangedEventManagerTests"/> class performing common initialization before running a test.
 		/// </summary>
 		public PropertyChangedEventManagerTests()
 		{

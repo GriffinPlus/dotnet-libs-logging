@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly object   mSync = new object();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncAutoResetEvent" /> with the specified initial state.
+		/// Initializes a new instance of the <see cref="AsyncAutoResetEvent"/> with the specified initial state.
 		/// </summary>
 		/// <param name="set">
 		/// true to set the event initially;
@@ -82,9 +82,9 @@ namespace GriffinPlus.Lib.Logging
 		/// Asynchronously waits for the event to be set, with timeout and option to cancel the operation.
 		/// </summary>
 		/// <param name="timeout">
-		/// The number of milliseconds to wait, or <see cref="Timeout.Infinite" />(-1) to wait indefinitely.
+		/// The number of milliseconds to wait, or <see cref="Timeout.Infinite"/>(-1) to wait indefinitely.
 		/// </param>
-		/// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> to observe.</param>
+		/// <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> to observe.</param>
 		/// <returns>
 		/// A task that will complete with a result of true if the event has been set within the specified time,
 		/// otherwise with a result of false.
@@ -120,7 +120,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Callback that is invoked when an asynchronous wait operation is canceled.
 		/// </summary>
-		/// <param name="state">The <see cref="TaskNode" /> associated with the wait operation.</param>
+		/// <param name="state">The <see cref="TaskNode"/> associated with the wait operation.</param>
 		private static void WaitCancellationCallback(object state)
 		{
 			var node = (TaskNode)state;

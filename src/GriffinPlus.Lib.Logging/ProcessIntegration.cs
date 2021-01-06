@@ -28,7 +28,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Occurs when the integrated process has written a line to its output stream.
 		/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-		/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line" /> set to <c>null</c> at the end of the stream
+		/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line"/> set to <c>null</c> at the end of the stream
 		/// (when the process exits).
 		/// </summary>
 		public event EventHandler<LineReceivedEventArgs> OutputStreamReceivedText
@@ -49,7 +49,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Occurs when the integrated process has completed writing a JSON log message to its output stream.
 		/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-		/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message" /> set to <c>null</c> at the end of the stream
+		/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message"/> set to <c>null</c> at the end of the stream
 		/// (when the process exits).
 		/// </summary>
 		public event EventHandler<MessageReceivedEventArgs> OutputStreamReceivedMessage
@@ -70,7 +70,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Occurs when the integrated process has written a line to its error stream.
 		/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-		/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line" /> set to <c>null</c> at the end of the stream
+		/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line"/> set to <c>null</c> at the end of the stream
 		/// (when the process exits).
 		/// </summary>
 		public event EventHandler<LineReceivedEventArgs> ErrorStreamReceivedText
@@ -91,7 +91,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Occurs when the integrated process has completed writing a JSON log message to its error stream.
 		/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-		/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message" /> set to <c>null</c> at the end of the stream
+		/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message"/> set to <c>null</c> at the end of the stream
 		/// (when the process exits).
 		/// </summary>
 		public event EventHandler<MessageReceivedEventArgs> ErrorStreamReceivedMessage
@@ -110,7 +110,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessIntegration" /> class.
+		/// Initializes a new instance of the <see cref="ProcessIntegration"/> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <param name="logWriter">Log writer to use when logging received messages (may be null).</param>
@@ -157,9 +157,9 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Configures the specified process to redirect its output/error streams to the logging subsystem.
-		/// You can attach event handlers to <see cref="OutputStreamReceivedText" /> and <see cref="ErrorStreamReceivedText" /> to
+		/// You can attach event handlers to <see cref="OutputStreamReceivedText"/> and <see cref="ErrorStreamReceivedText"/> to
 		/// get notified as soon as the integrated process writes a line to its output/error stream. The process
-		/// must be started using <see cref="StartProcess" /> to kick off reading from its output/error stream.
+		/// must be started using <see cref="StartProcess"/> to kick off reading from its output/error stream.
 		/// </summary>
 		/// <param name="process">Process to configure.</param>
 		/// <param name="logWriter">Log writer to use when logging received messages (may be null).</param>
@@ -401,7 +401,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Event Raiser
 
 		/// <summary>
-		/// Raises the <see cref="OutputStreamReceivedText" /> event.
+		/// Raises the <see cref="OutputStreamReceivedText"/> event.
 		/// </summary>
 		/// <param name="line">Line emitted by the output stream of the integrated process.</param>
 		private void OnOutputStreamReceivedText(string line)
@@ -413,7 +413,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Raises the <see cref="OutputStreamReceivedMessage" /> event.
+		/// Raises the <see cref="OutputStreamReceivedMessage"/> event.
 		/// </summary>
 		/// <param name="message">Log message emitted by the output stream of the integrated process.</param>
 		private void OnOutputStreamReceivedMessage(ILogMessage message)
@@ -429,7 +429,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Raises the <see cref="ErrorStreamReceivedText" /> event.
+		/// Raises the <see cref="ErrorStreamReceivedText"/> event.
 		/// </summary>
 		/// <param name="line">Line emitted by the error stream of the integrated process.</param>
 		private void OnErrorStreamReceivedText(string line)
@@ -441,7 +441,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Raises the <see cref="ErrorStreamReceivedMessage" /> event.
+		/// Raises the <see cref="ErrorStreamReceivedMessage"/> event.
 		/// </summary>
 		/// <param name="message">Log message emitted by the error stream of the integrated process.</param>
 		private void OnErrorStreamReceivedMessage(ILogMessage message)

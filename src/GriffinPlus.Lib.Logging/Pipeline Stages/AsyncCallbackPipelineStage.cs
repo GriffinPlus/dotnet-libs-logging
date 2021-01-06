@@ -34,8 +34,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		public delegate Task AsynchronousProcessingCallback(LocalLogMessage[] messages, CancellationToken cancellationToken);
@@ -51,7 +51,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly AsynchronousProcessingCallback mAsynchronousProcessingCallback;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage" /> class.
+		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="processSyncCallback">
@@ -63,8 +63,8 @@ namespace GriffinPlus.Lib.Logging
 		/// The callback is executed by a worker thread.
 		/// </param>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		public AsyncCallbackPipelineStage(
@@ -84,8 +84,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Receives a value indicating whether the message should be enqueued for asynchronous processing.
 		/// </param>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		protected override bool ProcessSync(LocalLogMessage message, out bool queueForAsyncProcessing)
@@ -101,8 +101,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		protected override Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)

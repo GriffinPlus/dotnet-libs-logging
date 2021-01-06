@@ -14,14 +14,14 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="JsonTokenizer" /> class.
+	/// Unit tests targeting the <see cref="JsonTokenizer"/> class.
 	/// </summary>
 	public class JsonTokenizerTests
 	{
 		internal static readonly string WhiteSpaceCharacters;
 
 		/// <summary>
-		/// Initializes the <see cref="JsonTokenizerTests" /> class.
+		/// Initializes the <see cref="JsonTokenizerTests"/> class.
 		/// </summary>
 		static JsonTokenizerTests()
 		{

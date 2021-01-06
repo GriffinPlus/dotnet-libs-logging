@@ -9,12 +9,12 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// A raw setting in a <see cref="FileBackedProcessingPipelineStageConfiguration" />.
+	/// A raw setting in a <see cref="FileBackedProcessingPipelineStageConfiguration"/>.
 	/// </summary>
 	public class FileBackedProcessingPipelineStageRawSetting : IProcessingPipelineStageRawSetting
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageRawSetting" /> class.
+		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageRawSetting"/> class.
 		/// </summary>
 		/// <param name="configuration">The configuration the setting belongs to.</param>
 		/// <param name="name">Name of the setting.</param>

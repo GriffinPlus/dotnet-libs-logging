@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		private                 uint[] mBitField;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogLevelBitMask" /> class.
+		/// Initializes a new instance of the <see cref="LogLevelBitMask"/> class.
 		/// </summary>
 		/// <param name="size">Size of the bit field (is rounded up to the next multiple of 32).</param>
 		/// <param name="set">Initial value of the bits in the bit mask.</param>
@@ -45,7 +45,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogLevelBitMask" /> class (for internal use only).
+		/// Initializes a new instance of the <see cref="LogLevelBitMask"/> class (for internal use only).
 		/// </summary>
 		private LogLevelBitMask()
 		{
@@ -159,7 +159,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="mask1">First bit mask.</param>
 		/// <param name="mask2">Second bit mask.</param>
 		/// <returns>
-		/// The resulting bit mask (has the same padding value as <paramref name="mask1" />).
+		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
 		/// </returns>
 		public static LogLevelBitMask operator |(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
@@ -187,7 +187,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="mask1">First bit mask.</param>
 		/// <param name="mask2">Second bit mask.</param>
 		/// <returns>
-		/// The resulting bit mask (has the same padding value as <paramref name="mask1" />).
+		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
 		/// </returns>
 		public static LogLevelBitMask operator &(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
@@ -215,7 +215,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="mask1">First bit mask.</param>
 		/// <param name="mask2">Second bit mask.</param>
 		/// <returns>
-		/// The resulting bit mask (has the same padding value as <paramref name="mask1" />).
+		/// The resulting bit mask (has the same padding value as <paramref name="mask1"/>).
 		/// </returns>
 		public static LogLevelBitMask operator ^(LogLevelBitMask mask1, LogLevelBitMask mask2)
 		{
@@ -354,15 +354,15 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the mask as an array of <see cref="System.UInt32" />.
+		/// Gets the mask as an array of <see cref="System.UInt32"/>.
 		/// The value at index 0 contains the bits 0-31, the value at index 1 the bits 32-63 and so on.
 		/// </summary>
 		/// <returns>
-		/// The bit mask as an array of <see cref="System.UInt32" />.
+		/// The bit mask as an array of <see cref="System.UInt32"/>.
 		/// </returns>
 		public uint[] AsArray()
 		{
-			var copy = new uint[mBitField.Length];
+			uint[] copy = new uint[mBitField.Length];
 			Array.Copy(mBitField, copy, mBitField.Length);
 			return copy;
 		}

@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="ILogMessageCollection{TMessage}" /> interface of collection implementations.
+	/// Unit tests targeting the <see cref="ILogMessageCollection{TMessage}"/> interface of collection implementations.
 	/// This class tests extended interfaces separately to cover explicit interface implementations, if existing.
 	/// </summary>
 	public abstract class LogMessageCollectionBaseTests
@@ -63,7 +63,7 @@ namespace GriffinPlus.Lib.Logging
 		#region CollectionChanged
 
 		/// <summary>
-		/// Tests registering and unregistering the <see cref="INotifyCollectionChanged.CollectionChanged" /> event.
+		/// Tests registering and unregistering the <see cref="INotifyCollectionChanged.CollectionChanged"/> event.
 		/// </summary>
 		[Fact]
 		protected virtual void INotifyCollectionChanged_CollectionChanged()
@@ -86,7 +86,7 @@ namespace GriffinPlus.Lib.Logging
 		#region PropertyChanged
 
 		/// <summary>
-		/// Tests registering and unregistering the <see cref="INotifyPropertyChanged.PropertyChanged" /> event.
+		/// Tests registering and unregistering the <see cref="INotifyPropertyChanged.PropertyChanged"/> event.
 		/// </summary>
 		[Fact]
 		protected virtual void INotifyPropertyChanged_PropertyChanged()
@@ -109,7 +109,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Count
 
 		/// <summary>
-		/// Tests getting the number of log messages in the collection using <see cref="ICollection.Count" />.
+		/// Tests getting the number of log messages in the collection using <see cref="ICollection.Count"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -125,7 +125,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests getting the number of log messages in the collection using <see cref="ICollection{T}.Count" />.
+		/// Tests getting the number of log messages in the collection using <see cref="ICollection{T}.Count"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -141,7 +141,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests getting the number of log messages in the collection using <see cref="ILogMessageCollection{T}.Count" />.
+		/// Tests getting the number of log messages in the collection using <see cref="ILogMessageCollection{T}.Count"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -183,7 +183,7 @@ namespace GriffinPlus.Lib.Logging
 		#region IsReadOnly
 
 		/// <summary>
-		/// Tests whether the collection is read-only using <see cref="IList.IsReadOnly" />.
+		/// Tests whether the collection is read-only using <see cref="IList.IsReadOnly"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -199,7 +199,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests whether the collection is read-only using <see cref="ICollection{T}.IsReadOnly" />.
+		/// Tests whether the collection is read-only using <see cref="ICollection{T}.IsReadOnly"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -241,7 +241,7 @@ namespace GriffinPlus.Lib.Logging
 		#region IsFixedSize
 
 		/// <summary>
-		/// Tests whether the collection has a fixed size using <see cref="IList.IsFixedSize" />.
+		/// Tests whether the collection has a fixed size using <see cref="IList.IsFixedSize"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -266,7 +266,7 @@ namespace GriffinPlus.Lib.Logging
 		#region SyncRoot
 
 		/// <summary>
-		/// Tests whether the collection has a sync root using <see cref="ICollection.SyncRoot" /> and that the object is not the same as the collection itself
+		/// Tests whether the collection has a sync root using <see cref="ICollection.SyncRoot"/> and that the object is not the same as the collection itself
 		/// (can cause deadlocks, if the collection itself is used for synchronization as well).
 		/// </summary>
 		[Fact]
@@ -292,7 +292,7 @@ namespace GriffinPlus.Lib.Logging
 		#region IsSynchronized
 
 		/// <summary>
-		/// Tests whether the collection is synchronized using <see cref="ICollection.IsSynchronized" />.
+		/// Tests whether the collection is synchronized using <see cref="ICollection.IsSynchronized"/>.
 		/// </summary>
 		[Fact]
 		protected virtual void ICollection_IsSynchronized()
@@ -314,7 +314,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Indexer (Getter)
 
 		/// <summary>
-		/// Tests getting the log message at a specific index using <see cref="IList.this" /> that is inside the allowed range.
+		/// Tests getting the log message at a specific index using <see cref="IList.this"/> that is inside the allowed range.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToGet">Index of the message to try to get.</param>
@@ -330,8 +330,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests getting the log message at a specific index using <see cref="IList.this" /> that is outside the allowed range.
-		/// Should throw <see cref="ArgumentOutOfRangeException" />.
+		/// Tests getting the log message at a specific index using <see cref="IList.this"/> that is outside the allowed range.
+		/// Should throw <see cref="ArgumentOutOfRangeException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToGet">Index of the message to try to get.</param>
@@ -349,7 +349,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests getting the log message at a specific index using <see cref="IList{T}.this" /> that is inside the allowed range.
+		/// Tests getting the log message at a specific index using <see cref="IList{T}.this"/> that is inside the allowed range.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToGet">Index of the message to try to get.</param>
@@ -365,8 +365,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests getting the log message at a specific index using <see cref="IList{T}.this" /> that is outside the allowed range.
-		/// Should throw <see cref="ArgumentOutOfRangeException" />.
+		/// Tests getting the log message at a specific index using <see cref="IList{T}.this"/> that is outside the allowed range.
+		/// Should throw <see cref="ArgumentOutOfRangeException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToGet">Index of the message to try to get.</param>
@@ -384,7 +384,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests getting the log message at a specific index using <see cref="ILogMessageCollection{TMessage}.this(long)" /> that is inside the allowed range.
+		/// Tests getting the log message at a specific index using <see cref="ILogMessageCollection{TMessage}.this(long)"/> that is inside the allowed range.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToGet">Index of the message to try to get.</param>
@@ -400,8 +400,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests getting the log message at a specific index using <see cref="ILogMessageCollection{TMessage}.this(long)" /> that is outside the allowed range.
-		/// Should throw <see cref="ArgumentOutOfRangeException" />.
+		/// Tests getting the log message at a specific index using <see cref="ILogMessageCollection{TMessage}.this(long)"/> that is outside the allowed range.
+		/// Should throw <see cref="ArgumentOutOfRangeException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToGet">Index of the message to try to get.</param>
@@ -445,7 +445,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for getting the log message at a specific index in the collection with an index that is out of bounds.
-		/// The operation should throw <see cref="ArgumentOutOfRangeException" />.
+		/// The operation should throw <see cref="ArgumentOutOfRangeException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToGet">Index of the message to get.</param>
@@ -472,8 +472,8 @@ namespace GriffinPlus.Lib.Logging
 		#region Indexer (Setter)
 
 		/// <summary>
-		/// Tests setting the log message at a specific index using <see cref="IList.this" />.
-		/// Should throw <see cref="NotSupportedException" />.
+		/// Tests setting the log message at a specific index using <see cref="IList.this"/>.
+		/// Should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToSet">Index of the message to try to set.</param>
@@ -493,8 +493,8 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests setting the log message at a specific index using <see cref="IList{T}.this" />.
-		/// Should throw <see cref="NotSupportedException" />.
+		/// Tests setting the log message at a specific index using <see cref="IList{T}.this"/>.
+		/// Should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToSet">Index of the message to try to set.</param>
@@ -515,7 +515,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for setting the log message at a specific index in the collection with an index that is out of bounds.
-		/// The operation should throw <see cref="ArgumentOutOfRangeException" />.
+		/// The operation should throw <see cref="ArgumentOutOfRangeException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToSet">Index of the message to set.</param>
@@ -543,7 +543,7 @@ namespace GriffinPlus.Lib.Logging
 		#region GetEnumerator()
 
 		/// <summary>
-		/// Tests getting an enumerator using <see cref="IEnumerable.GetEnumerator" /> and iterating over
+		/// Tests getting an enumerator using <see cref="IEnumerable.GetEnumerator"/> and iterating over
 		/// the collection using this enumerator.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -560,7 +560,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests getting an enumerator using <see cref="IEnumerable{T}.GetEnumerator" /> and iterating over
+		/// Tests getting an enumerator using <see cref="IEnumerable{T}.GetEnumerator"/> and iterating over
 		/// the collection using this enumerator.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -612,8 +612,8 @@ namespace GriffinPlus.Lib.Logging
 		#region Add()
 
 		/// <summary>
-		/// Tests adding a log message the the collection using <see cref="IList.Add" />.
-		/// Should throw <see cref="NotSupportedException" />, if the collection is read-only.
+		/// Tests adding a log message the the collection using <see cref="IList.Add"/>.
+		/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -627,8 +627,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests adding a log message the the collection using <see cref="IList.Add" />.
-		/// Should throw <see cref="ArgumentNullException" />.
+		/// Tests adding a log message the the collection using <see cref="IList.Add"/>.
+		/// Should throw <see cref="ArgumentNullException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -644,8 +644,8 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests adding a log message the the collection using <see cref="ICollection{T}.Add" />.
-		/// Should throw <see cref="NotSupportedException" />, if the collection is read-only.
+		/// Tests adding a log message the the collection using <see cref="ICollection{T}.Add"/>.
+		/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -659,8 +659,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests adding a log message the the collection using <see cref="ICollection{T}.Add" />.
-		/// Should throw <see cref="ArgumentNullException" />.
+		/// Tests adding a log message the the collection using <see cref="ICollection{T}.Add"/>.
+		/// Should throw <see cref="ArgumentNullException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -677,7 +677,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for adding a log message to the collection.
-		/// The operation should throw <see cref="NotSupportedException" />, if the collection is readonly.
+		/// The operation should throw <see cref="NotSupportedException"/>, if the collection is readonly.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="operation">Operation to invoke on the collection.</param>
@@ -728,7 +728,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for adding a log message to the collection with the log message to add being a null reference.
-		/// The operation should throw <see cref="ArgumentNullException" />.
+		/// The operation should throw <see cref="ArgumentNullException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="operation">Operation to invoke on the collection.</param>
@@ -754,8 +754,8 @@ namespace GriffinPlus.Lib.Logging
 		#region AddRange()
 
 		/// <summary>
-		/// Tests adding multiple log messages the the collection using <see cref="ILogMessageCollection{TMessage}.AddRange" />.
-		/// Should throw <see cref="NotSupportedException" />, if the collection is read-only.
+		/// Tests adding multiple log messages the the collection using <see cref="ILogMessageCollection{TMessage}.AddRange"/>.
+		/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="numberOfMessagesToAdd">Number of messages to add at once.</param>
@@ -773,8 +773,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests adding multiple log messages the the collection using <see cref="ILogMessageCollection{TMessage}.AddRange" />.
-		/// Should throw <see cref="ArgumentNullException" />.
+		/// Tests adding multiple log messages the the collection using <see cref="ILogMessageCollection{TMessage}.AddRange"/>.
+		/// Should throw <see cref="ArgumentNullException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -791,7 +791,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for adding a log message to the collection.
-		/// The operation should throw <see cref="NotSupportedException" />, if the collection is readonly.
+		/// The operation should throw <see cref="NotSupportedException"/>, if the collection is readonly.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="numberOfMessagesToAdd">Number of messages to add at once.</param>
@@ -853,7 +853,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for adding multiple log messages to the collection with the log messages to add being a null reference.
-		/// The operation should throw <see cref="ArgumentNullException" />.
+		/// The operation should throw <see cref="ArgumentNullException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="operation">Operation to invoke on the collection.</param>
@@ -879,8 +879,8 @@ namespace GriffinPlus.Lib.Logging
 		#region Insert()
 
 		/// <summary>
-		/// Tests inserting a log message into the collection using <see cref="IList.Insert" />.
-		/// Should throw <see cref="NotSupportedException" />.
+		/// Tests inserting a log message into the collection using <see cref="IList.Insert"/>.
+		/// Should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexToInsertAt">Index of the position in the collection to insert the log message into.</param>
@@ -899,8 +899,8 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests inserting a log message into the collection using <see cref="IList{T}.Insert" />.
-		/// Should throw <see cref="NotSupportedException" />.
+		/// Tests inserting a log message into the collection using <see cref="IList{T}.Insert"/>.
+		/// Should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexToInsertAt">Index of the position in the collection to insert the log message into.</param>
@@ -920,7 +920,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for inserting a log message into the collection.
-		/// The operation should throw <see cref="NotSupportedException" />.
+		/// The operation should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="operation">Operation to invoke on the collection.</param>
@@ -947,8 +947,8 @@ namespace GriffinPlus.Lib.Logging
 		#region Clear()
 
 		/// <summary>
-		/// Tests clearing the collection using <see cref="IList.Clear" />.
-		/// Should throw <see cref="NotSupportedException" />, if the collection is read-only.
+		/// Tests clearing the collection using <see cref="IList.Clear"/>.
+		/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -964,8 +964,8 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests clearing the collection using <see cref="ICollection{T}.Clear" />.
-		/// Should throw <see cref="NotSupportedException" />, if the collection is read-only.
+		/// Tests clearing the collection using <see cref="ICollection{T}.Clear"/>.
+		/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		[Theory]
@@ -982,7 +982,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for clearing a collection.
-		/// The operation should throw <see cref="NotSupportedException" />, if the collection is read-only.
+		/// The operation should throw <see cref="NotSupportedException"/>, if the collection is read-only.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="operation">Operation to invoke on the collection.</param>
@@ -1028,7 +1028,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Contains()
 
 		/// <summary>
-		/// Tests checking whether the collection contains a specific log message using <see cref="IList.Contains" />.
+		/// Tests checking whether the collection contains a specific log message using <see cref="IList.Contains"/>.
 		/// The test message is in the collection.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1047,7 +1047,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests checking whether the collection contains a specific log message using <see cref="IList.Contains" />.
+		/// Tests checking whether the collection contains a specific log message using <see cref="IList.Contains"/>.
 		/// The log message to check for is not in the collection.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1062,7 +1062,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests checking whether the collection contains a specific log message using <see cref="IList.Contains" /> with the log
+		/// Tests checking whether the collection contains a specific log message using <see cref="IList.Contains"/> with the log
 		/// message being a null reference. Should always return <c>false</c>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1079,7 +1079,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests checking whether the collection contains a specific log message using <see cref="ICollection{T}.Contains" />.
+		/// Tests checking whether the collection contains a specific log message using <see cref="ICollection{T}.Contains"/>.
 		/// The test message is in the collection.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1098,7 +1098,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests checking whether the collection contains a specific log message using <see cref="ICollection{T}.Contains" />.
+		/// Tests checking whether the collection contains a specific log message using <see cref="ICollection{T}.Contains"/>.
 		/// The log message to check for is not in the collection.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1113,7 +1113,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests checking whether the collection contains a specific log message using <see cref="ICollection{T}.Contains" /> with the log
+		/// Tests checking whether the collection contains a specific log message using <see cref="ICollection{T}.Contains"/> with the log
 		/// message being a null reference. Should always return <c>false</c>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1205,7 +1205,7 @@ namespace GriffinPlus.Lib.Logging
 		#region IndexOf()
 
 		/// <summary>
-		/// Tests getting the index of a log message in the collection using <see cref="IList.IndexOf" />.
+		/// Tests getting the index of a log message in the collection using <see cref="IList.IndexOf"/>.
 		/// The message is in the collection.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1224,7 +1224,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests getting the index of a log message in the collection using <see cref="IList.IndexOf" />.
+		/// Tests getting the index of a log message in the collection using <see cref="IList.IndexOf"/>.
 		/// The message is not in the collection.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1239,7 +1239,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests getting the index of a log message in the collection using <see cref="IList.IndexOf" /> with the log
+		/// Tests getting the index of a log message in the collection using <see cref="IList.IndexOf"/> with the log
 		/// message being a null reference. Should always return -1.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1256,7 +1256,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests getting the index of a log message in the collection using <see cref="IList{T}.IndexOf" />.
+		/// Tests getting the index of a log message in the collection using <see cref="IList{T}.IndexOf"/>.
 		/// The message is in the collection.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1275,7 +1275,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests getting the index of a log message in the collection using <see cref="IList{T}.IndexOf" />.
+		/// Tests getting the index of a log message in the collection using <see cref="IList{T}.IndexOf"/>.
 		/// The message is not in the collection.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1290,7 +1290,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests getting the index of a log message in the collection using <see cref="IList{T}.IndexOf" /> with the log
+		/// Tests getting the index of a log message in the collection using <see cref="IList{T}.IndexOf"/> with the log
 		/// message being a null reference. Should always return -1.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -1382,7 +1382,7 @@ namespace GriffinPlus.Lib.Logging
 		#region CopyTo()
 
 		/// <summary>
-		/// Tests copying the log messages from the collection into an array using <see cref="ICollection.CopyTo" />.
+		/// Tests copying the log messages from the collection into an array using <see cref="ICollection.CopyTo"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="destinationBufferSize">Size of the destination array to copy the messages into.</param>
@@ -1401,8 +1401,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests copying the log messages from the collection into an array using <see cref="ICollection.CopyTo" /> with a start index that is outside
-		/// the destination array. Should throw <see cref="ArgumentOutOfRangeException" />.
+		/// Tests copying the log messages from the collection into an array using <see cref="ICollection.CopyTo"/> with a start index that is outside
+		/// the destination array. Should throw <see cref="ArgumentOutOfRangeException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="destinationBufferSize">Size of the destination array to copy the messages into.</param>
@@ -1421,8 +1421,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests copying the log messages from the collection into an array using <see cref="ICollection{T}.CopyTo" /> with a destination array
-		/// that is too small (taking the start index into account). Should throw <see cref="ArgumentException" />.
+		/// Tests copying the log messages from the collection into an array using <see cref="ICollection{T}.CopyTo"/> with a destination array
+		/// that is too small (taking the start index into account). Should throw <see cref="ArgumentException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="destinationBufferSize">Size of the destination array to copy the messages into.</param>
@@ -1442,7 +1442,7 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests copying the log messages from the collection into an array using <see cref="ICollection{T}.CopyTo" />.
+		/// Tests copying the log messages from the collection into an array using <see cref="ICollection{T}.CopyTo"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="destinationBufferSize">Size of the destination array to copy the messages into.</param>
@@ -1461,8 +1461,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests copying the log messages from the collection into an array using <see cref="ICollection{T}.CopyTo" /> with a start index that is outside
-		/// the destination array. Should throw <see cref="ArgumentOutOfRangeException" />.
+		/// Tests copying the log messages from the collection into an array using <see cref="ICollection{T}.CopyTo"/> with a start index that is outside
+		/// the destination array. Should throw <see cref="ArgumentOutOfRangeException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="destinationBufferSize">Size of the destination array to copy the messages into.</param>
@@ -1481,8 +1481,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests copying the log messages from the collection into an array using <see cref="ICollection{T}.CopyTo" /> with a destination array
-		/// that is too small (taking the start index into account). Should throw <see cref="ArgumentException" />.
+		/// Tests copying the log messages from the collection into an array using <see cref="ICollection{T}.CopyTo"/> with a destination array
+		/// that is too small (taking the start index into account). Should throw <see cref="ArgumentException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="destinationBufferSize">Size of the destination array to copy the messages into.</param>
@@ -1537,7 +1537,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for copying the log messages from the collection to an array starting at an index that is out of bounds.
-		/// The operation should throw <see cref="ArgumentOutOfRangeException" />.
+		/// The operation should throw <see cref="ArgumentOutOfRangeException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="destinationBufferSize">Size of the destination array to copy the messages into.</param>
@@ -1564,7 +1564,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for copying the log messages from the collection to an array that is too small to store all messages
-		/// taking the start index into account. The operation should throw <see cref="ArgumentException" />.
+		/// taking the start index into account. The operation should throw <see cref="ArgumentException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="destinationBufferSize">Size of the destination array to copy the messages into.</param>
@@ -1594,8 +1594,8 @@ namespace GriffinPlus.Lib.Logging
 		#region Remove()
 
 		/// <summary>
-		/// Tests removing a specific log message from the collection using <see cref="IList.Remove" />.
-		/// Should throw <see cref="NotSupportedException" />.
+		/// Tests removing a specific log message from the collection using <see cref="IList.Remove"/>.
+		/// Should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToRemove">Index of the log message to try to remove.</param>
@@ -1613,8 +1613,8 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests removing a specific log message from the collection using <see cref="ICollection{T}.Remove" />.
-		/// Should throw <see cref="NotSupportedException" />.
+		/// Tests removing a specific log message from the collection using <see cref="ICollection{T}.Remove"/>.
+		/// Should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToRemove">Index of the log message to try to remove.</param>
@@ -1633,7 +1633,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for removing a specific log message from the collection.
-		/// The operation should throw <see cref="NotSupportedException" />.
+		/// The operation should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToRemove">Index of the log message in the test set to remove.</param>
@@ -1663,8 +1663,8 @@ namespace GriffinPlus.Lib.Logging
 		#region RemoveAt()
 
 		/// <summary>
-		/// Tests removing the log message at a specific index from the collection using <see cref="IList.RemoveAt" />.
-		/// Should throw <see cref="NotSupportedException" />.
+		/// Tests removing the log message at a specific index from the collection using <see cref="IList.RemoveAt"/>.
+		/// Should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToRemove">Index of the log message in the test set to try to remove.</param>
@@ -1684,8 +1684,8 @@ namespace GriffinPlus.Lib.Logging
 		// ------------------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Tests removing the log message at a specific index from the collection using <see cref="IList{T}.RemoveAt" />.
-		/// Should throw <see cref="NotSupportedException" />.
+		/// Tests removing the log message at a specific index from the collection using <see cref="IList{T}.RemoveAt"/>.
+		/// Should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToRemove">Index of the log message in the test set to try to remove.</param>
@@ -1706,7 +1706,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Common test code for removing a specific log message from the collection.
-		/// The operation should throw <see cref="NotSupportedException" />.
+		/// The operation should throw <see cref="NotSupportedException"/>.
 		/// </summary>
 		/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 		/// <param name="indexOfMessageToRemove">Index of the log message in the test set to try to remove.</param>
@@ -1718,7 +1718,6 @@ namespace GriffinPlus.Lib.Logging
 		{
 			using (var collection = CreateCollection(initialCollectionSize, out _))
 			{
-
 				var eventWatcher = collection.AttachEventWatcher();
 
 				// run operation and ensure that the appropriate exception is thrown

@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Common unit tests targeting the <see cref="VolatileLogConfiguration" /> and the <see cref="FileBackedLogConfiguration" /> class.
+	/// Common unit tests targeting the <see cref="VolatileLogConfiguration"/> and the <see cref="FileBackedLogConfiguration"/> class.
 	/// </summary>
 	public abstract class LogConfigurationTests_Base<TConfiguration> where TConfiguration : LogConfiguration<TConfiguration>, new()
 	{
@@ -110,7 +110,7 @@ namespace GriffinPlus.Lib.Logging
 			configuration.SetLogWriterSettings(settings);
 			var writer = Log.GetWriter("UnitTest");
 			var mask = configuration.GetActiveLogLevelMask(writer);
-			var bitArray = mask.AsArray();
+			uint[] bitArray = mask.AsArray();
 			Assert.Single(bitArray);
 			Assert.Equal(expectedMask, bitArray[0]);
 		}
@@ -153,7 +153,7 @@ namespace GriffinPlus.Lib.Logging
 			configuration.SetLogWriterSettings(settings);
 			var writer = Log.GetWriter("UnitTest");
 			var mask = configuration.GetActiveLogLevelMask(writer);
-			var bitArray = mask.AsArray();
+			uint[] bitArray = mask.AsArray();
 			Assert.Single(bitArray);
 			Assert.Equal(expectedMask, bitArray[0]);
 		}

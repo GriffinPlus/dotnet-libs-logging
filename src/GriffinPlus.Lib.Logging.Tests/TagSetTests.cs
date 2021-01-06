@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="TagSet" /> class.
+	/// Unit tests targeting the <see cref="TagSet"/> class.
 	/// </summary>
 	public class TagSetTests
 	{
@@ -133,7 +133,7 @@ namespace GriffinPlus.Lib.Logging
 		#region CheckTag()
 
 		/// <summary>
-		/// Generates a random set of valid tags and tests whether all tags pass the <see cref="TagSet.CheckTag" /> method.
+		/// Generates a random set of valid tags and tests whether all tags pass the <see cref="TagSet.CheckTag"/> method.
 		/// </summary>
 		[Fact]
 		public void CheckTag_Valid()
@@ -159,7 +159,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Generates a random set of invalid tags and tests whether all tags let the <see cref="TagSet.CheckTag" /> method
+		/// Generates a random set of invalid tags and tests whether all tags let the <see cref="TagSet.CheckTag"/> method
 		/// throw an exception.
 		/// </summary>
 		[Fact]

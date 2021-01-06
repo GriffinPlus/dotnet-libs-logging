@@ -11,12 +11,12 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// JSON tokens emitted by the <see cref="JsonTokenizer" />.
+	/// JSON tokens emitted by the <see cref="JsonTokenizer"/>.
 	/// </summary>
 	struct JsonToken : IEquatable<JsonToken>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonToken" /> struct.
+		/// Initializes a new instance of the <see cref="JsonToken"/> struct.
 		/// </summary>
 		/// <param name="type">The token type.</param>
 		/// <param name="token">The token itself (as extracted from the JSON document).</param>

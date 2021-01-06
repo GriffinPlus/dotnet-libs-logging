@@ -11,7 +11,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Reads a log message written by <see cref="JsonMessageFormatter" /> returning <see cref="LogMessage" />.
+	/// Reads a log message written by <see cref="JsonMessageFormatter"/> returning <see cref="LogMessage"/>.
 	/// </summary>
 	public class JsonMessageReader
 	{
@@ -44,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly JsonMessageFieldNames mFieldNames;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonMessageReader" /> class.
+		/// Initializes a new instance of the <see cref="JsonMessageReader"/> class.
 		/// </summary>
 		public JsonMessageReader()
 		{
@@ -52,7 +52,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the field names defining how to map JSON keys to fields in <see cref="ILogMessage" />.
+		/// Gets the field names defining how to map JSON keys to fields in <see cref="ILogMessage"/>.
 		/// </summary>
 		// ReSharper disable once ConvertToAutoPropertyWhenPossible
 		public JsonMessageFieldNames FieldNames => mFieldNames;
@@ -327,7 +327,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Throws a <see cref="JsonMessageReaderException" /> indicating that an unexpected token was found.
+		/// Throws a <see cref="JsonMessageReaderException"/> indicating that an unexpected token was found.
 		/// </summary>
 		/// <param name="token">The unexpected token.</param>
 		private static void ThrowUnexpectedTokenException(ref JsonToken token)

@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="JsonMessageFormatter" /> class.
+	/// Unit tests targeting the <see cref="JsonMessageFormatter"/> class.
 	/// </summary>
 	public class JsonMessageFormatterTests
 	{
@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly string                  sEscapedString_WithoutSolidus;
 
 		/// <summary>
-		/// Initializes the <see cref="JsonMessageFormatterTests" /> class.
+		/// Initializes the <see cref="JsonMessageFormatterTests"/> class.
 		/// </summary>
 		static JsonMessageFormatterTests()
 		{
@@ -600,7 +600,7 @@ namespace GriffinPlus.Lib.Logging
 
 
 		/// <summary>
-		/// Tests whether the <see cref="JsonMessageFormatter.AppendEscapedStringToBuilder" /> method
+		/// Tests whether the <see cref="JsonMessageFormatter.AppendEscapedStringToBuilder"/> method
 		/// escapes all characters properly.
 		/// </summary>
 		[Fact]
@@ -804,7 +804,7 @@ namespace GriffinPlus.Lib.Logging
 
 
 		/// <summary>
-		/// Tests whether the <see cref="JsonMessageFormatter.AllFields" /> property returns the correct formatter.
+		/// Tests whether the <see cref="JsonMessageFormatter.AllFields"/> property returns the correct formatter.
 		/// </summary>
 		[Fact]
 		public void AllFields()

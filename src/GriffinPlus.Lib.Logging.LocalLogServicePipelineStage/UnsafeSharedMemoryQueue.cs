@@ -36,35 +36,35 @@ namespace GriffinPlus.Lib.Logging
 	/// in the blocks and puts the blocks back onto the 'free block stack', so they can be used by a writer
 	/// once again.
 	/// 
-	/// After creating an instance of the <see cref="UnsafeSharedMemoryQueue" />class you must decide whether
+	/// After creating an instance of the <see cref="UnsafeSharedMemoryQueue"/>class you must decide whether
 	/// you want to create a new queue or open an existing one. Creating a new queue will work only, if a
 	/// shared memory section with the specified name does not exist already.
 	/// 
-	/// To create a new queue call the <see cref="Create" /> method and specify a name for the shared memory
+	/// To create a new queue call the <see cref="Create"/> method and specify a name for the shared memory
 	/// section the queue will reside in as well as the number of blocks the queue will keep and the size of
 	/// such a block. The created shared memory buffer is accessible from anyone (no security is applied).
 	/// Creating a new queue is only supported on the .NET full framework!
 	/// 
-	/// To open an existing queue call the <see cref="Open" /> method and specify a name for the shared memory
+	/// To open an existing queue call the <see cref="Open"/> method and specify a name for the shared memory
 	/// section. The number of blocks as well as their size is determined by the creator of the queue.
 	/// 
-	/// You can write to the queue by calling the <see cref="BeginWriting" /> method which delivers a pointer to
+	/// You can write to the queue by calling the <see cref="BeginWriting"/> method which delivers a pointer to
 	/// a block within the queue structure in shared memory. Just fill your data into that block and
-	/// call <see cref="EndWriting" /> telling the queue how many bytes are valid within the buffer to finish
+	/// call <see cref="EndWriting"/> telling the queue how many bytes are valid within the buffer to finish
 	/// writing to the queue.
 	/// 
-	/// You can read from the queue by calling the <see cref="BeginReading" /> method which delivers a pointer
-	/// to a block within the queue - just as <see cref="BeginWriting" /> does - and tells you how many bytes
-	/// are valid within that block. When you're finished call <see cref="EndReading" /> to release the block
+	/// You can read from the queue by calling the <see cref="BeginReading"/> method which delivers a pointer
+	/// to a block within the queue - just as <see cref="BeginWriting"/> does - and tells you how many bytes
+	/// are valid within that block. When you're finished call <see cref="EndReading"/> to release the block
 	/// and enable it to get used again.
 	/// 
-	/// After having finished work with the queue you can call the <see cref="Close" /> method to release operating
+	/// After having finished work with the queue you can call the <see cref="Close"/> method to release operating
 	/// system resources.
 	/// </summary>
 	sealed unsafe partial class UnsafeSharedMemoryQueue : IDisposable
 	{
 		/// <summary>
-		/// Size of the queue's header containing administrative and user-specific data (see <see cref="QueueHeader" />).
+		/// Size of the queue's header containing administrative and user-specific data (see <see cref="QueueHeader"/>).
 		/// </summary>
 		private int mQueueHeaderSize;
 
@@ -124,7 +124,7 @@ namespace GriffinPlus.Lib.Logging
 		private const int CacheLineSize = 64; // should be almost always correct
 
 		/// <summary>
-		/// Initializes the <see cref="UnsafeSharedMemoryQueue" /> class.
+		/// Initializes the <see cref="UnsafeSharedMemoryQueue"/> class.
 		/// </summary>
 		static UnsafeSharedMemoryQueue()
 		{
@@ -185,8 +185,8 @@ namespace GriffinPlus.Lib.Logging
 			// get pointer to the buffer
 			byte* ptr = null;
 			mMemoryMappedViewAccessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
-			mQueueHeader = (QueueHeader*) ptr;
-			mFirstBlockInMemory = (QueueBlock*) ((byte*) mQueueHeader + mQueueHeaderSize);
+			mQueueHeader = (QueueHeader*)ptr;
+			mFirstBlockInMemory = (QueueBlock*)((byte*)mQueueHeader + mQueueHeaderSize);
 
 			// init the queue
 			InitQueue();
@@ -297,7 +297,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Pointer to the data buffer within the retrieved block;
 		/// null, if no block is available for writing.
 		/// </returns>
-		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create" /> or <see cref="Open" />.</exception>
+		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 		/// <remarks>
 		/// This method retrieves a block from the 'free block stack' and returns a pointer to the data
 		/// buffer within the block. You must either call EndWriting() to push this block onto the 'used
@@ -322,10 +322,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Ends writing a block.
 		/// </summary>
-		/// <param name="buffer">Pointer to the buffer of the block as returned by <see cref="BeginWriting" />.</param>
+		/// <param name="buffer">Pointer to the buffer of the block as returned by <see cref="BeginWriting"/>.</param>
 		/// <param name="numberOfBytesWritten">Number of bytes actually written (must not exceed the block size).</param>
 		/// <param name="overflowCount">Number of lost single blocks or block sequences since the last successfully transferred block.</param>
-		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create" /> or <see cref="Open" />.</exception>
+		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 		public void EndWriting(void* buffer, int numberOfBytesWritten, int overflowCount)
 		{
 			// abort, if the buffer is null
@@ -350,15 +350,15 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Ends writing a sequence of blocks.
 		/// </summary>
-		/// <param name="buffers">Array of pointers to buffers of blocks as returned by <see cref="BeginWriting" />.</param>
+		/// <param name="buffers">Array of pointers to buffers of blocks as returned by <see cref="BeginWriting"/>.</param>
 		/// <param name="numberOfBytesWritten">
-		/// Number of bytes written into the buffers specified in <paramref name="buffers" /> (must not exceed the block size).
+		/// Number of bytes written into the buffers specified in <paramref name="buffers"/> (must not exceed the block size).
 		/// </param>
 		/// <param name="count">Number of blocks to write.</param>
 		/// <param name="overflowCount">Number of lost single blocks or block sequences since the last successfully transferred block.</param>
-		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create" /> or <see cref="Open" />.</exception>
+		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 		/// <remarks>
-		/// This method takes the sequence of buffers of blocks as returned by <see cref="BeginWriting" /> and pushes the blocks onto the 'used block stack'.
+		/// This method takes the sequence of buffers of blocks as returned by <see cref="BeginWriting"/> and pushes the blocks onto the 'used block stack'.
 		/// </remarks>
 		public void EndWritingSequence(
 			void** buffers,
@@ -412,10 +412,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Aborts writing a block.
 		/// </summary>
-		/// <param name="buffer">Pointer to the buffer of a block as returned by <see cref="BeginWriting" />.</param>
-		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create" /> or <see cref="Open" />.</exception>
+		/// <param name="buffer">Pointer to the buffer of a block as returned by <see cref="BeginWriting"/>.</param>
+		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 		/// <remarks>
-		/// This method takes the buffer of a block as returned by <see cref="BeginWriting" /> and pushes the block onto the 'free block stack' again.
+		/// This method takes the buffer of a block as returned by <see cref="BeginWriting"/> and pushes the block onto the 'free block stack' again.
 		/// </remarks>
 		public void AbortWriting(void* buffer)
 		{
@@ -450,7 +450,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Pointer to the data buffer within the retrieved block;
 		/// null if no block is available for reading.
 		/// </returns>
-		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create" /> or <see cref="Open" />.</exception>
+		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 		public void* BeginReading(out int validSize, out int overflowCount, out bool blocksFollowingInSequence)
 		{
 			// abort, if the queue is not initialized
@@ -549,8 +549,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// End reading a block.
 		/// </summary>
-		/// <param name="buffer">Pointer to the buffer of a block as returned by <see cref="BeginReading" />.</param>
-		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create" /> or <see cref="Open" />.</exception>
+		/// <param name="buffer">Pointer to the buffer of a block as returned by <see cref="BeginReading"/>.</param>
+		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 		public void EndReading(void* buffer)
 		{
 			// abort, if the buffer is null

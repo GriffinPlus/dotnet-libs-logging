@@ -9,7 +9,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="VolatileLogConfiguration" /> class.
+	/// Unit tests targeting the <see cref="VolatileLogConfiguration"/> class.
 	/// </summary>
 	public class VolatileLogConfigurationTests : LogConfigurationTests_Base<VolatileLogConfiguration>
 	{

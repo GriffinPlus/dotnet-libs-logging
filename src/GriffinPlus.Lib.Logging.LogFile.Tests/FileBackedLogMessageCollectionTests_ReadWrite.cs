@@ -12,7 +12,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="FileBackedLogMessageCollection" /> class.
+	/// Unit tests targeting the <see cref="FileBackedLogMessageCollection"/> class.
 	/// The collection is run with support for read and write operations.
 	/// </summary>
 	[Collection("LogFileTests")]
@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes an instance of the <see cref="FileBackedLogMessageCollectionTests_ReadWrite" /> class.
+		/// Initializes an instance of the <see cref="FileBackedLogMessageCollectionTests_ReadWrite"/> class.
 		/// </summary>
 		/// <param name="fixture">Fixture providing static test data.</param>
 		public FileBackedLogMessageCollectionTests_ReadWrite(LogFileTestsFixture fixture) : base(fixture)

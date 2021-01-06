@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		private          List<LogWriterConfiguration>            mLogWriterSettings;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileLogConfiguration" /> class.
+		/// Initializes a new instance of the <see cref="VolatileLogConfiguration"/> class.
 		/// </summary>
 		public VolatileLogConfiguration()
 		{

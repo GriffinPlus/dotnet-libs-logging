@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Base class for the 'recording' file format and 'analysis' file format.
 		/// </summary>
-		abstract class DatabaseAccessor : IDisposable
+		private abstract class DatabaseAccessor : IDisposable
 		{
 			private readonly SQLiteConnection mConnection;
 			private          bool             mDisposed;
@@ -122,7 +122,7 @@ namespace GriffinPlus.Lib.Logging
 			};
 
 			/// <summary>
-			/// Initializes the <see cref="DatabaseAccessor" /> class.
+			/// Initializes the <see cref="DatabaseAccessor"/> class.
 			/// </summary>
 			static DatabaseAccessor()
 			{
@@ -138,7 +138,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="DatabaseAccessor" /> class.
+			/// Initializes a new instance of the <see cref="DatabaseAccessor"/> class.
 			/// </summary>
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
@@ -500,8 +500,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="fromId">Id of the message to start at.</param>
 			/// <param name="count">Maximum number of log messages to get.</param>
 			/// <returns>The requested log messages.</returns>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> is not in the interval [OldestMessageId,NewestMessageId].</exception>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
 			public virtual LogMessage[] Read(long fromId, int count)
 			{
 				if (fromId < 0) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, "The log message id must be positive.");
@@ -531,8 +531,8 @@ namespace GriffinPlus.Lib.Logging
 			/// true, if reading ran to completion;
 			/// false, if reading was cancelled.
 			/// </returns>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId" /> is not in the interval [OldestMessageId,NewestMessageId].</exception>
-			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> must be positive.</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
+			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
 			public abstract bool Read(long fromId, long count, ReadMessageCallback callback);
 
 			/// <summary>
@@ -595,7 +595,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </param>
 			/// <param name="minimumMessageTimestamp">
 			/// Point in time (UTC) to keep messages after (includes the exact point in time);
-			/// <seealso cref="DateTime.MinValue" /> to disable removing messages by age.
+			/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
 			/// </param>
 			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public abstract void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp);
@@ -795,7 +795,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="name">Name of the process to add.</param>
 			/// <returns>Id associated with the process name.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="name" /> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
 			protected long AddProcessName(string name)
 			{
 				if (name == null) throw new ArgumentNullException(nameof(name));
@@ -822,7 +822,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="name">Name of the application to add.</param>
 			/// <returns>Id associated with the application name.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="name" /> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
 			protected long AddApplicationName(string name)
 			{
 				if (name == null) throw new ArgumentNullException(nameof(name));
@@ -849,7 +849,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="name">Name of the log writer to add.</param>
 			/// <returns>Id associated with the log writer name.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="name" /> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
 			protected long AddLogWriterName(string name)
 			{
 				if (name == null) throw new ArgumentNullException(nameof(name));
@@ -876,7 +876,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="name">Name of the log level to add.</param>
 			/// <returns>Id associated with the log level name.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="name" /> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
 			protected long AddLogLevelName(string name)
 			{
 				if (name == null) throw new ArgumentNullException(nameof(name));
@@ -903,7 +903,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="tag">Tag to add.</param>
 			/// <returns>Id associated with the tag.</returns>
-			/// <exception cref="ArgumentNullException">The <paramref name="tag" /> parameter must not be <c>null</c>.</exception>
+			/// <exception cref="ArgumentNullException">The <paramref name="tag"/> parameter must not be <c>null</c>.</exception>
 			protected long AddTag(string tag)
 			{
 				if (tag == null) throw new ArgumentNullException(nameof(tag));

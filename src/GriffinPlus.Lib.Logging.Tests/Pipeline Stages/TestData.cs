@@ -23,9 +23,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				var tagSets = new[] { null, new[] { "Tag" }, new[] { "Tag1", "Tag2" } };
+				string[][] tagSets = { null, new[] { "Tag" }, new[] { "Tag1", "Tag2" } };
 
-				foreach (var tags in tagSets)
+				foreach (string[] tags in tagSets)
 				{
 					var message1 = sMessagePool.GetMessage(
 						DateTimeOffset.Parse("2001-01-01 00:00:00Z"),

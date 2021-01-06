@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 		private int  mUsedItemCount;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocklessStack{T}" /> class.
+		/// Initializes a new instance of the <see cref="LocklessStack{T}"/> class.
 		/// </summary>
 		/// <param name="initialCapacity">Maximum number of items the stack can store.</param>
 		/// <param name="growOnDemand">

@@ -50,7 +50,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
-		/// its <see cref="IProcessingPipelineStage.ProcessMessage" /> method. The method must return <c>true</c> to call the following stage.
+		/// its <see cref="IProcessingPipelineStage.ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
 		/// </summary>
 		/// <param name="stage">The pipeline stage that should follow the current stage.</param>
 		void AddNextStage(IProcessingPipelineStage stage);

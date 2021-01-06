@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 		public static TagSet Empty { get; } = new TagSet();
 
 		/// <summary>
-		/// Initializes a new empty instance of the <see cref="TagSet" /> class.
+		/// Initializes a new empty instance of the <see cref="TagSet"/> class.
 		/// </summary>
 		public TagSet()
 		{
@@ -51,7 +51,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TagSet" /> class with the specified tags.
+		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
 		/// </summary>
 		/// <param name="tags">Tags to keep in the collection.</param>
 		public TagSet(params string[] tags) :
@@ -60,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TagSet" /> class with the specified tags.
+		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
 		/// </summary>
 		/// <param name="tags">Tags to keep in the collection.</param>
 		public TagSet(IEnumerable<string> tags)
@@ -73,7 +73,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new empty instance of the <see cref="TagSet" /> class (for internal use only).
+		/// Initializes a new empty instance of the <see cref="TagSet"/> class (for internal use only).
 		/// </summary>
 		private TagSet(List<string> tags)
 		{

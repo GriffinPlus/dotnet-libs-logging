@@ -9,24 +9,24 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="CallbackPipelineStage" /> class.
+	/// Unit tests targeting the <see cref="CallbackPipelineStage"/> class.
 	/// </summary>
 	public class CallbackPipelineStageTests : ProcessingPipelineStageBaseTests<CallbackPipelineStage>
 	{
 		internal class Callback
 		{
 			/// <summary>
-			/// Gets or sets the value returned by <see cref="ProcessSyncCallback(LocalLogMessage)" />.
+			/// Gets or sets the value returned by <see cref="ProcessSyncCallback(LocalLogMessage)"/>.
 			/// </summary>
 			public bool ProcessSyncCallbackReturnValue { get; set; }
 
 			/// <summary>
-			/// Gets a value indicating whether <see cref="ProcessSyncCallback(LocalLogMessage)" /> was called.
+			/// Gets a value indicating whether <see cref="ProcessSyncCallback(LocalLogMessage)"/> was called.
 			/// </summary>
 			public bool ProcessSyncCallbackWasCalled { get; private set; }
 
 			/// <summary>
-			/// Gets the log message passed to <see cref="ProcessSyncCallback(LocalLogMessage)" />.
+			/// Gets the log message passed to <see cref="ProcessSyncCallback(LocalLogMessage)"/>.
 			/// </summary>
 			public LocalLogMessage MessagePassedToProcessSyncCallback { get; private set; }
 
@@ -107,7 +107,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether processing a log message succeeds, if the stage has a following stage.
-		/// Both stages should have called <see cref="Callback.ProcessSyncCallback(LocalLogMessage)" /> after this.
+		/// Both stages should have called <see cref="Callback.ProcessSyncCallback(LocalLogMessage)"/> after this.
 		/// </summary>
 		[Theory]
 		[InlineData(false)]

@@ -14,29 +14,29 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="AsyncCallbackPipelineStage" /> class.
+	/// Unit tests targeting the <see cref="AsyncCallbackPipelineStage"/> class.
 	/// </summary>
 	public class AsyncCallbackPipelineStageTests : AsyncProcessingPipelineStageBaseTests<AsyncCallbackPipelineStage>
 	{
 		internal class Callback
 		{
 			/// <summary>
-			/// Gets or sets the value returned by <see cref="ProcessSyncCallback(LocalLogMessage, out bool)" />.
+			/// Gets or sets the value returned by <see cref="ProcessSyncCallback(LocalLogMessage, out bool)"/>.
 			/// </summary>
 			public bool ProcessSyncCallbackReturnValue { get; set; }
 
 			/// <summary>
-			/// Gets or sets the output value returned by <see cref="ProcessSyncCallback(LocalLogMessage, out bool)" />.
+			/// Gets or sets the output value returned by <see cref="ProcessSyncCallback(LocalLogMessage, out bool)"/>.
 			/// </summary>
 			public bool ProcessSyncCallbackQueueForAsyncProcessing { get; set; }
 
 			/// <summary>
-			/// Gets a value indicating whether <see cref="ProcessSyncCallback(LocalLogMessage, out bool)" /> was called.
+			/// Gets a value indicating whether <see cref="ProcessSyncCallback(LocalLogMessage, out bool)"/> was called.
 			/// </summary>
 			public bool ProcessSyncCallbackWasCalled { get; private set; }
 
 			/// <summary>
-			/// Gets the log message passed to <see cref="ProcessSyncCallback(LocalLogMessage, out bool)" />.
+			/// Gets the log message passed to <see cref="ProcessSyncCallback(LocalLogMessage, out bool)"/>.
 			/// </summary>
 			public LocalLogMessage MessagePassedToProcessSyncCallback { get; private set; }
 
@@ -53,12 +53,12 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Gets a value indicating whether <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)" /> was called.
+			/// Gets a value indicating whether <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)"/> was called.
 			/// </summary>
 			public bool ProcessAsyncCallbackWasCalled { get; private set; }
 
 			/// <summary>
-			/// Gets the log message passed to <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)" />.
+			/// Gets the log message passed to <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)"/>.
 			/// </summary>
 			public List<LocalLogMessage> MessagesPassedToProcessAsyncCallback { get; } = new List<LocalLogMessage>();
 

@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		private abstract class FieldBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="FieldBase" /> class.
+			/// Initializes a new instance of the <see cref="FieldBase"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the field belongs to.</param>
 			/// <param name="field">The formatted log message field.</param>
@@ -58,7 +58,7 @@ namespace GriffinPlus.Lib.Logging
 			public abstract void AppendFormattedValue(ILogMessage message, StringBuilder builder);
 
 			/// <summary>
-			/// Updates the <see cref="EscapedJsonKey" /> property.
+			/// Updates the <see cref="EscapedJsonKey"/> property.
 			/// </summary>
 			internal void UpdateEscapedJsonKey()
 			{

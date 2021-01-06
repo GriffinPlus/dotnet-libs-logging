@@ -12,7 +12,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="LocklessStack{T}" /> class.
+	/// Unit tests targeting the <see cref="LocklessStack{T}"/> class.
 	/// </summary>
 	public class LocklessStackTests
 	{
@@ -206,10 +206,10 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// create and populate the stack
 			var stack = new LocklessStack<int>(capacity, true);
-			var pushedItems = PopulateStack(stack, capacity, itemCount);
+			int[] pushedItems = PopulateStack(stack, capacity, itemCount);
 
 			// flush the stack
-			var items = stack.Flush();
+			int[] items = stack.Flush();
 			Assert.Equal(itemCount, items.Length);
 			Assert.Equal(pushedItems.Reverse(), items);
 			Assert.Equal(capacity, stack.FreeItemCount);
@@ -232,10 +232,10 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// create and populate the stack
 			var stack = new LocklessStack<int>(capacity, true);
-			var pushedItems = PopulateStack(stack, capacity, itemCount);
+			int[] pushedItems = PopulateStack(stack, capacity, itemCount);
 
 			// flush the stack
-			var items = stack.FlushAndReverse();
+			int[] items = stack.FlushAndReverse();
 			Assert.Equal(itemCount, items.Length);
 			Assert.Equal(pushedItems, items);
 			Assert.Equal(capacity, stack.FreeItemCount);
@@ -252,7 +252,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The pushed items.</returns>
 		private static int[] PopulateStack(LocklessStack<int> stack, int capacity, int itemCount)
 		{
-			var data = new int[itemCount];
+			int[] data = new int[itemCount];
 			for (int i = 0; i < itemCount; i++) data[i] = i;
 			Assert.Equal(capacity, stack.FreeItemCount);
 			Assert.Equal(0, stack.UsedItemCount);

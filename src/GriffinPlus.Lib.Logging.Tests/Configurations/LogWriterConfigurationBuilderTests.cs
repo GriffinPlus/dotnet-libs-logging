@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 		#region MatchingExactly()
 
 		/// <summary>
-		/// Tests adding a matching pattern for an exact log writer name using <see cref="LogWriterConfigurationBuilder.MatchingExactly(string)" />.
+		/// Tests adding a matching pattern for an exact log writer name using <see cref="LogWriterConfigurationBuilder.MatchingExactly(string)"/>.
 		/// </summary>
 		[Fact]
 		public void MatchingExactly()
@@ -41,7 +41,7 @@ namespace GriffinPlus.Lib.Logging
 		#region MatchingWildcardPattern()
 
 		/// <summary>
-		/// Tests adding a wildcard matching pattern using <see cref="LogWriterConfigurationBuilder.MatchingWildcardPattern(string)" />.
+		/// Tests adding a wildcard matching pattern using <see cref="LogWriterConfigurationBuilder.MatchingWildcardPattern(string)"/>.
 		/// </summary>
 		[Fact]
 		public void MatchingWildcardPattern()
@@ -65,7 +65,7 @@ namespace GriffinPlus.Lib.Logging
 		#region MatchingRegex()
 
 		/// <summary>
-		/// Tests adding a regex pattern using <see cref="LogWriterConfigurationBuilder.MatchingRegex(string)" />.
+		/// Tests adding a regex pattern using <see cref="LogWriterConfigurationBuilder.MatchingRegex(string)"/>.
 		/// </summary>
 		[Fact]
 		public void MatchingRegex()
@@ -89,7 +89,7 @@ namespace GriffinPlus.Lib.Logging
 		#region WithTag()
 
 		/// <summary>
-		/// Tests adding a matching pattern for an exact log writer name using <see cref="LogWriterConfigurationBuilder.WithTag(string)" />.
+		/// Tests adding a matching pattern for an exact log writer name using <see cref="LogWriterConfigurationBuilder.WithTag(string)"/>.
 		/// </summary>
 		[Fact]
 		public void WithTag()
@@ -118,7 +118,7 @@ namespace GriffinPlus.Lib.Logging
 		#region WithTagWildcardPattern()
 
 		/// <summary>
-		/// Tests adding a wildcard matching pattern using <see cref="LogWriterConfigurationBuilder.WithTagWildcardPattern(string)" />.
+		/// Tests adding a wildcard matching pattern using <see cref="LogWriterConfigurationBuilder.WithTagWildcardPattern(string)"/>.
 		/// </summary>
 		[Fact]
 		public void WithTagWildcardPattern()
@@ -148,7 +148,7 @@ namespace GriffinPlus.Lib.Logging
 		#region WithTagRegex()
 
 		/// <summary>
-		/// Tests adding a regex pattern using <see cref="LogWriterConfigurationBuilder.WithTagRegex(string)" />.
+		/// Tests adding a regex pattern using <see cref="LogWriterConfigurationBuilder.WithTagRegex(string)"/>.
 		/// </summary>
 		[Fact]
 		public void WithTagRegex()
@@ -178,7 +178,7 @@ namespace GriffinPlus.Lib.Logging
 		#region WithBaseLevel()
 
 		/// <summary>
-		/// Tests changing the base level using <see cref="LogWriterConfigurationBuilder.WithBaseLevel(LogLevel)" />.
+		/// Tests changing the base level using <see cref="LogWriterConfigurationBuilder.WithBaseLevel(LogLevel)"/>.
 		/// </summary>
 		[Fact]
 		public void WithBaseLogLevel_LevelAsLogLevel()
@@ -194,7 +194,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests changing the base level using <see cref="LogWriterConfigurationBuilder.WithBaseLevel(string)" />.
+		/// Tests changing the base level using <see cref="LogWriterConfigurationBuilder.WithBaseLevel(string)"/>.
 		/// </summary>
 		[Fact]
 		public void WithBaseLogLevel_LevelAsString()
@@ -214,7 +214,7 @@ namespace GriffinPlus.Lib.Logging
 		#region WithLevel()
 
 		/// <summary>
-		/// Tests successively including log levels using <see cref="LogWriterConfigurationBuilder.WithLevel(LogLevel[])" />.
+		/// Tests successively including log levels using <see cref="LogWriterConfigurationBuilder.WithLevel(LogLevel[])"/>.
 		/// </summary>
 		[Fact]
 		public void WithLevel_AddOnly()
@@ -232,7 +232,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests successively including log levels using <see cref="LogWriterConfigurationBuilder.WithLevel(string[])" />.
+		/// Tests successively including log levels using <see cref="LogWriterConfigurationBuilder.WithLevel(string[])"/>.
 		/// </summary>
 		[Fact]
 		public void WithLevel_AddOnly_LevelAsString()
@@ -250,7 +250,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether including log levels using <see cref="LogWriterConfigurationBuilder.WithLevel(string[])" /> removes
+		/// Tests whether including log levels using <see cref="LogWriterConfigurationBuilder.WithLevel(string[])"/> removes
 		/// the same log levels from the list of excluded log levels.
 		/// </summary>
 		[Fact]
@@ -287,7 +287,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether including log levels using <see cref="LogWriterConfigurationBuilder.WithLevel(string[])" /> removes
+		/// Tests whether including log levels using <see cref="LogWriterConfigurationBuilder.WithLevel(string[])"/> removes
 		/// the same log levels from the list of excluded log levels.
 		/// </summary>
 		[Fact]
@@ -328,7 +328,7 @@ namespace GriffinPlus.Lib.Logging
 		#region WithLevelRange()
 
 		/// <summary>
-		/// Tests including a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithLevelRange(LogLevel, LogLevel)" />.
+		/// Tests including a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithLevelRange(LogLevel, LogLevel)"/>.
 		/// </summary>
 		/// <param name="fromLevelName">Name of the first log level in the range.</param>
 		/// <param name="toLevelName">Name of the last log level in the range.</param>
@@ -371,7 +371,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests including a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithLevelRange(string, string)" />.
+		/// Tests including a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithLevelRange(string, string)"/>.
 		/// </summary>
 		/// <param name="fromLevelName">Name of the first log level in the range.</param>
 		/// <param name="toLevelName">Name of the last log level in the range.</param>
@@ -414,7 +414,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether including a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithLevelRange(LogLevel, LogLevel)" />
+		/// Tests whether including a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithLevelRange(LogLevel, LogLevel)"/>
 		/// removes the same log levels from the list of excluded log levels.
 		/// </summary>
 		[Theory]
@@ -460,7 +460,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether including a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithLevelRange(string, string)" />
+		/// Tests whether including a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithLevelRange(string, string)"/>
 		/// removes the same log levels from the list of excluded log levels.
 		/// </summary>
 		[Theory]
@@ -510,7 +510,7 @@ namespace GriffinPlus.Lib.Logging
 		#region WithoutLevel()
 
 		/// <summary>
-		/// Tests successively excluding log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevel(LogLevel[])" />.
+		/// Tests successively excluding log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevel(LogLevel[])"/>.
 		/// </summary>
 		[Fact]
 		public void WithoutLevel_AddOnly()
@@ -528,7 +528,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests successively excluding log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevel(string[])" />.
+		/// Tests successively excluding log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevel(string[])"/>.
 		/// </summary>
 		[Fact]
 		public void WithoutLevel_AddOnly_LevelAsString()
@@ -546,7 +546,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether excluding log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevel(string[])" /> removes
+		/// Tests whether excluding log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevel(string[])"/> removes
 		/// the same log levels from the list of included log levels.
 		/// </summary>
 		[Fact]
@@ -583,7 +583,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether excluding log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevel(string[])" /> removes
+		/// Tests whether excluding log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevel(string[])"/> removes
 		/// the same log levels from the list of included log levels.
 		/// </summary>
 		[Fact]
@@ -624,7 +624,7 @@ namespace GriffinPlus.Lib.Logging
 		#region WithoutLevelRange()
 
 		/// <summary>
-		/// Tests excluding a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevelRange(LogLevel, LogLevel)" />.
+		/// Tests excluding a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevelRange(LogLevel, LogLevel)"/>.
 		/// </summary>
 		/// <param name="fromLevelName">Name of the first log level in the range.</param>
 		/// <param name="toLevelName">Name of the last log level in the range.</param>
@@ -667,7 +667,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests excluding a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevelRange(string, string)" />.
+		/// Tests excluding a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevelRange(string, string)"/>.
 		/// </summary>
 		/// <param name="fromLevelName">Name of the first log level in the range.</param>
 		/// <param name="toLevelName">Name of the last log level in the range.</param>
@@ -710,7 +710,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether excluding a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevelRange(LogLevel, LogLevel)" />
+		/// Tests whether excluding a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevelRange(LogLevel, LogLevel)"/>
 		/// removes the same log levels from the list of included log levels.
 		/// </summary>
 		[Theory]
@@ -756,7 +756,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether excluding a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevelRange(string, string)" />
+		/// Tests whether excluding a range of sequential log levels using <see cref="LogWriterConfigurationBuilder.WithoutLevelRange(string, string)"/>
 		/// removes the same log levels from the list of included log levels.
 		/// </summary>
 		[Theory]
@@ -806,7 +806,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Build()
 
 		/// <summary>
-		/// Tests building a <see cref="LogWriterConfiguration" /> with defaults.
+		/// Tests building a <see cref="LogWriterConfiguration"/> with defaults.
 		/// </summary>
 		[Fact]
 		public void Build_Default()

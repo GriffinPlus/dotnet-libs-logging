@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		private sealed class HighPrecisionTimestampColumn : ColumnBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="HighPrecisionTimestampColumn" /> class.
+			/// Initializes a new instance of the <see cref="HighPrecisionTimestampColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			public HighPrecisionTimestampColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.HighPrecisionTimestamp)
@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width" /> property.
+			/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width"/> property.
 			/// </summary>
 			/// <param name="message">Message to measure to adjust the width of the column.</param>
 			public override void UpdateWidth(ILogMessage message)

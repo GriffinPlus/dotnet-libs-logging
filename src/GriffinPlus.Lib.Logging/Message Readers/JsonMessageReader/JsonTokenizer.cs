@@ -75,7 +75,7 @@ namespace GriffinPlus.Lib.Logging
 		private          int           mCurrentPosition;
 
 		/// <summary>
-		/// Initializes the <seealso cref="JsonTokenizer" /> class.
+		/// Initializes the <seealso cref="JsonTokenizer"/> class.
 		/// </summary>
 		static JsonTokenizer()
 		{
@@ -94,7 +94,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonTokenizer" /> class.
+		/// Initializes a new instance of the <see cref="JsonTokenizer"/> class.
 		/// </summary>
 		public JsonTokenizer()
 		{
@@ -117,13 +117,13 @@ namespace GriffinPlus.Lib.Logging
 		public int CurrentPosition => mCurrentPosition;
 
 		/// <summary>
-		/// Processes the specified JSON string, extracts tokens and stores them in <see cref="Tokens" />
+		/// Processes the specified JSON string, extracts tokens and stores them in <see cref="Tokens"/>
 		/// (the passed data may contain incomplete JSON documents and even tokens that are completed over multiple calls).
 		/// </summary>
 		/// <param name="data">JSON string to process.</param>
 		/// <param name="complete">
 		/// true, if the passed JSON string contains complete tokens;
-		/// false, if tokens may be split up over multiple calls if the method (<see cref="Flush" /> must be called explicitly at the end).
+		/// false, if tokens may be split up over multiple calls if the method (<see cref="Flush"/> must be called explicitly at the end).
 		/// </param>
 		/// <returns>Number of extracted tokens.</returns>
 		/// <exception cref="TokenizingException">The specified data contains an invalid token.</exception>

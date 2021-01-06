@@ -12,7 +12,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Fixture for the <seealso cref="LogFileTests" /> class.
+	/// Fixture for the <seealso cref="LogFileTests"/> class.
 	/// </summary>
 	public class LogFileTestsFixture : IDisposable
 	{
@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		public readonly string TestFilePath_Analysis_RandomMessages_10K;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogFileTestsFixture" /> class.
+		/// Initializes a new instance of the <see cref="LogFileTestsFixture"/> class.
 		/// </summary>
 		public LogFileTestsFixture()
 		{

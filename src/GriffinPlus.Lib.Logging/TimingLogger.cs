@@ -32,7 +32,7 @@ namespace GriffinPlus.Lib.Logging
 		private                 bool                        mActive;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TimingLogger" /> class.
+		/// Initializes a new instance of the <see cref="TimingLogger"/> class.
 		/// </summary>
 		private TimingLogger()
 		{

@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly ConcurrentBag<LogMessage> mMessages;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessagePool" /> class.
+		/// Initializes a new instance of the <see cref="LogMessagePool"/> class.
 		/// </summary>
 		public LogMessagePool()
 		{
@@ -36,7 +36,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets an empty log message from the pool.
 		/// Creates a new log message, if the pool is empty.
-		/// Call <see cref="LogMessage.InitWith" /> or <see cref="LogMessage"/> properties to initialize it.
+		/// Call <see cref="LogMessage.InitWith"/> or <see cref="LogMessage"/> properties to initialize it.
 		/// The <see cref="LogMessage.IsInitialized"/> property is <c>true</c> right from start.
 		/// </summary>
 		/// <returns>
@@ -71,7 +71,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="lostMessageCount">
 		/// Gets or sets the number of preceding messages that have been lost before this message
@@ -136,11 +136,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets an uninitialized log message from the pool and prepares it for asynchronous initialization.
 		/// Creates a new log message, if the pool is empty.
 		/// The <see cref="LogMessage.IsInitialized"/> property is <c>false</c> at start and set to <c>true</c>
-		/// when <see cref="ILogMessageInitializer.Initialize" /> is called to initialize the message later on.
+		/// when <see cref="ILogMessageInitializer.Initialize"/> is called to initialize the message later on.
 		/// </summary>
 		/// <param name="readOnly">
 		/// true to get a read-only message that can only be set by the returned initializer, but not using any properties or <see cref="LogMessage.InitWith"/>;
-		/// false to get a regular message that can be modified as usual using properties and <see cref="LogMessage.InitWith"/> after it has been initialized asynchronously.
+		/// false to get a regular message that can be modified as usual using properties and <see cref="LogMessage.InitWith"/> after it has been initialized
+		/// asynchronously.
 		/// </param>
 		/// <param name="initializer">
 		/// Receives the initializer that allows to initialize the log message.

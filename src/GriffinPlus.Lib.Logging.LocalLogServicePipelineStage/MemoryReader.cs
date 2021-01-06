@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging
 	class MemoryReader : BinaryReader
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryReader" /> class.
+		/// Initializes a new instance of the <see cref="MemoryReader"/> class.
 		/// </summary>
 		/// <param name="stream">Stream to read from.</param>
 		public MemoryReader(Stream stream) : base(stream)
@@ -30,7 +30,7 @@ namespace GriffinPlus.Lib.Logging
 		public T ReadStruct<T>()
 		{
 			int byteLength = Marshal.SizeOf(typeof(T));
-			var bytes = ReadBytes(byteLength);
+			byte[] bytes = ReadBytes(byteLength);
 			var pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
 
 			try

@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 
 	/// <summary>
 	/// Event manager that administrates event handlers in a central place.
-	/// Made for events of the <see cref="EventHandler{TEventArgs}" /> type.
+	/// Made for events of the <see cref="EventHandler{TEventArgs}"/> type.
 	/// Objects firing events do not need to implement own event add/remove logic, especially when it comes to firing
 	/// events asynchronously.
 	/// </summary>
@@ -53,10 +53,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="handler">Event handler to register.</param>
 		/// <param name="context">Synchronization context to use when calling the event handler (may be null).</param>
 		/// <param name="scheduleAlways">
-		/// If <paramref name="context" /> is set:
+		/// If <paramref name="context"/> is set:
 		/// <c>true</c> to always schedule the event handler in the specified synchronization context,
 		/// <c>false</c> to schedule the event handler in the specified context only, if the thread firing the event has some other synchronization context.
-		/// If <paramref name="context" /> is <c>null</c>:
+		/// If <paramref name="context"/> is <c>null</c>:
 		/// <c>true</c> to always schedule the event handler in a worker thread,
 		/// <c>false</c> to invoke the event handler in the thread that is firing the event (direct call).
 		/// </param>
@@ -91,10 +91,10 @@ namespace GriffinPlus.Lib.Logging
 		/// (<c>null</c> to execute the event handler in the context of the thread firing the event).
 		/// </param>
 		/// <param name="scheduleAlways">
-		/// If <paramref name="context" /> is set:
+		/// If <paramref name="context"/> is set:
 		/// <c>true</c> to always schedule the event handler in the specified synchronization context,
 		/// <c>false</c> to schedule the event handler in the specified context only, if the thread firing the event has some other synchronization context.
-		/// If <paramref name="context" /> is <c>null</c>:
+		/// If <paramref name="context"/> is <c>null</c>:
 		/// <c>true</c> to always schedule the event handler in a worker thread,
 		/// <c>false</c> to invoke the event handler in the thread that is firing the event (direct call).
 		/// </param>

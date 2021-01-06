@@ -15,19 +15,19 @@ namespace GriffinPlus.Lib.Logging
 
 	/// <summary>
 	/// A log message that was written by the current process (it therefore contains additional information
-	/// about the <see cref="LogWriter" /> object and the <see cref="LogLevel" /> object involved).
+	/// about the <see cref="LogWriter"/> object and the <see cref="LogLevel"/> object involved).
 	/// </summary>
 	public sealed class LocalLogMessage : ILogMessage, IEquatable<ILogMessage>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogMessage" /> class.
+		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class.
 		/// </summary>
 		public LocalLogMessage()
 		{
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogMessage" /> class.
+		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class.
 		/// </summary>
 		/// <param name="pool">The pool the message belongs to.</param>
 		internal LocalLogMessage(LocalLogMessagePool pool)
@@ -36,7 +36,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogMessage" /> class copying the specified one.
+		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class copying the specified one.
 		/// </summary>
 		/// <param name="other">Message to copy.</param>
 		public LocalLogMessage(LocalLogMessage other)
@@ -178,7 +178,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (in ns, the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
+		/// (in ns, the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="logWriter">Log writer that was used to emit the message.</param>
 		/// <param name="logLevel">Log level that is associated with the message.</param>

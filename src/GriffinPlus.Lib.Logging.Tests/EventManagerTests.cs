@@ -19,7 +19,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="EventManager{T}" /> class.
+	/// Unit tests targeting the <see cref="EventManager{T}"/> class.
 	/// </summary>
 	public class EventManagerTests : IDisposable
 	{
@@ -28,7 +28,7 @@ namespace GriffinPlus.Lib.Logging
 		private AsyncContextThread mThread;
 
 		/// <summary>
-		/// Initializes an instance the <see cref="EventManagerTests" /> class performing common initialization before running a test.
+		/// Initializes an instance the <see cref="EventManagerTests"/> class performing common initialization before running a test.
 		/// </summary>
 		public EventManagerTests()
 		{

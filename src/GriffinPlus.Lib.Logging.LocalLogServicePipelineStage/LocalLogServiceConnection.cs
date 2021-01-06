@@ -45,7 +45,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Construction
 
 		/// <summary>
-		/// Initializes the <see cref="LocalLogServiceConnection" /> class.
+		/// Initializes the <see cref="LocalLogServiceConnection"/> class.
 		/// </summary>
 		static LocalLogServiceConnection()
 		{
@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogServiceConnection" /> class.
+		/// Initializes a new instance of the <see cref="LocalLogServiceConnection"/> class.
 		/// </summary>
 		/// <param name="prefix">Prefix for kernel objects created along with the connection.</param>
 		public LocalLogServiceConnection(string prefix)
@@ -98,7 +98,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the interval between two attempts to re-establish the connection to the local log service.
-		/// Requires <see cref="AutoReconnect" /> to be set to <c>true</c>.
+		/// Requires <see cref="AutoReconnect"/> to be set to <c>true</c>.
 		/// </summary>
 		public TimeSpan AutoReconnectRetryInterval
 		{
@@ -163,7 +163,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the capacity of the queue buffering data blocks that would have been sent to the local
 		/// log service, but could not, because the shared memory queue was full. This can happen in case of severe
-		/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode" /> is <c>false</c>. Set the capacity
+		/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode"/> is <c>false</c>. Set the capacity
 		/// to 0 to disable peak buffering messages (notifications are always buffered to avoid getting out of sync).
 		/// </summary>
 		/// <remarks>
@@ -277,7 +277,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <returns>
 		/// true, if the connection has been established successfully or if it already was established;
-		/// false, if establishing the connection failed and <see cref="AutoReconnect" /> is <c>false</c>,
+		/// false, if establishing the connection failed and <see cref="AutoReconnect"/> is <c>false</c>,
 		/// so the connection will not be established automatically.
 		/// </returns>
 		public bool Initialize()
@@ -316,7 +316,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Schedules a task to connect to the local log service after the <see cref="mAutoReconnectRetryInterval" />.
+		/// Schedules a task to connect to the local log service after the <see cref="mAutoReconnectRetryInterval"/>.
 		/// </summary>
 		private void StartAutoReconnectTask()
 		{
@@ -336,7 +336,7 @@ namespace GriffinPlus.Lib.Logging
 				mAutoReconnectTask = Task
 					.Delay(mAutoReconnectRetryInterval, cts)
 					.ContinueWith(
-						x =>
+						_ =>
 						{
 							lock (mSync)
 							{
@@ -1010,7 +1010,7 @@ namespace GriffinPlus.Lib.Logging
 
 						// get enough blocks to store the resulting message
 						var blocks = stackalloc LogEntryBlock*[requiredExtensionMessages + 1];
-						var bytesWritten = stackalloc int[requiredExtensionMessages + 1];
+						int* bytesWritten = stackalloc int[requiredExtensionMessages + 1];
 						blocks[0] = firstBlock;
 						bytesWritten[0] = sizeof(LogEntryBlock);
 
@@ -1463,7 +1463,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="sendDeferredItems">
 		/// true to send deferred items, if any;
-		/// false to skip sending deferred items (only for use within <see cref="GetLogEntryBlock" />).
+		/// false to skip sending deferred items (only for use within <see cref="GetLogEntryBlock"/>).
 		/// </param>
 		/// <returns>
 		/// A free log entry block;
@@ -1471,7 +1471,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		/// <remarks>
 		/// This method returns a free block from the log entry queue. If the queue does not contain any
-		/// free blocks, it tries to get a block after a certain time (<see cref="QueueBlockFetchRetryDelayTime" />).
+		/// free blocks, it tries to get a block after a certain time (<see cref="QueueBlockFetchRetryDelayTime"/>).
 		/// </remarks>
 		private LogEntryBlock* GetLogEntryBlock(bool sendDeferredItems = true)
 		{
@@ -1567,7 +1567,7 @@ namespace GriffinPlus.Lib.Logging
 			// allocate enough blocks for the message block incl. its extension blocks
 			int requiredBlockCount = extensionMessageCount + 1;
 			var blocks = stackalloc LogEntryBlock*[requiredBlockCount];
-			var blockSizes = stackalloc int[requiredBlockCount];
+			int* blockSizes = stackalloc int[requiredBlockCount];
 			for (int i = 0; i < requiredBlockCount; i++)
 			{
 				blockSizes[i] = sizeof(LogEntryBlock);

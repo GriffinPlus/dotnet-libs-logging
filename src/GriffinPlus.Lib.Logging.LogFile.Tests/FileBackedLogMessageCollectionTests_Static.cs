@@ -14,18 +14,18 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="FileBackedLogMessageCollection" /> class.
+	/// Unit tests targeting the <see cref="FileBackedLogMessageCollection"/> class.
 	/// </summary>
 	[Collection("LogFileTests")]
 	public class FileBackedLogMessageCollectionTests_Static
 	{
-		private static readonly LogFilePurpose[]    sLogFilePurposes   = { LogFilePurpose.Recording, LogFilePurpose.Analysis };
-		private static readonly LogFileWriteMode[]  sLogFileWriteModes = { LogFileWriteMode.Robust, LogFileWriteMode.Fast };
+		private static readonly LogFilePurpose[]   sLogFilePurposes   = { LogFilePurpose.Recording, LogFilePurpose.Analysis };
+		private static readonly LogFileWriteMode[] sLogFileWriteModes = { LogFileWriteMode.Robust, LogFileWriteMode.Fast };
 
 		#region CreateTemporaryCollection()
 
 		/// <summary>
-		/// Test data for the <see cref="CreateTemporaryCollection" /> test method.
+		/// Test data for the <see cref="CreateTemporaryCollection"/> test method.
 		/// </summary>
 		public static IEnumerable<object[]> CreateTemporaryCollectionTestData
 		{
@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating an instance of the <see cref="FileBackedLogMessageCollection" /> class with a temporary backing log file.
+		/// Tests creating an instance of the <see cref="FileBackedLogMessageCollection"/> class with a temporary backing log file.
 		/// </summary>
 		/// <param name="deleteAutomatically">
 		/// true to delete the file automatically when the collection is disposed (or the next time, a temporary collection is created in the same directory);

@@ -22,7 +22,7 @@ namespace GriffinPlus.Lib.Logging
 		private          bool           mDisposed;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MonitorSynchronizedEnumerator{T}" /> class.
+		/// Initializes a new instance of the <see cref="MonitorSynchronizedEnumerator{T}"/> class.
 		/// </summary>
 		/// <param name="inner">Inner enumerator (unsynchronized).</param>
 		/// <param name="sync">Synchronization object to use for locking the enumerated collection.</param>

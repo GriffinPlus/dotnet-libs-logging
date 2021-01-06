@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly LocalLogServiceConnection mSource;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalLogServicePipelineStage" /> class.
+		/// Initializes a new instance of the <see cref="LocalLogServicePipelineStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="prefix">
@@ -40,7 +40,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the interval between two attempts to re-establish the connection to the local log service.
-		/// Requires <see cref="AutoConnect" /> to be set to <c>true</c>.
+		/// Requires <see cref="AutoConnect"/> to be set to <c>true</c>.
 		/// </summary>
 		public TimeSpan AutoConnectRetryInterval
 		{
@@ -60,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the capacity of the queue buffering data blocks that would have been sent to the local
 		/// log service, but could not, because the shared memory queue was full. This can happen in case of severe
-		/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode" /> is <c>false</c>. Set the capacity
+		/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode"/> is <c>false</c>. Set the capacity
 		/// to 0 to disable peak buffering messages (notifications are always buffered to avoid getting out of sync).
 		/// </summary>
 		public int PeakBufferCapacity

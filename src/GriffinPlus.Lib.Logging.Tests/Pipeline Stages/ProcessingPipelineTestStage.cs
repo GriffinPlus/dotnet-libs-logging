@@ -7,13 +7,13 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Pipeline stage that only provides functionality of the <see cref="ProcessingPipelineStage{STAGE}" /> class.
+	/// Pipeline stage that only provides functionality of the <see cref="ProcessingPipelineStage{STAGE}"/> class.
 	/// It is used for testing purposes only.
 	/// </summary>
 	public class ProcessingPipelineTestStage : ProcessingPipelineStage<ProcessingPipelineTestStage>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineTestStage" /> class.
+		/// Initializes a new instance of the <see cref="ProcessingPipelineTestStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		public ProcessingPipelineTestStage(string name) : base(name)
@@ -21,22 +21,22 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a value indicating whether <see cref="OnInitialize" /> was called.
+		/// Gets a value indicating whether <see cref="OnInitialize"/> was called.
 		/// </summary>
 		public bool OnInitializeWasCalled { get; private set; }
 
 		/// <summary>
-		/// Gets a value indicating whether <see cref="OnShutdown" /> was called.
+		/// Gets a value indicating whether <see cref="OnShutdown"/> was called.
 		/// </summary>
 		public bool OnShutdownWasCalled { get; private set; }
 
 		/// <summary>
-		/// Gets a value indicating whether <see cref="ProcessSync" /> was called.
+		/// Gets a value indicating whether <see cref="ProcessSync"/> was called.
 		/// </summary>
 		public bool ProcessSyncWasCalled { get; private set; }
 
 		/// <summary>
-		/// Gets the message that was passed to <see cref="ProcessSync" /> with the last call.
+		/// Gets the message that was passed to <see cref="ProcessSync"/> with the last call.
 		/// </summary>
 		public LocalLogMessage MessagePassedToProcessSync { get; private set; }
 

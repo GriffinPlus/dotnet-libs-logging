@@ -31,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly string                                    mFileName;
 
 		/// <summary>
-		/// Initializes the <see cref="FileBackedLogConfiguration" /> class.
+		/// Initializes the <see cref="FileBackedLogConfiguration"/> class.
 		/// </summary>
 		static FileBackedLogConfiguration()
 		{
@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration" /> class (the configuration file is
+		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class (the configuration file is
 		/// located in the application's base directory and named as the entry assembly plus extension '.logconf').
 		/// </summary>
 		public FileBackedLogConfiguration() : this(sDefaultConfigFilePath)
@@ -62,7 +62,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration" /> class.
+		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class.
 		/// </summary>
 		/// <param name="path">Path of the configuration file to use.</param>
 		public FileBackedLogConfiguration(string path)

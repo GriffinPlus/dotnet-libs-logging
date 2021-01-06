@@ -10,15 +10,15 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Fluent builder for a <see cref="LogWriterConfiguration" />.
+	/// Fluent builder for a <see cref="LogWriterConfiguration"/>.
 	/// </summary>
 	public class LogWriterConfigurationBuilder
 	{
 		private readonly LogWriterConfiguration mConfiguration = new LogWriterConfiguration();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogWriterConfigurationBuilder" /> class.
-		/// Not supported, please use <see cref="New" /> instead to feature the fluent character.
+		/// Initializes a new instance of the <see cref="LogWriterConfigurationBuilder"/> class.
+		/// Not supported, please use <see cref="New"/> instead to feature the fluent character.
 		/// </summary>
 		private LogWriterConfigurationBuilder()
 		{

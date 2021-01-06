@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly object                    mSync = new object();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonMessageFormatter" /> class.
+		/// Initializes a new instance of the <see cref="JsonMessageFormatter"/> class.
 		/// </summary>
 		public JsonMessageFormatter()
 		{
@@ -93,7 +93,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the format provider to use when formatting log messages.
-		/// By default <see cref="CultureInfo.InvariantCulture" /> is used.
+		/// By default <see cref="CultureInfo.InvariantCulture"/> is used.
 		/// </summary>
 		public IFormatProvider FormatProvider
 		{
@@ -126,7 +126,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets the string to use for indenting lines
-		/// (applies only if <see cref="Style" /> is set to <see cref="JsonMessageFormatterStyle.Beautified" />).
+		/// (applies only if <see cref="Style"/> is set to <see cref="JsonMessageFormatterStyle.Beautified"/>).
 		/// </summary>
 		public string Indent
 		{
@@ -360,7 +360,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Updates the <see cref="mMaxEscapedJsonKeyLength" /> field to reflect changes to the fields.
+		/// Updates the <see cref="mMaxEscapedJsonKeyLength"/> field to reflect changes to the fields.
 		/// </summary>
 		private void UpdateMaxEscapedJsonKeyLength()
 		{

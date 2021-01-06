@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="LogFile" /> class.
+	/// Unit tests targeting the <see cref="LogFile"/> class.
 	/// </summary>
 	[Collection("LogFileTests")]
 	public class LogFileTests : IClassFixture<LogFileTestsFixture>
@@ -24,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly        LogFileTestsFixture mFixture;
 
 		/// <summary>
-		/// Initializes an instance of the <see cref="LogFileTests" /> class.
+		/// Initializes an instance of the <see cref="LogFileTests"/> class.
 		/// </summary>
 		/// <param name="fixture">Fixture providing static test data.</param>
 		public LogFileTests(LogFileTestsFixture fixture)
@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 		#region GetSqliteVersion()
 
 		/// <summary>
-		/// Tests getting the <see cref="LogFile.SqliteVersion" /> property.
+		/// Tests getting the <see cref="LogFile.SqliteVersion"/> property.
 		/// </summary>
 		/// <remarks>
 		/// This test fails on linux due to different sqlite versions in the nuget package, see also
@@ -130,7 +130,7 @@ namespace GriffinPlus.Lib.Logging
 		#region OpenOrCreate()
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="LogFile" /> class with a new log file.
+		/// Tests creating a new instance of the <see cref="LogFile"/> class with a new log file.
 		/// The file is opened for reading and writing.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
@@ -170,7 +170,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="LogFile" /> class with an existing log file.
+		/// Tests creating a new instance of the <see cref="LogFile"/> class with an existing log file.
 		/// The file is opened for reading and writing.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
@@ -218,7 +218,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Open()
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="LogFile" /> class with an existing log file.
+		/// Tests creating a new instance of the <see cref="LogFile"/> class with an existing log file.
 		/// The file is opened for reading and writing.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
@@ -263,7 +263,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="LogFile" /> class with an existing log file.
+		/// Tests creating a new instance of the <see cref="LogFile"/> class with an existing log file.
 		/// The file does not exist, so an exception should be thrown.
 		/// </summary>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -279,7 +279,7 @@ namespace GriffinPlus.Lib.Logging
 		#region OpenReadOnly()
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="LogFile" /> class with an existing log file.
+		/// Tests creating a new instance of the <see cref="LogFile"/> class with an existing log file.
 		/// The file is opened for reading only.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
@@ -326,7 +326,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="LogFile" /> class with an existing log file.
+		/// Tests creating a new instance of the <see cref="LogFile"/> class with an existing log file.
 		/// The file does not exist, so an exception should be thrown.
 		/// </summary>
 		[Fact]
@@ -563,7 +563,7 @@ namespace GriffinPlus.Lib.Logging
 					expectedNames.Sort(); // the list returned by the log file is expected to be sorted ascendingly
 
 					// perform the action to test on the log file and compare with the expected result
-					var names = action(file);
+					string[] names = action(file);
 					Assert.Equal(expectedNames, names);
 				}
 			}
@@ -975,11 +975,11 @@ namespace GriffinPlus.Lib.Logging
 					Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
 
 					// retrieve the lists of log writers, levels, process names etc.
-					var logWriterNames = file.GetLogWriterNames(false);
-					var logLevelNames = file.GetLogLevelNames(false);
-					var processNames = file.GetProcessNames(false);
-					var applicationNames = file.GetApplicationNames(false);
-					var tags = file.GetTags(false);
+					string[] logWriterNames = file.GetLogWriterNames(false);
+					string[] logLevelNames = file.GetLogLevelNames(false);
+					string[] processNames = file.GetProcessNames(false);
+					string[] applicationNames = file.GetApplicationNames(false);
+					string[] tags = file.GetTags(false);
 
 					// clear log file
 					file.Clear(messagesOnly, compact);

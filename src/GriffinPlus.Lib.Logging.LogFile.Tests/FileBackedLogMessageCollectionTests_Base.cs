@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="FileBackedLogMessageCollection" /> class.
+	/// Unit tests targeting the <see cref="FileBackedLogMessageCollection"/> class.
 	/// </summary>
 	public abstract class FileBackedLogMessageCollectionTests_Base : LogMessageCollectionBaseTests, IClassFixture<LogFileTestsFixture>
 	{
@@ -47,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes an instance of the <see cref="FileBackedLogMessageCollectionTests_Base" /> class.
+		/// Initializes an instance of the <see cref="FileBackedLogMessageCollectionTests_Base"/> class.
 		/// </summary>
 		/// <param name="fixture">Fixture providing static test data.</param>
 		protected FileBackedLogMessageCollectionTests_Base(LogFileTestsFixture fixture)
@@ -74,7 +74,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection" /> class with a new backing log file in the working directory.
+		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection"/> class with a new backing log file in the working directory.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -107,7 +107,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection" /> class with an existing backing log file.
+		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection"/> class with an existing backing log file.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -156,7 +156,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection" /> class with an existing backing log file.
+		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection"/> class with an existing backing log file.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -190,7 +190,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection" /> class with an existing backing log file.
+		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection"/> class with an existing backing log file.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -228,7 +228,7 @@ namespace GriffinPlus.Lib.Logging
 		#region CreateTemporaryCollection()
 
 		/// <summary>
-		/// Test data for the <see cref="CreateTemporaryCollection" /> test method.
+		/// Test data for the <see cref="CreateTemporaryCollection"/> test method.
 		/// </summary>
 		public static IEnumerable<object[]> CreateTemporaryCollectionTestData
 		{
@@ -245,7 +245,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests creating an instance of the <see cref="FileBackedLogMessageCollection" /> class with a temporary backing log file.
+		/// Tests creating an instance of the <see cref="FileBackedLogMessageCollection"/> class with a temporary backing log file.
 		/// </summary>
 		/// <param name="deleteAutomatically">
 		/// true to delete the file automatically when the collection is disposed (or the next time, a temporary collection is created in the same directory);
@@ -290,8 +290,8 @@ namespace GriffinPlus.Lib.Logging
 		#region LogFile and FilePath
 
 		/// <summary>
-		/// Tests whether the collection provides its backing <see cref="LogFile" /> instance via its
-		/// <see cref="FileBackedLogMessageCollection.LogFile" /> property and whether the <see cref="FileBackedLogMessageCollection.FilePath" />
+		/// Tests whether the collection provides its backing <see cref="LogFile"/> instance via its
+		/// <see cref="FileBackedLogMessageCollection.LogFile"/> property and whether the <see cref="FileBackedLogMessageCollection.FilePath"/>
 		/// property returns the same path as the log file.
 		/// </summary>
 		[Fact]

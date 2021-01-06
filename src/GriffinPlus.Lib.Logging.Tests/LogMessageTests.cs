@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="LogMessage" /> class.
+	/// Unit tests targeting the <see cref="LogMessage"/> class.
 	/// </summary>
 	public class LogMessageTests : IDisposable
 	{
@@ -98,7 +98,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Test data for <see cref="CreateWithAsyncInit_FollowedByInitialize" />.
+		/// Test data for <see cref="CreateWithAsyncInit_FollowedByInitialize"/>.
 		/// </summary>
 		public static IEnumerable<object[]> CreateWithAsyncInitTestData_FollowedByInitialize
 		{
@@ -125,7 +125,7 @@ namespace GriffinPlus.Lib.Logging
 		/// false to initialize the message and raise the event in some other thread.
 		/// </param>
 		/// <param name="withPropertyChanged">
-		/// true to register the <see cref="LogMessage.PropertyChanged" /> event and check whether it is fired correctly;
+		/// true to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;
 		/// otherwise false.
 		/// </param>
 		[Theory]
@@ -184,17 +184,17 @@ namespace GriffinPlus.Lib.Logging
 				Assert.False(message.IsAsyncInitPending);
 
 				// check message properties
-				Assert.Equal(1,                                                 message.Id);
+				Assert.Equal(1, message.Id);
 				Assert.Equal(DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"), message.Timestamp);
-				Assert.Equal(2,                                                 message.HighPrecisionTimestamp);
-				Assert.Equal(3,                                                 message.LostMessageCount);
-				Assert.Equal("Log Writer",                                      message.LogWriterName);
-				Assert.Equal("Log Level",                                       message.LogLevelName);
-				Assert.Equal(new TagSet("Tag"),                                 message.Tags);
-				Assert.Equal("Application",                                     message.ApplicationName);
-				Assert.Equal("Process",                                         message.ProcessName);
-				Assert.Equal(42,                                                message.ProcessId);
-				Assert.Equal("Some text",                                       message.Text);
+				Assert.Equal(2, message.HighPrecisionTimestamp);
+				Assert.Equal(3, message.LostMessageCount);
+				Assert.Equal("Log Writer", message.LogWriterName);
+				Assert.Equal("Log Level", message.LogLevelName);
+				Assert.Equal(new TagSet("Tag"), message.Tags);
+				Assert.Equal("Application", message.ApplicationName);
+				Assert.Equal("Process", message.ProcessName);
+				Assert.Equal(42, message.ProcessId);
+				Assert.Equal("Some text", message.Text);
 
 				if (initInSameThread)
 				{
@@ -241,7 +241,7 @@ namespace GriffinPlus.Lib.Logging
 		#region InitWith()
 
 		/// <summary>
-		/// Test data for <see cref="InitWith" />.
+		/// Test data for <see cref="InitWith"/>.
 		/// </summary>
 		public static IEnumerable<object[]> InitWithTestData
 		{
@@ -256,14 +256,14 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests <see cref="LogMessage.InitWith" />.
+		/// Tests <see cref="LogMessage.InitWith"/>.
 		/// </summary>
 		/// <param name="initInSameThread">
 		/// true to initialize the message in the thread that registers the event;
 		/// false to initialize the message and raise the event in some other thread.
 		/// </param>
 		/// <param name="withPropertyChanged">
-		/// true to register the <see cref="LogMessage.PropertyChanged" /> event and check whether it is fired correctly;
+		/// true to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;
 		/// otherwise false.
 		/// </param>
 		[Theory]
@@ -324,17 +324,17 @@ namespace GriffinPlus.Lib.Logging
 				Assert.False(message.IsAsyncInitPending);
 
 				// check message properties
-				Assert.Equal(1,                                                 message.Id);
+				Assert.Equal(1, message.Id);
 				Assert.Equal(DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"), message.Timestamp);
-				Assert.Equal(2,                                                 message.HighPrecisionTimestamp);
-				Assert.Equal(3,                                                 message.LostMessageCount);
-				Assert.Equal("Log Writer",                                      message.LogWriterName);
-				Assert.Equal("Log Level",                                       message.LogLevelName);
-				Assert.Equal(new TagSet("Tag"),                                 message.Tags);
-				Assert.Equal("Application",                                     message.ApplicationName);
-				Assert.Equal("Process",                                         message.ProcessName);
-				Assert.Equal(42,                                                message.ProcessId);
-				Assert.Equal("Some Text",                                       message.Text);
+				Assert.Equal(2, message.HighPrecisionTimestamp);
+				Assert.Equal(3, message.LostMessageCount);
+				Assert.Equal("Log Writer", message.LogWriterName);
+				Assert.Equal("Log Level", message.LogLevelName);
+				Assert.Equal(new TagSet("Tag"), message.Tags);
+				Assert.Equal("Application", message.ApplicationName);
+				Assert.Equal("Process", message.ProcessName);
+				Assert.Equal(42, message.ProcessId);
+				Assert.Equal("Some Text", message.Text);
 
 				if (initInSameThread)
 				{
@@ -461,7 +461,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests getting a property of the <see cref="LogMessage" /> class.
+		/// Tests getting a property of the <see cref="LogMessage"/> class.
 		/// </summary>
 		/// <param name="property">Property to test.</param>
 		/// <param name="expectedDefaultValue">Expected default value of the property.</param>
@@ -495,7 +495,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests setting a property of the <see cref="LogMessage" /> class.
+		/// Tests setting a property of the <see cref="LogMessage"/> class.
 		/// </summary>
 		/// <param name="property">Property to test.</param>
 		/// <param name="expectedDefaultValue">Expected default value of the property.</param>
@@ -547,7 +547,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests setting a property of the <see cref="LogMessage" /> class.
+		/// Tests setting a property of the <see cref="LogMessage"/> class.
 		/// </summary>
 		/// <param name="property">Property to test.</param>
 		/// <param name="expectedDefaultValue">Expected default value of the property.</param>
@@ -707,11 +707,11 @@ namespace GriffinPlus.Lib.Logging
 		#region Reset to Defaults
 
 		/// <summary>
-		/// Tests resetting a log message to defaults using <see cref="LogMessage.Reset" />.
+		/// Tests resetting a log message to defaults using <see cref="LogMessage.Reset"/>.
 		/// Used internally by the pool.
 		/// </summary>
 		/// <param name="withPropertyChanged">
-		/// true to register the <see cref="LogMessage.PropertyChanged" /> event and check whether it is fired correctly;
+		/// true to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;
 		/// otherwise false.
 		/// </param>
 		[Theory]
@@ -774,7 +774,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Write Protection
 
 		/// <summary>
-		/// Test data for <see cref="Protect" />.
+		/// Test data for <see cref="Protect"/>.
 		/// </summary>
 		public static IEnumerable<object[]> ProtectTestData
 		{
@@ -789,14 +789,14 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether <see cref="LogMessage.Protect" /> sets the <see cref="LogMessage.IsReadOnly" /> property to <c>true</c>.
+		/// Tests whether <see cref="LogMessage.Protect"/> sets the <see cref="LogMessage.IsReadOnly"/> property to <c>true</c>.
 		/// </summary>
 		/// <param name="protectInSameThread">
 		/// true to protect the message in the thread that registers the event;
 		/// false to protect the message and raise the event in some other thread.
 		/// </param>
 		/// <param name="withPropertyChanged">
-		/// true to register the <see cref="LogMessage.PropertyChanged" /> event and check whether it is fired correctly;
+		/// true to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;
 		/// otherwise false.
 		/// </param>
 		[Theory]
@@ -876,7 +876,7 @@ namespace GriffinPlus.Lib.Logging
 					// event handler should run in the context of the thread that registered it
 					Assert.True(handlerCalledEvent.Wait(1000));
 					Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
-					Assert.Equal(new string[] { "IsReadOnly" }, changedPropertyNames.ToArray());
+					Assert.Equal(new[] { "IsReadOnly" }, changedPropertyNames.ToArray());
 				}
 				else
 				{
@@ -936,7 +936,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests <see cref="LogMessage.GetHashCode" /> by comparing the hash code of the specified message with
+		/// Tests <see cref="LogMessage.GetHashCode"/> by comparing the hash code of the specified message with
 		/// a copy of the message with a certain property set to the specified value.
 		/// </summary>
 		/// <param name="message">Message to work with.</param>
@@ -965,7 +965,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests <see cref="LogMessage.Equals(GriffinPlus.Lib.Logging.ILogMessage)" /> by comparing the specified message with a copy of the message
+		/// Tests <see cref="LogMessage.Equals(GriffinPlus.Lib.Logging.ILogMessage)"/> by comparing the specified message with a copy of the message
 		/// with a certain property set to the specified value.
 		/// </summary>
 		/// <param name="message">Message to work with.</param>
@@ -1016,16 +1016,16 @@ namespace GriffinPlus.Lib.Logging
 			LogMessagePool pool     = null)
 		{
 			// check administrative properties
-			Assert.Equal(inited,   message.IsInitialized);
+			Assert.Equal(inited, message.IsInitialized);
 			Assert.Equal(readOnly, message.IsReadOnly);
-			Assert.Equal(1,        message.RefCount);
+			Assert.Equal(1, message.RefCount);
 			Assert.Same(pool, message.Pool);
 
 			// check message specific properties
-			Assert.Equal(-1,      message.Id);
-			Assert.Equal(0,       message.LostMessageCount);
+			Assert.Equal(-1, message.Id);
+			Assert.Equal(0, message.LostMessageCount);
 			Assert.Equal(default, message.Timestamp);
-			Assert.Equal(0,       message.HighPrecisionTimestamp);
+			Assert.Equal(0, message.HighPrecisionTimestamp);
 			Assert.Null(message.LogWriterName);
 			Assert.Null(message.LogLevelName);
 			Assert.Null(message.Tags);
@@ -1036,7 +1036,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Sets the specified property of the <see cref="LogMessage" /> class to the specified value.
+		/// Sets the specified property of the <see cref="LogMessage"/> class to the specified value.
 		/// </summary>
 		/// <param name="message">Log message to modify.</param>
 		/// <param name="property">Property to test.</param>

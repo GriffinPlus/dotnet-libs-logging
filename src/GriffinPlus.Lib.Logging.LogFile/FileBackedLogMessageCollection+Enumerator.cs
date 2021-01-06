@@ -13,7 +13,7 @@ namespace GriffinPlus.Lib.Logging
 	public partial class FileBackedLogMessageCollection
 	{
 		/// <summary>
-		/// Enumerator iterating over a <see cref="FileBackedLogMessageCollection" />.
+		/// Enumerator iterating over a <see cref="FileBackedLogMessageCollection"/>.
 		/// </summary>
 		private class Enumerator : IEnumerator<LogMessage>
 		{
@@ -22,7 +22,7 @@ namespace GriffinPlus.Lib.Logging
 			private          long                           mIndex;
 
 			/// <summary>
-			/// Creates a new instance of the <see cref="Enumerator" /> class.
+			/// Creates a new instance of the <see cref="Enumerator"/> class.
 			/// </summary>
 			/// <param name="collection">Collection the enumerator will iterate over.</param>
 			public Enumerator(FileBackedLogMessageCollection collection)

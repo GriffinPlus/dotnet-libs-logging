@@ -204,7 +204,7 @@ namespace GriffinPlus.Lib.Logging
 		};
 
 		/// <summary>
-		/// Initializes the <see cref="LogLevel" /> class.
+		/// Initializes the <see cref="LogLevel"/> class.
 		/// </summary>
 		static LogLevel()
 		{
@@ -229,7 +229,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogLevel" /> class.
+		/// Initializes a new instance of the <see cref="LogLevel"/> class.
 		/// </summary>
 		/// <param name="name">Name of the log level.</param>
 		private LogLevel(string name)
@@ -240,7 +240,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogLevel" /> class (assigns a specific log level id).
+		/// Initializes a new instance of the <see cref="LogLevel"/> class (assigns a specific log level id).
 		/// </summary>
 		/// <param name="name">Name of the log level.</param>
 		/// <param name="id">Id of the log level.</param>
@@ -267,7 +267,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets all log levels that are currently known (except log level 'None' and 'All').
-		/// The index of the log level in the list corresponds to <see cref="LogLevel.Id" />.
+		/// The index of the log level in the list corresponds to <see cref="LogLevel.Id"/>.
 		/// </summary>
 		public static IReadOnlyList<LogLevel> KnownLevels => sLogLevelsById;
 
@@ -311,7 +311,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Converts a <see cref="LogLevel" /> to its name.
+		/// Converts a <see cref="LogLevel"/> to its name.
 		/// </summary>
 		/// <param name="level">Log level to convert.</param>
 		public static implicit operator string(LogLevel level)

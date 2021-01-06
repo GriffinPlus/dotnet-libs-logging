@@ -11,7 +11,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="LogLevelBitMask" /> class.
+	/// Unit tests targeting the <see cref="LogLevelBitMask"/> class.
 	/// </summary>
 	public class LogLevelLogLevelTests
 	{
@@ -82,8 +82,8 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(paddingValue, mask.PaddingValue);
 
 			// check underlying buffer
-			var maskArray = mask.AsArray();
-			var expectedMaskArray = new uint[effectiveSize / 32];
+			uint[] maskArray = mask.AsArray();
+			uint[] expectedMaskArray = new uint[effectiveSize / 32];
 			for (int i = 0; i < expectedMaskArray.Length; i++)
 			{
 				expectedMaskArray[i] = initialBitValue ? ~0u : 0u;
@@ -113,10 +113,10 @@ namespace GriffinPlus.Lib.Logging
 			mask.SetBit(bit);
 
 			// check underlying buffer
-			var maskArray = mask.AsArray();
+			uint[] maskArray = mask.AsArray();
 			int setBitArrayIndex = bit / 32;
 			int setBitIndex = bit % 32;
-			var expectedMaskArray = new uint[effectiveSize / 32];
+			uint[] expectedMaskArray = new uint[effectiveSize / 32];
 			for (int i = 0; i < expectedMaskArray.Length; i++)
 			{
 				if (i == setBitArrayIndex)
@@ -153,10 +153,10 @@ namespace GriffinPlus.Lib.Logging
 			mask.ClearBit(bit);
 
 			// check underlying buffer
-			var maskArray = mask.AsArray();
+			uint[] maskArray = mask.AsArray();
 			int clearedBitArrayIndex = bit / 32;
 			int clearedBitIndex = bit % 32;
-			var expectedMaskArray = new uint[effectiveSize / 32];
+			uint[] expectedMaskArray = new uint[effectiveSize / 32];
 			for (int i = 0; i < expectedMaskArray.Length; i++)
 			{
 				if (i == clearedBitArrayIndex)
@@ -213,7 +213,7 @@ namespace GriffinPlus.Lib.Logging
 			mask.SetBits(fromBit, count);
 
 			// check underlying buffer
-			var maskArray = mask.AsArray();
+			uint[] maskArray = mask.AsArray();
 			Assert.Equal(expectedMaskArray, maskArray);
 		}
 
@@ -258,7 +258,7 @@ namespace GriffinPlus.Lib.Logging
 			mask.ClearBits(fromBit, count);
 
 			// check underlying buffer
-			var maskArray = mask.AsArray();
+			uint[] maskArray = mask.AsArray();
 			Assert.Equal(expectedMaskArray, maskArray);
 		}
 

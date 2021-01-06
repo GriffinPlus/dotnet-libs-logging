@@ -7,7 +7,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// A raw setting in a <see cref="VolatileProcessingPipelineStageConfiguration" />.
+	/// A raw setting in a <see cref="VolatileProcessingPipelineStageConfiguration"/>.
 	/// </summary>
 	public class VolatileProcessingPipelineStageRawSetting : IProcessingPipelineStageRawSetting
 	{
@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 		private          bool   mHasValue;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageRawSetting" /> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageRawSetting"/> class.
 		/// </summary>
 		/// <param name="configuration">The configuration the setting belongs to.</param>
 		/// <param name="name">Name of the setting.</param>

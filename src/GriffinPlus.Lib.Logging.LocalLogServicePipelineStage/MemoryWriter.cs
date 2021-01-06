@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging
 	class MemoryWriter : BinaryWriter
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryWriter" /> class.
+		/// Initializes a new instance of the <see cref="MemoryWriter"/> class.
 		/// </summary>
 		/// <param name="stream">Stream to write to.</param>
 		public MemoryWriter(Stream stream)
@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 			try
 			{
 				Marshal.StructureToPtr(@struct, ptr, false);
-				var bytes = new byte[sizeOfT];
+				byte[] bytes = new byte[sizeOfT];
 				Marshal.Copy(ptr, bytes, 0, bytes.Length);
 				Write(bytes);
 			}

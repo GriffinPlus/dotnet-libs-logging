@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="FileWriterPipelineStage" /> class.
+	/// Unit tests targeting the <see cref="FileWriterPipelineStage"/> class.
 	/// </summary>
 	public class FileWriterPipelineStageTests : TextWriterPipelineStageBaseTests<FileWriterPipelineStage>, IDisposable
 	{

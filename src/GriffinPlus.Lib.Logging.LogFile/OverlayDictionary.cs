@@ -19,7 +19,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly Dictionary<TKey, TValue> mOverlay;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="OverlayDictionary{TKey,TValue}" /> class.
+		/// Initializes a new instance of the <see cref="OverlayDictionary{TKey,TValue}"/> class.
 		/// </summary>
 		/// <param name="comparer">Comparer to use to checks keys for equality (may be null to use the default comparer).</param>
 		public OverlayDictionary(IEqualityComparer<TKey> comparer = null)

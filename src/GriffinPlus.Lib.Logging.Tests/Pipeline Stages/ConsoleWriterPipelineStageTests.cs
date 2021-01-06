@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="ConsoleWriterPipelineStage" /> class.
+	/// Unit tests targeting the <see cref="ConsoleWriterPipelineStage"/> class.
 	/// </summary>
 	public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<ConsoleWriterPipelineStage>
 	{
@@ -102,7 +102,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether explicitly mapping a log level to a specific output stream using
-		/// <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream(LogLevel, ConsoleOutputStream)" /> works as excepted.
+		/// <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream(LogLevel, ConsoleOutputStream)"/> works as excepted.
 		/// </summary>
 		[Theory]
 		[MemberData(nameof(LogLevelToStreamMapping_TestData))]
@@ -123,7 +123,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream" /> throws an exception,
+		/// Tests whether <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream"/> throws an exception,
 		/// if the log level is a null reference.
 		/// </summary>
 		[Fact]
@@ -134,7 +134,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream" /> throws an exception,
+		/// Tests whether <see cref="ConsoleWriterPipelineStage.MapLogLevelToStream"/> throws an exception,
 		/// if the pipeline stage is initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]
@@ -147,7 +147,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether explicitly mapping log levels to a specific output stream using
-		/// <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides" /> works as excepted.
+		/// <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides"/> works as excepted.
 		/// </summary>
 		[Theory]
 		[MemberData(nameof(LogLevelToStreamMapping_TestData))]
@@ -165,7 +165,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether setting <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides" /> throws an exception,
+		/// Tests whether setting <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides"/> throws an exception,
 		/// if setting a null reference.
 		/// </summary>
 		[Fact]
@@ -176,7 +176,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether setting <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides" /> throws an exception,
+		/// Tests whether setting <see cref="ConsoleWriterPipelineStage.StreamByLevelOverrides"/> throws an exception,
 		/// if the pipeline stage is initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]
@@ -277,8 +277,8 @@ namespace GriffinPlus.Lib.Logging
 			// the streams should contain the output now
 			stdoutStream.Position = 0;
 			stderrStream.Position = 0;
-			var stdoutData = new byte[stdoutStream.Length];
-			var stderrData = new byte[stderrStream.Length];
+			byte[] stdoutData = new byte[stdoutStream.Length];
+			byte[] stderrData = new byte[stderrStream.Length];
 			stdoutStream.Read(stdoutData, 0, stdoutData.Length);
 			stderrStream.Read(stderrData, 0, stderrData.Length);
 			var stdoutReader = new StreamReader(new MemoryStream(stdoutData));

@@ -20,47 +20,47 @@ namespace GriffinPlus.Lib.Logging
 		None = 0,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.Timestamp" /> field.
+		/// The <see cref="ILogMessage.Timestamp"/> field.
 		/// </summary>
 		Timestamp = 1,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.HighPrecisionTimestamp" /> field.
+		/// The <see cref="ILogMessage.HighPrecisionTimestamp"/> field.
 		/// </summary>
 		HighPrecisionTimestamp = 1 << 1,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.LogWriterName" /> field.
+		/// The <see cref="ILogMessage.LogWriterName"/> field.
 		/// </summary>
 		LogWriterName = 1 << 2,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.LogLevelName" /> field.
+		/// The <see cref="ILogMessage.LogLevelName"/> field.
 		/// </summary>
 		LogLevelName = 1 << 3,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.Tags" /> field.
+		/// The <see cref="ILogMessage.Tags"/> field.
 		/// </summary>
 		Tags = 1 << 4,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.ApplicationName" /> field.
+		/// The <see cref="ILogMessage.ApplicationName"/> field.
 		/// </summary>
 		ApplicationName = 1 << 5,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.ProcessName" /> field.
+		/// The <see cref="ILogMessage.ProcessName"/> field.
 		/// </summary>
 		ProcessName = 1 << 6,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.ProcessId" /> field.
+		/// The <see cref="ILogMessage.ProcessId"/> field.
 		/// </summary>
 		ProcessId = 1 << 7,
 
 		/// <summary>
-		/// The <see cref="ILogMessage.Text" /> field.
+		/// The <see cref="ILogMessage.Text"/> field.
 		/// </summary>
 		Text = 1 << 8,
 

@@ -9,7 +9,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Untyped interface for a setting in a <see cref="IProcessingPipelineStageConfiguration" /> (must be implemented thread-safe).
+	/// Untyped interface for a setting in a <see cref="IProcessingPipelineStageConfiguration"/> (must be implemented thread-safe).
 	/// </summary>
 	public interface IUntypedProcessingPipelineStageSetting
 	{

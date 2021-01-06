@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 		private sealed class ApplicationNameField : FieldBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="ApplicationNameField" /> class.
+			/// Initializes a new instance of the <see cref="ApplicationNameField"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the field belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>

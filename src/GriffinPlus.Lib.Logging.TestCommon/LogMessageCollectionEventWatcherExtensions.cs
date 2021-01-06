@@ -10,13 +10,13 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Extension methods for the <see cref="ILogMessageCollection{TMessage}" /> interface.
+	/// Extension methods for the <see cref="ILogMessageCollection{TMessage}"/> interface.
 	/// </summary>
 	public static class LogMessageCollectionEventWatcherExtensions
 	{
 		/// <summary>
-		/// Creates an event watcher for the <see cref="INotifyCollectionChanged.CollectionChanged" /> and the
-		/// <see cref="INotifyPropertyChanged.PropertyChanged" /> event that assists with checking whether these
+		/// Creates an event watcher for the <see cref="INotifyCollectionChanged.CollectionChanged"/> and the
+		/// <see cref="INotifyPropertyChanged.PropertyChanged"/> event that assists with checking whether these
 		/// events were called or not.
 		/// </summary>
 		/// <param name="collection">Collection to attach the watcher to.</param>

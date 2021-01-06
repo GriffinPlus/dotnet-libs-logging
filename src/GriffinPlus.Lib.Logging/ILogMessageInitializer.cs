@@ -9,7 +9,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Interface for the asynchronous initialization feature of the <see cref="LogMessage" /> class.
+	/// Interface for the asynchronous initialization feature of the <see cref="LogMessage"/> class.
 	/// </summary>
 	public interface ILogMessageInitializer : IReferenceManagement
 	{
@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="lostMessageCount">
 		/// Gets or sets the number of preceding messages that have been lost before this message

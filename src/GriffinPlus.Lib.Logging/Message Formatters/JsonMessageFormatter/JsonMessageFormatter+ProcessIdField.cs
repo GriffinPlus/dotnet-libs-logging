@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 		private sealed class ProcessIdField : FieldBase
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="ProcessIdField" /> class.
+			/// Initializes a new instance of the <see cref="ProcessIdField"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>

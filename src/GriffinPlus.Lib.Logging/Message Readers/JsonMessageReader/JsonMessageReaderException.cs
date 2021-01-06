@@ -9,12 +9,12 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Exception that is thrown when <see cref="JsonMessageReader" /> fails reading a JSON log message fails due to invalid data.
+	/// Exception that is thrown when <see cref="JsonMessageReader"/> fails reading a JSON log message fails due to invalid data.
 	/// </summary>
 	public class JsonMessageReaderException : Exception
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonMessageReaderException" /> class.
+		/// Initializes a new instance of the <see cref="JsonMessageReaderException"/> class.
 		/// </summary>
 		/// <param name="lineNumber">Line in the document where the error occurred (starts at 1).</param>
 		/// <param name="position">Position in the document where the error occurred (starts at 1).</param>
@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="JsonMessageReaderException" /> class.
+		/// Initializes a new instance of the <see cref="JsonMessageReaderException"/> class.
 		/// </summary>
 		/// <param name="lineNumber">Line in the document where the error occurred (starts at 1).</param>
 		/// <param name="position">Position in the document where the error occurred (starts at 1).</param>

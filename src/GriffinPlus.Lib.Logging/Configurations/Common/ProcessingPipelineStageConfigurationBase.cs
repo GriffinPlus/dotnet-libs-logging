@@ -49,7 +49,7 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly Regex sValidSettingNameRegex = new Regex("^[a-zA-Z0-9\\[\\]\\.]+$", RegexOptions.Compiled);
 
 		/// <summary>
-		/// Initializes the <see cref="ProcessingPipelineStageConfigurationBase" /> class.
+		/// Initializes the <see cref="ProcessingPipelineStageConfigurationBase"/> class.
 		/// </summary>
 		static ProcessingPipelineStageConfigurationBase()
 		{
@@ -93,7 +93,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineStageConfigurationBase" /> class.
+		/// Initializes a new instance of the <see cref="ProcessingPipelineStageConfigurationBase"/> class.
 		/// </summary>
 		/// <param name="sync">
 		/// The configuration lock used to synchronize access to the configuration.
@@ -192,8 +192,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Checks the name of a setting and throws an exception, if it is not valid.
 		/// </summary>
 		/// <param name="name">Name to check.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="name" /> is a null reference.</exception>
-		/// <exception cref="FormatException"><paramref name="name" /> is not a valid setting name.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="name"/> is a null reference.</exception>
+		/// <exception cref="FormatException"><paramref name="name"/> is not a valid setting name.</exception>
 		protected static void CheckSettingName(string name)
 		{
 			if (name == null) throw new ArgumentNullException(nameof(name));

@@ -14,14 +14,14 @@ namespace GriffinPlus.Lib.Logging
 	public class LoggingException : Exception
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LoggingException" /> class.
+		/// Initializes a new instance of the <see cref="LoggingException"/> class.
 		/// </summary>
 		public LoggingException()
 		{
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LoggingException" /> class.
+		/// Initializes a new instance of the <see cref="LoggingException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		public LoggingException(string message) : base(message)
@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LoggingException" /> class.
+		/// Initializes a new instance of the <see cref="LoggingException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		/// <param name="innerException">The original exception that led to the exception being thrown.</param>

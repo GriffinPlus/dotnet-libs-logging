@@ -13,7 +13,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="TableMessageFormatter" /> class.
+	/// Unit tests targeting the <see cref="TableMessageFormatter"/> class.
 	/// </summary>
 	public class TableMessageFormatterTests
 	{
@@ -171,7 +171,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether the <see cref="TableMessageFormatter.AllColumns" /> property returns the correct formatter.
+		/// Tests whether the <see cref="TableMessageFormatter.AllColumns"/> property returns the correct formatter.
 		/// </summary>
 		[Fact]
 		public void AllColumns()

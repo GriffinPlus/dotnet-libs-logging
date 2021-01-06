@@ -28,7 +28,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly ProcessingCallback mProcessingCallback;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage" /> class.
+		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <param name="processCallback">
@@ -36,8 +36,8 @@ namespace GriffinPlus.Lib.Logging
 		/// The callback is executed in the context of the thread writing the message.
 		/// </param>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		public CallbackPipelineStage(string name, ProcessingCallback processCallback) : base(name)
@@ -50,8 +50,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		protected override bool ProcessSync(LocalLogMessage message)

@@ -22,14 +22,14 @@ namespace GriffinPlus.Lib.Logging
 		private readonly object mSync = new object();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessage" /> class.
+		/// Initializes a new instance of the <see cref="LogMessage"/> class.
 		/// </summary>
 		public LogMessage()
 		{
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessage" /> class.
+		/// Initializes a new instance of the <see cref="LogMessage"/> class.
 		/// </summary>
 		/// <param name="pool">The pool the message belongs to.</param>
 		internal LogMessage(LogMessagePool pool)
@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogMessage" /> class copying the specified one.
+		/// Initializes a new instance of the <see cref="LogMessage"/> class copying the specified one.
 		/// </summary>
 		/// <param name="other">Message to copy.</param>
 		public LogMessage(ILogMessage other)
@@ -78,7 +78,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Initializes the log message atomically.
-		/// The <see cref="PropertyChanged" /> event is only fired once.
+		/// The <see cref="PropertyChanged"/> event is only fired once.
 		/// </summary>
 		/// <param name="id">
 		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file;
@@ -87,7 +87,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="lostMessageCount">
 		/// Gets or sets the number of preceding messages that have been lost before this message
@@ -155,7 +155,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Creates a new log message and prepares it for asynchronous initialization.
-		/// (<see cref="IsInitialized" /> is <c>false</c> at first and set to <c>true</c> as soon as the message is initialized).
+		/// (<see cref="IsInitialized"/> is <c>false</c> at first and set to <c>true</c> as soon as the message is initialized).
 		/// </summary>
 		/// <param name="readOnly">
 		/// true to create a read-only message that can only be set by the returned initializer;
@@ -186,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
-		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch" /> class).
+		/// (the actual precision depends on the <see cref="System.Diagnostics.Stopwatch"/> class).
 		/// </param>
 		/// <param name="lostMessageCount">
 		/// Gets or sets the number of preceding messages that have been lost before this message
@@ -672,7 +672,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets a value indicating whether the log message is protected.
-		/// If <c>true</c>, property setters will throw <see cref="NotSupportedException" /> when invoked.
+		/// If <c>true</c>, property setters will throw <see cref="NotSupportedException"/> when invoked.
 		/// </summary>
 		public bool IsReadOnly
 		{
@@ -814,15 +814,15 @@ namespace GriffinPlus.Lib.Logging
 				default:
 					lock (mSync)
 					{
-						return Id == other.Id                                         &&
-						       Timestamp.Equals(other.Timestamp)                      &&
+						return Id == other.Id &&
+						       Timestamp.Equals(other.Timestamp) &&
 						       HighPrecisionTimestamp == other.HighPrecisionTimestamp &&
-						       LogWriterName          == other.LogWriterName          &&
-						       LogLevelName           == other.LogLevelName           &&
-						       ApplicationName        == other.ApplicationName        &&
-						       ProcessName            == other.ProcessName            &&
-						       ProcessId              == other.ProcessId              &&
-						       Text                   == other.Text                   &&
+						       LogWriterName == other.LogWriterName &&
+						       LogLevelName == other.LogLevelName &&
+						       ApplicationName == other.ApplicationName &&
+						       ProcessName == other.ProcessName &&
+						       ProcessId == other.ProcessId &&
+						       Text == other.Text &&
 						       Equals(Tags, other.Tags);
 					}
 			}
@@ -831,8 +831,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Checks whether the current log message equals the specified one.
 		/// The following properties are _not_ taken into account:
-		/// - <see cref="IsReadOnly" />
-		/// - <see cref="RefCount" />
+		/// - <see cref="IsReadOnly"/>
+		/// - <see cref="RefCount"/>
 		/// </summary>
 		/// <param name="other">Log message to compare with.</param>
 		/// <returns>
@@ -845,17 +845,17 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (mSync)
 			{
-				return IsInitializedInternal   == other.IsInitializedInternal   &&
-				       mId                     == other.mId                     &&
-				       mLostMessageCount       == other.mLostMessageCount       &&
-				       mTimestamp              == other.mTimestamp              &&
+				return IsInitializedInternal == other.IsInitializedInternal &&
+				       mId == other.mId &&
+				       mLostMessageCount == other.mLostMessageCount &&
+				       mTimestamp == other.mTimestamp &&
 				       mHighPrecisionTimestamp == other.mHighPrecisionTimestamp &&
-				       mLogWriterName          == other.mLogWriterName          &&
-				       mLogLevelName           == other.mLogLevelName           &&
-				       mApplicationName        == other.mApplicationName        &&
-				       mProcessName            == other.mProcessName            &&
-				       mProcessId              == other.mProcessId              &&
-				       mText                   == other.mText                   &&
+				       mLogWriterName == other.mLogWriterName &&
+				       mLogLevelName == other.mLogLevelName &&
+				       mApplicationName == other.mApplicationName &&
+				       mProcessName == other.mProcessName &&
+				       mProcessId == other.mProcessId &&
+				       mText == other.mText &&
 				       Equals(mTags, other.mTags);
 			}
 		}
@@ -876,8 +876,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the hash code of the log message.
 		/// The following properties are _not_ taken into account:
-		/// - <see cref="IsReadOnly" />
-		/// - <see cref="RefCount" />
+		/// - <see cref="IsReadOnly"/>
+		/// - <see cref="RefCount"/>
 		/// </summary>
 		/// <returns>Hash code of the log message.</returns>
 		public override int GetHashCode()
@@ -891,12 +891,12 @@ namespace GriffinPlus.Lib.Logging
 					hashCode = (hashCode * 397) ^ mTimestamp.GetHashCode();
 					hashCode = (hashCode * 397) ^ mHighPrecisionTimestamp.GetHashCode();
 					hashCode = (hashCode * 397) ^ mLostMessageCount;
-					hashCode = (hashCode * 397) ^ (mLogWriterName   != null ? mLogWriterName.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (mLogLevelName    != null ? mLogLevelName.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (mTags            != null ? mTags.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (mApplicationName != null ? mApplicationName.GetHashCode() : 0);
-					hashCode = (hashCode * 397) ^ (mProcessName     != null ? mProcessName.GetHashCode() : 0);
 					hashCode = (hashCode * 397) ^ mProcessId;
+					hashCode = (hashCode * 397) ^ (mLogWriterName != null ? mLogWriterName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (mLogLevelName != null ? mLogLevelName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (mTags != null ? mTags.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (mApplicationName != null ? mApplicationName.GetHashCode() : 0);
+					hashCode = (hashCode * 397) ^ (mProcessName != null ? mProcessName.GetHashCode() : 0);
 					hashCode = (hashCode * 397) ^ (mText != null ? mText.GetHashCode() : 0);
 					return hashCode;
 				}
@@ -909,7 +909,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Occurs when one of the properties has changed.
-		/// The handler is invoked in the context of the thread that registers the event, if <see cref="SynchronizationContext.Current" /> is set appropriately.
+		/// The handler is invoked in the context of the thread that registers the event, if <see cref="SynchronizationContext.Current"/> is set appropriately.
 		/// If the synchronization context is the same when registering and firing the event, the handler is called directly (in the context of the thread
 		/// raising the event).
 		/// If the synchronization context is not set when registering the event, the handler is always called directly.
@@ -921,7 +921,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Raises the <see cref="PropertyChanged" /> event.
+		/// Raises the <see cref="PropertyChanged"/> event.
 		/// </summary>
 		/// <param name="propertyName">
 		/// Name of the property that has changed

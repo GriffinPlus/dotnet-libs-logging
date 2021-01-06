@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		public class RegexNamePattern : INamePattern
 		{
 			/// <summary>
-			/// Initializes a new instance of the <see cref="RegexNamePattern" /> class.
+			/// Initializes a new instance of the <see cref="RegexNamePattern"/> class.
 			/// </summary>
 			/// <param name="pattern">The regular expression to use (must start with the anchor '^' and end with '$').</param>
 			/// <exception cref="FormatException">The specified pattern does not start with '^' and end with '$'.</exception>

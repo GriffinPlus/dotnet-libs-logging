@@ -16,8 +16,8 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Common unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration" /> and the
-	/// <see cref="FileBackedProcessingPipelineConfiguration" /> class.
+	/// Common unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration"/> and the
+	/// <see cref="FileBackedProcessingPipelineConfiguration"/> class.
 	/// </summary>
 	public abstract class ProcessingPipelineStageConfigurationTests_Base<TConfiguration> where TConfiguration : ProcessingPipelineStageConfigurationBase
 	{

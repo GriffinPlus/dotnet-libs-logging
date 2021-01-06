@@ -9,7 +9,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="FileBackedProcessingPipelineStageConfiguration" /> class.
+	/// Unit tests targeting the <see cref="FileBackedProcessingPipelineStageConfiguration"/> class.
 	/// </summary>
 	public class FileBackedProcessingPipelineStageConfigurationTests : ProcessingPipelineStageConfigurationTests_Base<FileBackedProcessingPipelineStageConfiguration>
 	{

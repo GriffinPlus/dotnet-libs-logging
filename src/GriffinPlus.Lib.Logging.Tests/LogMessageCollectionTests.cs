@@ -13,7 +13,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="LogMessageCollection{TMessage}" /> class.
+	/// Unit tests targeting the <see cref="LogMessageCollection{TMessage}"/> class.
 	/// </summary>
 	public class LogMessageCollectionTests : LogMessageCollectionBaseTests
 	{

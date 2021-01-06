@@ -135,7 +135,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly Dictionary<string, string> mGlobalSettings;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogConfigurationFile" /> class.
+		/// Initializes a new instance of the <see cref="LogConfigurationFile"/> class.
 		/// </summary>
 		public LogConfigurationFile()
 		{
@@ -147,7 +147,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogConfigurationFile" /> by copying another instance.
+		/// Initializes a new instance of the <see cref="LogConfigurationFile"/> by copying another instance.
 		/// </summary>
 		/// <param name="other">Log configuration file to copy.</param>
 		public LogConfigurationFile(LogConfigurationFile other)
@@ -344,14 +344,14 @@ namespace GriffinPlus.Lib.Logging
 
 							case Property_Name_LogWriter_Include:
 							{
-								var levels = value.Split(',').Select(x => x.Trim()).ToArray();
+								string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
 								logWriter.mIncludes.AddRange(levels);
 								continue;
 							}
 
 							case Property_Name_LogWriter_Exclude:
 							{
-								var levels = value.Split(',').Select(x => x.Trim()).ToArray();
+								string[] levels = value.Split(',').Select(x => x.Trim()).ToArray();
 								logWriter.mExcludes.AddRange(levels);
 								continue;
 							}
@@ -499,13 +499,13 @@ namespace GriffinPlus.Lib.Logging
 
 					writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Level, logWriter.BaseLevel);
 
-					var includes = logWriter.Includes.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+					string[] includes = logWriter.Includes.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 					if (includes.Length > 0)
 					{
 						writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Include, string.Join(", ", includes));
 					}
 
-					var excludes = logWriter.Excludes.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+					string[] excludes = logWriter.Excludes.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 					if (excludes.Length > 0)
 					{
 						writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Exclude, string.Join(", ", excludes));

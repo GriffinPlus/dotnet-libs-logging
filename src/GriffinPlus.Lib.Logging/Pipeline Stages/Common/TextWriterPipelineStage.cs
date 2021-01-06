@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		private ILogMessageFormatter mFormatter = TableMessageFormatter.AllColumns;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TextWriterPipelineStage{STAGE}" /> class.
+		/// Initializes a new instance of the <see cref="TextWriterPipelineStage{STAGE}"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		protected TextWriterPipelineStage(string name) : base(name)
@@ -73,8 +73,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		/// <remarks>
-		/// Call <see cref="LocalLogMessage.AddRef" /> on a message that should be stored any longer to prevent it from
-		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release" /> as soon as you don't
+		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
+		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
 		protected override async Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)

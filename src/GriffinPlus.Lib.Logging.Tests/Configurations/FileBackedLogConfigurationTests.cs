@@ -12,7 +12,7 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="FileBackedLogConfiguration" /> class.
+	/// Unit tests targeting the <see cref="FileBackedLogConfiguration"/> class.
 	/// </summary>
 	public class FileBackedLogConfigurationTests : LogConfigurationTests_Base<FileBackedLogConfiguration>
 	{

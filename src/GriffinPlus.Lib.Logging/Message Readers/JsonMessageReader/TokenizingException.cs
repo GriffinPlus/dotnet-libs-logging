@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 	public class TokenizingException : Exception
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TokenizingException" /> class.
+		/// Initializes a new instance of the <see cref="TokenizingException"/> class.
 		/// </summary>
 		/// <param name="lineNumber">Line in the document where the tokenizing error occurred (starts at 1).</param>
 		/// <param name="position">Position in the document where the tokenizing error occurred (starts at 1).</param>
@@ -26,7 +26,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TokenizingException" /> class.
+		/// Initializes a new instance of the <see cref="TokenizingException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		/// <param name="lineNumber">Line in the document where the tokenizing error occurred (starts at 1).</param>
