@@ -41,14 +41,14 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// regular case
 				// => use name of the entry assembly (application)
-				string fileName = Path.GetFileNameWithoutExtension(assembly.Location) + ".logconf";
+				string fileName = Path.GetFileNameWithoutExtension(assembly.Location) + ".gplogconf";
 				sDefaultConfigFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
 			}
 			else
 			{
 				// no entry assembly (most probably a unit test runner)
 				// => use friendly name of the application domain
-				string fileName = AppDomain.CurrentDomain.FriendlyName + ".logconf";
+				string fileName = AppDomain.CurrentDomain.FriendlyName + ".gplogconf";
 				sDefaultConfigFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
 			}
 		}

@@ -84,13 +84,13 @@ Log.Configuration = new VolatileLogConfiguration();
 
 #### File-Backed Log Configuration
 
-The `FileBackedConfiguration` class is a log configuration that is backed by an ini-like file. By default the file is expected to be located beside the executable with the same name as the executable, but with the extension `.logconf`. For example, the executable `MyApp.exe` will use the configuration file `MyApp.logconf`. Optionally you can choose to place the configuration file somewhere else. The configuration file can be adjusted while the application is running. It is reloaded automatically if changes are detected.
+The `FileBackedConfiguration` class is a log configuration that is backed by an ini-like file. By default the file is expected to be located beside the executable with the same name as the executable, but with the extension `.gplogconf`. For example, the executable `MyApp.exe` will use the configuration file `MyApp.gplogconf`. Optionally you can choose to place the configuration file somewhere else. The configuration file can be adjusted while the application is running. It is reloaded automatically if changes are detected.
 
 Please see the example below on how to configure it.
 
 ```csharp
-Log.Configuration = new FileBackedLogConfiguration();                    // default location
-Log.Configuration = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
+Log.Configuration = new FileBackedLogConfiguration();                      // default location
+Log.Configuration = new FileBackedLogConfiguration("./my-conf.gplogconf"); // custom location
 ```
 
 The default configuration file contains a detailed description of the settings and looks like the following:
@@ -348,8 +348,8 @@ namespace GriffinPlus.Lib.Logging.Demo
             bool initConfig = true; // always init programmatically
 
             // file-based configuration 
-            // var config = new FileBackedLogConfiguration(); // default location (beside the executable with file extension '.logconf');
-            // var config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
+            // var config = new FileBackedLogConfiguration(); // default location (beside the executable with file extension '.gplogconf');
+            // var config = new FileBackedLogConfiguration("./my-conf.gplogconf"); // custom location
             // bool initConfig = !File.Exists(config.FullPath); // init programmatically, if file does not exist, yet
 
             if (initConfig)
