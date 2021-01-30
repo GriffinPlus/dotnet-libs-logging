@@ -7,6 +7,7 @@ Import-Module "$ScriptDir\build.vs\RestoreNuGet.psm1"
 Import-Module "$ScriptDir\build.vs\PreBuildWizard.psm1"
 Import-Module "$ScriptDir\build.vs\Build.psm1"
 Import-Module "$ScriptDir\build.vs\PackNuGet.psm1"
+Import-Module "$ScriptDir\build.vs\PublishNuGet.psm1"
 
 # -------------------------------------------------------------------------------------------------------------------------------------
 
@@ -50,5 +51,8 @@ Build `
 
 # pack nuget packages
 PackNuGet -PauseOnError
+
+# publish nuget packages to developer feed
+PublishNuGetToDeveloperFeed -PauseOnError
 
 Read-Host "Press ANY key..."
