@@ -9,13 +9,13 @@ using System.Linq;
 
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging.Collections
 {
 
 	/// <summary>
 	/// Unit tests targeting the <see cref="LogMessageCollection{TMessage}"/> class.
 	/// </summary>
-	public class LogMessageCollectionTests : LogMessageCollectionBaseTests
+	public class LogMessageCollectionTests : LogMessageCollectionBaseTests<ILogMessageCollection<LogMessage>>
 	{
 		/// <summary>
 		/// Creates a new instance of the collection class to test, pre-populated with the specified number of random log messages.
@@ -25,10 +25,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>A new instance of the collection class to test.</returns>
 		protected override ILogMessageCollection<LogMessage> CreateCollection(int count, out LogMessage[] messages)
 		{
-			messages = LoggingTestHelpers.GetTestMessages(count);
+			messages = LoggingTestHelpers.GetTestMessages<LogMessage>(count);
 			var collection = count == 0
 				                 ? new LogMessageCollection<LogMessage>()
 				                 : new LogMessageCollection<LogMessage>(messages);
+
+			// the test assumes that the collection uses single-item notifications
+			collection.UseMultiItemNotifications = false;
+
 			return collection;
 		}
 
@@ -53,7 +57,7 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData(1000)]
 		private void Create_WithMessages(int count)
 		{
-			var messages = LoggingTestHelpers.GetTestMessages(count, 1);
+			var messages = LoggingTestHelpers.GetTestMessages<LogMessage>(count, 1);
 			var collection = new LogMessageCollection<LogMessage>(messages);
 			TestCollectionPropertyDefaults(collection, count);
 			Assert.Equal(messages, collection.ToArray());
@@ -69,7 +73,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="collection">Collection to check.</param>
 		/// <param name="expectedCount">Expected number of log messages in the collection.</param>
-		private void TestCollectionPropertyDefaults(ILogMessageCollection<LogMessage> collection, long expectedCount)
+		private void TestCollectionPropertyDefaults(LogMessageCollection<LogMessage> collection, long expectedCount)
 		{
 			using (var eventWatcher = collection.AttachEventWatcher())
 			{
@@ -96,6 +100,20 @@ namespace GriffinPlus.Lib.Logging
 				// no events should have been raised
 				eventWatcher.CheckInvocations();
 			}
+		}
+
+		#endregion
+
+		#region Copying Message (For Test Purposes)
+
+		/// <summary>
+		/// Creates a copy of the specified log message.
+		/// </summary>
+		/// <param name="message">Log message to copy.</param>
+		/// <returns>A copy of the specified log message.</returns>
+		protected override LogMessage CopyMessage(LogMessage message)
+		{
+			return new LogMessage(message);
 		}
 
 		#endregion

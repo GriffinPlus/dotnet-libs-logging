@@ -1,0 +1,10 @@
+﻿.\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.pdb
+.\GriffinPlus.Lib.Logging.TestCommon.deps.json
+.\GriffinPlus.Lib.Logging.TestCommon.dll
+.\GriffinPlus.Lib.Logging.TestCommon.pdb
+.\GriffinPlus.Lib.Logging.TestCommon.runtimeconfig.dev.json
+.\GriffinPlus.Lib.Logging.TestCommon.runtimeconfig.json
+.\GriffinPlus.Lib.Logging.TestCommon.xml
+.\GriffinPlus.Lib.Logging.xml
+.\ref\GriffinPlus.Lib.Logging.TestCommon.dll

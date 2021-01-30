@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net461; netcoreapp2.1; netcoreapp3.1; net5.0</TargetFrameworks>
@@ -24,6 +24,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="GriffinPlus.Lib.Common" Version="0.7.0" />
+		<PackageReference Include="GriffinPlus.Lib.Expressions" Version="1.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
 		<PackageReference Include="xunit" Version="2.4.1" />

@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 	/// A log message that was written by the current process (it therefore contains additional information
 	/// about the <see cref="LogWriter"/> object and the <see cref="LogLevel"/> object involved).
 	/// </summary>
-	public sealed class LocalLogMessage : ILogMessage, IEquatable<ILogMessage>
+	public sealed class LocalLogMessage : ILogMessage, IEquatable<ILogMessage>, IReferenceManagement
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogMessage"/> class.
@@ -42,15 +42,15 @@ namespace GriffinPlus.Lib.Logging
 		public LocalLogMessage(LocalLogMessage other)
 		{
 			Context = new Dictionary<string, object>(other.Context);
-			Timestamp = other.Timestamp;
-			HighPrecisionTimestamp = other.HighPrecisionTimestamp;
-			LogWriter = other.LogWriter;
-			LogLevel = other.LogLevel;
-			Tags = other.Tags;
-			ApplicationName = other.ApplicationName;
-			ProcessName = other.ProcessName;
-			ProcessId = other.ProcessId;
-			Text = other.Text;
+			mTimestamp = other.Timestamp;
+			mHighPrecisionTimestamp = other.HighPrecisionTimestamp;
+			mLogWriter = other.LogWriter;
+			mLogLevel = other.LogLevel;
+			mTags = other.Tags;
+			mApplicationName = other.ApplicationName;
+			mProcessName = other.ProcessName;
+			mProcessId = other.ProcessId;
+			mText = other.Text;
 		}
 
 		#region Message Properties
@@ -61,67 +61,231 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public IDictionary<string, object> Context { get; } = new Dictionary<string, object>();
 
+		#region IsReadOnly
+
 		/// <summary>
-		/// Gets the id uniquely identifying the message in a certain context, e.g. a collection or log file (always -1).
+		/// Gets a value indicating whether the log message is read-only (always <c>true</c>).
 		/// </summary>
-		public long Id => -1;
+		public bool IsReadOnly => true;
+
+		#endregion
+
+		#region LostMessageCount
+
+		/// <summary>
+		/// Gets or sets the number of preceding messages that have been lost before this message (always 0).
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		int ILogMessage.LostMessageCount
+		{
+			get => 0;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.LostMessageCount)} in not supported.");
+		}
+
+		#endregion
+
+		#region Timestamp
+
+		private DateTimeOffset mTimestamp;
 
 		/// <summary>
 		/// Gets the date/time the message was written to the log.
 		/// </summary>
-		public DateTimeOffset Timestamp { get; private set; }
+		public DateTimeOffset Timestamp => mTimestamp;
+
+		/// <summary>
+		/// Gets or sets the date/time the message was written to the log.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		DateTimeOffset ILogMessage.Timestamp
+		{
+			get => mTimestamp;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.Timestamp)} in not supported.");
+		}
+
+		#endregion
+
+		#region HighPrecisionTimestamp
+
+		private long mHighPrecisionTimestamp;
 
 		/// <summary>
 		/// Gets the timestamp for relative time measurements with high precision
 		/// (in nanoseconds, but the actual precision depends on the system timer).
 		/// </summary>
-		public long HighPrecisionTimestamp { get; private set; }
+		public long HighPrecisionTimestamp => mHighPrecisionTimestamp;
+
+		/// <summary>
+		/// Gets or sets the timestamp for relative time measurements with high precision
+		/// (in nanoseconds, but the actual precision depends on the system timer).
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		long ILogMessage.HighPrecisionTimestamp
+		{
+			get => mHighPrecisionTimestamp;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.HighPrecisionTimestamp)} in not supported.");
+		}
+
+		#endregion
+
+		#region LogWriter / LogWriterName
+
+		private LogWriter mLogWriter;
 
 		/// <summary>
 		/// Gets the log writer associated with the log message.
 		/// </summary>
-		public LogWriter LogWriter { get; private set; }
+		public LogWriter LogWriter => mLogWriter;
 
 		/// <summary>
 		/// Gets the name of the log writer associated with the log message.
 		/// </summary>
-		public string LogWriterName => LogWriter?.Name;
+		public string LogWriterName => mLogWriter?.Name;
+
+		/// <summary>
+		/// Gets the name of the log writer associated with the log message.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		string ILogMessage.LogWriterName
+		{
+			get => mLogWriter?.Name;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.LogWriterName)} in not supported.");
+		}
+
+		#endregion
+
+		#region LogLevel / LogLevelName
+
+		private LogLevel mLogLevel;
 
 		/// <summary>
 		/// Gets the log level associated with the log message.
 		/// </summary>
-		public LogLevel LogLevel { get; private set; }
+		public LogLevel LogLevel => mLogLevel;
 
 		/// <summary>
 		/// Gets the name of the log level associated with the log message.
 		/// </summary>
-		public string LogLevelName => LogLevel?.Name;
+		public string LogLevelName => mLogLevel?.Name;
+
+		/// <summary>
+		/// Gets or sets the name of the log level associated with the log message.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		string ILogMessage.LogLevelName
+		{
+			get => mLogLevel?.Name;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.LogLevelName)} in not supported.");
+		}
+
+		#endregion
+
+		#region Tags
+
+		private TagSet mTags;
 
 		/// <summary>
 		/// Gets the tags attached to the log message.
 		/// </summary>
-		public TagSet Tags { get; private set; }
+		public TagSet Tags => mTags;
+
+		/// <summary>
+		/// Gets or sets the tags attached to the log message.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		TagSet ILogMessage.Tags
+		{
+			get => mTags;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.Tags)} in not supported.");
+		}
+
+		#endregion
+
+		#region ApplicationName
+
+		private string mApplicationName;
 
 		/// <summary>
 		/// Gets the name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </summary>
-		public string ApplicationName { get; private set; }
+		public string ApplicationName => mApplicationName;
+
+		/// <summary>
+		/// Gets or sets the name of the application emitting the log message
+		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		string ILogMessage.ApplicationName
+		{
+			get => mApplicationName;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.ApplicationName)} in not supported.");
+		}
+
+		#endregion
+
+		#region ProcessName
+
+		private string mProcessName;
 
 		/// <summary>
 		/// Gets the name of the process emitting the log message.
 		/// </summary>
-		public string ProcessName { get; private set; }
+		public string ProcessName => mProcessName;
+
+		/// <summary>
+		/// Gets or sets the name of the process emitting the log message.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		string ILogMessage.ProcessName
+		{
+			get => mProcessName;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.ProcessName)} in not supported.");
+		}
+
+		#endregion
+
+		#region ProcessId
+
+		private int mProcessId = -1;
 
 		/// <summary>
 		/// Gets the id of the process emitting the log message.
 		/// </summary>
-		public int ProcessId { get; private set; }
+		public int ProcessId => mProcessId;
+
+		/// <summary>
+		/// Gets or sets the id of the process emitting the log message.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		int ILogMessage.ProcessId
+		{
+			get => mProcessId;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.ProcessId)} in not supported.");
+		}
+
+		#endregion
+
+		#region Text
+
+		private string mText;
 
 		/// <summary>
 		/// Gets the actual text the log message is about.
 		/// </summary>
-		public string Text { get; private set; }
+		public string Text => mText;
+
+		/// <summary>
+		/// Gets or sets the actual text the log message is about.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
+		string ILogMessage.Text
+		{
+			get => mText;
+			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.Text)} in not supported.");
+		}
+
+		#endregion
 
 		#endregion
 
@@ -202,15 +366,15 @@ namespace GriffinPlus.Lib.Logging
 			int            processId,
 			string         text)
 		{
-			Timestamp = timestamp;
-			HighPrecisionTimestamp = highPrecisionTimestamp;
-			LogWriter = logWriter;
-			LogLevel = logLevel;
-			Tags = tags;
-			ApplicationName = applicationName;
-			ProcessName = processName;
-			ProcessId = processId;
-			Text = text;
+			mTimestamp = timestamp;
+			mHighPrecisionTimestamp = highPrecisionTimestamp;
+			mLogWriter = logWriter;
+			mLogLevel = logLevel;
+			mTags = tags;
+			mApplicationName = applicationName;
+			mProcessName = processName;
+			mProcessId = processId;
+			mText = text;
 
 			return this;
 		}
@@ -221,13 +385,14 @@ namespace GriffinPlus.Lib.Logging
 		internal void Reset()
 		{
 			Context.Clear();
-			LogWriter = null;
-			LogLevel = null;
-			Tags = null;
-			ApplicationName = null;
-			ProcessName = null;
-			ProcessId = 0;
-			Text = null;
+
+			mLogWriter = null;
+			mLogLevel = null;
+			mTags = null;
+			mApplicationName = null;
+			mProcessName = null;
+			mProcessId = 0;
+			mText = null;
 		}
 
 		#endregion

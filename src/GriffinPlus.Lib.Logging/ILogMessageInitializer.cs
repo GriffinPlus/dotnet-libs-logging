@@ -11,15 +11,11 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Interface for the asynchronous initialization feature of the <see cref="LogMessage"/> class.
 	/// </summary>
-	public interface ILogMessageInitializer : IReferenceManagement
+	public interface ILogMessageInitializer
 	{
 		/// <summary>
 		/// Initializes the log message.
 		/// </summary>
-		/// <param name="id">
-		/// Gets or sets the id uniquely identifying the message in a certain scope, e.g. a log file;
-		/// -1, if the id is invalid.
-		/// </param>
 		/// <param name="timestamp">Time the message was written to the log.</param>
 		/// <param name="highPrecisionTimestamp">
 		/// Timestamp for relative time measurements with high precision
@@ -42,7 +38,6 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The initialized log message.</returns>
 		/// <exception cref="InvalidOperationException">The log message is already initialized.</exception>
 		LogMessage Initialize(
-			long           id,
 			DateTimeOffset timestamp,
 			long           highPrecisionTimestamp,
 			int            lostMessageCount,

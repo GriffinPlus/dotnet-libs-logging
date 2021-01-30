@@ -10,7 +10,7 @@ using System.ComponentModel;
 
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging.Collections
 {
 
 	/// <summary>
@@ -152,15 +152,15 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		private readonly ILogMessageCollection<LogMessage> mCollection;
-		private readonly List<Tuple<string, EventArgs>>    mWatchedEventInvocations  = new List<Tuple<string, EventArgs>>();
-		private readonly List<Tuple<string, EventArgs>>    mExpectedEventInvocations = new List<Tuple<string, EventArgs>>();
+		private readonly ILogMessageCollectionCommon<LogMessage> mCollection;
+		private readonly List<Tuple<string, EventArgs>>          mWatchedEventInvocations  = new List<Tuple<string, EventArgs>>();
+		private readonly List<Tuple<string, EventArgs>>          mExpectedEventInvocations = new List<Tuple<string, EventArgs>>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessageCollectionEventWatcher"/> class.
 		/// </summary>
 		/// <param name="collection">Collection to watch.</param>
-		public LogMessageCollectionEventWatcher(ILogMessageCollection<LogMessage> collection)
+		public LogMessageCollectionEventWatcher(ILogMessageCollectionCommon<LogMessage> collection)
 		{
 			mCollection = collection;
 			mCollection.PropertyChanged += HandlePropertyChanged;

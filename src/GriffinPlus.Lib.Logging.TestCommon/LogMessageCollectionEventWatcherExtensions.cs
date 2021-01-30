@@ -6,7 +6,7 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging.Collections
 {
 
 	/// <summary>
@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="collection">Collection to attach the watcher to.</param>
 		/// <returns>The registered event watcher.</returns>
-		public static LogMessageCollectionEventWatcher AttachEventWatcher(this ILogMessageCollection<LogMessage> collection)
+		public static LogMessageCollectionEventWatcher AttachEventWatcher(this ILogMessageCollectionCommon<LogMessage> collection)
 		{
 			return new LogMessageCollectionEventWatcher(collection);
 		}

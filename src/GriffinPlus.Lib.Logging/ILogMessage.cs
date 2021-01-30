@@ -14,57 +14,72 @@ namespace GriffinPlus.Lib.Logging
 	public interface ILogMessage
 	{
 		/// <summary>
-		/// Gets the id uniquely identifying the message in a certain context, e.g. a collection or log file
-		/// (-1, if the id is invalid).
+		/// Gets a value indicating whether the log message is read-only.
 		/// </summary>
-		long Id { get; }
+		bool IsReadOnly { get; }
 
 		/// <summary>
-		/// Gets the date/time the message was written to the log.
+		/// Gets or sets the date/time the message was written to the log.
 		/// </summary>
-		DateTimeOffset Timestamp { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		DateTimeOffset Timestamp { get; set; }
 
 		/// <summary>
-		/// Gets the timestamp for relative time measurements with high precision
+		/// Gets or sets the timestamp for relative time measurements with high precision
 		/// (in nanoseconds, but the actual precision depends on the system timer).
 		/// </summary>
-		long HighPrecisionTimestamp { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		long HighPrecisionTimestamp { get; set; }
 
 		/// <summary>
-		/// Gets the name of the log writer associated with the log message.
+		/// Gets or sets the number of preceding messages that have been lost before this message
+		/// (useful when dealing with message streams).
 		/// </summary>
-		string LogWriterName { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		int LostMessageCount { get; set; }
 
 		/// <summary>
-		/// Gets the name of the log level associated with the log message.
+		/// Gets or sets the name of the log writer associated with the log message.
 		/// </summary>
-		string LogLevelName { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		string LogWriterName { get; set; }
 
 		/// <summary>
-		/// Gets the tags attached to the log message.
+		/// Gets or sets the name of the log level associated with the log message.
 		/// </summary>
-		TagSet Tags { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		string LogLevelName { get; set; }
 
 		/// <summary>
-		/// Gets the name of the application emitting the log message
+		/// Gets or sets the tags attached to the log message.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		TagSet Tags { get; set; }
+
+		/// <summary>
+		/// Gets or sets the name of the application emitting the log message
 		/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 		/// </summary>
-		string ApplicationName { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		string ApplicationName { get; set; }
 
 		/// <summary>
-		/// Gets the name of the process emitting the log message.
+		/// Gets or sets the name of the process emitting the log message.
 		/// </summary>
-		string ProcessName { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		string ProcessName { get; set; }
 
 		/// <summary>
-		/// Gets the id of the process emitting the log message.
+		/// Gets or sets the id of the process emitting the log message.
 		/// </summary>
-		int ProcessId { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		int ProcessId { get; set; }
 
 		/// <summary>
-		/// Gets the actual text the log message is about.
+		/// Gets or sets the actual text the log message is about.
 		/// </summary>
-		string Text { get; }
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		string Text { get; set; }
 	}
 
 }

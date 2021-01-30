@@ -64,9 +64,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets a set of log messages with deterministic content
 		/// (each set is freshly created to avoid issues between tests that modify test data).
 		/// </summary>
-		public LogMessage[] GetLogMessages_Random_10K()
+		public LogFileMessage[] GetLogMessages_Random_10K()
 		{
-			return LoggingTestHelpers.GetTestMessages(10000);
+			var messages = LoggingTestHelpers.GetTestMessages<LogFileMessage>(10000);
+			for (long i = 0; i < messages.Length; i++) messages[i].Id = i;
+			return messages;
 		}
 
 		/// <summary>

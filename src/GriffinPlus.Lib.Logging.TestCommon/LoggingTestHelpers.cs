@@ -29,15 +29,15 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="maxDifferentApplicationsCount">Maximum number of different application names.</param>
 		/// <param name="maxDifferentProcessIdsCount">Maximum number of different process ids.</param>
 		/// <returns>The requested log message set.</returns>
-		public static LogMessage[] GetTestMessages(
+		public static TMessage[] GetTestMessages<TMessage>(
 			int count,
 			int randomNumberGeneratorSeed     = 0,
 			int maxDifferentWritersCount      = 50,
 			int maxDifferentLevelsCount       = 50,
 			int maxDifferentApplicationsCount = 3,
-			int maxDifferentProcessIdsCount   = 100000)
+			int maxDifferentProcessIdsCount   = 100000) where TMessage : class, ILogMessage, new()
 		{
-			var messages = new List<LogMessage>();
+			var messages = new List<TMessage>();
 
 			var random = new Random(randomNumberGeneratorSeed);
 			var utcTimestamp = DateTime.Parse("2020-01-01T01:02:03");
@@ -57,18 +57,19 @@ namespace GriffinPlus.Lib.Logging
 				var tags = new TagSet();
 				for (int j = 0; j < tagCount; j++) tags += allTags[random.Next(0, allTags.Count - 1)];
 
-				var message = new LogMessage().InitWith(
-					i, // message id is zero-based, so the index is a perfect match
-					new DateTimeOffset(utcTimestamp + timezoneOffset, timezoneOffset),
-					highPrecisionTimestamp,
-					random.Next(0, 1),
-					$"Log Writer {random.Next(1, maxDifferentWritersCount)}",
-					$"Log Level {random.Next(1, maxDifferentLevelsCount)}",
-					tags,
-					$"Application {random.Next(1, maxDifferentApplicationsCount)}",
-					$"Process {processId}",
-					processId,
-					$"Just a log message with some random content ({random.Next(0, 100000)})");
+				var message = new TMessage
+				{
+					Timestamp = new DateTimeOffset(utcTimestamp + timezoneOffset, timezoneOffset),
+					HighPrecisionTimestamp = highPrecisionTimestamp,
+					LostMessageCount = random.Next(0, 1),
+					LogWriterName = $"Log Writer {random.Next(1, maxDifferentWritersCount)}",
+					LogLevelName = $"Log Level {random.Next(1, maxDifferentLevelsCount)}",
+					Tags = tags,
+					ApplicationName = $"Application {random.Next(1, maxDifferentApplicationsCount)}",
+					ProcessName = $"Process {processId}",
+					ProcessId = processId,
+					Text = $"Just a log message with some random content ({random.Next(0, 100000)})"
+				};
 
 				// move the timestamps up to 1 day into the future
 				var timeSkip = TimeSpan.FromMilliseconds(random.Next(1, 24 * 60 * 60 * 1000));

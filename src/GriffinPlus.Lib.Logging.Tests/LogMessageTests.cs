@@ -59,17 +59,6 @@ namespace GriffinPlus.Lib.Logging
 			CheckDefaultState(message);
 		}
 
-		/// <summary>
-		/// Tests creating a new log message and associating it with a pool.
-		/// </summary>
-		[Fact]
-		private void Create_Pooled()
-		{
-			var pool = new LogMessagePool();
-			var message = new LogMessage(pool);
-			CheckDefaultState(message, true, false, pool);
-		}
-
 		#endregion
 
 		#region CreateWithAsyncInit()
@@ -166,7 +155,6 @@ namespace GriffinPlus.Lib.Logging
 			void InitializeTest()
 			{
 				initializer.Initialize(
-					1,
 					DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"),
 					2,
 					3,
@@ -179,12 +167,10 @@ namespace GriffinPlus.Lib.Logging
 					"Some text");
 
 				// check administrative properties
-				Assert.Equal(1, initializer.RefCount);
 				Assert.True(message.IsInitialized);
 				Assert.False(message.IsAsyncInitPending);
 
 				// check message properties
-				Assert.Equal(1, message.Id);
 				Assert.Equal(DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"), message.Timestamp);
 				Assert.Equal(2, message.HighPrecisionTimestamp);
 				Assert.Equal(3, message.LostMessageCount);
@@ -306,7 +292,6 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// init the message
 				message.InitWith(
-					1,
 					DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"),
 					2,
 					3,
@@ -319,12 +304,10 @@ namespace GriffinPlus.Lib.Logging
 					"Some Text");
 
 				// check administrative properties
-				Assert.Equal(1, message.RefCount);
 				Assert.True(message.IsInitialized);
 				Assert.False(message.IsAsyncInitPending);
 
 				// check message properties
-				Assert.Equal(1, message.Id);
 				Assert.Equal(DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"), message.Timestamp);
 				Assert.Equal(2, message.HighPrecisionTimestamp);
 				Assert.Equal(3, message.LostMessageCount);
@@ -386,7 +369,6 @@ namespace GriffinPlus.Lib.Logging
 			{
 				foreach (bool protect in new[] { false, true })
 				{
-					yield return new object[] { EXPR<LogMessage, object>(x => x.Id), -1L, 1L, protect };
 					yield return new object[] { EXPR<LogMessage, object>(x => x.LostMessageCount), 0, 1, protect };
 					yield return new object[] { EXPR<LogMessage, object>(x => x.Timestamp), default(DateTimeOffset), DateTimeOffset.Now, protect };
 					yield return new object[] { EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 0L, 1L, protect };
@@ -704,73 +686,6 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region Reset to Defaults
-
-		/// <summary>
-		/// Tests resetting a log message to defaults using <see cref="LogMessage.Reset"/>.
-		/// Used internally by the pool.
-		/// </summary>
-		/// <param name="withPropertyChanged">
-		/// true to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;
-		/// otherwise false.
-		/// </param>
-		[Theory]
-		[InlineData(false)]
-		[InlineData(true)]
-		private void Reset(bool withPropertyChanged)
-		{
-			var message = new LogMessage
-			{
-				Id = 1,
-				LostMessageCount = 2,
-				Timestamp = DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"),
-				HighPrecisionTimestamp = 0,
-				LogWriterName = "Log Writer",
-				LogLevelName = "Log Level",
-				Tags = new TagSet("Tag"),
-				ApplicationName = "Application",
-				ProcessName = "Process",
-				ProcessId = 42,
-				Text = "Text"
-			};
-
-			// prepare data pulling some information out of the event handler
-			var handlerCalledEvent = new ManualResetEventSlim(false);
-
-			// the handler that is expected to be called on changes
-			void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
-			{
-				handlerCalledEvent.Set();
-			}
-
-			// register event handler, if required
-			if (withPropertyChanged)
-			{
-				message.PropertyChanged += PropertyChangedHandler;
-
-				// check whether the corresponding event manager reflects the registration	
-				Assert.True(PropertyChangedEventManager.IsHandlerRegistered(message));
-			}
-
-			// reset the log message
-			message.Reset();
-
-			// the event handler should not have been called although properties have been changed
-			// (the event handler is always called directly, if the registering thread is the same as the thread raising the event)
-			if (withPropertyChanged)
-			{
-				Assert.False(handlerCalledEvent.IsSet);
-
-				// resetting the message should also remove any event handler
-				Assert.False(PropertyChangedEventManager.IsHandlerRegistered(message));
-			}
-
-			// the log message should be in the same state as a freshly created one now
-			CheckDefaultState(message);
-		}
-
-		#endregion
-
 		#region Write Protection
 
 		/// <summary>
@@ -841,7 +756,6 @@ namespace GriffinPlus.Lib.Logging
 				message.Protect();
 
 				// check administrative properties
-				Assert.Equal(1, message.RefCount);        // unchanged
 				Assert.True(message.IsInitialized);       // unchanged
 				Assert.False(message.IsAsyncInitPending); // unchanged
 				Assert.True(message.IsReadOnly);
@@ -898,7 +812,6 @@ namespace GriffinPlus.Lib.Logging
 			{
 				var message = new LogMessage
 				{
-					Id = 0,
 					LostMessageCount = 0,
 					Timestamp = DateTimeOffset.Parse("2020-01-01T12:00:00+01:00"),
 					HighPrecisionTimestamp = 0,
@@ -911,8 +824,6 @@ namespace GriffinPlus.Lib.Logging
 					Text = "Text"
 				};
 
-				yield return new object[] { message, EXPR<LogMessage, object>(x => x.Id), -10L };
-				yield return new object[] { message, EXPR<LogMessage, object>(x => x.Id), 11L };
 				yield return new object[] { message, EXPR<LogMessage, object>(x => x.LostMessageCount), -10 };
 				yield return new object[] { message, EXPR<LogMessage, object>(x => x.LostMessageCount), 10 };
 				yield return new object[] { message, EXPR<LogMessage, object>(x => x.Timestamp), DateTimeOffset.Parse("2020-01-02T12:00:00+01:00") };
@@ -1008,21 +919,16 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="message">Log message to check.</param>
 		/// <param name="inited">true, if the message is initialized; otherwise false.</param>
 		/// <param name="readOnly">true, if the message is readOnly, otherwise false.</param>
-		/// <param name="pool">Pool the log message belongs to (null, if the message is not pooled).</param>
 		private static void CheckDefaultState(
-			LogMessage     message,
-			bool           inited   = true,
-			bool           readOnly = false,
-			LogMessagePool pool     = null)
+			LogMessage message,
+			bool       inited   = true,
+			bool       readOnly = false)
 		{
 			// check administrative properties
 			Assert.Equal(inited, message.IsInitialized);
 			Assert.Equal(readOnly, message.IsReadOnly);
-			Assert.Equal(1, message.RefCount);
-			Assert.Same(pool, message.Pool);
 
 			// check message specific properties
-			Assert.Equal(-1, message.Id);
 			Assert.Equal(0, message.LostMessageCount);
 			Assert.Equal(default, message.Timestamp);
 			Assert.Equal(0, message.HighPrecisionTimestamp);

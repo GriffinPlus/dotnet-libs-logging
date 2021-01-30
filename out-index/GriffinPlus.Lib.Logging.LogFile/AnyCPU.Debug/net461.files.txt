@@ -1,0 +1,9 @@
+﻿.\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.LogFile.dll
+.\GriffinPlus.Lib.Logging.LogFile.pdb
+.\GriffinPlus.Lib.Logging.LogFile.xml
+.\GriffinPlus.Lib.Logging.pdb
+.\GriffinPlus.Lib.Logging.xml
+.\System.Data.SQLite.dll
+.\x64\SQLite.Interop.dll
+.\x86\SQLite.Interop.dll

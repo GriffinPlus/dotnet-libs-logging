@@ -528,6 +528,17 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Writes a pipeline error message
+		/// (can be used by pipeline stages to emit error information before the pipeline is set up).
+		/// </summary>
+		/// <param name="message">Message describing the error condition.</param>
+		/// <param name="ex">Exception that lead to the error (if any).</param>
+		protected void WritePipelineError(string message, Exception ex)
+		{
+			// TODO: Implement
+		}
+
+		/// <summary>
 		/// Initializes the stages in <see cref="mNextStages"/>.
 		/// </summary>
 		private void InitializeNextStages()

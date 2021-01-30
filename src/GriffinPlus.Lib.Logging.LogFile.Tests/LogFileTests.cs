@@ -337,7 +337,7 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
-		#region GetLogWriterNames(), GetLogLevelNames(), GetProcessNames(), GetApplicationNames(), GetTags()
+		#region GetLogWriterNames(), GetLogLevelNames(), GetTags(), GetApplicationNames(), GetProcessNames(), GetProcessIds()
 
 		/// <summary>
 		/// Test data for methods that return names of log writers, log levels, processes, applications and tags.
@@ -420,7 +420,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests for getting process names.
+		/// Tests for getting tags.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -429,12 +429,12 @@ namespace GriffinPlus.Lib.Logging
 		/// false to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting names that are referenced in the log file only;
-		/// false to get all names.
+		/// true to test getting tags that are referenced in the log file only;
+		/// false to get all tags.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(GetNamesTestData))]
-		private void GetProcessNames(
+		private void GetTags(
 			LogFilePurpose   purpose,
 			LogFileWriteMode writeMode,
 			bool             readOnly,
@@ -445,8 +445,8 @@ namespace GriffinPlus.Lib.Logging
 				writeMode,
 				readOnly,
 				usedOnly,
-				message => new[] { message.ProcessName },
-				file => file.GetProcessNames(usedOnly));
+				message => message.Tags,
+				file => file.GetTags(usedOnly));
 		}
 
 		/// <summary>
@@ -480,7 +480,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests for getting tags.
+		/// Tests for getting process names.
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
@@ -489,12 +489,12 @@ namespace GriffinPlus.Lib.Logging
 		/// false to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting tags that are referenced in the log file only;
-		/// false to get all tags.
+		/// true to test getting names that are referenced in the log file only;
+		/// false to get all names.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(GetNamesTestData))]
-		private void GetTags(
+		private void GetProcessNames(
 			LogFilePurpose   purpose,
 			LogFileWriteMode writeMode,
 			bool             readOnly,
@@ -505,8 +505,38 @@ namespace GriffinPlus.Lib.Logging
 				writeMode,
 				readOnly,
 				usedOnly,
-				message => message.Tags,
-				file => file.GetTags(usedOnly));
+				message => new[] { message.ProcessName },
+				file => file.GetProcessNames(usedOnly));
+		}
+
+		/// <summary>
+		/// Tests for getting process ids.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="readOnly">
+		/// true to open the file in read-only mode;
+		/// false to open the file for reading and writing.
+		/// </param>
+		/// <param name="usedOnly">
+		/// true to test getting process ids that are referenced in the log file only;
+		/// false to get all process ids.
+		/// </param>
+		[Theory]
+		[MemberData(nameof(GetNamesTestData))]
+		private void GetProcessIds(
+			LogFilePurpose   purpose,
+			LogFileWriteMode writeMode,
+			bool             readOnly,
+			bool             usedOnly)
+		{
+			CommonGetIntegers(
+				purpose,
+				writeMode,
+				readOnly,
+				usedOnly,
+				message => new[] { message.ProcessId },
+				file => file.GetProcessIds()); // unused process ids are not supported any more...
 		}
 
 		/// <summary>
@@ -574,6 +604,71 @@ namespace GriffinPlus.Lib.Logging
 			}
 		}
 
+		/// <summary>
+		/// Helper method for other test methods that check for lists of integers returned by the log file.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="readOnly">
+		/// true to open the file in read-only mode;
+		/// false to open the file for reading and writing.
+		/// </param>
+		/// <param name="usedOnly">
+		/// true to test getting names that are referenced in the log file only;
+		/// false to get all names.
+		/// </param>
+		/// <param name="selector">Selects a string property value out of a log message.</param>
+		/// <param name="action">Action to perform on the log file, returns the strings to compare with the list of selected strings.</param>
+		private void CommonGetIntegers(
+			LogFilePurpose                     purpose,
+			LogFileWriteMode                   writeMode,
+			bool                               readOnly,
+			bool                               usedOnly,
+			Func<LogMessage, IEnumerable<int>> selector,
+			Func<LogFile, int[]>               action)
+		{
+			string path = purpose == LogFilePurpose.Recording
+				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			try
+			{
+				// get test data set with log messages that should be in the file
+				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+
+				// query the log file and check whether it returns the expected names
+				using (var file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
+				{
+					Assert.Equal(readOnly, file.IsReadOnly);
+
+					if (usedOnly)
+					{
+						// testing to return names that are actually referenced by messages
+						// => clear out all except 1 message
+						// => the remaining message should then define the returned names
+						file.Prune(1, DateTime.MinValue, false);
+						Assert.Equal(1, file.MessageCount);
+						expectedMessages = new[] { expectedMessages[expectedMessages.Length - 1] };
+					}
+
+					// collect name(s) from message properties and build the set of expected names
+					var expectedNamesSet = new HashSet<int>();
+					foreach (var message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
+					var expectedNames = new List<int>(expectedNamesSet);
+					expectedNames.Sort(); // the list returned by the log file is expected to be sorted ascendingly
+
+					// perform the action to test on the log file and compare with the expected result
+					int[] result = action(file);
+					Assert.Equal(expectedNames, result);
+				}
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
+		}
+
 		#endregion
 
 		#region Write() - Single Message
@@ -594,7 +689,7 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(fullPath);
 
 			// generate a message to write into the file
-			var message = LoggingTestHelpers.GetTestMessages(1)[0];
+			var message = LoggingTestHelpers.GetTestMessages<LogFileMessage>(1)[0];
 
 			// create a new log file
 			using (var file = LogFile.OpenOrCreate(filename, purpose, writeMode))
@@ -645,7 +740,7 @@ namespace GriffinPlus.Lib.Logging
 				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
 			// generate a message to write into the file
-			var message = LoggingTestHelpers.GetTestMessages(1)[0];
+			var message = LoggingTestHelpers.GetTestMessages<LogFileMessage>(1)[0];
 
 			try
 			{

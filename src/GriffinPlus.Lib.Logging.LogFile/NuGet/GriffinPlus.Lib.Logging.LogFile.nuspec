@@ -7,7 +7,10 @@
 		<authors>Sascha Falk</authors>
 		<copyright>Copyright (c) 2020 Sascha Falk and Contributors</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<description>A log file for the Griffin+ logging subsystem working on a sqlite database. Includes a pipeline stage to integrate the log file into the Griffin+ logging subsystem and a caching collection with data-binding capabilities backed by a log file.</description>
+		<description>A log file for the Griffin+ logging subsystem working on a sqlite database.
+Includes a pipeline stage to integrate the log file into the Griffin+ logging subsystem.
+A collection with data-binding capabilities backed by the log file allows to access log files conveniently.
+		</description>
 		<license type="expression">MIT</license>
 		<projectUrl>https://github.com/GriffinPlus/dotnet-libs-logging</projectUrl>
 		<icon>images/nuget-icon.png</icon>

@@ -8,7 +8,7 @@ using System.Linq;
 
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging.Collections
 {
 
 	/// <summary>
@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="count">Number of random log messages the collection should contain.</param>
 		/// <param name="messages">Receives messages that have been put into the collection.</param>
 		/// <returns>A new instance of the collection class to test.</returns>
-		protected override ILogMessageCollection<LogMessage> CreateCollection(int count, out LogMessage[] messages)
+		protected override FileBackedLogMessageCollection CreateCollection(int count, out LogMessage[] messages)
 		{
 			string path = Guid.NewGuid().ToString("D") + ".gplog";
 
@@ -33,7 +33,9 @@ namespace GriffinPlus.Lib.Logging
 			using (var file1 = LogFile.OpenOrCreate(path, LogFilePurpose.Analysis, LogFileWriteMode.Fast))
 			{
 				// generate the required number of log message and add them to the collection
-				messages = LoggingTestHelpers.GetTestMessages(count);
+				var fileLogMessages = LoggingTestHelpers.GetTestMessages<LogFileMessage>(count);
+				for (long i = 0; i < fileLogMessages.Length; i++) fileLogMessages[i].Id = i;
+				messages = fileLogMessages.Cast<LogMessage>().ToArray();
 				if (count > 0) file1.Write(messages);
 			}
 
@@ -49,6 +51,9 @@ namespace GriffinPlus.Lib.Logging
 			// the collection should now contain the messages written into it
 			// (the file-backed collection assigns message ids on its own, but they should be the same as the ids assigned to the test set)
 			Assert.Equal(messages, file2.Messages.ToArray());
+
+			// the test assumes that the collection uses single-item notifications
+			file2.Messages.UseMultiItemNotifications = false;
 
 			return file2.Messages;
 		}

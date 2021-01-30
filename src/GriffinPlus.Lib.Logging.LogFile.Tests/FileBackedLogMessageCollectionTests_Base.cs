@@ -7,44 +7,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging.Collections
 {
 
 	/// <summary>
 	/// Unit tests targeting the <see cref="FileBackedLogMessageCollection"/> class.
 	/// </summary>
-	public abstract class FileBackedLogMessageCollectionTests_Base : LogMessageCollectionBaseTests, IClassFixture<LogFileTestsFixture>
+	public abstract class FileBackedLogMessageCollectionTests_Base :
+		LogMessageCollectionBaseTests<FileBackedLogMessageCollection>,
+		IClassFixture<LogFileTestsFixture>
 	{
 		protected static readonly LogFilePurpose[]    LogFilePurposes   = { LogFilePurpose.Recording, LogFilePurpose.Analysis };
 		protected static readonly LogFileWriteMode[]  LogFileWriteModes = { LogFileWriteMode.Robust, LogFileWriteMode.Fast };
 		protected readonly        LogFileTestsFixture Fixture;
-
-		/// <summary>
-		/// Creates a new instance of the collection class to test, pre-populated with the specified number of random log messages.
-		/// </summary>
-		/// <param name="count">Number of random log messages the collection should contain.</param>
-		/// <param name="messages">Receives messages that have been put into the collection.</param>
-		/// <returns>A new instance of the collection class to test.</returns>
-		protected override ILogMessageCollection<LogMessage> CreateCollection(int count, out LogMessage[] messages)
-		{
-			// running common collection tests with a fresh temporary collection should be sufficient and cover all common collection specific functionality
-			messages = LoggingTestHelpers.GetTestMessages(count);
-			var collection = FileBackedLogMessageCollection.CreateTemporaryCollection(true);
-			if (count > 0) collection.AddRange(messages);
-
-			// the collection should now have the default state
-			TestCollectionPropertyDefaults(collection, count, false);
-
-			// the collection should now contain the messages written into it
-			// (the file-backed collection assigns message ids on its own, but they should be the same as the ids assigned to the test set)
-			Assert.Equal(messages, collection.ToArray());
-
-			return collection;
-		}
 
 		/// <summary>
 		/// Initializes an instance of the <see cref="FileBackedLogMessageCollectionTests_Base"/> class.
@@ -297,7 +275,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		protected virtual void LogFileAndFilePath()
 		{
-			using (var collection = (FileBackedLogMessageCollection)CreateCollection(0, out _))
+			using (var collection = CreateCollection(0, out _))
 			{
 				var eventWatcher = collection.AttachEventWatcher();
 
@@ -307,6 +285,20 @@ namespace GriffinPlus.Lib.Logging
 				// no events should have been raised
 				eventWatcher.CheckInvocations();
 			}
+		}
+
+		#endregion
+
+		#region Copying Message (For Test Purposes)
+
+		/// <summary>
+		/// Creates a copy of the specified log message.
+		/// </summary>
+		/// <param name="message">Log message to copy.</param>
+		/// <returns>A copy of the specified log message.</returns>
+		protected override LogMessage CopyMessage(LogMessage message)
+		{
+			return new LogFileMessage((LogFileMessage)message);
 		}
 
 		#endregion
@@ -357,6 +349,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		#endregion
+
+
 	}
 
 }

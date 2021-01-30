@@ -10,7 +10,7 @@ using System.IO;
 
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging.Collections
 {
 
 	/// <summary>
