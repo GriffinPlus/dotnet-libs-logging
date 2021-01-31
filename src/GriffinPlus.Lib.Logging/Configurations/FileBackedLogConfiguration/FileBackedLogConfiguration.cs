@@ -114,7 +114,7 @@ namespace GriffinPlus.Lib.Logging
 				// valuable information, so renaming/deleting is sufficient)
 				mFileSystemWatcher = new FileSystemWatcher
 				{
-					Path = Path.GetDirectoryName(path),
+					Path = Path.GetDirectoryName(FullPath),
 					Filter = "*" + Path.GetExtension(mFileName)
 				};
 				mFileSystemWatcher.Changed += EH_FileSystemWatcher_Changed;
