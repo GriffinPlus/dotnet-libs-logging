@@ -55,7 +55,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class (the configuration file is
-		/// located in the application's base directory and named as the entry assembly plus extension '.logconf').
+		/// located in the application's base directory and named as the entry assembly plus extension '.gplogconf').
 		/// </summary>
 		public FileBackedLogConfiguration() : this(sDefaultConfigFilePath)
 		{

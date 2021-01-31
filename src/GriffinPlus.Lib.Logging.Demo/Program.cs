@@ -72,8 +72,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 			bool initConfig = true; // always init programmatically
 
 			// file-based configuration 
-			// var config = new FileBackedLogConfiguration(); // default location (beside the executable with file extension '.logconf');
-			// var config = new FileBackedLogConfiguration("./my-conf.logconf"); // custom location
+			// var config = new FileBackedLogConfiguration(); // default location (beside the executable with file extension '.gplogconf');
+			// var config = new FileBackedLogConfiguration("./my-conf.gplogconf"); // custom location
 			// bool initConfig = !File.Exists(config.FullPath); // init programmatically, if file does not exist, yet
 
 			if (initConfig)
