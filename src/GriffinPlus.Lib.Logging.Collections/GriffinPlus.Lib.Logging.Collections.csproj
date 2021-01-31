@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
-		<AssemblyName>GriffinPlus.Lib.Logging.LogFile</AssemblyName>
-		<RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
+		<AssemblyName>GriffinPlus.Lib.Logging.Collections</AssemblyName>
+		<RootNamespace>GriffinPlus.Lib.Logging.Collections</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
@@ -13,12 +13,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\GriffinPlus.Lib.Logging.Collections\GriffinPlus.Lib.Logging.Collections.csproj" />
-		<ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
+	  <ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
 	</ItemGroup>
 
 </Project>

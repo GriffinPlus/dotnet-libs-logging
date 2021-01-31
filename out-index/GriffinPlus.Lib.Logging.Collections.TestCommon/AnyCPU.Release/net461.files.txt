@@ -1,0 +1,13 @@
+﻿.\GriffinPlus.Lib.Logging.Collections.dll
+.\GriffinPlus.Lib.Logging.Collections.pdb
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.dll
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.pdb
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.xml
+.\GriffinPlus.Lib.Logging.Collections.xml
+.\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.pdb
+.\GriffinPlus.Lib.Logging.xml
+.\xunit.abstractions.dll
+.\xunit.assert.dll
+.\xunit.core.dll
+.\xunit.execution.desktop.dll

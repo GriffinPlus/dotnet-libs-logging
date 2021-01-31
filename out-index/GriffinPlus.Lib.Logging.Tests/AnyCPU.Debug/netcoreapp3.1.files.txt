@@ -10,9 +10,6 @@
 .\GriffinPlus.Lib.Expressions.dll
 .\GriffinPlus.Lib.Logging.dll
 .\GriffinPlus.Lib.Logging.pdb
-.\GriffinPlus.Lib.Logging.TestCommon.dll
-.\GriffinPlus.Lib.Logging.TestCommon.pdb
-.\GriffinPlus.Lib.Logging.TestCommon.xml
 .\GriffinPlus.Lib.Logging.Tests.deps.json
 .\GriffinPlus.Lib.Logging.Tests.dll
 .\GriffinPlus.Lib.Logging.Tests.pdb

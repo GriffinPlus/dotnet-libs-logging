@@ -40,7 +40,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\GriffinPlus.Lib.Logging.Collections.TestCommon\GriffinPlus.Lib.Logging.Collections.TestCommon.csproj" />
 		<ProjectReference Include="..\GriffinPlus.Lib.Logging.LogFile\GriffinPlus.Lib.Logging.LogFile.csproj" />
-		<ProjectReference Include="..\GriffinPlus.Lib.Logging.TestCommon\GriffinPlus.Lib.Logging.TestCommon.csproj" />
 	</ItemGroup>
 </Project>

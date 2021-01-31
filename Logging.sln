@@ -66,7 +66,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "azure-pipelines", "azure-pi
 		build.vs\azure-pipelines\ci-csharp-netstandard20-with-deployment-on-tag.yml = build.vs\azure-pipelines\ci-csharp-netstandard20-with-deployment-on-tag.yml
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.TestCommon", "src\GriffinPlus.Lib.Logging.TestCommon\GriffinPlus.Lib.Logging.TestCommon.csproj", "{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.Collections.TestCommon", "src\GriffinPlus.Lib.Logging.Collections.TestCommon\GriffinPlus.Lib.Logging.Collections.TestCommon.csproj", "{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.Collections", "src\GriffinPlus.Lib.Logging.Collections\GriffinPlus.Lib.Logging.Collections.csproj", "{B0B34829-CD9A-41B1-8EA4-DA9D77D509FE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.Collections.Tests", "src\GriffinPlus.Lib.Logging.Collections.Tests\GriffinPlus.Lib.Logging.Collections.Tests.csproj", "{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -106,6 +110,14 @@ Global
 		{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0FF7485-38B2-4DB7-87D5-98C9A1B50421}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0B34829-CD9A-41B1-8EA4-DA9D77D509FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B34829-CD9A-41B1-8EA4-DA9D77D509FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0B34829-CD9A-41B1-8EA4-DA9D77D509FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0B34829-CD9A-41B1-8EA4-DA9D77D509FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,11 @@
 ﻿.\GriffinPlus.Lib.Common.dll
 .\GriffinPlus.Lib.Expressions.dll
+.\GriffinPlus.Lib.Logging.Collections.dll
+.\GriffinPlus.Lib.Logging.Collections.pdb
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.dll
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.pdb
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.xml
+.\GriffinPlus.Lib.Logging.Collections.xml
 .\GriffinPlus.Lib.Logging.dll
 .\GriffinPlus.Lib.Logging.LogFile.dll
 .\GriffinPlus.Lib.Logging.LogFile.pdb
@@ -7,9 +13,6 @@
 .\GriffinPlus.Lib.Logging.LogFile.Tests.pdb
 .\GriffinPlus.Lib.Logging.LogFile.xml
 .\GriffinPlus.Lib.Logging.pdb
-.\GriffinPlus.Lib.Logging.TestCommon.dll
-.\GriffinPlus.Lib.Logging.TestCommon.pdb
-.\GriffinPlus.Lib.Logging.TestCommon.xml
 .\GriffinPlus.Lib.Logging.xml
 .\Microsoft.VisualStudio.CodeCoverage.Shim.dll
 .\System.Buffers.dll

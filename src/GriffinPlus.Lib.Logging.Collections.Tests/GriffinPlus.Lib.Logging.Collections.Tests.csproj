@@ -4,7 +4,7 @@
 		<TargetFrameworks>net461; netcoreapp2.1; netcoreapp3.1; net5.0</TargetFrameworks>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
-		<RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
+		<RootNamespace>GriffinPlus.Lib.Logging.Collections</RootNamespace>
 		<OmitDocumentationFile>true</OmitDocumentationFile>
 	</PropertyGroup>
 
@@ -39,6 +39,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\GriffinPlus.Lib.Logging.Collections.TestCommon\GriffinPlus.Lib.Logging.Collections.TestCommon.csproj" />
+		<ProjectReference Include="..\GriffinPlus.Lib.Logging.Collections\GriffinPlus.Lib.Logging.Collections.csproj" />
 		<ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
 	</ItemGroup>
 </Project>
