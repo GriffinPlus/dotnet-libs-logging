@@ -3,6 +3,8 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -21,7 +23,8 @@ namespace GriffinPlus.Lib.Logging
 		protected override FileBackedProcessingPipelineStageConfiguration CreateConfiguration(string name)
 		{
 			// the file-backed pipeline stage configuration can exist only within the file-backed log configuration
-			var logConfiguration = new FileBackedLogConfiguration();
+			// (use specific file name to avoid sharing violation when running other tests that use the default constructor of the configuration as well)
+			var logConfiguration = new FileBackedLogConfiguration("FileBackedProcessingPipelineStageConfigurationTests.gplogconf");
 			return new FileBackedProcessingPipelineStageConfiguration(logConfiguration, name);
 		}
 
@@ -31,7 +34,8 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Create()
 		{
-			var logConfiguration = new FileBackedLogConfiguration();
+			// use specific file name to avoid sharing violation when running other tests that use the default constructor of the configuration as well
+			var logConfiguration = new FileBackedLogConfiguration("FileBackedProcessingPipelineStageConfigurationTests.gplogconf");
 			var stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, "Stage");
 			Assert.NotNull(stageConfiguration.Sync);
 		}
