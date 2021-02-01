@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable PossibleMultipleEnumeration
@@ -26,12 +25,8 @@ namespace GriffinPlus.Lib.Logging
 	/// Asterisk(*) and quotation mark (?) are not supported as these characters are used to implement pattern matching with wildcards.
 	/// Caret(^) and dollar sign ($) are not supported as these characters are used to implement the detection of regex strings.
 	/// </summary>
-	public sealed class TagSet : IReadOnlyList<string>, IEquatable<TagSet>
+	public sealed class TagSet : ITagSet
 	{
-		private static readonly Regex sValidTagNameRegex = new Regex(
-			@"^[a-zA-Z0-9\.\,\:\;\+\-\#\(\)\[\]\{\}\<\>]+$",
-			RegexOptions.Compiled | RegexOptions.Singleline);
-
 		private static readonly List<string> sEmpty = new List<string>();
 		private readonly        List<string> mTags;
 		private readonly        int          mHashCode;
@@ -54,6 +49,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
 		/// </summary>
 		/// <param name="tags">Tags to keep in the collection.</param>
+		/// <exception cref="ArgumentException">At least one of the tags is invalid.</exception>
 		public TagSet(params string[] tags) :
 			this((IEnumerable<string>)tags)
 		{
@@ -63,10 +59,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
 		/// </summary>
 		/// <param name="tags">Tags to keep in the collection.</param>
+		/// <exception cref="ArgumentException">At least one of the tags is invalid.</exception>
 		public TagSet(IEnumerable<string> tags)
 		{
 			if (tags == null) throw new ArgumentNullException(nameof(tags));
-			foreach (string tag in tags) CheckTag(tag);
+			foreach (string tag in tags) LogWriterTag.CheckTag(tag);
 			mTags = new List<string>(new HashSet<string>(tags, StringComparer.Ordinal));
 			mTags.Sort(StringComparer.OrdinalIgnoreCase);
 			mHashCode = CalculateHashCode(mTags);
@@ -107,7 +104,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="left">Left tag set.</param>
 		/// <param name="right">Right tag set.</param>
 		/// <returns>true, if the specified tag sets are equal; otherwise false.</returns>
-		public static bool operator ==(TagSet left, TagSet right)
+		public static bool operator ==(TagSet left, ITagSet right)
 		{
 			if (ReferenceEquals(left, null) && ReferenceEquals(right, null)) return true;
 			if (ReferenceEquals(left, null)) return false;
@@ -120,7 +117,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="left">Left tag set.</param>
 		/// <param name="right">Right tag set.</param>
 		/// <returns>true, if the specified tag sets are not equal; otherwise false.</returns>
-		public static bool operator !=(TagSet left, TagSet right)
+		public static bool operator !=(TagSet left, ITagSet right)
 		{
 			if (ReferenceEquals(left, null) && ReferenceEquals(right, null)) return false;
 			if (ReferenceEquals(left, null)) return true;
@@ -137,7 +134,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (left == null) throw new ArgumentNullException(nameof(left));
 			if (right == null) throw new ArgumentNullException(nameof(right));
-			CheckTag(right);
+			LogWriterTag.CheckTag(right);
 
 			var newSet = new HashSet<string>(left, StringComparer.Ordinal) { right };
 			if (newSet.Count == left.Count) return left;
@@ -155,7 +152,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (left == null) throw new ArgumentNullException(nameof(left));
 			if (right == null) throw new ArgumentNullException(nameof(right));
-			foreach (string tag in right) CheckTag(tag);
+			foreach (string tag in right) LogWriterTag.CheckTag(tag);
 
 			var newSet = new HashSet<string>(left, StringComparer.Ordinal);
 			newSet.UnionWith(right);
@@ -174,7 +171,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (left == null) throw new ArgumentNullException(nameof(left));
 			if (right == null) throw new ArgumentNullException(nameof(right));
-			CheckTag(right);
+			LogWriterTag.CheckTag(right);
 
 			var newSet = new HashSet<string>(left, StringComparer.Ordinal);
 			newSet.Remove(right);
@@ -193,7 +190,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (left == null) throw new ArgumentNullException(nameof(left));
 			if (right == null) throw new ArgumentNullException(nameof(right));
-			foreach (string tag in right) CheckTag(tag);
+			foreach (string tag in right) LogWriterTag.CheckTag(tag);
 
 			var newSet = new HashSet<string>(left, StringComparer.Ordinal);
 			newSet.ExceptWith(right);
@@ -228,10 +225,10 @@ namespace GriffinPlus.Lib.Logging
 		/// true, if the specified tag set equals the current one;
 		/// otherwise false.
 		/// </returns>
-		public bool Equals(TagSet other)
+		public bool Equals(ITagSet other)
 		{
 			if (other == null) return false;
-			return mTags.SequenceEqual(other.mTags, StringComparer.Ordinal);
+			return mTags.SequenceEqual(other, StringComparer.Ordinal);
 		}
 
 		/// <summary>
@@ -244,7 +241,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		public override bool Equals(object obj)
 		{
-			return ReferenceEquals(this, obj) || obj is TagSet other && Equals(other);
+			return ReferenceEquals(this, obj) || obj is ITagSet other && Equals(other);
 		}
 
 		/// <summary>
@@ -254,16 +251,6 @@ namespace GriffinPlus.Lib.Logging
 		public override int GetHashCode()
 		{
 			return mHashCode;
-		}
-
-		/// <summary>
-		/// Checks whether the specified string is a valid tag.
-		/// </summary>
-		/// <param name="tag">Tag to check.</param>
-		public static void CheckTag(string tag)
-		{
-			if (tag == null) throw new ArgumentNullException(nameof(tag));
-			if (!sValidTagNameRegex.IsMatch(tag)) throw new ArgumentException($"The specified tag ({tag}) is invalid.");
 		}
 
 		/// <summary>

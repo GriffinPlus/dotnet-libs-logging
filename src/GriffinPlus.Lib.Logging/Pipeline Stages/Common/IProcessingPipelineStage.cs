@@ -86,8 +86,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Processes that a new log writer was added to the logging subsystem.
 		/// </summary>
-		/// <param name="writer"></param>
+		/// <param name="writer">The new log writer.</param>
 		void ProcessLogWriterAdded(LogWriter writer);
+
+		/// <summary>
+		/// Processes that a new log writer tag was added to the logging subsystem.
+		/// </summary>
+		/// <param name="tag">The new log writer tag.</param>
+		void ProcessLogWriterTagAdded(LogWriterTag tag);
 
 		/// <summary>
 		/// Processes the specified log message.

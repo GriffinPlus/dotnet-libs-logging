@@ -22,16 +22,18 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		internal static readonly object Sync = new object();
 
-		private static readonly int                           sProcessId        = Process.GetCurrentProcess().Id;
-		private static readonly string                        sProcessName      = Process.GetCurrentProcess().ProcessName;
-		private static readonly LocalLogMessagePool           sLogMessagePool   = new LocalLogMessagePool();
-		private static          List<LogWriter>               sLogWritersById   = new List<LogWriter>();
-		private static          Dictionary<string, LogWriter> sLogWritersByName = new Dictionary<string, LogWriter>();
-		private static          ILogConfiguration             sLogConfiguration;
-		private static volatile IProcessingPipelineStage      sProcessingPipeline;
-		private static readonly AsyncLocal<uint>              sAsyncId = new AsyncLocal<uint>();
-		private static          int                           sAsyncIdCounter;
-		private static readonly LogWriter                     sLog = GetWriter("Logging");
+		private static readonly int                              sProcessId           = Process.GetCurrentProcess().Id;
+		private static readonly string                           sProcessName         = Process.GetCurrentProcess().ProcessName;
+		private static readonly LocalLogMessagePool              sLogMessagePool      = new LocalLogMessagePool();
+		private static          List<LogWriter>                  sLogWritersById      = new List<LogWriter>();
+		private static          Dictionary<string, LogWriter>    sLogWritersByName    = new Dictionary<string, LogWriter>();
+		private static          List<LogWriterTag>               sLogWriterTagsById   = new List<LogWriterTag>();
+		private static          Dictionary<string, LogWriterTag> sLogWriterTagsByName = new Dictionary<string, LogWriterTag>();
+		private static          ILogConfiguration                sLogConfiguration;
+		private static volatile IProcessingPipelineStage         sProcessingPipeline;
+		private static readonly AsyncLocal<uint>                 sAsyncId = new AsyncLocal<uint>();
+		private static          int                              sAsyncIdCounter;
+		private static readonly LogWriter                        sLog = GetWriter("Logging");
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
@@ -59,6 +61,12 @@ namespace GriffinPlus.Lib.Logging
 		/// The index of the log writer in the list corresponds to <see cref="LogWriter.Id"/>.
 		/// </summary>
 		public static IReadOnlyList<LogWriter> KnownWriters => sLogWritersById;
+
+		/// <summary>
+		/// Gets all log writer tags that have been registered using <see cref="LogWriter.WithTag"/> or <see cref="LogWriter.WithTags"/>.
+		/// The index of the log writer tag in the list corresponds to <see cref="LogWriterTag.Id"/>.
+		/// </summary>
+		public static IReadOnlyList<LogWriterTag> KnownTags => sLogWriterTagsById;
 
 		/// <summary>
 		/// Gets an id that is valid for the entire asynchronous control flow.
@@ -330,6 +338,46 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a log writer tag with the specified name (for internal use only).
+		/// </summary>
+		/// <param name="name">Name of the log writer to get.</param>
+		/// <returns>The requested log writer.</returns>
+		internal LogWriterTag GetWriterTag(string name)
+		{
+			sLogWriterTagsByName.TryGetValue(name, out var tag);
+			if (tag == null)
+			{
+				lock (Sync)
+				{
+					if (!sLogWriterTagsByName.TryGetValue(name, out tag))
+					{
+						tag = new LogWriterTag(name);
+
+						// the id of the writer tag should correspond to the index in the list and the
+						// number of elements in the dictionary.
+						Debug.Assert(tag.Id == sLogWriterTagsById.Count);
+						Debug.Assert(tag.Id == sLogWriterTagsByName.Count);
+
+						// replace log writer tag list
+						var newLogWriterTagsById = new List<LogWriterTag>(sLogWriterTagsById) { tag };
+						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
+						sLogWriterTagsById = newLogWriterTagsById;
+
+						// replace log writer tag collection dictionary
+						var newLogWriterTagsByName = new Dictionary<string, LogWriterTag>(sLogWriterTagsByName) { { tag.Name, tag } };
+						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
+						sLogWriterTagsByName = newLogWriterTagsByName;
+
+						// notify about the new log writer tag
+						ProcessLogWriterTagAdded(tag);
+					}
+				}
+			}
+
+			return tag;
+		}
+
+		/// <summary>
 		/// Initializes the default log configuration.
 		/// </summary>
 		internal static void InitDefaultConfiguration()
@@ -437,6 +485,20 @@ namespace GriffinPlus.Lib.Logging
 
 			// notify log message processing pipeline stages
 			ProcessingPipeline?.ProcessLogWriterAdded(writer);
+		}
+
+		/// <summary>
+		/// Is called when a new log writer tag is added to the logging subsystem.
+		/// It notifies other components about the new tag.
+		/// </summary>
+		/// <param name="tag">The new log writer tag.</param>
+		internal static void ProcessLogWriterTagAdded(LogWriterTag tag)
+		{
+			// the global logging lock should have been acquired
+			Debug.Assert(Monitor.IsEntered(Sync));
+
+			// notify log message processing pipeline stages
+			ProcessingPipeline?.ProcessLogWriterTagAdded(tag);
 		}
 	}
 

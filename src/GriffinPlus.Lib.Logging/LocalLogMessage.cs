@@ -193,7 +193,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the tags attached to the log message.
 		/// </summary>
 		/// <exception cref="NotSupportedException">The log message is read-only, setting the property in not supported.</exception>
-		TagSet ILogMessage.Tags
+		ITagSet ILogMessage.Tags
 		{
 			get => mTags;
 			set => throw new NotSupportedException($"The log message is read-only, setting {nameof(ILogMessage.Tags)} in not supported.");

@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the tags attached to the log message.
 		/// </summary>
 		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
-		TagSet Tags { get; set; }
+		ITagSet Tags { get; set; }
 
 		/// <summary>
 		/// Gets or sets the name of the application emitting the log message

@@ -469,6 +469,53 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Processes that a new log writer tag was added to the logging subsystem.
+		/// </summary>
+		/// <param name="tag">the new log writer tag.</param>
+		void IProcessingPipelineStage.ProcessLogWriterTagAdded(LogWriterTag tag)
+		{
+			Debug.Assert(Monitor.IsEntered(Log.Sync));
+
+			lock (Sync)
+			{
+				// call OnLogWriterTagAdded() of this stage
+				try
+				{
+					OnLogWriterTagAdded(tag);
+				}
+				catch (Exception ex)
+				{
+					// swallow exception to avoid crashing the application, if the exception is not handled properly
+					Debug.Fail("The pipeline stage threw an exception processing a notification about a new log writer tag", ex.ToString());
+				}
+
+				// call OnLogWriterTagAdded() of following stages
+				for (int i = 0; i < mNextStages.Length; i++)
+				{
+					try
+					{
+						mNextStages[i].ProcessLogWriterTagAdded(tag);
+					}
+					catch (Exception ex)
+					{
+						// swallow exception to avoid crashing the application, if the exception is not handled properly
+						Debug.Fail("A following pipeline stage threw an exception processing a notification about a new log writer tag", ex.ToString());
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Is called when a new log writer tag was added to the logging subsystem
+		/// (the pipeline stage lock <see cref="Sync"/> is acquired when this method is called).
+		/// This method must not throw exceptions.
+		/// </summary>
+		/// <param name="tag">The new log writer tag.</param>
+		protected virtual void OnLogWriterTagAdded(LogWriterTag tag)
+		{
+		}
+
+		/// <summary>
 		/// Processes the specified log message synchronously and passes the log message to the next processing stages,
 		/// if appropriate. This method must not throw exceptions.
 		/// </summary>

@@ -40,7 +40,7 @@ namespace GriffinPlus.Lib.Logging
 			mTimestamp = other.Timestamp;
 			mHighPrecisionTimestamp = other.HighPrecisionTimestamp;
 			mLogWriterName = other.LogWriterName;
-			mTags = other.Tags;
+			mTags = other.Tags is TagSet tags ? tags : new TagSet(other.Tags);
 			mLogLevelName = other.LogLevelName;
 			mApplicationName = other.ApplicationName;
 			mProcessName = other.ProcessName;
@@ -464,6 +464,49 @@ namespace GriffinPlus.Lib.Logging
 
 				if (changed)
 					OnPropertyChanged();
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets tags attached to the log message.
+		/// </summary>
+		/// <exception cref="NotSupportedException">The log message is read-only, setting the property is not supported.</exception>
+		/// <exception cref="InvalidOperationException">Setting the property is not allowed as an asynchronous initialization is pending.</exception>
+		ITagSet ILogMessage.Tags
+		{
+			get
+			{
+				lock (Sync) return mTags;
+			}
+
+			set
+			{
+				if (value is TagSet newTagSet)
+				{
+					bool changed = false;
+
+					lock (Sync)
+					{
+						if (IsReadOnlyInternal)
+							throw new NotSupportedException("The log message is read-only.");
+
+						if (IsAsyncInitPending)
+							throw new InvalidOperationException("Setting the property is not allowed as an asynchronous initialization is pending.");
+
+						if (mTags != newTagSet)
+						{
+							mTags = newTagSet;
+							changed = true;
+						}
+					}
+
+					if (changed)
+						OnPropertyChanged();
+				}
+				else
+				{
+					throw new ArgumentException($"The specified tag set is not a {typeof(TagSet).FullName}");
+				}
 			}
 		}
 
