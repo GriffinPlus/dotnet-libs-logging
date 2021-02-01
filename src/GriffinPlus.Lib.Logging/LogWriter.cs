@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log writer (thread-safe).
 	/// </summary>
-	public class LogWriter
+	public sealed class LogWriter
 	{
 		private static readonly IFormatProvider                sDefaultFormatProvider = CultureInfo.InvariantCulture;
 		private static readonly ThreadLocal<StringBuilder>     sBuilder               = new ThreadLocal<StringBuilder>(() => new StringBuilder());

@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log level (or aspect) that indicates the severity of a log message (immutable).
 	/// </summary>
-	public class LogLevel
+	public sealed class LogLevel
 	{
 		private static Dictionary<string, LogLevel> sLogLevelsByName;
 		private static LogLevel[]                   sLogLevelsById;
