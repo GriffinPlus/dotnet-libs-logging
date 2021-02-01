@@ -1746,6 +1746,15 @@ namespace GriffinPlus.Lib.Logging
 
 			return builder.ToString();
 		}
+
+		/// <summary>
+		/// Gets the string representation of the log writer.
+		/// </summary>
+		/// <returns>String representation of the log writer.</returns>
+		public override string ToString()
+		{
+			return $"{Name} ({Id})";
+		}
 	}
 
 }
