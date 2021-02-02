@@ -680,7 +680,7 @@ namespace GriffinPlus.Lib.Logging
 				// connect to the pipe or wait until the pipe is available
 				// (the local log service has a set of pipes to serve multiple clients, so waiting most likely
 				// indicates that the service is not running)
-				pipe.Connect(0);
+				pipe.Connect(timeout);
 				pipe.ReadMode = PipeTransmissionMode.Message;
 
 				// TODO: configure timeout for writing and reading struct
