@@ -244,7 +244,7 @@ namespace GriffinPlus.Lib.Logging
 						// found match by log writer name, check tags now
 						// - if no tags are configured => match always
 						// - if tags are configured => match, if at least one tag matches
-						if (!configuration.TagPatterns.Any() || configuration.TagPatterns.Any(x => writer.Tags.Any(y => x.Regex.IsMatch(y))))
+						if (!configuration.TagPatterns.Any() || configuration.TagPatterns.Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))))
 						{
 							settings = configuration;
 							break;

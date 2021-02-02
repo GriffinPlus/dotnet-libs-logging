@@ -36,7 +36,7 @@ namespace GriffinPlus.Lib.Logging
 			Id = sNextId++;
 			Name = name;
 			ActiveLogLevelMask = LogLevelBitMask.Zeros;
-			Tags = TagSet.Empty;
+			Tags = LogWriterTagSet.Empty;
 		}
 
 		/// <summary>
@@ -44,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">The original (non-tagging) log writer.</param>
 		/// <param name="tags">Tags the tagging log writer should attach to written messages.</param>
-		internal LogWriter(LogWriter writer, TagSet tags)
+		internal LogWriter(LogWriter writer, LogWriterTagSet tags)
 		{
 			// global logging lock is acquired here...
 			PrimaryWriter = writer.PrimaryWriter;
@@ -67,7 +67,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the tags the log writer attaches to a written message.
 		/// </summary>
-		public TagSet Tags { get; }
+		public LogWriterTagSet Tags { get; }
 
 		/// <summary>
 		/// Gets the primary log writer
@@ -110,8 +110,9 @@ namespace GriffinPlus.Lib.Logging
 		public LogWriter WithTag(string tag)
 		{
 			if (tag == null) return this;
-			var newTags = Tags + tag;
+			var newTags = new LogWriterTagSet(new List<LogWriterTag>(Tags) { Log.GetWriterTag(tag) });
 			if (newTags.Count == Tags.Count) return this;
+
 			lock (Log.Sync)
 			{
 				RemoveCollectedSecondaryWriters();
@@ -129,8 +130,11 @@ namespace GriffinPlus.Lib.Logging
 		public LogWriter WithTags(params string[] tags)
 		{
 			if (tags == null) return this;
-			var newTags = Tags + tags;
+			var tagList = new List<LogWriterTag>(Tags);
+			foreach (string tag in tags) tagList.Add(Log.GetWriterTag(tag));
+			var newTags = new LogWriterTagSet(tagList);
 			if (newTags.Count == Tags.Count) return this;
+
 			lock (Log.Sync)
 			{
 				RemoveCollectedSecondaryWriters();

@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Asterisk(*) and quotation mark (?) are not supported as these characters are used to implement pattern matching with wildcards.
 	/// Caret(^) and dollar sign ($) are not supported as these characters are used to implement the detection of regex strings.
 	/// </summary>
-	public sealed class LogWriterTagSet : ITagSet
+	public sealed class LogWriterTagSet : ITagSet, IReadOnlyList<LogWriterTag>, IEquatable<LogWriterTagSet>
 	{
 		/// <summary>
 		/// A comparer for <see cref="LogWriterTag"/> that compares by name.
@@ -83,7 +83,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets an empty tag set.
 		/// </summary>
-		public static TagSet Empty { get; } = new TagSet();
+		public static LogWriterTagSet Empty { get; } = new LogWriterTagSet();
 
 		/// <summary>
 		/// Initializes a new empty instance of the <see cref="LogWriterTagSet"/> class.

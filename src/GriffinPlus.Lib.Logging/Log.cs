@@ -226,10 +226,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="tags">Tags attached to the message.</param>
 		/// <param name="text">Text of the log message.</param>
 		internal static void WriteMessage(
-			LogWriter writer,
-			LogLevel  level,
-			TagSet    tags,
-			string    text)
+			LogWriter       writer,
+			LogLevel        level,
+			LogWriterTagSet tags,
+			string          text)
 		{
 			// remove preceding and trailing line breaks
 			text = text.Trim('\r', '\n');
@@ -342,7 +342,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="name">Name of the log writer to get.</param>
 		/// <returns>The requested log writer.</returns>
-		internal LogWriterTag GetWriterTag(string name)
+		internal static LogWriterTag GetWriterTag(string name)
 		{
 			sLogWriterTagsByName.TryGetValue(name, out var tag);
 			if (tag == null)

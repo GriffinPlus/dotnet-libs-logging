@@ -182,12 +182,12 @@ namespace GriffinPlus.Lib.Logging
 
 		#region Tags
 
-		private TagSet mTags;
+		private LogWriterTagSet mTags;
 
 		/// <summary>
 		/// Gets the tags attached to the log message.
 		/// </summary>
-		public TagSet Tags => mTags;
+		public LogWriterTagSet Tags => mTags;
 
 		/// <summary>
 		/// Gets or sets the tags attached to the log message.
@@ -356,15 +356,15 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="text">The actual text the log message is about.</param>
 		/// <returns>The log message itself.</returns>
 		internal LocalLogMessage InitWith(
-			DateTimeOffset timestamp,
-			long           highPrecisionTimestamp,
-			LogWriter      logWriter,
-			LogLevel       logLevel,
-			TagSet         tags,
-			string         applicationName,
-			string         processName,
-			int            processId,
-			string         text)
+			DateTimeOffset  timestamp,
+			long            highPrecisionTimestamp,
+			LogWriter       logWriter,
+			LogLevel        logLevel,
+			LogWriterTagSet tags,
+			string          applicationName,
+			string          processName,
+			int             processId,
+			string          text)
 		{
 			mTimestamp = timestamp;
 			mHighPrecisionTimestamp = highPrecisionTimestamp;
