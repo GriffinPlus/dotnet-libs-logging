@@ -628,7 +628,7 @@ namespace GriffinPlus.Lib.Logging
 					ex);
 			}
 
-			mMessageCollection.ProcessMessageAdded((int)count);
+			if (count > 0) mMessageCollection.ProcessMessageAdded((int)count);
 		}
 
 		/// <summary>
