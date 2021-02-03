@@ -177,7 +177,7 @@ Level = Note
 
 ### Log Message Processing Pipeline
 
-*Griffin+ Logging* features a flexible *log message processing pipeline* that is fed with log messages that pass the filter defined by the *log configuration*. By default log messages are simply written to the console (*stdout*) using a tabular layout. The *log message pipeline* can be replaced by setting the `Log.LogMessageProcessingPipeline` property to a pipeline stage of your choice.
+*Griffin+ Logging* features a flexible *log message processing pipeline* that is fed with log messages that pass the filter defined by the *log configuration*. By default log messages are simply written to the console (*stdout*) using a tabular layout. The *log message pipeline* can be replaced by setting the `Log.ProcessingPipeline` property to a pipeline stage of your choice.
 
 A pipeline stage class must implement the `IProcessingPipelineStage` interface. For the sake of simplicity, `ProcessingPipelineStage` is a base class that implements the common parts that rarely need to be overridden. For pipeline stages that perform I/O it is recommended to use the `AsyncProcessingPipelineStage` as base class to decouple I/O from the thread that is writing a log message. Both classes provide an `AddNextStage()` method that allows you to chain multiple pipeline stages. Pipeline stages can influence whether a log message is passed to subsequent stages by the return value of their `IProcessingPipelineStage.Process()` method. If `IProcessingPipelineStage.Process()` returns `true` the log message is passed to subsequent stages. Returning `false` stops processing at this stage.
 
@@ -205,12 +205,19 @@ A pipeline stage class must implement the `IProcessingPipelineStage` interface. 
     - `FileWriterPipelineStage`
         - Log messages are written to a custom file as defined by the formatter
         - Processing is done asynchronously
+- Pipeline Stages writing a queryable log file
+  - Impementations
+    - `LogFilePipelineStage`
+      - Log Messages are written to a file using the `LogFile` class, a log file based on *SQLite*
+      - The written log file can be accessed as a regular collection and filtered efficiently
+      - Available via *NuGet* package `GriffinPlus.Lib.Logging.LogFile`
+      - Processing is done asynchronously
 - Pipeline Stages forwarding messages to other logging systems
   - Implementations
     - `LocalLogServicePipelineStage` (***proprietary, Windows only***)
 	  - Log messages are forwarded to a service via a shared memory queue ensuring high performance
 	  - Messages up to a process crash are available as the stage does not buffer messages in-process
-	  - Available via nuget package `GriffinPlus.Lib.Logging.LocalLogServicePipelineStage`
+	  - Available via *NuGet* package `GriffinPlus.Lib.Logging.LocalLogServicePipelineStage`
 	  - *At the moment there is no publicly available implementation of the service*
 
 ### Requesting a Log Writer
@@ -568,9 +575,33 @@ namespace GriffinPlus.Lib.Logging.Demo
     }
 ```
 
-### Helpers
+### Working with Log Messages
 
-#### Process Integration
+*Griffin+ Logging* not only allows to write log messages, but also to work with these log messages. The `LogMessage` class represents a log message with all necessary properties. All properties have getters and setters, so log messages can be build up as desired. Furthermore these messages can be protected to make them read-only and assure immutability. The `LogMessage` class also implements the `INotifyPropertyChanged` interface and features calling event handlers in the thread that registered the `PropertyChanged` event. This requires the thread to have a synchronization context that marshals invocations into the registering thread. Log messages can be initialized asynchronously, if necessary. All this allows to use the `LogMessage` class as a view model in UI applications without putting a burden on the UI thread when it comes to fetching log message data from an external source.
+
+Log messages can be stored in a collection to handle message sets. *Griffin+ Logging* comes with a couple of classes to support collections of log messages and provide a filtered view on the message set. Collection specific types are in the `GriffinPlus.Lib.Logging.Collections` namespace. Basic types can be found in the `GriffinPlus.Lib.Logging.Collections` *NuGet* package.
+
+All collections implement the `ILogMessageCollection<TMessage>` interface which extends the following interfaces:
+- `IList`
+- `IList<TMessage>`
+- `IReadOnlyList<TMessage>`
+- `INotifyCollectionChanged`
+- `INotifyPropertyChanged`
+- `IDisposable`
+
+As the interfaces indicate, log message collections are usable as regular .NET collections - with minor restrictions: Messages can be added to the end of a collection using `Add()` and `AddRange()` only. Inserting and removing single messages is not supported, only clearing the entire collection. If log message collections get to large, the `Prune()` method allows to discard old messages, either by the maximum number of messages or by age. The collections are data-bindable and can be directly used in conjunction with UIs that support it, e.g. WPF. These collections store an unfiltered message set. A *filtering accessor* provides an efficient way to a filtered message set by peeking into a set of unfiltered log messages and searching for the previous/next log messages matching the filter criteria. This technique allows to navigate through large amounts of log messages without the need to filter all messages in advance. Log message collections are available in two flavors: a purely in-memory collection and a collection that is backed by a *SQLite* database.
+
+The in-memory implementation of the collection is available via the `LogMessageCollection` class which is also part of the `GriffinPlus.Lib.Logging.Collections` *NuGet* package. The collection can be accessed as any other .NET collection with the restrictions mentioned above. The collection always contains the unfiltered message set. If a filtered set is desired, the `LogMessageCollection` class provides two ways to accomplish that. The obvious approach is to work with another collection that provides access to the filtered message set. This collection can be created using the collection's `GetFilteredCollection()` method. This method expects the filter to apply and generates a `FilteredLogMessageCollection` that only contains messages matching the filter. The filtered collection is read-only, but changes in the unfiltered collection are also reflected in the filtered collection. Filters implement the `ILogMessageCollectionFilter` interface and are always collection specific, i. e. these filters can only be used in conjunction with the `LogMessageCollection` class. Although the `FilteredLogMessageCollection` is easy to handle, it should be used for rather small message sets only, because the collection interface requires regenerating the filtered message set as soon as the filter changes. This can consume a noticeable amount of time. A more performant way to a filtered set is using a *filtering accessor* declared by the `ILogMessageCollectionFilteringAccessor` interface. An accessor can be created using the collection's `GetFilteringAccessor()` method.
+
+The file-backed implementation of the collection is available via the `FileBackedLogMessageCollection` class in the `GriffinPlus.Lib.Logging.LogFile` *NuGet* package. In contrast to the in-memory collection the file-backed collection stores log messages persistently using the `LogFile` class under the hood. Requested messages are loaded on demand, but a cache keeps a working set in memory to avoid performance bottlenecks when navigating through the collection. The collection can be accessed as any other .NET collection with the restrictions mentioned above. The collection always contains the unfiltered message set. If a filtered set is desired, the `FileBackedLogMessageCollection` class allows to create a *filtering accessor* using the `GetFilteringAccessor()` method.
+
+*Griffin+ Logging* comes with a filter that should suffice most needs, the *Selectable Log Message Filter*. It allows to filter timestamps by a time interval and provides lists of selectable process ids, process names, application names, log level names and log writer names that should pass the filter. The lists of selectable items are synchronized with the log message collection the filter is attached to. A full-text search is also supported. The filters are data-bindable, so they can be directly used in an UI just as the collections.
+
+The following implementations are available:
+- `SelectableLogMessageFilter` for the `LogMessageCollection` class
+- `SelectableFileBackedLogMessageFilter` for the `FileBackedLogMessageCollection` class.
+
+### Integration of External Processes
 
 *Griffin+ Logging* provides the `ProcessIntegration` class that assists with integrating an external process into the logging subsystem of the current process. This class configures a given `System.Diagnostics.Process` to redirect the standard output/error streams before the process is started. The redirected streams are read and logged (if desired). Furthermore the `ProcessIntegration` class provides events that are raised when the process writes to its streams. The events `OutputStreamReceivedText` and `ErrorStreamReceivedText` are raised line by line, while the events `OutputStreamReceivedMessage` and `ErrorStreamReceivedMessage` are raised as soon as a JSON formatted log message is recognized in the streams. The latter comes in handy, if the started process uses *Griffin+ Logging* as well and emits log messages using the `JsonMessageFormatter` class plugged into the `ConsoleWriterPipelineStage` class. The events are marshalled into the context of the thread registering the event, if the thread's synchronization context is initialized. Handler code can directly access elements that have thread affinity, e.g. UI elements.
 
