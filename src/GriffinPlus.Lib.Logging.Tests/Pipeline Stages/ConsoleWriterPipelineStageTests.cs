@@ -271,8 +271,15 @@ namespace GriffinPlus.Lib.Logging
 				}
 			}
 
-			// give the messages some time to travel through the pipeline
-			Thread.Sleep(1000);
+			// give the messages some time (max 5000ms) to travel through the pipeline
+			// (just waiting for some time seems to fail on azure pipelines,
+			// probably jobs are moved within the cloud causing undeterministic delays)
+			for (int i = 0; i < 100; i++)
+			{
+				Thread.Sleep(50);
+				if (stdoutStream.Length >= expectedStdout.Length && stderrStream.Length >= expectedStderr.Length)
+					break;
+			}
 
 			// the streams should contain the output now
 			stdoutStream.Position = 0;

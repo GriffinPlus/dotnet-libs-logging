@@ -148,7 +148,9 @@ namespace GriffinPlus.Lib.Logging
 			((IProcessingPipelineStage)stage).ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
-			Thread.Sleep(1000);
+			// (just waiting once for some time seems to fail on azure pipelines,
+			// probably jobs are moved within the cloud causing undeterministic delays)
+			for (int i = 0; i < 10; i++) Thread.Sleep(100);
 
 			// check synchronous processing
 			Assert.True(callback.ProcessSyncCallbackWasCalled);
@@ -210,7 +212,9 @@ namespace GriffinPlus.Lib.Logging
 			((IProcessingPipelineStage)stage1).ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
-			Thread.Sleep(1000);
+			// (just waiting for some time seems to fail on azure pipelines,
+			// probably jobs are moved within the cloud causing undeterministic delays)
+			for (int i = 0; i < 10; i++) Thread.Sleep(100);
 
 			// check where the message went to
 			if (processSyncReturnValue)
