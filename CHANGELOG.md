@@ -2,13 +2,33 @@
 
 ---
 
-## Upcoming Changes
+## Release v3.0.0
+
+**This release contains some breaking changes!**
+
+It may be necessary to adjust the setup of pipeline stages and the implementation of own pipeline stages.
+
+These changes _do not_ effect writing log messages, so the impact should be rather low.
 
 ### New Features
 
-### Extensions
+- Added a log file based on an *SQLite* database ([LogFile](https://github.com/GriffinPlus/dotnet-libs-logging/blob/master/src/GriffinPlus.Lib.Logging.LogFile/LogFile/LogFile.cs) class)
+  - The file can be set up for *recording* and for *analysis* to fit scenarios where write speed is more important than the ability to query data - an vice versa.
+  - The file can operate in two modes to weigh robustness against speed
+    - Robust Mode: The database uses a WAL (Write Ahead Log) when writing to ensure data consistency 
+    - Fast Mode: The database works without journaling and does not sync to disk to speed up operation
+- Added log message collections with filtering accessors and data-binding capabilities
+  - [LogFileCollection](https://github.com/GriffinPlus/dotnet-libs-logging/blob/master/src/GriffinPlus.Lib.Logging.Collections/LogMessageCollection%20(In-Memory)/LogMessageCollection.cs) class (in-memory)
+  - [FileBackedLogFileCollection](https://github.com/GriffinPlus/dotnet-libs-logging/blob/master/src/GriffinPlus.Lib.Logging.LogFile/FileBackedLogMessageCollection/FileBackedLogMessageCollection.cs) class (backed by the [LogFile](https://github.com/GriffinPlus/dotnet-libs-logging/blob/master/src/GriffinPlus.Lib.Logging.LogFile/LogFile/LogFile.cs) class)
+- Added *Selectable Log Message Filter* with data-binding support for both collection types to filter log messages...
+  - ... by time span
+  - ... by selecting process ids, process names, application names, log writer names and log level names a log message must match
+  - ... by full-text search in the message text
+- The [LogMessage](https://github.com/GriffinPlus/dotnet-libs-logging/blob/master/src/GriffinPlus.Lib.Logging/LogMessage.cs) class now supports data-binding, asynchronous initialization and write protection
 
-### Bugfixes
+### Other Changes
+
+- Changed the default file extension for log configuration files from `.logconf` to `.gplogconf` to circumvent a name clash with another logging subsystem
 
 ---
 
