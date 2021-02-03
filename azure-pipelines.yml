@@ -46,21 +46,18 @@ stages:
       inputs:
         packageType: 'sdk'
         version: '2.1.x'
-        performMultiLevelLookup: true
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: UseDotNet@2
       displayName: 'Use .NET Core 3.1 SDK'
       inputs:
         packageType: 'sdk'
         version: '3.1.x'
-        performMultiLevelLookup: true
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: UseDotNet@2
       displayName: 'Use .NET 5.0 SDK'
       inputs:
         packageType: 'sdk'
         version: '5.0.x'
-        performMultiLevelLookup: true
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: DotNetCoreCLI@2
       displayName: 'Install GitVersion'
@@ -141,21 +138,18 @@ stages:
       inputs:
         packageType: 'sdk'
         version: '2.1.x'
-        performMultiLevelLookup: true
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: UseDotNet@2
       displayName: 'Use .NET Core 3.1 SDK'
       inputs:
         packageType: 'sdk'
         version: '3.1.x'
-        performMultiLevelLookup: true
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: UseDotNet@2
       displayName: 'Use .NET 5.0 SDK'
       inputs:
         packageType: 'sdk'
         version: '5.0.x'
-        performMultiLevelLookup: true
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Pipeline Artifacts'
