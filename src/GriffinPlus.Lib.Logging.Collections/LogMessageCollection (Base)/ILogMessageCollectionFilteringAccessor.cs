@@ -11,7 +11,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 	/// <summary>
 	/// Interface of an accessor that provides direct access to a filtered log message set without creating a filtered collection.
 	/// The use of these accessors offers a much better performance, since the overhead for the realization of collection-typical structures can be omitted.
-	/// These accessors always work in cooperation with unfiltered log message collections (<see cref="ILogMessageCollection{TMessage}"/>).
 	/// </summary>
 	/// <typeparam name="TMessage">The log message type.</typeparam>
 	public interface ILogMessageCollectionFilteringAccessor<TMessage> : IDisposable
