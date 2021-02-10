@@ -82,7 +82,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			/// <summary>
-			/// Resets the filter to its initial state.
+			/// Resets the filter.
 			/// </summary>
 			protected internal override void Reset()
 			{

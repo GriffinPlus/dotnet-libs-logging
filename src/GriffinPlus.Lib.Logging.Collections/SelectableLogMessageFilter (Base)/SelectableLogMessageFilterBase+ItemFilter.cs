@@ -200,7 +200,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			/// <summary>
-			/// Resets the filter to its initial state.
+			/// Resets the filter (keeps items, if <see cref="AccumulateItems"/> is <c>true</c>).
 			/// </summary>
 			protected internal override void Reset()
 			{
@@ -209,18 +209,33 @@ namespace GriffinPlus.Lib.Logging.Collections
 				{
 					base.Reset();
 
-					foreach (var item in mStaticItems)
+					if (mAccumulateItems)
 					{
-						item.Selected = false;
+						// filter should accumulate items
+						// => unselect all items, but do not remove anything
+						foreach (var item in mCombinedItems)
+						{ 
+							item.Selected = false;
+						}
 					}
-
-					for (int i = mSortedItems.Count - 1; i >= 0; i--)
+					else
 					{
-						var item = mSortedItems[i];
-						item.PropertyChanged -= ItemPropertyChanged;
-						mCombinedItems.RemoveAt(mStaticItems.Count + i);
-						mSortedItems.RemoveAt(i);
-						mAllValues.Remove(item.Value);
+						// filter should not accumulate items
+						// => unselect static items only...
+						foreach (var item in mStaticItems)
+						{
+							item.Selected = false;
+						}
+
+						// ... and remove other items
+						for (int i = mSortedItems.Count - 1; i >= 0; i--)
+						{
+							var item = mSortedItems[i];
+							item.PropertyChanged -= ItemPropertyChanged;
+							mCombinedItems.RemoveAt(mStaticItems.Count + i);
+							mSortedItems.RemoveAt(i);
+							mAllValues.Remove(item.Value);
+						}
 					}
 
 					mEnabledValues.Clear();

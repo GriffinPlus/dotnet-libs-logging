@@ -150,7 +150,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			#region Resetting
 
 			/// <summary>
-			/// Resets the filter to its initial state.
+			/// Resets the filter.
 			/// </summary>
 			protected internal virtual void Reset()
 			{
