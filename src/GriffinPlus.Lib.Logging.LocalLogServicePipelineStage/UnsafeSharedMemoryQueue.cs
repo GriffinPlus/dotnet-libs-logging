@@ -7,8 +7,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+// ReSharper disable RedundantUsingDirective
 using System.Security.AccessControl;
 using System.Security.Principal;
+// ReSharper restore RedundantUsingDirective
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -521,7 +523,7 @@ namespace GriffinPlus.Lib.Logging
 					block = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)currentBlockIndex * mBlockSize);
 				}
 
-				Debug.Assert(previousIndex >= 0 && previousIndex < mNumberOfBlocks);
+				Debug.Assert(previousIndex < mNumberOfBlocks);
 				mFirstBlockUnderRead = (QueueBlock*)((byte*)mFirstBlockInMemory + (long)previousIndex * mBlockSize);
 				validSize = mFirstBlockUnderRead->DataSize;
 				overflowCount = mFirstBlockUnderRead->OverflowCount;

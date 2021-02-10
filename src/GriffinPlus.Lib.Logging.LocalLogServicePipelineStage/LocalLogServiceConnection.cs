@@ -25,14 +25,14 @@ namespace GriffinPlus.Lib.Logging
 		private const int QueueBlockFetchRetryDelayTime = 20;   // ms
 
 		private static readonly int                     sCurrentProcessId = Process.GetCurrentProcess().Id;
-		private readonly        object                  mSync             = new object();
+		private readonly        object                  mSync             = new();
 		private readonly        string                  mSinkServerPipeName;
 		private readonly        string                  mGlobalQueueName;
 		private readonly        string                  mLocalQueueName;
-		private readonly        UnsafeSharedMemoryQueue mSharedMemoryQueue = new UnsafeSharedMemoryQueue();
+		private readonly        UnsafeSharedMemoryQueue mSharedMemoryQueue = new();
 		private                 bool                    mInitialized;
 		private                 int                     mPeakBufferCapacity;
-		private readonly        Queue<LogEntryBlock>    mPeakBufferQueue = new Queue<LogEntryBlock>();
+		private readonly        Queue<LogEntryBlock>    mPeakBufferQueue = new();
 		private                 int                     mLostMessageCount;
 		private                 bool                    mAutoReconnect              = true;
 		private                 TimeSpan                mAutoReconnectRetryInterval = TimeSpan.FromSeconds(15);

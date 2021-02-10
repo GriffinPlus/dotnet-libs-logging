@@ -30,6 +30,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				public int Compare(ISelectableLogMessageFilter_Item<T> x, ISelectableLogMessageFilter_Item<T> y)
 				{
+					if (x == y) return 0;
+					if (x == null) return -1;
+					if (y == null) return 1;
 					return mComparer.Compare(x.Value, y.Value);
 				}
 

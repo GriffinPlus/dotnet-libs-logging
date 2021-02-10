@@ -21,7 +21,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 	/// of selectable items for log writers, levels, processes etc.
 	/// </summary>
 	public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection> :
-		ILogMessageCollectionFilterBase<TMessage>,
 		ISelectableLogMessageFilter<TMessage>
 		where TMessage : class, ILogMessage
 		where TUnfilteredCollection : LogMessageCollectionBase<TMessage>

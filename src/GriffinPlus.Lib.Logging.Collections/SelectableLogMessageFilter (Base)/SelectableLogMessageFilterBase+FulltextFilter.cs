@@ -16,9 +16,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		public sealed class FulltextFilter : FilterBase, ISelectableLogMessageFilter_FulltextFilter
 		{
+			// ReSharper disable once StaticMemberInGenericType
 			private static readonly CompareInfo sCompareInfo = CultureInfo.InvariantCulture.CompareInfo;
-			private                 string      mSearchText  = string.Empty;
-			private                 bool        mIsCaseSensitive;
+
+			private string mSearchText = string.Empty;
+			private bool   mIsCaseSensitive;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="FulltextFilter"/> class.
