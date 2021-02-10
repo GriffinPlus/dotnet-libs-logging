@@ -244,7 +244,8 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests <see cref="LogFileMessage.InitWith"/>.
+		/// Tests
+		/// <see cref="LogFileMessage.InitWith(long,System.DateTimeOffset,long,int,string,string,GriffinPlus.Lib.Logging.TagSet,string,string,int,string)"/>.
 		/// </summary>
 		/// <param name="initInSameThread">
 		/// true to initialize the message in the thread that registers the event;

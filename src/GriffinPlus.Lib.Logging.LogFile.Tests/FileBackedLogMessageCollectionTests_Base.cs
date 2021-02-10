@@ -45,6 +45,95 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				foreach (var purpose in LogFilePurposes)
 				foreach (var writeMode in LogFileWriteModes)
+				foreach (bool populate in new[] { false, true })
+				{
+					yield return new object[] { purpose, writeMode, populate };
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection"/> class with a new backing log file in the working directory.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="populate"><c>true</c> to populate the log file with messages; otherwise <c>false</c>.</param>
+		[Theory]
+		[MemberData(nameof(CreateTestData))]
+		private void Create_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
+		{
+			string backingFilePath = Path.Combine(Environment.CurrentDirectory, "FileBackedLogMessageCollectionBuffer.gplog");
+
+			// delete the file to work with to ensure that the collection creates a new one
+			File.Delete(backingFilePath);
+			Assert.False(File.Exists(backingFilePath));
+
+			try
+			{
+				var messages = populate ? Fixture.GetLogMessages_Random_10K() : null;
+				using (var collection = FileBackedLogMessageCollection.Create(backingFilePath, purpose, writeMode, messages))
+				{
+					Assert.True(File.Exists(backingFilePath));
+					Assert.Equal(backingFilePath, collection.FilePath);
+					TestCollectionPropertyDefaults(collection, populate ? messages.Length : 0, false);
+					if (populate)
+					{
+						Assert.Equal(messages, collection);
+						Assert.Equal(messages, collection.LogFile.Read(0, messages.Length + 1));
+					}
+					else
+					{
+						Assert.Empty(collection);
+						Assert.Equal(0, collection.LogFile.MessageCount);
+					}
+				}
+
+				// the file should persist after disposing the collection
+				Assert.True(File.Exists(backingFilePath));
+			}
+			finally
+			{
+				File.Delete(backingFilePath);
+			}
+		}
+
+		/// <summary>
+		/// Tests creating a new instance of the <see cref="FileBackedLogMessageCollection"/> class with an existing backing log file in the working directory.
+		/// An exception should be thrown.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="populate"><c>true</c> to populate the log file with messages; otherwise <c>false</c>.</param>
+		[Theory]
+		[MemberData(nameof(CreateTestData))]
+		private void Create_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
+		{
+			string backingFilePath = purpose == LogFilePurpose.Recording
+				                         ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				                         : Fixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			var messages = populate ? Fixture.GetLogMessages_Random_10K() : null;
+
+			try
+			{
+				Assert.Throws<LogFileException>(() => FileBackedLogMessageCollection.Create(backingFilePath, purpose, writeMode, messages));
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(backingFilePath);
+			}
+		}
+
+		/// <summary>
+		/// Test data for test methods testing the instantiation of the collection.
+		/// </summary>
+		public static IEnumerable<object[]> CreateOrOpenTestData
+		{
+			get
+			{
+				foreach (var purpose in LogFilePurposes)
+				foreach (var writeMode in LogFileWriteModes)
 				{
 					yield return new object[] { purpose, writeMode };
 				}
@@ -57,7 +146,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		[Theory]
-		[MemberData(nameof(CreateTestData))]
+		[MemberData(nameof(CreateOrOpenTestData))]
 		private void OpenOrCreate_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			string backingFilePath = Path.Combine(Environment.CurrentDirectory, "FileBackedLogMessageCollectionBuffer.gplog");
@@ -90,7 +179,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		[Theory]
-		[MemberData(nameof(CreateTestData))]
+		[MemberData(nameof(CreateOrOpenTestData))]
 		private void OpenOrCreate_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
 		{
 			string path = purpose == LogFilePurpose.Recording
@@ -349,8 +438,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 		}
 
 		#endregion
-
-
 	}
 
 }

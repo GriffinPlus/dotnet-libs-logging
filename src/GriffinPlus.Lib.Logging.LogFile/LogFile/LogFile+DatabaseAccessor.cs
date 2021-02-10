@@ -79,7 +79,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// SQL commands that create the database structure common to all file formats.
 			/// </summary>
-			private static readonly string[] sCreateDatabaseCommands_CommonStructure =
+			protected static readonly string[] CreateDatabaseCommands_CommonStructure =
 			{
 				$"PRAGMA application_id = {LogFileApplicationId};",
 				"PRAGMA encoding = 'UTF-8';",
@@ -95,7 +95,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <summary>
 			/// SQL commands that add common indices to the database.
 			/// </summary>
-			private static readonly string[] sCreateDatabaseCommands_CommonIndices =
+			protected static readonly string[] CreateDatabaseCommands_CommonIndices =
 			{
 				"CREATE UNIQUE INDEX processes_name_index ON processes (name);",
 				"CREATE UNIQUE INDEX applications_name_index ON applications (name);",
@@ -144,15 +144,10 @@ namespace GriffinPlus.Lib.Logging
 			/// true, if the log file is opened in read-only mode;
 			/// false, if the log file is opened in read/write mode.
 			/// </param>
-			/// <param name="create">
-			/// true to create the database;
-			/// false to just use it.
-			/// </param>
 			protected DatabaseAccessor(
 				SQLiteConnection connection,
 				LogFileWriteMode writeMode,
-				bool             isReadOnly,
-				bool             create)
+				bool             isReadOnly)
 			{
 				Connection = connection;
 				mCommands = new List<SQLiteCommand>();
@@ -255,13 +250,6 @@ namespace GriffinPlus.Lib.Logging
 				// command to delete all tag-to-message mappings up to a specific message id
 				mDeleteTagToMessageMappingsUpToIdCommand = PrepareCommand("DELETE FROM tag2msg as tm WHERE tm.message_id <= @message_id;");
 				mDeleteTagToMessageMappingsUpToIdCommand.Parameters.Add(mDeleteTagToMessageMappingsUpToIdCommand_MessageIdParameter = new SQLiteParameter("@message_id", DbType.Int64));
-
-				// create common database tables and indices, if requested
-				if (create)
-				{
-					ExecuteNonQueryCommands(sCreateDatabaseCommands_CommonStructure);
-					ExecuteNonQueryCommands(sCreateDatabaseCommands_CommonIndices);
-				}
 
 				// store temporary data in memory
 				ExecuteNonQueryCommand(connection, "PRAGMA temp_store = MEMORY;");
@@ -545,8 +533,8 @@ namespace GriffinPlus.Lib.Logging
 					{
 						// drop all common tables in the database and create new ones
 						ExecuteNonQueryCommands(sDropCommonTablesCommands);
-						ExecuteNonQueryCommands(sCreateDatabaseCommands_CommonStructure);
-						ExecuteNonQueryCommands(sCreateDatabaseCommands_CommonIndices);
+						ExecuteNonQueryCommands(CreateDatabaseCommands_CommonStructure);
+						ExecuteNonQueryCommands(CreateDatabaseCommands_CommonIndices);
 
 						// clear cache dictionaries
 						mProcessNameToId.Clear();

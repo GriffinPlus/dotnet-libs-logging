@@ -4,6 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 
@@ -16,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The database accessor for the 'analysis' file format.
 		/// The format is optimized for analyzing log messages.
 		/// </summary>
-		private class AnalysisDatabaseAccessor : DatabaseAccessor
+		private sealed class AnalysisDatabaseAccessor : DatabaseAccessor
 		{
 			private readonly SQLiteCommand   mGetOldestMessageIdCommand;
 			private readonly SQLiteCommand   mGetNewestMessageIdCommand;
@@ -96,11 +97,13 @@ namespace GriffinPlus.Lib.Logging
 			/// true to create the database;
 			/// false to just use it.
 			/// </param>
+			/// <param name="messages">Messages to populate the file with (works for new files only).</param>
 			public AnalysisDatabaseAccessor(
-				SQLiteConnection connection,
-				LogFileWriteMode writeMode,
-				bool             isReadOnly,
-				bool             create) : base(connection, writeMode, isReadOnly, create)
+				SQLiteConnection         connection,
+				LogFileWriteMode         writeMode,
+				bool                     isReadOnly,
+				bool                     create,
+				IEnumerable<ILogMessage> messages = null) : base(connection, writeMode, isReadOnly)
 			{
 				// commands to get the lowest and the highest message id
 				mGetOldestMessageIdCommand = PrepareCommand("SELECT id FROM messages ORDER BY id ASC  LIMIT 1;");
@@ -186,13 +189,27 @@ namespace GriffinPlus.Lib.Logging
 				// create database tables and indices, if requested
 				if (create)
 				{
+					// create structure first
+					ExecuteNonQueryCommands(CreateDatabaseCommands_CommonStructure);
 					ExecuteNonQueryCommands(sCreateDatabaseCommands_SpecificStructure);
+
+					// retrieve the ids of the oldest and newest message
+					OldestMessageId = GetOldestMessageId();
+					NewestMessageId = GetNewestMessageId();
+
+					// populate the database with messages
+					if (messages != null) Write(messages);
+
+					// create indices at last (is much faster than updating indices when inserting)
+					ExecuteNonQueryCommands(CreateDatabaseCommands_CommonIndices);
 					ExecuteNonQueryCommands(sCreateDatabaseCommands_SpecificIndices);
 				}
-
-				// retrieve the ids of the oldest and newest message
-				OldestMessageId = GetOldestMessageId();
-				NewestMessageId = GetNewestMessageId();
+				else
+				{
+					// retrieve the ids of the oldest and newest message
+					OldestMessageId = GetOldestMessageId();
+					NewestMessageId = GetNewestMessageId();
+				}
 			}
 
 			/// <summary>

@@ -102,6 +102,24 @@ namespace GriffinPlus.Lib.Logging.Collections
 		#region Creating a Collection
 
 		/// <summary>
+		/// Creates a <see cref="FileBackedLogMessageCollection"/> backed by the specified log file and populates it with the specified messages.
+		/// The log file must not exist, yet.
+		/// </summary>
+		/// <param name="path">Path of the log file to create.</param>
+		/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
+		/// <param name="mode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
+		/// <param name="messages">Messages to populate the log file with (may be null).</param>
+		/// <exception cref="LogFileException">Creating the log file failed (see message and inner exception for details).</exception>
+		public static FileBackedLogMessageCollection Create(
+			string                   path,
+			LogFilePurpose           purpose,
+			LogFileWriteMode         mode,
+			IEnumerable<ILogMessage> messages = null)
+		{
+			return LogFile.Create(path, purpose, mode, messages).Messages;
+		}
+
+		/// <summary>
 		/// Creates a <see cref="FileBackedLogMessageCollection"/> backed by the specified log file.
 		/// The log file is created, if it does not exist, yet.
 		/// </summary>
@@ -167,15 +185,17 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="mode">
 		/// Write mode determining whether to open the log file in 'robust' or 'fast' mode (default).
 		/// </param>
+		/// <param name="messages">Messages to populate the temporary collection with (may be null).</param>
 		/// <returns>The created collection.</returns>
 		public static FileBackedLogMessageCollection CreateTemporaryCollection(
-			bool             deleteAutomatically,
-			string           temporaryDirectoryPath = null,
-			LogFilePurpose   purpose                = LogFilePurpose.Analysis,
-			LogFileWriteMode mode                   = LogFileWriteMode.Fast)
+			bool                     deleteAutomatically,
+			string                   temporaryDirectoryPath = null,
+			LogFilePurpose           purpose                = LogFilePurpose.Analysis,
+			LogFileWriteMode         mode                   = LogFileWriteMode.Fast,
+			IEnumerable<ILogMessage> messages               = null)
 		{
 			string path = TemporaryFileManager.GetTemporaryFileName(deleteAutomatically, temporaryDirectoryPath);
-			var file = LogFile.OpenOrCreate(path, purpose, mode);
+			var file = LogFile.Create(path, purpose, mode, messages);
 			file.Messages.AutoDelete = deleteAutomatically;
 			return file.Messages;
 		}

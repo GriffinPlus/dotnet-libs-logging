@@ -127,6 +127,116 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
+		#region Create()
+
+		/// <summary>
+		/// Test data providing a mix of purposes and write modes.
+		/// </summary>
+		public static IEnumerable<object[]> CreateTestData
+		{
+			get
+			{
+				foreach (var purpose in sLogFilePurposes)
+				foreach (var writeMode in sLogFileWriteModes)
+				foreach (bool populate in new[] { false, true })
+				{
+					yield return new object[] { purpose, writeMode, populate };
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests creating a new instance of the <see cref="LogFile"/> class with a new log file.
+		/// The file is opened for reading and writing.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="populate"><c>true</c> to populate the log file with messages; otherwise <c>false</c>.</param>
+		[Theory]
+		[MemberData(nameof(CreateTestData))]
+		private void Create_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
+		{
+			const string filename = "Test.gplog";
+			string fullPath = Path.GetFullPath(filename);
+
+			// ensure the log file does not exist
+			File.Delete(fullPath);
+
+			// create a new log file
+			var messages = populate ? mFixture.GetLogMessages_Random_10K() : null;
+			using (var file = LogFile.Create(filename, purpose, writeMode, messages))
+			{
+				// the log file itself
+				Assert.Equal(fullPath, file.FilePath);
+				Assert.Equal(purpose, file.Purpose);
+				Assert.Equal(writeMode, file.WriteMode);
+				Assert.False(file.IsReadOnly);
+
+				if (populate)
+				{
+					Assert.Equal(messages.Length, file.MessageCount);
+					Assert.Equal(0, file.OldestMessageId);
+					Assert.Equal(messages.Length - 1, file.NewestMessageId);
+				}
+				else
+				{
+					Assert.Equal(0, file.MessageCount);
+					Assert.Equal(-1, file.OldestMessageId);
+					Assert.Equal(-1, file.NewestMessageId);
+				}
+
+				// the message collection working on top of the log file
+				var collection = file.Messages;
+				Assert.Same(file, collection.LogFile);
+				Assert.False(collection.IsReadOnly);
+				Assert.Equal(20, collection.MaxCachePageCount);
+				Assert.Equal(100, collection.CachePageCapacity);
+				Assert.Equal(fullPath, collection.FilePath);
+				Assert.Equal(populate ? messages.Length : 0, collection.Count);
+				if (populate)
+				{
+					Assert.Equal(messages.Length, collection.Count);
+					var messagesInFile = file.Read(0, messages.Length + 1);
+					Assert.Equal(messagesInFile, messagesInFile);
+				}
+				else
+				{
+					Assert.Equal(0, collection.Count);
+					Assert.Empty(collection);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Tests creating a new instance of the <see cref="LogFile"/> class with an existing log file.
+		/// An exception should be thrown.
+		/// </summary>
+		/// <param name="purpose">Log file purpose to test.</param>
+		/// <param name="writeMode">Log file write mode to test.</param>
+		/// <param name="populate"><c>true</c> to populate the log file with messages; otherwise <c>false</c>.</param>
+		[Theory]
+		[MemberData(nameof(CreateTestData))]
+		private void Create_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
+		{
+			string path = purpose == LogFilePurpose.Recording
+				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
+				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
+			var messages = populate ? mFixture.GetLogMessages_Random_10K() : null;
+
+			try
+			{
+				Assert.Throws<LogFileException>(() => LogFile.Create(path, purpose, writeMode, messages));
+			}
+			finally
+			{
+				// remove temporary log file to avoid polluting the output directory
+				File.Delete(path);
+			}
+		}
+
+		#endregion
+
 		#region OpenOrCreate()
 
 		/// <summary>
@@ -315,7 +425,7 @@ namespace GriffinPlus.Lib.Logging
 					Assert.Equal(20, collection.MaxCachePageCount);
 					Assert.Equal(100, collection.CachePageCapacity);
 					Assert.Equal(path, collection.FilePath);
-					Assert.Equal(expectedMessages, collection.ToArray());
+					Assert.Equal(expectedMessages, collection.Cast<LogFileMessage>().ToArray());
 				}
 			}
 			finally
@@ -811,7 +921,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// the messages returned by the collection should be the same as the inserted messages
 				// (except the message id that is set by the log file, message id was adjusted above)
-				Assert.Equal(messages, collection.ToArray()); // does not take IsReadOnly into account
+				Assert.Equal(messages, collection.Cast<LogFileMessage>().ToArray()); // does not take IsReadOnly into account
 				Assert.All(collection, message => Assert.True(message.IsReadOnly));
 			}
 		}
@@ -872,7 +982,7 @@ namespace GriffinPlus.Lib.Logging
 				var expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 				int totalMessageCount = expectedMessages.Length;
-				var readMessages = new List<LogMessage>();
+				var readMessages = new List<LogFileMessage>();
 				using (var file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
 				{
 					// check initial status
@@ -958,7 +1068,7 @@ namespace GriffinPlus.Lib.Logging
 				int totalMessageCount = allMessages.Length;
 				int expectedMessageCount = expectedMessages.Length;
 
-				var readMessages = new List<LogMessage>();
+				var readMessages = new List<LogFileMessage>();
 				using (var file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
 				{
 					// check initial status
@@ -974,7 +1084,7 @@ namespace GriffinPlus.Lib.Logging
 					{
 						int readMessagesInStep = 0;
 
-						bool ReadCallback(LogMessage message)
+						bool ReadCallback(LogFileMessage message)
 						{
 							readMessages.Add(message);
 							readMessagesInStep++;
@@ -1313,7 +1423,7 @@ namespace GriffinPlus.Lib.Logging
 							Assert.Equal(expectedMessageCount, file.Messages.Count);
 							Assert.Equal(
 								expectedMessages.Skip(expectedMessages.Length - expectedMessageCount).ToArray(),
-								file.Messages.ToArray()); // does not take IsReadOnly into account
+								file.Messages.Cast<LogFileMessage>().ToArray()); // does not take IsReadOnly into account
 							Assert.All(file.Messages, message => Assert.True(message.IsReadOnly));
 						}
 						else
