@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using GriffinPlus.Lib.Threading;
+
 // ReSharper disable ForCanBeConvertedToForeach
 
 namespace GriffinPlus.Lib.Logging
@@ -289,7 +291,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// wait for messages to process
 				await mTriggerAsyncProcessingEvent
-					.WaitAsync(Timeout.Infinite, mAsyncProcessingCancellationTokenSource.Token)
+					.WaitAsync(mAsyncProcessingCancellationTokenSource.Token)
 					.ConfigureAwait(false);
 
 				// process the messages

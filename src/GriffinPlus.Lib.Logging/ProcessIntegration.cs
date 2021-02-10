@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using GriffinPlus.Lib.Events;
+
 // ReSharper disable ForCanBeConvertedToForeach
 
 namespace GriffinPlus.Lib.Logging

@@ -9,7 +9,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 {
 
 	/// <summary>
-	/// Interface for log message filters that plug into <see cref="FileBackedLogMessageCollection"/> filter messages
+	/// Interface for log message filters that plug into <see cref="FileBackedLogMessageCollection"/> to filter messages
 	/// provided by the collection.
 	/// </summary>
 	/// <remarks>

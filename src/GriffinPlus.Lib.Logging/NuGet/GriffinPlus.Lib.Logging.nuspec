@@ -14,8 +14,10 @@
 		<tags>logging</tags>
 		<dependencies>
 			<group targetFramework="net461">
+				<dependency id="GriffinPlus.Lib.Common" version="[1.0.2,2)" include="all" />
 			</group>
 			<group targetFramework="netstandard2.0">
+				<dependency id="GriffinPlus.Lib.Common" version="[1.0.2,2)" include="all" />
 			</group>
 		</dependencies>
 	</metadata>

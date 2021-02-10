@@ -8,6 +8,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using GriffinPlus.Lib.Threading;
+
 namespace GriffinPlus.Lib.Logging
 {
 

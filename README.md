@@ -14,7 +14,7 @@
 
 ## Overview
 
-*Griffin+ Logging* is a simple, but modular extensible logging facility that focusses on applications built on the .NET framework. It addresses many issues that have arised during multiple years of developing .NET libraries and applications. *Griffin+ Logging* is part of the *Griffin+* library suite and used in other *Griffin+* projects to channelize and process log message streams. Nevertheless *Griffin+ Logging* can be used in other projects as well as it does not have any dependencies that would clutter other projects.
+*Griffin+ Logging* is a simple, but modular extensible logging facility that focusses on applications built on the .NET framework. It addresses many issues that have arised during multiple years of developing .NET libraries and applications. *Griffin+ Logging* is part of the *Griffin+* library suite and used in other *Griffin+* projects to channelize and process log message streams. Nevertheless *Griffin+ Logging* can be used in other projects as well as it only references our slim [common library](https://github.com/GriffinPlus/dotnet-libs-common) for very basic functionality.
 
 ## Supported Platforms
 

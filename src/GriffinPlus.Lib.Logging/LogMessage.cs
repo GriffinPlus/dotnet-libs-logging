@@ -8,6 +8,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
+using GriffinPlus.Lib.Events;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable NonReadonlyMemberInGetHashCode
 

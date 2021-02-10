@@ -1,4 +1,5 @@
-﻿.\GriffinPlus.Lib.Logging.Demo.deps.json
+﻿.\GriffinPlus.Lib.Common.dll
+.\GriffinPlus.Lib.Logging.Demo.deps.json
 .\GriffinPlus.Lib.Logging.Demo.dll
 .\GriffinPlus.Lib.Logging.Demo.dll.config
 .\GriffinPlus.Lib.Logging.Demo.exe
@@ -9,3 +10,4 @@
 .\GriffinPlus.Lib.Logging.dll
 .\GriffinPlus.Lib.Logging.pdb
 .\GriffinPlus.Lib.Logging.xml
+.\System.Collections.Immutable.dll

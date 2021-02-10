@@ -1,6 +1,12 @@
-﻿.\GriffinPlus.Lib.Logging.Collections.dll
+﻿.\GriffinPlus.Lib.Common.dll
+.\GriffinPlus.Lib.Logging.Collections.dll
 .\GriffinPlus.Lib.Logging.Collections.pdb
 .\GriffinPlus.Lib.Logging.Collections.xml
 .\GriffinPlus.Lib.Logging.dll
 .\GriffinPlus.Lib.Logging.pdb
 .\GriffinPlus.Lib.Logging.xml
+.\System.Buffers.dll
+.\System.Collections.Immutable.dll
+.\System.Memory.dll
+.\System.Numerics.Vectors.dll
+.\System.Runtime.CompilerServices.Unsafe.dll

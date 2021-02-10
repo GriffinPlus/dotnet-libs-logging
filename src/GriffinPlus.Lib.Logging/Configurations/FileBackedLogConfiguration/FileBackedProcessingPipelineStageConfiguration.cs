@@ -6,6 +6,8 @@
 using System;
 using System.Collections.Generic;
 
+using GriffinPlus.Lib.Threading;
+
 namespace GriffinPlus.Lib.Logging
 {
 
