@@ -1,4 +1,15 @@
 # Changelog
+---
+
+## Release v3.1.0
+
+### New Features
+
+- Add support for populating log files on creation to speed up creating files with an initial log message set
+
+### Bugfixes
+
+- Item filters of the SelectableLogMessageFilter<TMessage> implementations (in-memory, file-backed) do not remove items on Reset() any more, if AccumulateItems is set.
 
 ---
 
