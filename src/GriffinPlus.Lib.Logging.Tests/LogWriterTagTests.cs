@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogWriterTagTests
 	{
-		private const string ValidCharSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:;+-#()[]{}<>";
+		private const string ValidCharSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.,:;+-#()[]{}<>";
 
 		#region CheckTag()
 

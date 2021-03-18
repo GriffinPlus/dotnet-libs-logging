@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 	/// 
 	/// Valid tags may consist of the following characters only:
 	/// - alphanumeric characters: [a-z], [A-Z], [0-9]
-	/// - extra characters: [. , : ; + - #]
+	/// - extra characters: [_ . , : ; + - #]
 	/// - brackets: (), [], {}, &lt;&gt;
 	///
 	/// Asterisk(*) and quotation mark (?) are not supported as these characters are used to implement pattern matching with wildcards.

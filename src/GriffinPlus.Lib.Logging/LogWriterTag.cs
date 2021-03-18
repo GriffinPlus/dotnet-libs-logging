@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 	///
 	/// Valid tags may consist of the following characters only:
 	/// - alphanumeric characters: [a-z], [A-Z], [0-9]
-	/// - extra characters: [. , : ; + - #]
+	/// - extra characters: [_ . , : ; + - #]
 	/// - brackets: (), [], {}, &lt;&gt;
 	///
 	/// Asterisk(*) and quotation mark (?) are not supported as these characters are used to implement pattern matching with wildcards.
@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 	public sealed class LogWriterTag
 	{
 		internal static readonly Regex ValidNameRegex = new Regex(
-			@"^[a-zA-Z0-9\.\,\:\;\+\-\#\(\)\[\]\{\}\<\>]+$",
+			@"^[a-zA-Z0-9_\.\,\:\;\+\-\#\(\)\[\]\{\}\<\>]+$",
 			RegexOptions.Compiled | RegexOptions.Singleline);
 
 		private static   int sNextId;
@@ -61,7 +61,16 @@ namespace GriffinPlus.Lib.Logging
 		public static void CheckTag(string tag)
 		{
 			if (tag == null) throw new ArgumentNullException(nameof(tag));
-			if (!ValidNameRegex.IsMatch(tag)) throw new ArgumentException($"The specified tag ({tag}) is not a valid log writer tag.");
+			if (!ValidNameRegex.IsMatch(tag))
+			{
+				string message =
+					$"The specified tag ({tag}) is not a valid log writer tag.\n" +
+					"Valid tags may consist of the following characters only:\n" +
+					"- alphanumeric characters: [a-z], [A-Z], [0-9]\n" +
+					"- extra characters: [_ . , : ; + - #]\n" +
+					"- brackets: (), [], {}, <>";
+				throw new ArgumentException(message);
+			}
 		}
 
 		/// <summary>

@@ -239,6 +239,11 @@ public LogWriter WithTag(string tag);
 public LogWriter WithTags(params string[] tags);
 ```
 
+Tags may consist of the following characters only:
+- alphanumeric characters: `[a-z]`, `[A-Z]`, `[0-9]`
+- extra characters: `[_ . , : ; + - #]`
+- brackets: `(`, `)`, `[`, `]`, `{`, `}`, `<`, `>`
+
 ### Choosing a Log Level
 
 Each message written to the log is associated with a certain log level, represented by the `LogLevel` class. The log level indicates the severity of the log message. *Griffin+ Logging* comes with a set of predefined log levels as described above. In addition to the predefined log levels an aspect log level can be used. Aspect log levels are primarily useful when tracking an issue that effects multiple classes. The following `LogLevel` method creates an aspect log level:
