@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		// channel management members
 		private           Socket                        mSocket;
 		internal readonly CancellationToken             ShutdownToken;
-		private           CancellationTokenRegistration mShutdownTokenRegistration;
+		private readonly  CancellationTokenRegistration mShutdownTokenRegistration;
 		private           LogServiceChannelStatus       mStatus = LogServiceChannelStatus.Created;
 		private           bool                          mDisposed;
 
@@ -336,6 +336,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					mStatus = LogServiceChannelStatus.ShutdownCompleted;
 
 				// dispose token registration to avoid leaks
+				// ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
 				mShutdownTokenRegistration.Dispose();
 
 				// let derived classes perform additional cleanup
