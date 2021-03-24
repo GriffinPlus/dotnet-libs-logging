@@ -73,6 +73,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.Col
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.Collections.Tests", "src\GriffinPlus.Lib.Logging.Collections.Tests\GriffinPlus.Lib.Logging.Collections.Tests.csproj", "{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{F04AD182-8807-485A-BE22-FA5B1519BC63}"
+	ProjectSection(SolutionItems) = preProject
+		docs\LogService.md = docs\LogService.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.LogService", "src\GriffinPlus.Lib.Logging.LogService\GriffinPlus.Lib.Logging.LogService.csproj", "{9C32280D-8737-4666-A1A1-EC6BC0049658}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.LogService.Tests", "src\GriffinPlus.Lib.Logging.LogService.Tests\GriffinPlus.Lib.Logging.LogService.Tests.csproj", "{FA2B92D1-321E-453F-A497-F8E9DCFF46A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -119,6 +128,14 @@ Global
 		{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEB8F023-9E36-475B-BCFC-DE6CCD57F12A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C32280D-8737-4666-A1A1-EC6BC0049658}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C32280D-8737-4666-A1A1-EC6BC0049658}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C32280D-8737-4666-A1A1-EC6BC0049658}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C32280D-8737-4666-A1A1-EC6BC0049658}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA2B92D1-321E-453F-A497-F8E9DCFF46A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA2B92D1-321E-453F-A497-F8E9DCFF46A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA2B92D1-321E-453F-A497-F8E9DCFF46A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA2B92D1-321E-453F-A497-F8E9DCFF46A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

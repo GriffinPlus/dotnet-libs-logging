@@ -11,6 +11,7 @@
 | GriffinPlus.Lib.Logging.Collections                  | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.Collections.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Collections) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.Collections.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Collections) |
 | GriffinPlus.Lib.Logging.LocalLogServicePipelineStage | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) |
 | GriffinPlus.Lib.Logging.LogFile                      | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LogFile.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LogFile.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) |
+| GriffinPlus.Lib.Logging.LogService                   | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LogService.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogService) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LogService.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogService) |
 
 ## Overview
 
@@ -219,6 +220,10 @@ A pipeline stage class must implement the `IProcessingPipelineStage` interface. 
 	  - Messages up to a process crash are available as the stage does not buffer messages in-process
 	  - Available via *NuGet* package `GriffinPlus.Lib.Logging.LocalLogServicePipelineStage`
 	  - *At the moment there is no publicly available implementation of the service*
+    - `LogServicePipelineStage` (***planned***)
+	  - Log messages are forwarded to the Griffin+ log service via TCP (Windows + Linux)
+	  - Available via *NuGet* package `GriffinPlus.Lib.Logging.LogServicePipelineStage`
+	  - *This pipeline stage is planned, but not yet realized*
 
 ### Requesting a Log Writer
 
