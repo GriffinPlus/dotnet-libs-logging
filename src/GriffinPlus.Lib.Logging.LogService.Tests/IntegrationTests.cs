@@ -684,9 +684,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 					}
 
 					// give the channel some time to send their data and receive their looped back data
-					int timeout = 120000;
-					var watch = new Stopwatch();
-					watch.Start();
+					int timeout = 2 * 60 * 1000;
+					int step = 50;
 					while (true)
 					{
 						lock (receiveLineCount)
@@ -695,8 +694,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 								break;
 						}
 
-						Assert.True(watch.ElapsedMilliseconds < timeout);
-						Thread.Sleep(50);
+						Assert.True(timeout > 0);
+						Thread.Sleep(step);
+						timeout -= step;
 					}
 
 					return channel;
@@ -748,14 +748,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="timeout">Timeout (in ms).</param>
 		private void ExpectReachingStatus(LogServiceServer server, LogServiceServerStatus status, int timeout = 0)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
-			do
+			const int step = 50;
+			while (timeout >= 0)
 			{
 				if (server.Status == status) return;
-				Assert.True(watch.ElapsedMilliseconds < timeout);
-				Thread.Sleep(50);
-			} while (watch.ElapsedMilliseconds < timeout);
+				Assert.True(timeout > 0);
+				Thread.Sleep(step);
+				timeout -= step;
+			}
 		}
 
 		/// <summary>
@@ -766,14 +766,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="timeout">Timeout (in ms).</param>
 		private async Task ExpectReachingStatusAsync(LogServiceServer server, LogServiceServerStatus status, int timeout = 0)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
-			do
+			const int step = 50;
+			while (timeout >= 0)
 			{
 				if (server.Status == status) return;
-				Assert.True(watch.ElapsedMilliseconds < timeout);
-				await Task.Delay(50).ConfigureAwait(false);
-			} while (watch.ElapsedMilliseconds < timeout);
+				Assert.True(timeout > 0);
+				await Task.Delay(step).ConfigureAwait(false);
+				timeout -= step;
+			}
 		}
 
 		/// <summary>
@@ -783,14 +783,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="timeout">Timeout (in ms).</param>
 		private void ExpectSendingToComplete(LogServiceChannel channel, int timeout = 0)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
-			do
+			const int step = 50;
+			while (timeout >= 0)
 			{
 				if (channel.BytesQueuedToSend == 0) return;
-				Assert.True(watch.ElapsedMilliseconds < timeout);
-				Thread.Sleep(50);
-			} while (watch.ElapsedMilliseconds < timeout);
+				Assert.True(timeout > 0);
+				Thread.Sleep(step);
+				timeout -= step;
+			}
 		}
 
 		/// <summary>
@@ -800,14 +800,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="timeout">Timeout (in ms).</param>
 		private async Task ExpectSendingToCompleteAsync(LogServiceChannel channel, int timeout = 0)
 		{
-			var watch = new Stopwatch();
-			watch.Start();
-			do
+			const int step = 50;
+			while (timeout >= 0)
 			{
 				if (channel.BytesQueuedToSend == 0) return;
-				Assert.True(watch.ElapsedMilliseconds < timeout);
-				await Task.Delay(50).ConfigureAwait(false);
-			} while (watch.ElapsedMilliseconds < timeout);
+				Assert.True(timeout > 0);
+				await Task.Delay(step).ConfigureAwait(false);
+				timeout -= step;
+			}
 		}
 
 		#endregion
