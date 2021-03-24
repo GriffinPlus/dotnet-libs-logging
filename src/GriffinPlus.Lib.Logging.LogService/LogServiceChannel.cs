@@ -45,6 +45,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private           LogServiceChannelStatus       mStatus = LogServiceChannelStatus.Created;
 		private           bool                          mDisposed;
 
+		/// <summary>
+		/// The channel lock (used to synchronize channel operations).
+		/// </summary>
+		protected readonly object Sync = new object();
+
 		#region Initialization and Disposal
 
 		/// <summary>
@@ -120,11 +125,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 		#endregion
 
 		#region Synchronization
-
-		/// <summary>
-		/// The channel lock (used to synchronize channel operations).
-		/// </summary>
-		protected object Sync { get; } = new object();
 
 		/// <summary>
 		/// Gets the task representing the channels work.
