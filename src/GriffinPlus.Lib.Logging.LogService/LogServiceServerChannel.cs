@@ -21,6 +21,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private readonly Queue<string>    mLoopbackOverflowBuffer = new Queue<string>();
 
 		/// <summary>
+		/// List node that is used by <see cref="LogServiceServer"/> to organize channels.
+		/// </summary>
+		internal readonly LinkedListNode<LogServiceServerChannel> Node;
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="LogServiceServerChannel"/> class.
 		/// </summary>
 		/// <param name="server">The <see cref="LogServiceServer"/> the channel belongs to.</param>
@@ -39,11 +44,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			if (Status == LogServiceChannelStatus.Created)
 				Start();
 		}
-
-		/// <summary>
-		/// Gets the list node that is used by <see cref="LogServiceServer"/> to organize channels.
-		/// </summary>
-		internal LinkedListNode<LogServiceServerChannel> Node { get; }
 
 		/// <summary>
 		/// Starts the channel.
