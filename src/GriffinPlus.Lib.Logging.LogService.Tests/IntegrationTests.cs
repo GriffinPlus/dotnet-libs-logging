@@ -97,7 +97,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				for (int i = 0; i < clientCount; i++)
 				{
 					var channel = LogServiceClientChannel.ConnectToServer(ServerAddress, ServerPort);
-					Assert.Equal(TaskStatus.WaitingForActivation, channel.ProcessingTask.Status);
 					Assert.Equal(LogServiceChannelStatus.Operational, channel.Status);
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 					clientChannels.Add(channel);
@@ -155,7 +154,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 					var channel = await LogServiceClientChannel
 						              .ConnectToServerAsync(ServerAddress, ServerPort)
 						              .ConfigureAwait(false);
-					Assert.Equal(TaskStatus.WaitingForActivation, channel.ProcessingTask.Status);
 					Assert.Equal(LogServiceChannelStatus.Operational, channel.Status);
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 					clientChannels.Add(channel);
@@ -226,7 +224,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				for (int i = 0; i < clientCount; i++)
 				{
 					var channel = LogServiceClientChannel.ConnectToServer(ServerAddress, ServerPort);
-					Assert.Equal(TaskStatus.WaitingForActivation, channel.ProcessingTask.Status);
 					Assert.Equal(LogServiceChannelStatus.Operational, channel.Status);
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 					clientChannels.Add(channel);
@@ -290,7 +287,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				for (int i = 0; i < clientCount; i++)
 				{
 					var channel = await LogServiceClientChannel.ConnectToServerAsync(ServerAddress, ServerPort).ConfigureAwait(false);
-					Assert.Equal(TaskStatus.WaitingForActivation, channel.ProcessingTask.Status);
 					Assert.Equal(LogServiceChannelStatus.Operational, channel.Status);
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 					clientChannels.Add(channel);
@@ -356,7 +352,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				for (int i = 0; i < clientCount; i++)
 				{
 					var channel = LogServiceClientChannel.ConnectToServer(ServerAddress, ServerPort);
-					Assert.Equal(TaskStatus.WaitingForActivation, channel.ProcessingTask.Status);
 					Assert.Equal(LogServiceChannelStatus.Operational, channel.Status);
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 					clientChannels.Add(channel);
@@ -441,7 +436,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				{
 					var channel = LogServiceClientChannel.ConnectToServer(ServerAddress, ServerPort);
 					channel.HeartbeatInterval = heartbeatInterval;
-					Assert.Equal(TaskStatus.WaitingForActivation, channel.ProcessingTask.Status);
 					Assert.Equal(LogServiceChannelStatus.Operational, channel.Status);
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 					clientChannels.Add(channel);
@@ -579,7 +573,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 					// => start reading from the socket
 					channel.Run();
 
-					Assert.Equal(TaskStatus.WaitingForActivation, channel.ProcessingTask.Status);
 					Assert.Equal(LogServiceChannelStatus.Operational, channel.Status);
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 

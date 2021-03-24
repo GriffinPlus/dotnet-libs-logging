@@ -7,11 +7,9 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 using GriffinPlus.Lib.Collections;
 using GriffinPlus.Lib.Io;
@@ -39,7 +37,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		// channel management members
 		private           Socket                        mSocket;
-		private readonly  TaskCompletionSource<bool>    mProcessingTaskSource;
 		internal readonly CancellationToken             ShutdownToken;
 		private           CancellationTokenRegistration mShutdownTokenRegistration;
 		private           LogServiceChannelStatus       mStatus = LogServiceChannelStatus.Created;
@@ -78,21 +75,10 @@ namespace GriffinPlus.Lib.Logging.LogService
 				};
 			}
 
-			// initialize a task source for a task that is set to 'RanToCompletion'
-			// as soon as all pending operations have finished
-			mProcessingTaskSource = new TaskCompletionSource<bool>();
-
-			// register handler with the shutdown token
-			// (may be invoked synchronously, if the token is signaled)
+			// register handler with the shutdown token (may be invoked synchronously, if the token is signaled)
+			// (FinishShutdownIfAppropriate() will dispose the token registration at the end)
 			ShutdownToken = shutdownToken;
 			mShutdownTokenRegistration = shutdownToken.Register(InitiateShutdown);
-
-			// abort, if the shutdown token was signaled and shutdown was triggered
-			if (mStatus == LogServiceChannelStatus.ShutdownCompleted)
-			{
-				Debug.Assert(mSocket == null);
-				mShutdownTokenRegistration.Dispose();
-			}
 		}
 
 		/// <summary>
@@ -118,18 +104,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 		protected virtual void Dispose(bool disposing)
 		{
 			// trigger shutting down and let the channel clean up itself when finished
-			mShutdownTokenRegistration.Dispose();
 			InitiateShutdown();
 		}
-
-		#endregion
-
-		#region Synchronization
-
-		/// <summary>
-		/// Gets the task representing the channels work.
-		/// </summary>
-		public Task ProcessingTask => mProcessingTaskSource.Task;
 
 		#endregion
 
@@ -329,8 +305,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
-		/// Is called when shutting down to determine whether the shutdown has completed (for internal use only, not synchronized).
-		/// In this case it sets the <see cref="ProcessingTask"/> to <see cref="TaskStatus.RanToCompletion"/> and cleans up.
+		/// Is called when shutting down to determine whether the shutdown has completed
+		/// (for internal use only, not synchronized).
 		/// </summary>
 		private void FinishShutdownIfAppropriate()
 		{
@@ -359,8 +335,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 				if (mStatus != LogServiceChannelStatus.Malfunctional)
 					mStatus = LogServiceChannelStatus.ShutdownCompleted;
 
-				// complete the task that signals that the channel has completed shutting down
-				mProcessingTaskSource.SetResult(true);
+				// dispose token registration to avoid leaks
+				mShutdownTokenRegistration.Dispose();
 
 				// let derived classes perform additional cleanup
 				OnShutdownCompleted();

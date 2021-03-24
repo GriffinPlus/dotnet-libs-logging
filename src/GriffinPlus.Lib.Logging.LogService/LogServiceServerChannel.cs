@@ -98,6 +98,15 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
+		/// Is called when the channel has completed shutting down.
+		/// (the executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called).
+		/// </summary>
+		protected override void OnShutdownCompleted()
+		{
+			mServer.ProcessChannelHasCompletedShuttingDown(this);
+		}
+
+		/// <summary>
 		/// Is called when the channel has received a complete line.
 		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
 		/// </summary>

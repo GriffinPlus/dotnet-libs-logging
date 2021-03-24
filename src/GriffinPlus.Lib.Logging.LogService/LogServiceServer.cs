@@ -387,6 +387,23 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
+		/// Is called by a <see cref="LogServiceServerChannel"/> after it has completed shutting down.
+		/// This removes the channel from the list of monitored channels.
+		/// </summary>
+		/// <param name="channel">The monitored server channel.</param>
+		internal void ProcessChannelHasCompletedShuttingDown(LogServiceServerChannel channel)
+		{
+			lock (mChannels)
+			{
+				if (channel.Node.List != null)
+				{
+					Debug.Assert(mChannels == channel.Node.List);
+					mChannels.Remove(channel.Node);
+				}
+			}
+		}
+
+		/// <summary>
 		/// Checks periodically whether channels have exceeded their inactivity timeout and shuts them down.
 		/// </summary>
 		/// <param name="shutdownToken">Token that is signaled when the server is shutting down.</param>
@@ -590,33 +607,22 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// connected channels should already be shutting down due to the server shutdown token
 				// => wait for the channels to finish shutting down
-				var timeoutTask = Task.Delay(ShutdownTimeout, CancellationToken.None);
-				LogServiceServerChannel[] channels;
-				lock (mChannels) channels = mChannels.ToArray(); // buffer channels in array to allow removing channels in the loop
-				foreach (var channel in channels)
+				int startTickCount = Environment.TickCount;
+				while (true)
 				{
-					try
+					lock (mChannels)
 					{
-						var processingTask = channel.ProcessingTask;
-						var task = await Task.WhenAny(processingTask, timeoutTask).ConfigureAwait(false);
-						if (task == processingTask)
-						{
-							// the channel has shut down properly
-							lock (mChannels)
-							{
-								mChannels.Remove(channel.Node);
-							}
-						}
-						else if (task == timeoutTask)
-						{
-							// the channel timed out shutting down
-							Debug.Fail("Waiting for a communication channel to shut down timed out unexpectedly.");
-						}
+						if (mChannels.Count == 0)
+							break;
 					}
-					catch (Exception ex)
+
+					if (Environment.TickCount - startTickCount > ShutdownTimeout)
 					{
-						Debug.Fail("Waiting for a communication channel to shut down failed unexpectedly.", ex.ToString());
+						Debug.Fail("Waiting for communication channels to shut down timed out unexpectedly.");
+						break;
 					}
+
+					await Task.Delay(50, CancellationToken.None).ConfigureAwait(false);
 				}
 			}
 			finally
