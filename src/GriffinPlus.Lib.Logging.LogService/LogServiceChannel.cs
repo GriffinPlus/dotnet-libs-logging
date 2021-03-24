@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 
 using GriffinPlus.Lib.Collections;
-using GriffinPlus.Lib.Io;
 
 // ReSharper disable ForCanBeConvertedToForeach
 
@@ -69,10 +68,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			// initialize receive buffers
 			for (int i = 0; i < mReceiveOperations.Length; i++)
 			{
-				mReceiveOperations[i] = new ReceiveOperation((sender, e) => ProcessReceiveCompleted(e))
-				{
-					Buffer = new ChainableMemoryBlock(ReceiveBufferSize)
-				};
+				mReceiveOperations[i] = new ReceiveOperation(ReceiveBufferSize, (sender, e) => ProcessReceiveCompleted(e));
 			}
 
 			// register handler with the shutdown token (may be invoked synchronously, if the token is signaled)
@@ -313,16 +309,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			// clean up, if all pending operations have completed
 			if (mPendingSendOperations == 0 && mPendingReceiveOperations == 0)
 			{
-				// release buffers associated with receive operations
-				foreach (var operation in mReceiveOperations)
-				{
-					if (operation.Buffer != null)
-					{
-						operation.Buffer.Release();
-						operation.Buffer = null;
-					}
-				}
-
 				// close the socket
 				if (mSocket != null)
 				{
@@ -409,7 +395,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 						{
 							// an error occurred
 							// => shut the channel down
-							completedOperation.Buffer.Length = 0;
+							completedOperation.BufferLength = 0;
 							InitiateShutdown();
 							return;
 						}
@@ -418,14 +404,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 					{
 						// the connection was closed by the remote peer
 						// => shut the channel down
-						completedOperation.Buffer.Length = 0;
+						completedOperation.BufferLength = 0;
 						InitiateShutdown();
 						return;
 					}
 
 					// the operation has completed successfully
 					// => update length of the chainable memory block to reflect the number of received bytes
-					completedOperation.Buffer.Length = completedOperation.EventArgs.BytesTransferred;
+					completedOperation.BufferLength = completedOperation.EventArgs.BytesTransferred;
 					completedOperation.ProcessingPending = true;
 
 					// update the time of the last receive operation
@@ -436,9 +422,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 					{
 						OnDataReceived(
 							new ReadOnlySpan<byte>(
-								completedOperation.Buffer.Buffer,
+								completedOperation.Buffer,
 								0,
-								completedOperation.Buffer.Length));
+								completedOperation.BufferLength));
 					}
 					catch (Exception ex)
 					{
@@ -462,11 +448,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 							try
 							{
 								// convert the received UTF-8 encoded data to UTF-16 for further processing
-								decodingBuffer = sCharArrayPool.Rent(Encoding.UTF8.GetMaxCharCount(operation.Buffer.Length));
+								decodingBuffer = sCharArrayPool.Rent(Encoding.UTF8.GetMaxCharCount(operation.BufferLength));
 								mUtf8Decoder.Convert(
-									operation.Buffer.Buffer,
+									operation.Buffer,
 									0,
-									operation.Buffer.Length,
+									operation.BufferLength,
 									decodingBuffer,
 									0,
 									decodingBuffer.Length,

@@ -7,8 +7,6 @@ using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 
-using GriffinPlus.Lib.Io;
-
 namespace GriffinPlus.Lib.Logging.LogService
 {
 
@@ -20,43 +18,41 @@ namespace GriffinPlus.Lib.Logging.LogService
 		[DebuggerDisplay("Length = {Buffer.Length}, ReceiveCompleted = {ReceiveCompleted}, ProcessingPending = {ProcessingPending}")]
 		private class ReceiveOperation
 		{
-			private ChainableMemoryBlock mBuffer;
+			/// <summary>
+			/// Buffer to fill with the receive operation.
+			/// </summary>
+			public readonly byte[] Buffer;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="ReceiveOperation"/> class.
+			/// Number of valid bytes in the <see cref="Buffer"/>.
 			/// </summary>
-			/// <param name="handler">Handler to call when the receive operation completes.</param>
-			public ReceiveOperation(EventHandler<SocketAsyncEventArgs> handler)
-			{
-				EventArgs = new SocketAsyncEventArgs { UserToken = this };
-				EventArgs.Completed += handler;
-				ProcessingPending = false;
-			}
+			public int BufferLength;
 
 			/// <summary>
-			/// Gets the socket event arguments associated with the receive operation.
+			/// Socket event arguments associated with the receive operation.
 			/// </summary>
-			public SocketAsyncEventArgs EventArgs { get; }
-
-			/// <summary>
-			/// Gets the buffer to fill with the receive operation.
-			/// </summary>
-			public ChainableMemoryBlock Buffer
-			{
-				get => mBuffer;
-				set
-				{
-					mBuffer = value;
-					if (mBuffer != null) EventArgs.SetBuffer(mBuffer.Buffer, 0, mBuffer.Capacity);
-					else EventArgs.SetBuffer(null, 0, 0);
-				}
-			}
+			public readonly SocketAsyncEventArgs EventArgs;
 
 			/// <summary>
 			/// Get or sets a value indicating whether the received buffer needs to be processed
 			/// (is set in the callback invoked on completion).
 			/// </summary>
-			public bool ProcessingPending; // should be a field due to performance reasons
+			public bool ProcessingPending;
+
+			/// <summary>
+			/// Initializes a new instance of the <see cref="ReceiveOperation"/> class.
+			/// </summary>
+			/// <param name="bufferSize">Size of a receive buffer (in bytes).</param>
+			/// <param name="handler">Handler to call when the receive operation completes.</param>
+			public ReceiveOperation(int bufferSize, EventHandler<SocketAsyncEventArgs> handler)
+			{
+				Buffer = new byte[bufferSize];
+				BufferLength = 0;
+				EventArgs = new SocketAsyncEventArgs { UserToken = this };
+				EventArgs.SetBuffer(Buffer, 0, Buffer.Length);
+				EventArgs.Completed += handler;
+				ProcessingPending = false;
+			}
 		}
 	}
 
