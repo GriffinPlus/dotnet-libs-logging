@@ -141,13 +141,17 @@ namespace GriffinPlus.Lib.Logging
 						new Func<ProcessIntegration, Task>(
 							async integration =>
 							{
-								var cts = new CancellationTokenSource(100); // cancel after 100 ms
-								await Assert.ThrowsAsync<TaskCanceledException>(
-										async () => await integration
-											            .WaitForExitAsync(cts.Token)
-											            .ConfigureAwait(false))
-									.ConfigureAwait(false);
-								Assert.False(integration.Process.HasExited);
+								using (var cts = new CancellationTokenSource(100)) // cancel after 100 ms
+								{
+									await Assert
+										.ThrowsAsync<TaskCanceledException>(
+											async () => await integration
+												            .WaitForExitAsync(cts.Token)
+												            .ConfigureAwait(false))
+										.ConfigureAwait(false);
+
+									Assert.False(integration.Process.HasExited);
+								}
 							})
 					};
 				}
@@ -258,11 +262,13 @@ namespace GriffinPlus.Lib.Logging
 
 							// wait for all event handlers to receive the terminating event arguments
 							// (abort after 30 seconds)
-							var cts = new CancellationTokenSource(30000);
-							await stdoutTextFinishedEvent.WaitAsync(cts.Token);
-							await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
-							await stderrTextFinishedEvent.WaitAsync(cts.Token);
-							await stderrMessageFinishedEvent.WaitAsync(cts.Token);
+							using (var cts = new CancellationTokenSource(30000))
+							{
+								await stdoutTextFinishedEvent.WaitAsync(cts.Token);
+								await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
+								await stderrTextFinishedEvent.WaitAsync(cts.Token);
+								await stderrMessageFinishedEvent.WaitAsync(cts.Token);
+							}
 						})
 					.WaitAndUnwrapException();
 
