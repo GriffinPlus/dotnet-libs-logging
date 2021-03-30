@@ -42,9 +42,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private           bool                          mDisposed;
 
 		/// <summary>
-		/// The channel lock (used to synchronize channel operations).
+		/// The channel lock (used to synchronize socket operations).
 		/// </summary>
 		protected readonly object Sync = new object();
+
+		/// <summary>
+		/// The processing lock (used to synchronize processing received data).
+		/// </summary>
+		protected readonly object ProcessingSync = new object();
 
 		#region Initialization and Disposal
 
@@ -119,6 +124,19 @@ namespace GriffinPlus.Lib.Logging.LogService
 					return mStatus;
 				}
 			}
+
+			private set
+			{
+				lock (Sync)
+				{
+					mStatus = value;
+
+					lock (mScheduledSendItems)
+					{
+						mIsSenderOperational = mStatus == LogServiceChannelStatus.Operational;
+					}
+				}
+			}
 		}
 
 		#endregion
@@ -128,60 +146,88 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <summary>
 		/// Starts the channel.
 		/// </summary>
-		protected internal virtual void Start()
+		protected internal void Start()
 		{
-			lock (Sync)
+			lock (ProcessingSync) // needed to avoid a race condition causing received data to be processed before OnStart() has run
 			{
-				// abort, if the channel is not in the 'created' status
-				if (mStatus != LogServiceChannelStatus.Created)
-					throw new InvalidOperationException($"The channel is not in the '{LogServiceChannelStatus.Created}' state.");
+				lock (Sync)
+				{
+					// abort, if the channel is not in the 'created' status
+					if (mStatus != LogServiceChannelStatus.Created)
+						throw new InvalidOperationException($"The channel is not in the '{LogServiceChannelStatus.Created}' state.");
 
-				// the shutdown token was not signaled
-				// => start reading
+					// the shutdown token was not signaled
+					// => start reading
+					try
+					{
+						// start receiving
+						foreach (var operation in mReceiveOperations)
+						{
+							lock (operation)
+							{
+								// assume that the receive operation can be scheduled
+								Debug.Assert(!operation.ProcessingPending);
+
+								// start receiving
+								bool pending;
+								try
+								{
+									mPendingReceiveOperations++;
+									pending = mSocket.ReceiveAsync(operation.EventArgs);
+								}
+								catch
+								{
+									// starting to receive failed
+									// => no completion callback is pending!
+									mPendingReceiveOperations--;
+									throw;
+								}
+
+								// queue processing data, if the operation finished synchronously
+								// (avoids running into a stack overflow in case of heavy traffic and invoking the handler from within the channel lock)
+								if (!pending)
+								{
+									ThreadPool.QueueUserWorkItem(
+										obj => ((LogServiceChannel)obj).ProcessReceiveCompleted(operation.EventArgs),
+										this);
+								}
+							}
+						}
+
+						// the channel is up and running now
+						Status = LogServiceChannelStatus.Operational;
+					}
+					catch
+					{
+						// starting to receive has failed
+						// => channel is malfunctional, clean up after pending operations have completed
+						Status = LogServiceChannelStatus.Malfunctional;
+						InitiateShutdown();
+						return;
+					}
+				}
+
+				// let the derived class perform its own work
 				try
 				{
-					// start receiving
-					foreach (var operation in mReceiveOperations)
-					{
-						// assume that the receive operation can be scheduled
-						Debug.Assert(!operation.ProcessingPending);
-
-						// start receiving
-						bool pending;
-						try
-						{
-							mPendingReceiveOperations++;
-							pending = mSocket.ReceiveAsync(operation.EventArgs);
-						}
-						catch
-						{
-							// starting to receive failed
-							// => no completion callback is pending!
-							mPendingReceiveOperations--;
-							throw;
-						}
-
-						// queue processing data, if the operation finished synchronously
-						// (avoids running into a stack overflow in case of heavy traffic)
-						if (!pending)
-						{
-							ThreadPool.QueueUserWorkItem(
-								obj => ((LogServiceChannel)obj).ProcessReceiveCompleted(operation.EventArgs),
-								this);
-						}
-					}
-
-					// the channel is up and running now
-					mStatus = LogServiceChannelStatus.Operational;
+					OnStarted();
 				}
-				catch
+				catch (Exception ex)
 				{
-					// starting to receive has failed
-					// => channel is malfunctional, clean up after pending operations have completed
-					mStatus = LogServiceChannelStatus.Malfunctional;
+					Debug.Fail("OnStart() failed unexpectedly.", ex.ToString());
+					Status = LogServiceChannelStatus.Malfunctional;
 					InitiateShutdown();
+					throw;
 				}
 			}
+		}
+
+		/// <summary>
+		/// Is called when the channel has been started successfully.
+		/// (the executing thread holds the processing lock (<see cref="ProcessingSync"/>) when called).
+		/// </summary>
+		protected virtual void OnStarted()
+		{
 		}
 
 		#endregion
@@ -241,7 +287,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 						// the channel is connected to a remote peer
 						// => send/receive operations may be pending
 						// => initiate shutdown process
-						mStatus = LogServiceChannelStatus.ShuttingDown;
+						Status = LogServiceChannelStatus.ShuttingDown;
 
 						// disable sending data over the socket
 						// => notifies the remote peer that we will send no more data
@@ -301,13 +347,16 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
-		/// Is called when shutting down to determine whether the shutdown has completed
-		/// (for internal use only, not synchronized).
+		/// Is called when shutting down to determine whether the shutdown has completed.
 		/// </summary>
 		private void FinishShutdownIfAppropriate()
 		{
+			Debug.Assert(Monitor.IsEntered(Sync));
+
 			// clean up, if all pending operations have completed
-			if (mPendingSendOperations == 0 && mPendingReceiveOperations == 0)
+			if (mStatus != LogServiceChannelStatus.Operational &&
+			    mPendingSendOperations == 0 &&
+			    mPendingReceiveOperations == 0)
 			{
 				// close the socket
 				if (mSocket != null)
@@ -319,7 +368,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// the channel has completely shut down now
 				// (keep 'malfunctional' status to indicate that an error has occurred)
 				if (mStatus != LogServiceChannelStatus.Malfunctional)
-					mStatus = LogServiceChannelStatus.ShutdownCompleted;
+					Status = LogServiceChannelStatus.ShutdownCompleted;
 
 				// dispose token registration to avoid leaks
 				// ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
@@ -353,12 +402,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private const int ReceiveBufferSize = 32 * 1024;
 
 		private readonly Decoder            mUtf8Decoder                        = Encoding.UTF8.GetDecoder();
-		private readonly ReceiveOperation[] mReceiveOperations                  = new ReceiveOperation[ReceiveBufferCount];
-		private          int                mPendingReceiveOperations           = 0;
-		private          int                mReceiveOperationToProcessNextIndex = 0;
-		private          char[]             mIncompleteReceivedLineBuffer       = new char[100];
-		private          int                mIncompleteReceivedLineBufferLength = 0;
-		private volatile int                mLastReceiveTickCount               = Environment.TickCount;
+		private readonly ReceiveOperation[] mReceiveOperations                  = new ReceiveOperation[ReceiveBufferCount]; // synchronized via ProcessingSync
+		private          int                mReceiveOperationToProcessNextIndex = 0;                                        // synchronized via ProcessingSync
+		private          char[]             mIncompleteReceivedLineBuffer       = new char[100];                            // synchronized via ProcessingSync
+		private          int                mIncompleteReceivedLineBufferLength = 0;                                        // synchronized via ProcessingSync
+		private          int                mPendingReceiveOperations           = 0;                                        // synchronized via Sync
+		private volatile int                mLastReceiveTickCount               = Environment.TickCount;                    // not synchronized, but volatile
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
@@ -366,9 +415,21 @@ namespace GriffinPlus.Lib.Logging.LogService
 		public event LineReceivedEventHandler LineReceived;
 
 		/// <summary>
+		/// Gets the number of pending send operations.
+		/// </summary>
+		public int PendingReceiveOperations
+		{
+			get
+			{
+				lock (Sync) return mPendingReceiveOperations;
+			}
+		}
+
+		/// <summary>
 		/// Gets the <see cref="Environment.TickCount"/> the channel has received some data the last time.
 		/// </summary>
 		internal int LastReceiveTickCount => mLastReceiveTickCount;
+
 
 		/// <summary>
 		/// Processes the completion of an asynchronous receive operation.
@@ -382,134 +443,153 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			var completedOperation = (ReceiveOperation)e.UserToken;
 
-			lock (Sync)
-			{
-				Debug.Assert(!completedOperation.ProcessingPending);
+			// the executing thread should not hold any locks to avoid deadlocks when 
+			// user-defined handlers are invoked
+			Debug.Assert(!Monitor.IsEntered(Sync));
+			Debug.Assert(!Monitor.IsEntered(ProcessingSync));
+			Debug.Assert(!Monitor.IsEntered(mScheduledSendItems));
 
+			try
+			{
+				bool shutdown;
+
+				lock (completedOperation)
+				{
+					// shut down, if the remote peer has gracefully closed the connection or an error occurred
+					shutdown = e.BytesTransferred == 0 || e.SocketError != SocketError.Success;
+
+					if (!shutdown)
+					{
+						// the operation has completed successfully
+						completedOperation.ProcessingPending = true;
+					}
+				}
+
+				// shut the channel down, if necessary
+				if (shutdown)
+				{
+					InitiateShutdown();
+					return;
+				}
+
+				// update the time of the last receive operation
+				mLastReceiveTickCount = Environment.TickCount;
+
+				// let derived class perform its own work
 				try
 				{
-					if (e.BytesTransferred > 0)
-					{
-						// received some data
-						if (e.SocketError != SocketError.Success)
-						{
-							// an error occurred
-							// => shut the channel down
-							completedOperation.BufferLength = 0;
-							InitiateShutdown();
-							return;
-						}
-					}
-					else
-					{
-						// the connection was closed by the remote peer
-						// => shut the channel down
-						completedOperation.BufferLength = 0;
-						InitiateShutdown();
-						return;
-					}
+					OnDataReceived();
+				}
+				catch (Exception ex)
+				{
+					Debug.Fail("OnDataReceived() failed unexpectedly.", ex.ToString());
+				}
 
-					// the operation has completed successfully
-					// => update length of the chainable memory block to reflect the number of received bytes
-					completedOperation.BufferLength = completedOperation.EventArgs.BytesTransferred;
-					completedOperation.ProcessingPending = true;
+				// abort, if the received buffer should not be processed
+				if (!process)
+					return;
 
-					// update the time of the last receive operation
-					mLastReceiveTickCount = Environment.TickCount;
+				// process as many received buffers as possible
+				// (there may be other operations that completed before, but belong to one of the following buffers)
+				ProcessReceivedBuffers();
+			}
+			finally
+			{
+				lock (Sync)
+				{
+					mPendingReceiveOperations--;
+					FinishShutdownIfAppropriate();
+				}
+			}
+		}
 
-					// let derived class perform additional stuff
+		/// <summary>
+		/// Processes as many received buffers as possible.
+		/// </summary>
+		private void ProcessReceivedBuffers()
+		{
+			// the executing thread should not hold any locks to avoid deadlocks when 
+			// user-defined handlers are invoked
+			Debug.Assert(!Monitor.IsEntered(Sync));
+			Debug.Assert(!Monitor.IsEntered(ProcessingSync));
+			Debug.Assert(!Monitor.IsEntered(mScheduledSendItems));
+
+			while (true)
+			{
+				ReceiveOperation operation;
+				bool receivePending;
+
+				lock (ProcessingSync)
+				{
+					operation = mReceiveOperations[mReceiveOperationToProcessNextIndex];
+
+					char[] decodingBuffer = null;
 					try
 					{
-						OnDataReceived(
-							new ReadOnlySpan<byte>(
-								completedOperation.Buffer,
-								0,
-								completedOperation.BufferLength));
-					}
-					catch (Exception ex)
-					{
-						Debug.Fail("OnDataReceived() failed unexpectedly.", ex.ToString());
-					}
-
-					if (process)
-					{
-						// process as many received buffers as possible
-						// (there may be other operations that completed before, but belong to one of the following buffers)
-						while (true)
+						int charsUsed;
+						lock (operation)
 						{
-							var operation = mReceiveOperations[mReceiveOperationToProcessNextIndex];
-
 							// abort, if there is no buffer to process
 							if (!operation.ProcessingPending)
 								break;
 
-							// convert the UTF-8 encoded data to UTF-16 allowing to process it as strings
-							char[] decodingBuffer = null;
-							try
-							{
-								// convert the received UTF-8 encoded data to UTF-16 for further processing
-								decodingBuffer = sCharArrayPool.Rent(Encoding.UTF8.GetMaxCharCount(operation.BufferLength));
-								mUtf8Decoder.Convert(
-									operation.Buffer,
-									0,
-									operation.BufferLength,
-									decodingBuffer,
-									0,
-									decodingBuffer.Length,
-									true,
-									out int _,
-									out int charsUsed,
-									out bool _);
+							// convert the received UTF-8 encoded data to UTF-16 for further processing
+							decodingBuffer = sCharArrayPool.Rent(Encoding.UTF8.GetMaxCharCount(operation.EventArgs.BytesTransferred));
+							mUtf8Decoder.Convert(
+								operation.Buffer,
+								0,
+								operation.EventArgs.BytesTransferred,
+								decodingBuffer,
+								0,
+								decodingBuffer.Length,
+								true,
+								out int _,
+								out charsUsed,
+								out bool _);
 
-								// process decoded data
-								ProcessReceivedCharacters(new ReadOnlySpan<char>(decodingBuffer, 0, charsUsed));
-							}
-							finally
-							{
-								// received buffer was processed
-								operation.ProcessingPending = false;
+							operation.ProcessingPending = false;
+						}
 
-								// return the decoding buffer to the pool
-								if (decodingBuffer != null)
-									sCharArrayPool.Return(decodingBuffer);
-							}
+						// process decoded data
+						ProcessReceivedCharacters(new ReadOnlySpan<char>(decodingBuffer, 0, charsUsed));
+					}
+					finally
+					{
+						// return the decoding buffer to the pool
+						if (decodingBuffer != null)
+							sCharArrayPool.Return(decodingBuffer);
+					}
 
-							// proceed processing the next buffer
-							mReceiveOperationToProcessNextIndex = (mReceiveOperationToProcessNextIndex + 1) % mReceiveOperations.Length;
+					// proceed processing the next buffer
+					mReceiveOperationToProcessNextIndex = (mReceiveOperationToProcessNextIndex + 1) % mReceiveOperations.Length;
 
-							// start receiving using the processed buffer
-							if (mStatus == LogServiceChannelStatus.Operational)
+					// start receiving using the processed buffer
+					lock (Sync)
+					{
+						try
+						{
+							mPendingReceiveOperations++;
+							lock (operation)
 							{
 								Debug.Assert(!operation.ProcessingPending);
-
-								bool pending;
-								try
-								{
-									mPendingReceiveOperations++;
-									pending = mSocket.ReceiveAsync(operation.EventArgs);
-								}
-								catch (Exception)
-								{
-									// an error occurred, close the connection
-									mPendingReceiveOperations--;
-									InitiateShutdown();
-									return;
-								}
-
-								// handle completing synchronously,
-								// but do not process any data as processing is already in progress at this level
-								if (!pending)
-								{
-									ProcessReceiveCompleted(operation.EventArgs, false);
-								}
+								receivePending = mSocket.ReceiveAsync(operation.EventArgs);
 							}
+						}
+						catch (Exception)
+						{
+							// an error occurred, close the connection
+							mPendingReceiveOperations--;
+							InitiateShutdown();
+							return;
 						}
 					}
 				}
-				finally
+
+				// handle completing synchronously,
+				// but do not process any data as processing is already in progress at this level
+				if (!receivePending)
 				{
-					mPendingReceiveOperations--;
-					FinishShutdownIfAppropriate();
+					ProcessReceiveCompleted(operation.EventArgs, false);
 				}
 			}
 		}
@@ -600,17 +680,15 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called directly after some data has been received successfully.
-		/// Due to pipelined asynchronous receiving data may arrive out of order.
-		/// The executing thread holds the channel lock (<see cref="Sync"/>) when called.
 		/// </summary>
-		protected virtual void OnDataReceived(ReadOnlySpan<byte> data)
+		protected virtual void OnDataReceived()
 		{
 		}
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
 		/// Raises the <see cref="LineReceived"/> event.
-		/// The executing thread holds the channel lock (<see cref="Sync"/>) when called.
+		/// The executing thread holds the processing lock (<see cref="ProcessingSync"/>) when called.
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected virtual void OnLineReceived(ReadOnlySpan<char> line)
@@ -621,7 +699,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		#endregion
 
-		#region Sending
+		#region Sending (Queueing Part)
 
 		private struct ScheduledSendItem
 		{
@@ -635,15 +713,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 			public          int    Length;
 		}
 
-		// send operation specific members
-		private readonly Encoder                     mUtf8Encoder                   = Encoding.UTF8.GetEncoder();
-		private readonly Deque<ScheduledSendItem>    mScheduledSendItems            = new Deque<ScheduledSendItem>();
-		private readonly Stack<SocketAsyncEventArgs> mSendSocketAsyncEventArgsStack = new Stack<SocketAsyncEventArgs>();
-		private          int                         mPendingSendOperations         = 0;
-		private          int                         mBytesQueuedToSend             = 0;
-		private readonly int                         mMaxConcurrentSendOperations   = 1;
-		private volatile int                         mLastSendTickCount             = Environment.TickCount;
-		private          int                         mSendQueueSize                 = 10 * 1024 * 1024;
+		// all fields are synchronized using the 'mScheduledSendItems' field
+		private readonly Encoder                  mUtf8Encoder         = Encoding.UTF8.GetEncoder();
+		private readonly Deque<ScheduledSendItem> mScheduledSendItems  = new Deque<ScheduledSendItem>();
+		private          int                      mSendQueueSize       = 10 * 1024 * 1024;
+		private          int                      mBytesQueuedToSend   = 0;
+		private          bool                     mIsSenderOperational = true;
 
 		/// <summary>
 		/// Gets or sets the size of the send queue (in bytes).
@@ -652,7 +727,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			get
 			{
-				lock (Sync)
+				lock (mScheduledSendItems)
 				{
 					return mSendQueueSize;
 				}
@@ -668,23 +743,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 						"The size of the send queue must be greater than 0.");
 				}
 
-				lock (Sync)
+				lock (mScheduledSendItems)
 				{
 					mSendQueueSize = value;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets the number of pending send operations.
-		/// </summary>
-		public int PendingSendOperations
-		{
-			get
-			{
-				lock (Sync)
-				{
-					return mPendingSendOperations;
 				}
 			}
 		}
@@ -696,17 +757,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			get
 			{
-				lock (Sync)
+				lock (mScheduledSendItems)
 				{
 					return mBytesQueuedToSend;
 				}
 			}
 		}
-
-		/// <summary>
-		/// Gets the <see cref="Environment.TickCount"/> the channel has sent some data the last time.
-		/// </summary>
-		internal int LastSendTickCount => mLastSendTickCount;
 
 		/// <summary>
 		/// Sends the specified characters.
@@ -813,153 +869,38 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// update length of the buffer and schedule buffer for sending
 				ssi.Length = bytesUsed;
 
-				lock (Sync)
+				// abort, if there is nothing to send
+				if (ssi.Length == 0)
+					return;
+
+				bool triggerSending;
+				lock (mScheduledSendItems)
 				{
-					// abort, if the channel is not connected
-					if (mStatus != LogServiceChannelStatus.Operational)
+					// abort, if the sender is not operational, i.e. the channel is not connected
+					if (!mIsSenderOperational)
 						throw new LogServiceChannelNotConnectedException(GetType().FullName);
 
 					// abort, if the send queue is full
 					if (mBytesQueuedToSend + ssi.Length > mSendQueueSize)
 						throw new LogServiceChannelQueueFullException("The send queue is full.");
 
+					// trigger sending, if no data is scheduled to be sent
+					triggerSending = mBytesQueuedToSend == 0;
+
 					// schedule prepared buffer for sending
 					mScheduledSendItems.AddToBack(ssi);
 					mBytesQueuedToSend += ssi.Length;
 					ssi = default; // avoids releasing the buffer in the finally block
-
-					// start sending, if appropriate
-					StartSending();
 				}
+
+				// start sending, if appropriate
+				if (triggerSending)
+					ThreadPool.QueueUserWorkItem(obj => ((LogServiceChannel)obj).StartSending(), this);
 			}
 			finally
 			{
 				if (ssi.Buffer != null)
 					ReturnScheduledSendItem(ref ssi);
-			}
-		}
-
-		/// <summary>
-		/// Starts sending scheduled data (for internal use, not synchronized).
-		/// </summary>
-		private void StartSending()
-		{
-			while (mStatus == LogServiceChannelStatus.Operational &&
-			       mScheduledSendItems.Count > 0 &&
-			       mPendingSendOperations < mMaxConcurrentSendOperations)
-			{
-				SocketAsyncEventArgs e = null;
-				try
-				{
-					// determine how many items can be sent in the next run
-					// limit the total size to 80 kByte (buffer can be allocated on the small object heap avoiding large object heap issues)
-					int requiredSendBufferSize = 0;
-					for (int i = 0; i < mScheduledSendItems.Count; i++)
-					{
-						var item = mScheduledSendItems[i];
-						if (requiredSendBufferSize + item.Length > 80 * 1024) break;
-						requiredSendBufferSize += item.Length;
-					}
-
-					// allocate send buffer
-					e = GetSendSocketEventArgs(requiredSendBufferSize);
-
-					// copy scheduled send items into the send buffer
-					int writeIndex = 0;
-					while (writeIndex < requiredSendBufferSize)
-					{
-						var item = mScheduledSendItems[0];
-
-						Array.Copy(
-							item.Buffer,
-							0,
-							e.Buffer,
-							writeIndex,
-							item.Length);
-
-						mScheduledSendItems.RemoveFromFront();
-						ReturnScheduledSendItem(ref item);
-						writeIndex += item.Length;
-					}
-
-					// update the length of the send buffer
-					e.SetBuffer(e.Buffer, 0, writeIndex);
-
-					// send the buffer
-					bool pending;
-					try
-					{
-						mPendingSendOperations++;
-						pending = mSocket.SendAsync(e); // throws, if the channel has been closed
-					}
-					catch (Exception)
-					{
-						// sending failed, return buffer to the pool and close the channel
-						mPendingSendOperations--;
-						ReturnSendSocketEventArgs(e);
-						e = null; // avoids returning send buffer after disposing the channel
-						InitiateShutdown();
-						return;
-					}
-
-					// handle synchronous completion of the operation
-					if (!pending)
-						ProcessSendCompleted(e, false);
-
-					// buffer has been successfully sent or scheduled to be sent
-					// => avoid returning the buffer in the finally block
-					e = null;
-				}
-				finally
-				{
-					if (e != null)
-						ReturnSendSocketEventArgs(e);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Processes the completion of an asynchronous send operation.
-		/// </summary>
-		/// <param name="e">Event arguments associated with the send operation.</param>
-		/// <param name="sendNext"><c>true</c> to send the next buffer, if appropriate; otherwise <c>false</c>.</param>
-		private void ProcessSendCompleted(SocketAsyncEventArgs e, bool sendNext)
-		{
-			lock (Sync)
-			{
-				mPendingSendOperations--;
-				mBytesQueuedToSend -= e.Count;
-
-				if (e.SocketError == SocketError.Success)
-				{
-					// sending completed successfully
-					mLastSendTickCount = Environment.TickCount;
-
-					// return event arguments to the pool for reuse
-					ReturnSendSocketEventArgs(e);
-					FinishShutdownIfAppropriate();
-				}
-				else
-				{
-					// sending failed
-					// => close the connection and clean up
-					ReturnSendSocketEventArgs(e);
-					InitiateShutdown();
-				}
-
-				// send the next buffer, if appropriate
-				if (sendNext)
-				{
-					try
-					{
-						StartSending();
-					}
-					catch (Exception ex)
-					{
-						Debug.Fail("Sending the next buffer failed unexpectedly.", ex.ToString());
-						InitiateShutdown();
-					}
-				}
 			}
 		}
 
@@ -981,6 +922,195 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private void ReturnScheduledSendItem(ref ScheduledSendItem item)
 		{
 			sByteArrayPool.Return(item.Buffer);
+		}
+
+		#endregion
+
+		#region Sending (Networking Part)
+
+		private readonly Stack<SocketAsyncEventArgs> mSendSocketAsyncEventArgsStack = new Stack<SocketAsyncEventArgs>(); // synchronized via mSendSocketAsyncEventArgsStack
+		private readonly int                         mMaxConcurrentSendOperations   = 1;                                 // no synchronization needed, since constant
+		private volatile int                         mLastSendTickCount             = Environment.TickCount;             // not synchronized, but volatile
+		private          int                         mPendingSendOperations         = 0;                                 // synchronized via Sync
+
+		/// <summary>
+		/// Gets the number of pending send operations.
+		/// </summary>
+		public int PendingSendOperations
+		{
+			get
+			{
+				lock (Sync) return mPendingSendOperations;
+			}
+		}
+
+		/// <summary>
+		/// Gets the <see cref="Environment.TickCount"/> the channel has sent some data the last time.
+		/// </summary>
+		internal int LastSendTickCount => mLastSendTickCount;
+
+		/// <summary>
+		/// Starts sending scheduled data.
+		/// </summary>
+		private void StartSending()
+		{
+			while (true)
+			{
+				SocketAsyncEventArgs e = null;
+				try
+				{
+					bool sendPending;
+
+					lock (Sync)
+					{
+						// abort, if the maximum number of concurrent send operations is reached
+						if (mPendingSendOperations >= mMaxConcurrentSendOperations)
+							break;
+
+						lock (mScheduledSendItems)
+						{
+							// determine how many items can be sent in the next run
+							// limit the total size to 80 kByte (buffer can be allocated on the small object heap avoiding large object heap issues)
+							int requiredSendBufferSize = 0;
+							for (int i = 0; i < mScheduledSendItems.Count; i++)
+							{
+								var item = mScheduledSendItems[i];
+								if (requiredSendBufferSize + item.Length > 80 * 1024) break;
+								requiredSendBufferSize += item.Length;
+							}
+
+							// abort, if there is nothing to send
+							if (requiredSendBufferSize == 0)
+								break;
+
+							// allocate send buffer
+							e = GetSendSocketEventArgs(requiredSendBufferSize);
+
+							// copy scheduled send items into the send buffer
+							int writeIndex = 0;
+							while (writeIndex < requiredSendBufferSize)
+							{
+								var item = mScheduledSendItems[0];
+
+								Array.Copy(
+									item.Buffer,
+									0,
+									e.Buffer,
+									writeIndex,
+									item.Length);
+
+								mScheduledSendItems.RemoveFromFront();
+								ReturnScheduledSendItem(ref item);
+								writeIndex += item.Length;
+							}
+
+							// update the length of the send buffer
+							e.SetBuffer(e.Buffer, 0, writeIndex);
+
+							// send the buffer
+							try
+							{
+								mPendingSendOperations++;
+								sendPending = mSocket.SendAsync(e); // throws, if the channel has been closed
+							}
+							catch (Exception)
+							{
+								// sending failed, return buffer to the pool and close the channel
+								mPendingSendOperations--;
+								ReturnSendSocketEventArgs(e);
+								e = null; // avoids returning send buffer after disposing the channel
+								InitiateShutdown();
+								return;
+							}
+						}
+					}
+
+					// handle synchronous completion of the operation
+					if (!sendPending)
+					{
+						ProcessSendCompleted(e, false);
+					}
+
+					// buffer has been successfully sent or scheduled to be sent
+					// => avoid returning the buffer in the finally block
+					e = null;
+				}
+				finally
+				{
+					if (e != null)
+						ReturnSendSocketEventArgs(e);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Processes the completion of an asynchronous send operation.
+		/// </summary>
+		/// <param name="e">Event arguments associated with the send operation.</param>
+		/// <param name="sendNext"><c>true</c> to send the next buffer, if appropriate; otherwise <c>false</c>.</param>
+		private void ProcessSendCompleted(SocketAsyncEventArgs e, bool sendNext)
+		{
+			Debug.Assert(!Monitor.IsEntered(Sync));
+
+			lock (Sync)
+			{
+				try
+				{
+					lock (mScheduledSendItems)
+					{
+						mBytesQueuedToSend -= e.Count;
+						Debug.Assert(mBytesQueuedToSend >= 0);
+					}
+
+					if (e.SocketError == SocketError.Success)
+					{
+						// sending completed successfully
+						mLastSendTickCount = Environment.TickCount;
+
+						// return event arguments to the pool for reuse
+						ReturnSendSocketEventArgs(e);
+					}
+					else
+					{
+						// sending failed
+						// => close the connection and clean up
+						ReturnSendSocketEventArgs(e);
+						InitiateShutdown();
+						return;
+					}
+				}
+				finally
+				{
+					mPendingSendOperations--;
+					Debug.Assert(mPendingSendOperations == 0);
+					FinishShutdownIfAppropriate();
+					sendNext &= mStatus == LogServiceChannelStatus.Operational;
+				}
+			}
+
+			// let the derived class perform its own work
+			OnSendingCompleted();
+
+			// send the next buffer, if appropriate
+			if (sendNext)
+			{
+				try
+				{
+					StartSending();
+				}
+				catch (Exception ex)
+				{
+					Debug.Fail("Sending the next buffer failed unexpectedly.", ex.ToString());
+					InitiateShutdown();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Is called when the channel has completed sending a chunk of data.
+		/// </summary>
+		protected virtual void OnSendingCompleted()
+		{
 		}
 
 		/// <summary>

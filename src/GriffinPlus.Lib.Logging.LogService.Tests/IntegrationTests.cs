@@ -5,15 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
-using GriffinPlus.Lib.Threading;
 
 using Xunit;
 
@@ -567,6 +563,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 							receivedLines.Add(line.ToString());
 						}
 					}
+
 					channel.LineReceived += ReceiveCallback1;
 
 					// the 'LineReceived' is attached now, so we can't miss initial data
@@ -595,10 +592,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 					// exchange read callback (the callback checks whether received data is as expected by comparing it to a
 					// deterministic set of random characters)
 					const int sendOperationCount = 3;
-					Random receiveRandom = new Random(seed);
-					var expected = new char[lineLength];
+					var receiveRandom = new Random(seed);
+					char[] expected = new char[lineLength];
 					int contentRegenerationCounter = 0;
 					var receiveLineCount = new StrongBox<int>(0);
+
 					void ReceiveCallback2(LogServiceChannel _, ReadOnlySpan<char> line)
 					{
 						// regenerate the set of expected characters after the expected number of same lines is reached
@@ -606,7 +604,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 						if (contentRegenerationCounter == 0)
 						{
 							for (int i = 0; i < expected.Length; i++)
+							{
 								expected[i] = (char)receiveRandom.Next('a', 'z');
+							}
 						}
 
 						// the received line should have the expected length
@@ -624,11 +624,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 						// adjust content regeneration counter
 						contentRegenerationCounter = (contentRegenerationCounter + 1) % sendOperationCount;
 					}
+
 					channel.LineReceived -= ReceiveCallback1;
 					channel.LineReceived += ReceiveCallback2;
 
 					// send some random lines
-					Random sendRandom = new Random(seed);
+					var sendRandom = new Random(seed);
 					char[] lineToSend = new char[lineLength];
 					int sentLineCount = 0;
 					for (int iteration = 0; iteration < iterations; iteration++)
@@ -692,9 +693,10 @@ namespace GriffinPlus.Lib.Logging.LogService
 						{
 							if (receiveLineCount.Value == sentLineCount)
 								break;
+
+							Assert.True(timeout > 0, $"Timeout while waiting for all lines to receive (expected: {sentLineCount}, actual: {receiveLineCount.Value}).");
 						}
 
-						Assert.True(timeout > 0);
 						Thread.Sleep(step);
 						timeout -= step;
 					}
@@ -707,9 +709,10 @@ namespace GriffinPlus.Lib.Logging.LogService
 				for (int i = 0; i < clientCount; i++)
 				{
 					int seed = i;
-					clientTasks.Add(Task.Factory.StartNew(
-						() => ConnectToServerAndSendData(seed),
-						TaskCreationOptions.LongRunning));
+					clientTasks.Add(
+						Task.Factory.StartNew(
+							() => ConnectToServerAndSendData(seed),
+							TaskCreationOptions.LongRunning));
 				}
 
 				// wait until all clients have completed (they are still operational)

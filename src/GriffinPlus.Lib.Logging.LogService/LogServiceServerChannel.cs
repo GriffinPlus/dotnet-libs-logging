@@ -9,6 +9,8 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 
+using GriffinPlus.Lib.Collections;
+
 namespace GriffinPlus.Lib.Logging.LogService
 {
 
@@ -17,8 +19,15 @@ namespace GriffinPlus.Lib.Logging.LogService
 	/// </summary>
 	public sealed class LogServiceServerChannel : LogServiceChannel
 	{
+		/// <summary>
+		/// The <see cref="LogServiceServer"/> the channel belongs to.
+		/// </summary>
 		private readonly LogServiceServer mServer;
-		private readonly Queue<string>    mLoopbackOverflowBuffer = new Queue<string>();
+
+		/// <summary>
+		/// Indicates whether received data is looped back for testing purposes.
+		/// </summary>
+		private bool mIsLoopbackEnabled;
 
 		/// <summary>
 		/// List node that is used by <see cref="LogServiceServer"/> to organize channels.
@@ -46,18 +55,17 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
-		/// Starts the channel.
+		/// Is called when the channel has been started successfully.
+		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
 		/// </summary>
-		protected internal override void Start()
+		protected override void OnStarted()
 		{
-			lock (Sync)
+			lock (ProcessingSync) // avoids race condition with data the is received before the greeting has been sent
 			{
-				// let the base class start receiving
-				base.Start();
+				SendGreeting();
 
-				// send greeting, if the channel is operational now
-				if (Status == LogServiceChannelStatus.Operational)
-					SendGreeting();
+				// enable looping back received data, if configured
+				mIsLoopbackEnabled = mServer.TestMode_EchoReceivedData;
 			}
 		}
 
@@ -88,10 +96,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called directly after some data has been received successfully.
-		/// Due to pipelined asynchronous receiving data may arrive out of order.
-		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
 		/// </summary>
-		protected override void OnDataReceived(ReadOnlySpan<byte> data)
+		protected override void OnDataReceived()
 		{
 			// ReSharper disable once InconsistentlySynchronizedField
 			mServer.ProcessChannelHasReceivedData(this);
@@ -108,7 +114,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
-		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
+		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected override void OnLineReceived(ReadOnlySpan<char> line)
@@ -117,21 +123,54 @@ namespace GriffinPlus.Lib.Logging.LogService
 			base.OnLineReceived(line);
 
 			// loop back data, if the server should loop back data as part of a test
-			if (mServer.TestMode_EchoReceivedData)
+			if (mIsLoopbackEnabled)
+			{
+				LoopbackLine(line);
+			}
+
+			// TODO: Process commands here...
+		}
+
+		/// <summary>
+		/// Is called when the channel has completed sending a chunk of data.
+		/// </summary>
+		protected override void OnSendingCompleted()
+		{
+			// let the base class do its work
+			base.OnSendingCompleted();
+
+			// send data that has been buffered in loopback mode
+			if (mIsLoopbackEnabled)
+				SendBufferedLoopbackLines();
+		}
+
+		#region Loopback Mode (for Testing)
+
+		private readonly Deque<string> mLoopbackOverflowBuffer = new Deque<string>();
+
+		/// <summary>
+		/// Sends the specified line back to the remote peer (loopback test mode).
+		/// </summary>
+		/// <param name="line"></param>
+		private void LoopbackLine(ReadOnlySpan<char> line)
+		{
+			lock (mLoopbackOverflowBuffer)
 			{
 				while (mLoopbackOverflowBuffer.Count > 0)
 				{
+					string bufferedLine = mLoopbackOverflowBuffer[0];
+					mLoopbackOverflowBuffer.RemoveFromFront();
+
 					try
 					{
-						string bufferedLine = mLoopbackOverflowBuffer.Peek();
 						Send(bufferedLine, true);
-						mLoopbackOverflowBuffer.Dequeue();
 					}
 					catch (LogServiceChannelQueueFullException)
 					{
 						// send queue is full
 						// => store line and try again later
-						mLoopbackOverflowBuffer.Enqueue(line.ToString());
+						mLoopbackOverflowBuffer.AddToFront(bufferedLine);
+						mLoopbackOverflowBuffer.AddToBack(line.ToString());
 						return;
 					}
 				}
@@ -144,12 +183,39 @@ namespace GriffinPlus.Lib.Logging.LogService
 				{
 					// send queue is full
 					// => store line and try again later
-					mLoopbackOverflowBuffer.Enqueue(line.ToString());
+					mLoopbackOverflowBuffer.AddToBack(line.ToString());
 				}
 			}
-
-			// TODO: Process commands here...
 		}
+
+		/// <summary>
+		/// Sends buffered lines to the remote peer (loopback test mode).
+		/// </summary>
+		private void SendBufferedLoopbackLines()
+		{
+			lock (mLoopbackOverflowBuffer)
+			{
+				while (mLoopbackOverflowBuffer.Count > 0)
+				{
+					string bufferedLine = mLoopbackOverflowBuffer[0];
+					mLoopbackOverflowBuffer.RemoveFromFront();
+
+					try
+					{
+						Send(bufferedLine, true);
+					}
+					catch (LogServiceChannelQueueFullException)
+					{
+						// send queue is full
+						// => store line and try again later
+						mLoopbackOverflowBuffer.AddToFront(bufferedLine);
+						return;
+					}
+				}
+			}
+		}
+
+		#endregion
 	}
 
 }

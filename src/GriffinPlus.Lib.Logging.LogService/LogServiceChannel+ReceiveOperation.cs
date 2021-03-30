@@ -15,18 +15,13 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <summary>
 		/// Represents a receive operation in the channel.
 		/// </summary>
-		[DebuggerDisplay("Length = {Buffer.Length}, ReceiveCompleted = {ReceiveCompleted}, ProcessingPending = {ProcessingPending}")]
+		[DebuggerDisplay("Length = {Buffer.Length}, ProcessingPending = {ProcessingPending}")]
 		private class ReceiveOperation
 		{
 			/// <summary>
 			/// Buffer to fill with the receive operation.
 			/// </summary>
 			public readonly byte[] Buffer;
-
-			/// <summary>
-			/// Number of valid bytes in the <see cref="Buffer"/>.
-			/// </summary>
-			public int BufferLength;
 
 			/// <summary>
 			/// Socket event arguments associated with the receive operation.
@@ -47,7 +42,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			public ReceiveOperation(int bufferSize, EventHandler<SocketAsyncEventArgs> handler)
 			{
 				Buffer = new byte[bufferSize];
-				BufferLength = 0;
 				EventArgs = new SocketAsyncEventArgs { UserToken = this };
 				EventArgs.SetBuffer(Buffer, 0, Buffer.Length);
 				EventArgs.Completed += handler;

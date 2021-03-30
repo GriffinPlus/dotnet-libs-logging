@@ -50,44 +50,37 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
-		/// Starts the channel.
+		/// Is called when the channel has been started successfully.
 		/// </summary>
-		protected internal override void Start()
+		protected override void OnStarted()
 		{
+			// send a greeting to the server
+			SendGreeting();
+
 			lock (Sync)
 			{
-				// let the base class start receiving
-				base.Start();
-
-				// send greeting, if the channel is operational now
-				if (Status == LogServiceChannelStatus.Operational)
+				// start the heartbeat task to ensure that the server does not shut the channel down due to inactivity checking
+				if (mHeartbeatInterval > TimeSpan.Zero)
 				{
-					// send a greeting to the server
-					SendGreeting();
+					// create a new cancellation token source that is signaled to shut the heartbeat task down at the end
+					// and create copy of cancellation token for the task to avoid directly referencing the token source.
+					Debug.Assert(mCancelHeartbeatTokenSource == null);
+					mCancelHeartbeatTokenSource = new CancellationTokenSource();
+					var shutdownToken = mCancelHeartbeatTokenSource.Token;
 
-					// start the heartbeat task to ensure that the server does not shut the channel down due to inactivity checking
-					if (mHeartbeatInterval > TimeSpan.Zero)
+					try
 					{
-						// create a new cancellation token source that is signaled to shut the heartbeat task down at the end
-						// and create copy of cancellation token for the task to avoid directly referencing the token source.
-						Debug.Assert(mCancelHeartbeatTokenSource == null);
-						mCancelHeartbeatTokenSource = new CancellationTokenSource();
-						var shutdownToken = mCancelHeartbeatTokenSource.Token;
-
-						try
-						{
-							Debug.Assert(mHeartbeatTask.IsCompleted);
-							mHeartbeatTask = Task.Run(
-								() => SendHeartbeatsAsync(shutdownToken),
-								CancellationToken.None);
-						}
-						catch (Exception)
-						{
-							Debug.Fail("Starting the heartbeat task failed unexpectedly.");
-							mCancelHeartbeatTokenSource.Dispose();
-							mCancelHeartbeatTokenSource = null;
-							throw;
-						}
+						Debug.Assert(mHeartbeatTask.IsCompleted);
+						mHeartbeatTask = Task.Run(
+							() => SendHeartbeatsAsync(shutdownToken),
+							CancellationToken.None);
+					}
+					catch (Exception)
+					{
+						Debug.Fail("Starting the heartbeat task failed unexpectedly.");
+						mCancelHeartbeatTokenSource.Dispose();
+						mCancelHeartbeatTokenSource = null;
+						throw;
 					}
 				}
 			}
@@ -359,7 +352,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
-		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
+		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected override void OnLineReceived(ReadOnlySpan<char> line)
