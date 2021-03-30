@@ -100,7 +100,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// give the server some time to accept all client connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				Thread.Sleep(100);
+				Sleep(200);
 				var serverChannels = server.Channels;
 				Assert.Equal(clientChannels.Count, serverChannels.Length);
 				Assert.All(serverChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
@@ -113,7 +113,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 
 				// give clients some time to finish shutting down
-				Thread.Sleep(100);
+				Sleep(200);
 
 				// client connections should have shut down now
 				Assert.All(clientChannels, channel => Assert.Equal(LogServiceChannelStatus.ShutdownCompleted, channel.Status));
@@ -157,7 +157,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// give the server some time to accept all client connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				await Task.Delay(100).ConfigureAwait(false);
+				await Delay(200).ConfigureAwait(false);
 				var serverChannels = server.Channels;
 				Assert.Equal(clientChannels.Count, serverChannels.Length);
 				Assert.All(serverChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
@@ -172,7 +172,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 
 				// give clients some time to finish shutting down
-				await Task.Delay(100).ConfigureAwait(false);
+				await Delay(200).ConfigureAwait(false);
 
 				// client connections should have shut down now
 				Assert.All(clientChannels, channel => Assert.Equal(LogServiceChannelStatus.ShutdownCompleted, channel.Status));
@@ -227,7 +227,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// even after some time the server should not have accepted any connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				Thread.Sleep((int)(preAcceptDelay.TotalMilliseconds / 10));
+				Sleep((int)(preAcceptDelay.TotalMilliseconds / 10));
 				var serverChannels = server.Channels;
 				Assert.Empty(serverChannels);
 
@@ -239,7 +239,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 
 				// give clients some time to finish shutting down
-				Thread.Sleep(100);
+				Sleep(200);
 
 				// client connections should have shut down now
 				Assert.All(clientChannels, channel => Assert.Equal(LogServiceChannelStatus.ShutdownCompleted, channel.Status));
@@ -290,7 +290,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// even after some time the server should not have accepted any connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				await Task.Delay((int)(preAcceptDelay.TotalMilliseconds / 10)).ConfigureAwait(false);
+				await Delay((int)(preAcceptDelay.TotalMilliseconds / 10)).ConfigureAwait(false);
 				var serverChannels = server.Channels;
 				Assert.Empty(serverChannels);
 
@@ -302,7 +302,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 
 				// give clients some time to finish shutting down
-				await Task.Delay(100).ConfigureAwait(false);
+				await Delay(200).ConfigureAwait(false);
 
 				// client connections should have shut down now
 				Assert.All(clientChannels, channel => Assert.Equal(LogServiceChannelStatus.ShutdownCompleted, channel.Status));
@@ -355,7 +355,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// give the server some time to accept all client connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				Thread.Sleep(100);
+				Sleep(200);
 				var serverChannels = server.Channels;
 				Assert.Equal(clientChannels.Count, serverChannels.Length);
 				Assert.All(serverChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
@@ -370,7 +370,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// the channels have reached the configured time of inactivity
 				// => the server should shut them down now
 				// => wait some time before checking that all channels have shut down to avoid glitches
-				Thread.Sleep(500);
+				Sleep(500);
 				Assert.All(serverChannels, channel => Assert.Equal(LogServiceChannelStatus.ShutdownCompleted, channel.Status));
 
 				// the server should have removed all channels from the channel list
@@ -439,7 +439,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// give the server some time to accept all client connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				Thread.Sleep(100);
+				Sleep(200);
 				var serverChannels = server.Channels;
 				Assert.Equal(clientChannels.Count, serverChannels.Length);
 				Assert.All(serverChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
@@ -471,7 +471,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// => the server should shut them down now
 				// => wait some time before checking that all channels have shut down to avoid glitches
 				//    (worst case: a channel has sent a heartbeat just before sending heartbeats was disabled => increase the time by that time)
-				Thread.Sleep(TimeSpan.FromMilliseconds(500) + heartbeatInterval);
+				Sleep(TimeSpan.FromMilliseconds(500) + heartbeatInterval);
 				Assert.All(serverChannels, channel => Assert.Equal(LogServiceChannelStatus.ShutdownCompleted, channel.Status));
 
 				// the server should have removed all channels from the channel list
@@ -574,7 +574,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 
 					// give the channels some time to send, receive and loop back data
-					Thread.Sleep(1000);
+					Sleep(1000);
 
 					// the server should have sent a greeting (HELLO + 2x INFO with version information) and
 					// the looped back greeting of the client (HELLO + INFO with version information)
@@ -732,7 +732,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				ExpectReachingStatus(server, LogServiceServerStatus.Stopped);
 
 				// give clients some time to finish shutting down
-				Thread.Sleep(100);
+				Sleep(200);
 
 				// client connections should have shut down now
 				Assert.All(clientChannels, channel => Assert.Equal(LogServiceChannelStatus.ShutdownCompleted, channel.Status));
@@ -810,6 +810,62 @@ namespace GriffinPlus.Lib.Logging.LogService
 				Assert.True(timeout > 0);
 				await Task.Delay(step).ConfigureAwait(false);
 				timeout -= step;
+			}
+		}
+
+		/// <summary>
+		/// Sleeps the specified time.
+		/// </summary>
+		/// <param name="time">Time to sleep (in ms).</param>
+		private static void Sleep(int time)
+		{
+			const int step = 50;
+			while (time > 0)
+			{
+				Thread.Sleep(step);
+				time -= step;
+			}
+		}
+
+		/// <summary>
+		/// Sleeps the specified time.
+		/// </summary>
+		/// <param name="time">Time to sleep.</param>
+		private static void Sleep(TimeSpan time)
+		{
+			TimeSpan step = TimeSpan.FromMilliseconds(50);
+			while (time > TimeSpan.Zero)
+			{
+				Thread.Sleep(step);
+				time -= step;
+			}
+		}
+
+		/// <summary>
+		/// Sleeps the specified time.
+		/// </summary>
+		/// <param name="time">Time to sleep (in ms).</param>
+		private static async Task Delay(int time)
+		{
+			const int step = 50;
+			while (time > 0)
+			{
+				await Task.Delay(step).ConfigureAwait(false);
+				time -= step;
+			}
+		}
+
+		/// <summary>
+		/// Sleeps the specified time.
+		/// </summary>
+		/// <param name="time">Time to sleep.</param>
+		private static async Task Delay(TimeSpan time)
+		{
+			TimeSpan step = TimeSpan.FromMilliseconds(50);
+			while (time > TimeSpan.Zero)
+			{
+				await Task.Delay(step).ConfigureAwait(false);
+				time -= step;
 			}
 		}
 
