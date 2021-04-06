@@ -352,7 +352,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
-		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected override void OnLineReceived(ReadOnlySpan<char> line)

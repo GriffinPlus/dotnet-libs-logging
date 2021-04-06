@@ -56,17 +56,13 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has been started successfully.
-		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
 		/// </summary>
 		protected override void OnStarted()
 		{
-			lock (ProcessingSync) // avoids race condition with data the is received before the greeting has been sent
-			{
-				SendGreeting();
+			SendGreeting();
 
-				// enable looping back received data, if configured
-				mIsLoopbackEnabled = mServer.TestMode_EchoReceivedData;
-			}
+			// enable looping back received data, if configured
+			mIsLoopbackEnabled = mServer.TestMode_EchoReceivedData;
 		}
 
 		/// <summary>
@@ -114,7 +110,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
-		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected override void OnLineReceived(ReadOnlySpan<char> line)

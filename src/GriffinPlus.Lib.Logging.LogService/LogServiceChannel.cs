@@ -10,8 +10,10 @@ using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 using GriffinPlus.Lib.Collections;
+using GriffinPlus.Lib.Threading;
 
 // ReSharper disable ForCanBeConvertedToForeach
 
@@ -45,11 +47,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// The channel lock (used to synchronize socket operations).
 		/// </summary>
 		protected readonly object Sync = new object();
-
-		/// <summary>
-		/// The processing lock (used to synchronize processing received data).
-		/// </summary>
-		protected readonly object ProcessingSync = new object();
 
 		#region Initialization and Disposal
 
@@ -148,63 +145,60 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		protected internal void Start()
 		{
-			lock (ProcessingSync) // needed to avoid a race condition causing received data to be processed before OnStart() has run
+			lock (Sync)
 			{
-				lock (Sync)
+				// abort, if the channel is not in the 'created' status
+				if (mStatus != LogServiceChannelStatus.Created)
+					throw new InvalidOperationException($"The channel is not in the '{LogServiceChannelStatus.Created}' state.");
+
+				// the shutdown token was not signaled
+				// => start reading
+				try
 				{
-					// abort, if the channel is not in the 'created' status
-					if (mStatus != LogServiceChannelStatus.Created)
-						throw new InvalidOperationException($"The channel is not in the '{LogServiceChannelStatus.Created}' state.");
-
-					// the shutdown token was not signaled
-					// => start reading
-					try
+					// start receiving
+					foreach (var operation in mReceiveOperations)
 					{
-						// start receiving
-						foreach (var operation in mReceiveOperations)
+						lock (operation)
 						{
-							lock (operation)
+							// assume that the receive operation can be scheduled
+							Debug.Assert(!operation.ProcessingPending);
+
+							// start receiving
+							bool pending;
+							try
 							{
-								// assume that the receive operation can be scheduled
-								Debug.Assert(!operation.ProcessingPending);
+								mPendingReceiveOperations++;
+								pending = mSocket.ReceiveAsync(operation.EventArgs);
+							}
+							catch
+							{
+								// starting to receive failed
+								// => no completion callback is pending!
+								mPendingReceiveOperations--;
+								throw;
+							}
 
-								// start receiving
-								bool pending;
-								try
-								{
-									mPendingReceiveOperations++;
-									pending = mSocket.ReceiveAsync(operation.EventArgs);
-								}
-								catch
-								{
-									// starting to receive failed
-									// => no completion callback is pending!
-									mPendingReceiveOperations--;
-									throw;
-								}
-
-								// queue processing data, if the operation finished synchronously
-								// (avoids running into a stack overflow in case of heavy traffic and invoking the handler from within the channel lock)
-								if (!pending)
-								{
-									ThreadPool.QueueUserWorkItem(
-										obj => ((LogServiceChannel)obj).ProcessReceiveCompleted(operation.EventArgs),
-										this);
-								}
+							// queue processing data, if the operation finished synchronously
+							// (avoids running into a stack overflow in case of heavy traffic and invoking the handler from within the channel lock)
+							if (!pending)
+							{
+								ThreadPool.QueueUserWorkItem(
+									obj => ((LogServiceChannel)obj).ProcessReceiveCompleted(operation.EventArgs),
+									this);
 							}
 						}
+					}
 
-						// the channel is up and running now
-						Status = LogServiceChannelStatus.Operational;
-					}
-					catch
-					{
-						// starting to receive has failed
-						// => channel is malfunctional, clean up after pending operations have completed
-						Status = LogServiceChannelStatus.Malfunctional;
-						InitiateShutdown();
-						return;
-					}
+					// the channel is up and running now
+					Status = LogServiceChannelStatus.Operational;
+				}
+				catch
+				{
+					// starting to receive has failed
+					// => channel is malfunctional, clean up after pending operations have completed
+					Status = LogServiceChannelStatus.Malfunctional;
+					InitiateShutdown();
+					return;
 				}
 
 				// let the derived class perform its own work
@@ -219,12 +213,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 					InitiateShutdown();
 					throw;
 				}
+
+				// start the processing task
+				mProcessingTask = Task.Run(ProcessReceivedBuffersAsync, CancellationToken.None);
 			}
 		}
 
 		/// <summary>
 		/// Is called when the channel has been started successfully.
-		/// (the executing thread holds the processing lock (<see cref="ProcessingSync"/>) when called).
 		/// </summary>
 		protected virtual void OnStarted()
 		{
@@ -374,6 +370,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
 				mShutdownTokenRegistration.Dispose();
 
+				// stop and dispose the processing task
+				mStopReceivingTokenSource.Cancel();
+				mProcessingTask.Wait(CancellationToken.None);
+				mStopReceivingTokenSource.Dispose();
+
 				// let derived classes perform additional cleanup
 				OnShutdownCompleted();
 			}
@@ -401,13 +402,16 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		private const int ReceiveBufferSize = 32 * 1024;
 
-		private readonly Decoder            mUtf8Decoder                        = Encoding.UTF8.GetDecoder();
-		private readonly ReceiveOperation[] mReceiveOperations                  = new ReceiveOperation[ReceiveBufferCount]; // synchronized via ProcessingSync
-		private          int                mReceiveOperationToProcessNextIndex = 0;                                        // synchronized via ProcessingSync
-		private          char[]             mIncompleteReceivedLineBuffer       = new char[100];                            // synchronized via ProcessingSync
-		private          int                mIncompleteReceivedLineBufferLength = 0;                                        // synchronized via ProcessingSync
-		private          int                mPendingReceiveOperations           = 0;                                        // synchronized via Sync
-		private volatile int                mLastReceiveTickCount               = Environment.TickCount;                    // not synchronized, but volatile
+		private readonly Decoder                 mUtf8Decoder                        = Encoding.UTF8.GetDecoder();
+		private readonly AsyncAutoResetEvent     mReceivedDataAvailableEvent         = new AsyncAutoResetEvent();
+		private readonly CancellationTokenSource mStopReceivingTokenSource           = new CancellationTokenSource();
+		private          Task                    mProcessingTask                     = Task.CompletedTask;
+		private readonly ReceiveOperation[]      mReceiveOperations                  = new ReceiveOperation[ReceiveBufferCount]; // accessed by processing task only
+		private          int                     mReceiveOperationToProcessNextIndex = 0;                                        // accessed by processing task only
+		private          char[]                  mIncompleteReceivedLineBuffer       = new char[100];                            // accessed by processing task only
+		private          int                     mIncompleteReceivedLineBufferLength = 0;                                        // accessed by processing task only
+		private          int                     mPendingReceiveOperations           = 0;                                        // synchronized via Sync
+		private volatile int                     mLastReceiveTickCount               = Environment.TickCount;                    // not synchronized, but volatile
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
@@ -430,7 +434,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		internal int LastReceiveTickCount => mLastReceiveTickCount;
 
-
 		/// <summary>
 		/// Processes the completion of an asynchronous receive operation.
 		/// </summary>
@@ -446,7 +449,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			// the executing thread should not hold any locks to avoid deadlocks when 
 			// user-defined handlers are invoked
 			Debug.Assert(!Monitor.IsEntered(Sync));
-			Debug.Assert(!Monitor.IsEntered(ProcessingSync));
 			Debug.Assert(!Monitor.IsEntered(mScheduledSendItems));
 
 			try
@@ -490,8 +492,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					return;
 
 				// process as many received buffers as possible
-				// (there may be other operations that completed before, but belong to one of the following buffers)
-				ProcessReceivedBuffers();
+				mReceivedDataAvailableEvent.Set();
 			}
 			finally
 			{
@@ -504,25 +505,34 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
-		/// Processes as many received buffers as possible.
+		/// Asynchronously waits for received data and processes the data in order.
 		/// </summary>
-		private void ProcessReceivedBuffers()
+		private async Task ProcessReceivedBuffersAsync()
 		{
 			// the executing thread should not hold any locks to avoid deadlocks when 
 			// user-defined handlers are invoked
 			Debug.Assert(!Monitor.IsEntered(Sync));
-			Debug.Assert(!Monitor.IsEntered(ProcessingSync));
 			Debug.Assert(!Monitor.IsEntered(mScheduledSendItems));
 
 			while (true)
 			{
-				ReceiveOperation operation;
-				bool receivePending;
-
-				lock (ProcessingSync)
+				// wait for received data
+				try
 				{
-					operation = mReceiveOperations[mReceiveOperationToProcessNextIndex];
+					await mReceivedDataAvailableEvent
+						.WaitAsync(mStopReceivingTokenSource.Token)
+						.ConfigureAwait(false);
+				}
+				catch (OperationCanceledException)
+				{
+					// the channel has shut down, exit
+					break;
+				}
 
+				while (true)
+				{
+					// check whether the next expected buffer is ready to be processed
+					var operation = mReceiveOperations[mReceiveOperationToProcessNextIndex];
 					char[] decodingBuffer = null;
 					try
 					{
@@ -564,6 +574,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					mReceiveOperationToProcessNextIndex = (mReceiveOperationToProcessNextIndex + 1) % mReceiveOperations.Length;
 
 					// start receiving using the processed buffer
+					bool receivePending;
 					lock (Sync)
 					{
 						try
@@ -583,13 +594,13 @@ namespace GriffinPlus.Lib.Logging.LogService
 							return;
 						}
 					}
-				}
 
-				// handle completing synchronously,
-				// but do not process any data as processing is already in progress at this level
-				if (!receivePending)
-				{
-					ProcessReceiveCompleted(operation.EventArgs, false);
+					// handle completing synchronously,
+					// but do not process any data as processing is already in progress at this level
+					if (!receivePending)
+					{
+						ProcessReceiveCompleted(operation.EventArgs, false);
+					}
 				}
 			}
 		}
@@ -688,7 +699,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <summary>
 		/// Is called when the channel has received a complete line.
 		/// Raises the <see cref="LineReceived"/> event.
-		/// The executing thread holds the processing lock (<see cref="ProcessingSync"/>) when called.
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected virtual void OnLineReceived(ReadOnlySpan<char> line)
