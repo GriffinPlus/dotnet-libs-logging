@@ -68,7 +68,7 @@ stages:
       inputs:
         command: 'custom'
         custom: 'tool'
-        arguments: 'install -g gitversion.tool'
+        arguments: 'install --global gitversion.tool --add-source https://api.nuget.org/v3/index.json'
     - task: DotNetCoreCLI@2
       displayName: 'Show GitVersion Version'
       inputs:
