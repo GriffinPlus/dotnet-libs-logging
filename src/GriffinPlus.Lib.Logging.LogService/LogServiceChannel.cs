@@ -784,8 +784,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <c>true</c> too append a newline character;
 		/// otherwise <c>false</c>.
 		/// </param>
-		/// <exception cref="LogServiceChannelQueueFullException">The send queue is full.</exception>
-		protected internal void Send(
+		/// <returns>
+		/// <c>true</c>, if the specified buffer was successfully enqueued for sending;
+		/// <c>false</c>, if the send queue is full.
+		/// </returns>
+		protected internal bool Send(
 			char[] data,
 			int    index,
 			int    count,
@@ -796,7 +799,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "The count must be positive.");
 			if (index + count > data.Length) throw new ArgumentOutOfRangeException(nameof(count), count, "index + count exceeds the bounds of the buffer.");
 
-			Send(new ReadOnlySpan<char>(data, index, count), appendNewLine);
+			return Send(new ReadOnlySpan<char>(data, index, count), appendNewLine);
 		}
 
 		/// <summary>
@@ -807,12 +810,15 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <c>true</c> too append a newline character;
 		/// otherwise <c>false</c>.
 		/// </param>
-		/// <exception cref="LogServiceChannelQueueFullException">The send queue is full.</exception>
-		protected internal void Send(string line, bool appendNewLine = true)
+		/// <returns>
+		/// <c>true</c>, if the specified buffer was successfully enqueued for sending;
+		/// <c>false</c>, if the send queue is full.
+		/// </returns>
+		protected internal bool Send(string line, bool appendNewLine = true)
 		{
 			if (line == null) throw new ArgumentNullException(nameof(line));
 
-			Send(line.AsSpan(), appendNewLine);
+			return Send(line.AsSpan(), appendNewLine);
 		}
 
 		/// <summary>
@@ -823,18 +829,21 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <c>true</c> too append a newline character;
 		/// otherwise <c>false</c>.
 		/// </param>
-		/// <exception cref="LogServiceChannelQueueFullException">The send queue is full.</exception>
+		/// <returns>
+		/// <c>true</c>, if the specified buffer was successfully enqueued for sending;
+		/// <c>false</c>, if the send queue is full.
+		/// </returns>
 		protected internal
 #if NET461 || NETSTANDARD2_0
 			unsafe
 #endif
-			void Send(ReadOnlySpan<char> data, bool appendNewLine)
+			bool Send(ReadOnlySpan<char> data, bool appendNewLine)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
 
 			// abort, if there is nothing to send
 			if (data.Length == 0)
-				return;
+				return true;
 
 			ScheduledSendItem ssi = default;
 			try
@@ -881,7 +890,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// abort, if there is nothing to send
 				if (ssi.Length == 0)
-					return;
+					return true;
 
 				bool triggerSending;
 				lock (mScheduledSendItems)
@@ -892,7 +901,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 					// abort, if the send queue is full
 					if (mBytesQueuedToSend + ssi.Length > mSendQueueSize)
-						throw new LogServiceChannelQueueFullException("The send queue is full.");
+						return false;
 
 					// trigger sending, if no data is scheduled to be sent
 					triggerSending = mBytesQueuedToSend == 0;
@@ -912,6 +921,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 				if (ssi.Buffer != null)
 					ReturnScheduledSendItem(ref ssi);
 			}
+
+			return true;
 		}
 
 		/// <summary>

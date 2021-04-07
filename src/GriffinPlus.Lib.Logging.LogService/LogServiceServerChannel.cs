@@ -156,11 +156,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					string bufferedLine = mLoopbackOverflowBuffer[0];
 					mLoopbackOverflowBuffer.RemoveFromFront();
 
-					try
-					{
-						Send(bufferedLine, true);
-					}
-					catch (LogServiceChannelQueueFullException)
+					if (!Send(bufferedLine, true))
 					{
 						// send queue is full
 						// => store line and try again later
@@ -170,11 +166,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					}
 				}
 
-				try
-				{
-					Send(line, true);
-				}
-				catch (LogServiceChannelQueueFullException)
+				if (!Send(line, true))
 				{
 					// send queue is full
 					// => store line and try again later
@@ -195,11 +187,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					string bufferedLine = mLoopbackOverflowBuffer[0];
 					mLoopbackOverflowBuffer.RemoveFromFront();
 
-					try
-					{
-						Send(bufferedLine, true);
-					}
-					catch (LogServiceChannelQueueFullException)
+					if (!Send(bufferedLine, true))
 					{
 						// send queue is full
 						// => store line and try again later

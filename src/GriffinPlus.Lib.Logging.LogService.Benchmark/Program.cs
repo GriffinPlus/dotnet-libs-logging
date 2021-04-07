@@ -92,11 +92,11 @@ namespace GriffinPlus.Lib.Logging.Demo
 		/// and wait for the data to be looped back.
 		/// </summary>
 		private static void BenchmarkRawLoopback(
-			string                                    sendOperationName,
-			int                                       clientCount,
-			int                                       iterations,
-			int                                       lineLength,
-			Action<LogServiceChannel, char[], string> sendOperation)
+			string                                        sendOperationName,
+			int                                           clientCount,
+			int                                           iterations,
+			int                                           lineLength,
+			Func<LogServiceChannel, char[], string, bool> sendOperation)
 		{
 			using (var server = new LogServiceServer(ServerAddress, ServerPort) { TestMode_EchoReceivedData = true })
 			using (var startEvent = new ManualResetEventSlim())
@@ -191,19 +191,12 @@ namespace GriffinPlus.Lib.Logging.Demo
 					string lineAsString = new string(lineToSend, 0, lineToSend.Length);
 					for (int iteration = 0; iteration < iterations; iteration++)
 					{
-						while (true)
+						while (!sendOperation(channel, lineToSend, lineAsString))
 						{
-							try
-							{
-								sendOperation(channel, lineToSend, lineAsString);
-								sentLineCount++;
-								break;
-							}
-							catch (LogServiceChannelQueueFullException)
-							{
-								Thread.Sleep(1);
-							}
+							Thread.Sleep(1);
 						}
+
+						sentLineCount++;
 					}
 
 					// give the channel some time to send their data and receive their looped back data

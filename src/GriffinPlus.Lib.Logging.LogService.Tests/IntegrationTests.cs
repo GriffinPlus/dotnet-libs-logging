@@ -638,50 +638,17 @@ namespace GriffinPlus.Lib.Logging.LogService
 						for (int i = 0; i < lineToSend.Length; i++) lineToSend[i] = (char)sendRandom.Next('a', 'z');
 						string lineAsString = new string(lineToSend, 0, lineToSend.Length);
 
-						while (true)
-						{
-							try
-							{
-								// send line as string
-								channel.Send(lineAsString, true);
-								sentLineCount++;
-								break;
-							}
-							catch (LogServiceChannelQueueFullException)
-							{
-								Thread.Sleep(50);
-							}
-						}
+						// send line as string
+						while (!channel.Send(lineAsString, true)) Thread.Sleep(50);
+						sentLineCount++;
 
-						while (true)
-						{
-							try
-							{
-								// send line as array of char
-								channel.Send(lineToSend, 0, lineToSend.Length, true);
-								sentLineCount++;
-								break;
-							}
-							catch (LogServiceChannelQueueFullException)
-							{
-								Thread.Sleep(50);
-							}
-						}
+						// send line as array of char
+						while (!channel.Send(lineToSend, 0, lineToSend.Length, true)) Thread.Sleep(50);
+						sentLineCount++;
 
-						while (true)
-						{
-							try
-							{
-								// send line as span
-								channel.Send(new ReadOnlySpan<char>(lineToSend, 0, lineToSend.Length), true);
-								sentLineCount++;
-								break;
-							}
-							catch (LogServiceChannelQueueFullException)
-							{
-								Thread.Sleep(50);
-							}
-						}
+						// send line as span
+						while (!channel.Send(new ReadOnlySpan<char>(lineToSend, 0, lineToSend.Length), true)) Thread.Sleep(50);
+						sentLineCount++;
 					}
 
 					// give the channel some time to send their data and receive their looped back data
@@ -833,7 +800,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="time">Time to sleep.</param>
 		private static void Sleep(TimeSpan time)
 		{
-			TimeSpan step = TimeSpan.FromMilliseconds(50);
+			var step = TimeSpan.FromMilliseconds(50);
 			while (time > TimeSpan.Zero)
 			{
 				Thread.Sleep(step);
@@ -861,7 +828,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="time">Time to sleep.</param>
 		private static async Task Delay(TimeSpan time)
 		{
-			TimeSpan step = TimeSpan.FromMilliseconds(50);
+			var step = TimeSpan.FromMilliseconds(50);
 			while (time > TimeSpan.Zero)
 			{
 				await Task.Delay(step).ConfigureAwait(false);
