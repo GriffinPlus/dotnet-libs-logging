@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="GriffinPlus.Lib.Common" Version="1.1.0" />
+		<PackageReference Include="GriffinPlus.Lib.Common" Version="1.1.2" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
 		<PackageReference Condition="$(TargetFramework)=='netstandard2.0'" Include="System.Memory" Version="4.5.4" />
 	</ItemGroup>

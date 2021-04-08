@@ -217,14 +217,14 @@ namespace GriffinPlus.Lib.Logging
 					if (mDiscardMessagesIfQueueFull)
 					{
 						message.AddRef();
-						bool pushed = mAsyncProcessingMessageStack.Push(message);
+						bool pushed = mAsyncProcessingMessageStack.TryPush(message);
 						if (pushed) mTriggerAsyncProcessingEvent.Set();
 						else message.Release();
 					}
 					else
 					{
 						message.AddRef();
-						while (!mAsyncProcessingMessageStack.Push(message)) Thread.Sleep(10);
+						while (!mAsyncProcessingMessageStack.TryPush(message)) Thread.Sleep(10);
 						mTriggerAsyncProcessingEvent.Set();
 					}
 				}
