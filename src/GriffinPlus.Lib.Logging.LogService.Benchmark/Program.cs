@@ -38,11 +38,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 		private static void Main(string[] args)
 		{
 			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
 
 			BenchmarkRawLoopback(
 				"Send(string)",
 				1,
-				1000000,
+				5000000,
 				1000,
 				(
 					channel,
@@ -50,11 +52,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 					lineAsString) => channel.Send(lineAsString));
 
 			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
 
 			BenchmarkRawLoopback(
-				"Send(char[], int offset, int length)",
+				"Send(char[], int, int)",
 				1,
-				1000000,
+				5000000,
 				1000,
 				(
 					channel,
@@ -66,11 +70,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 					true));
 
 			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
 
 			BenchmarkRawLoopback(
 				"Send(ReadOnlySpan<char>, bool)",
 				1,
-				1000000,
+				5000000,
 				1000,
 				(
 					channel,
@@ -80,6 +86,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 					true));
 
 			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
 
 			Console.WriteLine();
 			Console.WriteLine("Press any key to continue...");
@@ -246,8 +254,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 				// print benchmark result to console
 				// (assumption: all chars are encoded in a single byte UTF-8 code unit)
-				long totalCharCount = clientCount * iterations * (lineLength + 1);
-				double throughputInMegaBytePerSecond = 1000 * ((double)totalCharCount / (1024 * 1024) / roundtripStopwatch.ElapsedMilliseconds);
+				long totalCharCount = (long)clientCount * iterations * (lineLength + 1);
+				double throughputInMegaBytePerSecond = (double)totalCharCount / (1024 * 1024) / (roundtripStopwatch.ElapsedMilliseconds / 1000.0);
 				Console.WriteLine($"Loopback Benchmark using {sendOperationName}");
 				Console.WriteLine($"  Clients: {clientCount} (local)");
 				Console.WriteLine($"  Data: {iterations} lines x {lineLength} chars per line => {totalCharCount:#,##} chars/bytes");

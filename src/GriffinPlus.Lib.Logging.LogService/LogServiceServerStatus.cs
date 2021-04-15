@@ -12,12 +12,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 	public enum LogServiceServerStatus
 	{
 		/// <summary>
-		/// The server is starting up.
-		/// This is an intermediate status and should only be visible until the processing thread in online.
-		/// </summary>
-		Starting,
-
-		/// <summary>
 		/// The server is running.
 		/// This is the regular status the server should have when operating.
 		/// </summary>

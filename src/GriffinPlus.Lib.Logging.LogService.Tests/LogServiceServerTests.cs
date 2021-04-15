@@ -54,7 +54,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			using (var server = new LogServiceServer(ServerAddress, ServerPort))
 			{
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 			}
 		}
 
@@ -69,15 +68,13 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			get
 			{
-				var startupDelay = TimeSpan.FromMilliseconds(100);
-				var shutdownDelay = TimeSpan.FromMilliseconds(100);
+				var shutdownDelay = TimeSpan.FromMilliseconds(1000);
 
 				foreach (int backlog in new[] { 1, 10 })
 				{
-					yield return new object[] { backlog, startupDelay, shutdownDelay, -1 };   // infinite timeout
-					yield return new object[] { backlog, startupDelay, shutdownDelay, 0 };    // no timeout
-					yield return new object[] { backlog, startupDelay, shutdownDelay, 50 };   // timeout too small to spin up completely
-					yield return new object[] { backlog, startupDelay, shutdownDelay, 1000 }; // timeout large enough to spin up
+					yield return new object[] { backlog, shutdownDelay, -1 };   // infinite timeout
+					yield return new object[] { backlog, shutdownDelay, 0 };    // no timeout
+					yield return new object[] { backlog, shutdownDelay, 5000 }; // timeout large enough to spin up
 				}
 			}
 		}
@@ -86,51 +83,33 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// Tests starting the server using <see cref="LogServiceServer.Start"/> and stopping it using <see cref="LogServiceServer.Stop"/>.
 		/// </summary>
 		/// <param name="backlog">Maximum length of the pending connections queue.</param>
-		/// <param name="startupDelay">Delay to induce when starting the server (for testing timeout behavior).</param>
 		/// <param name="shutdownDelay">Delay to induce when stopping the server (for testing timeout behavior).</param>
 		/// <param name="timeout">Timeout (in ms).</param>
 		[Theory]
 		[MemberData(nameof(StartAndStop_TestData))]
 		public void StartAndStop(
 			int      backlog,
-			TimeSpan startupDelay,
 			TimeSpan shutdownDelay,
 			int      timeout)
 		{
 			using (var server = new LogServiceServer(ServerAddress, ServerPort)
 			{
-				TestMode_StartupDelay = startupDelay,
 				TestMode_ShutdownDelay = shutdownDelay
 			})
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
 				using (var cts = new CancellationTokenSource(timeout))
 				{
-					if (timeout == 0 || timeout > 0 && timeout <= startupDelay.TotalMilliseconds)
-					{
-						// cancellation token is signaled immediately
-						// => server starts spinning up, but waiting for it to finish times out
-						Assert.ThrowsAny<OperationCanceledException>(
-							() =>
-							{
-								server.Start(backlog, cts.Token);
-							});
-					}
-					else
-					{
-						// timeout is large enough to wait for the accepting task to spin up
-						server.Start(backlog, cts.Token);
-					}
+					// timeout is large enough to wait for the accepting task to spin up
+					server.Start(backlog, cts.Token);
 				}
 
 				// regardless of timeouts, the accepting task should spin up
 				// (its state should be WaitingForActivation as it should be blocked in the accept operation now)
 				ExpectReachingStatus(server, LogServiceServerStatus.Running);
-				Assert.Equal(TaskStatus.WaitingForActivation, server.AcceptingTask.Status);
 
 				// stop the server
 				using (var cts = new CancellationTokenSource(timeout))
@@ -153,7 +132,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// regardless of timeouts the server should have stopped now
 				ExpectReachingStatus(server, LogServiceServerStatus.Stopped);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 			}
 		}
 
@@ -161,52 +139,33 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// Tests starting the server using <see cref="LogServiceServer.StartAsync"/> and stopping it using <see cref="LogServiceServer.StopAsync"/>
 		/// </summary>
 		/// <param name="backlog">Maximum length of the pending connections queue.</param>
-		/// <param name="startupDelay">Delay to induce when starting the server (for testing timeout behavior).</param>
 		/// <param name="shutdownDelay">Delay to induce when stopping the server (for testing timeout behavior).</param>
 		/// <param name="timeout">Timeout (in ms).</param>
 		[Theory]
 		[MemberData(nameof(StartAndStop_TestData))]
 		public async Task StartAndStopAsync(
 			int      backlog,
-			TimeSpan startupDelay,
 			TimeSpan shutdownDelay,
 			int      timeout)
 		{
 			using (var server = new LogServiceServer(ServerAddress, ServerPort)
 			{
-				TestMode_StartupDelay = startupDelay,
 				TestMode_ShutdownDelay = shutdownDelay
 			})
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
 				using (var cts = new CancellationTokenSource(timeout))
 				{
-					if (timeout == 0 || timeout > 0 && timeout <= startupDelay.TotalMilliseconds)
-					{
-						// cancellation token is signaled immediately
-						// => server starts spinning up, but waiting for it to finish times out
-						await Assert.ThrowsAnyAsync<OperationCanceledException>(
-								async () =>
-								{
-									await server.StartAsync(backlog, cts.Token).ConfigureAwait(false);
-								})
-							.ConfigureAwait(false);
-					}
-					else
-					{
-						// timeout is large enough to wait for the accepting task to spin up
-						await server.StartAsync(backlog, cts.Token).ConfigureAwait(false);
-					}
+					// timeout is large enough to wait for the accepting task to spin up
+					await server.StartAsync(backlog, cts.Token).ConfigureAwait(false);
 				}
 
 				// wait for the accepting task to spin up
 				// (its state should be WaitingForActivation as it should be blocked in the accept operation now)
 				ExpectReachingStatus(server, LogServiceServerStatus.Running);
-				Assert.Equal(TaskStatus.WaitingForActivation, server.AcceptingTask.Status);
 
 				// stop the server
 				using (var cts = new CancellationTokenSource(timeout))
@@ -230,7 +189,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// regardless of timeouts the server should have stopped now
 				ExpectReachingStatus(server, LogServiceServerStatus.Stopped);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 			}
 		}
 

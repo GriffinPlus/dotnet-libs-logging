@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <summary>
 		/// Represents a receive operation in the channel.
 		/// </summary>
-		[DebuggerDisplay("Length = {Buffer.Length}, ProcessingPending = {ProcessingPending}")]
+		[DebuggerDisplay("Length = {Buffer.Length}, ReceivingCompleted = {ReceivingCompleted}")]
 		private class ReceiveOperation
 		{
 			/// <summary>
@@ -29,10 +29,10 @@ namespace GriffinPlus.Lib.Logging.LogService
 			public readonly SocketAsyncEventArgs EventArgs;
 
 			/// <summary>
-			/// Get or sets a value indicating whether the received buffer needs to be processed
+			/// Get or sets a value indicating whether the receive operation has completed
 			/// (is set in the callback invoked on completion).
 			/// </summary>
-			public bool ProcessingPending;
+			public volatile bool ReceivingCompleted;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ReceiveOperation"/> class.
@@ -45,7 +45,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				EventArgs = new SocketAsyncEventArgs { UserToken = this };
 				EventArgs.SetBuffer(Buffer, 0, Buffer.Length);
 				EventArgs.Completed += handler;
-				ProcessingPending = false;
+				ReceivingCompleted = false;
 			}
 		}
 	}

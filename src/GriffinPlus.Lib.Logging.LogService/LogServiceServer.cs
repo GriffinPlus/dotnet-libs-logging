@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,17 +28,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		private const int ShutdownTimeout = 5000;
 
-		private readonly LinkedList<LogServiceServerChannel> mChannels                    = new LinkedList<LogServiceServerChannel>();
-		private readonly AsyncManualResetEvent               mAcceptingTaskStartedUpEvent = new AsyncManualResetEvent();
-		private readonly AsyncLock                           mLock                        = new AsyncLock();
-		private          LogServiceServerStatus              mStatus                      = LogServiceServerStatus.Stopped;
-		private          CancellationTokenSource             mShutdownServerTokenSource   = null;
-		private          TimeSpan                            mChannelInactivityTimeout    = TimeSpan.FromMinutes(5);
-		private          Task                                mAcceptingTask               = Task.CompletedTask;
-		private          Task                                mMonitoringTask              = Task.CompletedTask;
-		private readonly IPEndPoint                          mListenEndpoint;
-		private          Socket                              mListenerSocket;
-		private          int                                 mBacklog;
+		private readonly LinkedList<LogServiceServerChannel> mChannels                  = new LinkedList<LogServiceServerChannel>();
+		private readonly AsyncLock                           mLock                      = new AsyncLock();
+		private          LogServiceServerStatus              mStatus                    = LogServiceServerStatus.Stopped;
+		private          CancellationTokenSource             mShutdownServerTokenSource = null;
+		private readonly IPEndPoint                          mListenEndpoint            = null;
+		private          Socket                              mListenerSocket            = null;
+		private readonly object                              mSettingsSync              = new object();
+		private          TimeSpan                            mChannelInactivityTimeout  = TimeSpan.FromMinutes(5);
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogServiceServer"/> class.
@@ -79,7 +77,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			get
 			{
-				using (mLock.Lock())
+				lock (mSettingsSync)
 				{
 					return mChannelInactivityTimeout;
 				}
@@ -90,9 +88,10 @@ namespace GriffinPlus.Lib.Logging.LogService
 				if (value <= TimeSpan.Zero)
 					throw new ArgumentOutOfRangeException(nameof(value), "The time of inactivity must be greater than TimeSpan.Zero.");
 
-				using (mLock.Lock())
+				lock (mSettingsSync)
 				{
 					mChannelInactivityTimeout = value;
+					mTriggerAcceptingAndMonitoringThreadEvent.Set();
 				}
 			}
 		}
@@ -116,42 +115,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		public LogServiceServerSettings Settings { get; } = new LogServiceServerSettings();
 
-		/// <summary>
-		/// Gets the accepting task.
-		/// </summary>
-		internal Task AcceptingTask
-		{
-			get
-			{
-				using (mLock.Lock())
-				{
-					return mAcceptingTask;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets the monitoring task.
-		/// </summary>
-		private Task MonitoringTask
-		{
-			get
-			{
-				using (mLock.Lock())
-				{
-					return mMonitoringTask;
-				}
-			}
-		}
-
 		#region Unit Test Properties
-
-		/// <summary>
-		/// [[ For Tests Only]]
-		/// Gets or sets a value indicating whether the server delays starting up to give unit tests
-		/// a chance to check intermediate states.
-		/// </summary>
-		internal TimeSpan TestMode_StartupDelay { get; set; } = TimeSpan.Zero;
 
 		/// <summary>
 		/// [[ For Tests Only]]
@@ -211,11 +175,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// the server should be in 'stopped' state now, so we can start it
 				Debug.Assert(mStatus == LogServiceServerStatus.Stopped);
 
-				// signal that the server is starting up
-				mAcceptingTaskStartedUpEvent.Reset();
-				mStatus = LogServiceServerStatus.Starting;
-				mBacklog = backlog;
-
 				try
 				{
 					// create a new cancellation token source that is signaled to shut the monitoring task and the
@@ -223,36 +182,24 @@ namespace GriffinPlus.Lib.Logging.LogService
 					// directly referencing the token source.
 					Debug.Assert(mShutdownServerTokenSource == null);
 					mShutdownServerTokenSource = new CancellationTokenSource();
-					var shutdownToken = mShutdownServerTokenSource.Token;
 
-					// start the monitoring task
-					try
-					{
-						mMonitoringTask = Task.Run(
-							() => MonitorChannelsAsync(shutdownToken),
-							CancellationToken.None); // must not be cancellable as the task switches the status!
-					}
-					catch (Exception)
-					{
-						mStatus = LogServiceServerStatus.Error;
-						throw;
-					}
+					// start the listener
+					mListenerSocket = new Socket(mListenEndpoint.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+					mListenerSocket.Bind(mListenEndpoint);
+					mListenerSocket.Listen(backlog);
 
-					// start the accepting task
-					try
-					{
-						mAcceptingTask = Task.Run(
-							() => AcceptConnectionsAsync(shutdownToken),
-							CancellationToken.None); // must not be cancellable as the task switches the status!
-					}
-					catch (Exception)
-					{
-						mStatus = LogServiceServerStatus.Error;
-						throw;
-					}
+					// start the accepting/monitoring thread
+					mAcceptingAndMonitoringThread = new Thread(AcceptingAndMonitoringThreadProc) { Name = "Accepting and Monitoring Log Service Channels" };
+					mAcceptingAndMonitoringThread.Start();
+
+					// the server is running now
+					mStatus = LogServiceServerStatus.Running;
 				}
 				catch (Exception)
 				{
+					// an unexpected exception occurred
+					mStatus = LogServiceServerStatus.Error;
+
 					if (mShutdownServerTokenSource != null)
 					{
 						mShutdownServerTokenSource.Cancel();
@@ -260,12 +207,21 @@ namespace GriffinPlus.Lib.Logging.LogService
 						mShutdownServerTokenSource = null;
 					}
 
+					if (mAcceptingAndMonitoringThread != null)
+					{
+						mAcceptingAndMonitoringThread.Join();
+						mAcceptingAndMonitoringThread = null;
+					}
+
+					if (mListenerSocket != null)
+					{
+						mListenerSocket.Dispose();
+						mListenerSocket = null;
+					}
+
 					throw;
 				}
 			}
-
-			// wait for the task to start up
-			await mAcceptingTaskStartedUpEvent.WaitAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		#endregion
@@ -300,16 +256,40 @@ namespace GriffinPlus.Lib.Logging.LogService
 				if (mStatus == LogServiceServerStatus.Error)
 					throw new InvalidOperationException("The server is in an error state, debug the condition!");
 
-				Debug.Assert(mStatus == LogServiceServerStatus.Starting || mStatus == LogServiceServerStatus.Running);
+				Debug.Assert(mStatus == LogServiceServerStatus.Running);
 
 				mStatus = LogServiceServerStatus.Stopping;
+
+				// close the listener socket
+				if (mListenerSocket != null)
+				{
+					mListenerSocket.Dispose();
+					mListenerSocket = null;
+				}
+
+				// shut the accepting/monitoring thread down
 				mShutdownServerTokenSource.Cancel();
+				mTriggerAcceptingAndMonitoringThreadEvent.Set();
+				await Task.Run(
+						() =>
+						{
+							while (true)
+							{
+								cancellationToken.ThrowIfCancellationRequested();
+								if (!mAcceptingAndMonitoringThread.IsAlive) break;
+								Thread.Sleep(50);
+							}
+						},
+						CancellationToken.None)
+					.ConfigureAwait(false);
+				mAcceptingAndMonitoringThread = null;
+
+				// dispose the shutdown token
 				mShutdownServerTokenSource.Dispose();
 				mShutdownServerTokenSource = null;
-			}
 
-			await WaitForStatusAsync(LogServiceServerStatus.Stopped, cancellationToken).ConfigureAwait(false);
-			Debug.Assert(mListenerSocket == null);
+				mStatus = LogServiceServerStatus.Stopped;
+			}
 		}
 
 		#endregion
@@ -365,7 +345,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		#endregion
 
-		#region Monitoring Connections
+
+		#region Accepting and Monitoring Connections
+
+		private readonly ManualResetEventSlim mTriggerAcceptingAndMonitoringThreadEvent = new ManualResetEventSlim();
+		private          Thread               mAcceptingAndMonitoringThread;
 
 		/// <summary>
 		/// Is called by a <see cref="LogServiceServerChannel"/> after it has received some data.
@@ -404,43 +388,209 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
-		/// Checks periodically whether channels have exceeded their inactivity timeout and shuts them down.
+		/// Entry point of the thread responsible for accepting and monitoring connections.
 		/// </summary>
-		/// <param name="shutdownToken">Token that is signaled when the server is shutting down.</param>
-		private async Task MonitorChannelsAsync(CancellationToken shutdownToken)
+		private void AcceptingAndMonitoringThreadProc()
 		{
+			var shutdownToken = mShutdownServerTokenSource.Token;
+
+			// determine whether accepting is enabled right from the start (default) or whether it is delayed (test mode)
+			bool isAcceptEnabled = TestMode_PreAcceptDelay == TimeSpan.Zero;
+			int startupTicks = Environment.TickCount;
+
 			var channelsToShutDown = new List<LogServiceChannel>();
 
-			while (!shutdownToken.IsCancellationRequested)
+			// prepare socket event args for accepting
+			bool isAcceptPending = false;
+			var accepted = new StrongBox<bool>();
+			var acceptEventArgs = new SocketAsyncEventArgs();
+			acceptEventArgs.Completed += (sender, args) =>
 			{
-				try
+				Volatile.Write(ref accepted.Value, true);
+				mTriggerAcceptingAndMonitoringThreadEvent.Set();
+			};
+
+			int nextRunTicks = Environment.TickCount;
+			while (true)
+			{
+				int nextRunDelay = Math.Max(nextRunTicks - Environment.TickCount, 0);
+				mTriggerAcceptingAndMonitoringThreadEvent.Wait(nextRunDelay);
+				mTriggerAcceptingAndMonitoringThreadEvent.Reset();
+
+				// capture settings needed in the run
+				TimeSpan channelInactivityTimeout;
+				lock (mSettingsSync)
 				{
-					TimeSpan nextRunDelay;
+					channelInactivityTimeout = mChannelInactivityTimeout;
+				}
 
-					using (await mLock.LockAsync(shutdownToken).ConfigureAwait(false))
+				// assume the next run is done to check for channel inactivity
+				// (the value is reduced as necessary below)
+				nextRunTicks = (int)(Environment.TickCount + channelInactivityTimeout.TotalMilliseconds);
+
+				// abort, if the server is shutting down
+				if (shutdownToken.IsCancellationRequested)
+				{
+					// connected channels should already be shutting down due to the server shutdown token
+					// => wait for the channels to finish shutting down
+					int startTickCount = Environment.TickCount;
+					while (true)
 					{
-						// check registered channels
-						// (the first node in the list contains the registration of the channel that is inactive the longest time)
-						nextRunDelay = mChannelInactivityTimeout;
-						lock (mChannels)
+						// close socket that has been accepted, but not bound to a channel, if necessary
+						if (isAcceptPending)
 						{
-							while (mChannels.First != null)
+							if (Volatile.Read(ref accepted.Value))
 							{
-								var channel = mChannels.First.Value;
-
-								// abort, if the channel does not exceed the configured time of inactivity
-								var timeSinceLastActivity = TimeSpan.FromMilliseconds(Environment.TickCount - channel.LastReceiveTickCount);
-								if (timeSinceLastActivity < mChannelInactivityTimeout)
+								if (acceptEventArgs.SocketError == SocketError.Success)
 								{
-									nextRunDelay = mChannelInactivityTimeout - timeSinceLastActivity;
-									break;
+									acceptEventArgs.AcceptSocket.Close();
+									acceptEventArgs.AcceptSocket = null;
 								}
 
-								// channel exceeds the configured time of inactivity
-								// => schedule shutting it down
-								channelsToShutDown.Add(channel);
-								mChannels.RemoveFirst();
+								Volatile.Write(ref accepted.Value, false);
+								isAcceptPending = false;
 							}
+						}
+
+						// abort, if all channels have shut down and a pending accept call has completed
+						lock (mChannels)
+						{
+							if (mChannels.Count == 0 && !isAcceptPending)
+								break;
+						}
+
+						// abort, if the time to shut down is exceeded
+						if (Environment.TickCount - startTickCount > ShutdownTimeout)
+						{
+							Debug.Fail("Waiting for communication channels to shut down timed out unexpectedly.");
+							break;
+						}
+
+						// try again after some time
+						Thread.Sleep(50);
+					}
+
+					break;
+				}
+
+				// ----------------------------------------------------------------------------------------------------
+				// enable accepting after some time (for tests only)
+				// ----------------------------------------------------------------------------------------------------
+				if (!isAcceptEnabled)
+				{
+					if (Environment.TickCount - startupTicks > TestMode_PreAcceptDelay.TotalMilliseconds)
+					{
+						isAcceptEnabled = true;
+					}
+					else
+					{
+						// pre-accept delay is not elapsed
+						// => continue waiting
+						nextRunTicks = (int)Math.Min(
+							nextRunTicks,
+							Environment.TickCount + TestMode_PreAcceptDelay.TotalMilliseconds - startupTicks);
+
+						mTriggerAcceptingAndMonitoringThreadEvent.Set();
+					}
+				}
+
+				// ----------------------------------------------------------------------------------------------------
+				// accept a new connection, if possible
+				// ----------------------------------------------------------------------------------------------------
+				if (isAcceptEnabled)
+				{
+					Socket socket = null;
+					LogServiceServerChannel channel = null;
+					try
+					{
+						// accept a connection asynchronously
+						if (!isAcceptPending)
+						{
+							acceptEventArgs.AcceptSocket = null;
+							isAcceptPending = mListenerSocket.AcceptAsync(acceptEventArgs);
+							if (!isAcceptPending) Volatile.Write(ref accepted.Value, true);
+						}
+
+						if (Volatile.Read(ref accepted.Value))
+						{
+							try
+							{
+								if (acceptEventArgs.SocketError != SocketError.Success)
+									throw new SocketException((int)acceptEventArgs.SocketError);
+
+								// accepting a connection succeeded
+								socket = acceptEventArgs.AcceptSocket;
+
+								// the connection was established successfully
+								// => create a channel wrapping the socket
+								try
+								{
+									channel = new LogServiceServerChannel(this, socket, shutdownToken);
+									lock (mChannels)
+									{
+										mChannels.AddLast(channel.Node);
+									}
+
+									socket = null;  // socket is now managed by the channel
+									channel = null; // channel is now kept in the channel list
+								}
+								catch (Exception ex)
+								{
+									Debug.Fail("Creating a log service failed unexpectedly.", ex.ToString());
+								}
+							}
+							finally
+							{
+								Volatile.Write(ref accepted.Value, false);
+								isAcceptPending = false;
+								mTriggerAcceptingAndMonitoringThreadEvent.Set();
+							}
+						}
+					}
+					catch (SocketException)
+					{
+						continue;
+					}
+					catch (ObjectDisposedException)
+					{
+						continue;
+					}
+					finally
+					{
+						// dispose the socket/channel, if the channel could not be started successfully
+						// (otherwise there is a dangling connection)
+						channel?.Dispose();
+						socket?.Dispose();
+					}
+				}
+
+				// ----------------------------------------------------------------------------------------------------
+				// check whether channels have become inactive and shut them down
+				// ----------------------------------------------------------------------------------------------------
+				{
+					// check registered channels
+					// (the first node in the list contains the registration of the channel that is inactive the longest time)
+					lock (mChannels)
+					{
+						while (mChannels.First != null)
+						{
+							var channel = mChannels.First.Value;
+
+							// abort, if the channel does not exceed the configured time of inactivity
+							var timeSinceLastActivity = TimeSpan.FromMilliseconds(Environment.TickCount - channel.LastReceiveTickCount);
+							if (timeSinceLastActivity < channelInactivityTimeout)
+							{
+								nextRunTicks = (int)Math.Min(
+									nextRunTicks,
+									Environment.TickCount + channelInactivityTimeout.TotalMilliseconds - timeSinceLastActivity.TotalMilliseconds);
+
+								break;
+							}
+
+							// channel exceeds the configured time of inactivity
+							// => schedule shutting it down
+							channelsToShutDown.Add(channel);
+							mChannels.RemoveFirst();
 						}
 					}
 
@@ -458,192 +608,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 					}
 
 					channelsToShutDown.Clear();
-
-					// wait for the next run
-					await Task
-						.Delay(nextRunDelay, shutdownToken)
-						.ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					break;
-				}
-			}
-		}
-
-		#endregion
-
-		#region Accepting Connections
-
-		/// <summary>
-		/// Accepts connections and creates a <see cref="LogServiceServerChannel"/> for each connection to start processing.
-		/// This method runs until <see cref="mShutdownServerTokenSource"/> is signaled.
-		/// Then all created channels are shut down and the method returns.
-		/// </summary>
-		/// <param name="shutdownToken">Token that is signaled when the server is shutting down.</param>
-		private async Task AcceptConnectionsAsync(CancellationToken shutdownToken)
-		{
-			// NOTE:
-			// This method should not throw any exceptions as exceptions are not processed by the caller
-
-			// delay spinning up some time (gives unit tests a chance to check intermediate states and start timeouts)
-			if (TestMode_StartupDelay > TimeSpan.Zero)
-				await Task.Delay(TestMode_StartupDelay, CancellationToken.None).ConfigureAwait(false);
-
-			try
-			{
-				// signal that the server is running now
-				// (must not monitor the passed cancellation token as this would break setting the status when shutting down!)
-				using (await mLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-				{
-					if (mStatus == LogServiceServerStatus.Starting)
-					{
-						// the server is starting up, signal that the task has spun up
-						// => start the listener and signal that the server is ready to accept connections
-						mListenerSocket = new Socket(mListenEndpoint.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-						mListenerSocket.Bind(mListenEndpoint);
-						mListenerSocket.Listen(mBacklog);
-						mStatus = LogServiceServerStatus.Running;
-						mAcceptingTaskStartedUpEvent.Set();
-					}
-					else if (mStatus == LogServiceServerStatus.Stopping)
-					{
-						// the server has been stopped before it has started accepting connections
-						mStatus = LogServiceServerStatus.Stopped;
-						mAcceptingTaskStartedUpEvent.Set();
-						return;
-					}
-				}
-
-				// accept connections
-				var acceptCompleted = new AsyncAutoResetEvent(false);
-				var e = new SocketAsyncEventArgs();
-				e.Completed += (sender, args) => acceptCompleted.Set();
-				while (true)
-				{
-					Debug.Assert(mListenerSocket != null, nameof(mListenerSocket) + " != null");
-
-					Socket socket = null;
-					LogServiceServerChannel channel = null;
-					try
-					{
-						// wait some time before starting to accept a connection (for unit tests only)
-						if (TestMode_PreAcceptDelay != TimeSpan.Zero)
-							await Task.Delay(TestMode_PreAcceptDelay, CancellationToken.None).ConfigureAwait(false);
-
-						// abort, if the shutdown token is signaled
-						if (shutdownToken.IsCancellationRequested)
-						{
-							if (mListenerSocket != null)
-							{
-								mListenerSocket.Close();
-								mListenerSocket = null;
-							}
-
-							break;
-						}
-
-						// accept a connection asynchronously
-						e.AcceptSocket = null;
-						if (!mListenerSocket.AcceptAsync(e))
-							acceptCompleted.Set();
-
-						// wait for a new connection to be accepted or the server shutting down
-						try
-						{
-							await acceptCompleted
-								.WaitAsync(shutdownToken)
-								.ConfigureAwait(false);
-						}
-						catch (OperationCanceledException)
-						{
-							// cancellation token was signaled
-							// => close listener socket and wait for the accept call to complete
-							mListenerSocket.Close();
-							mListenerSocket = null;
-							await acceptCompleted.WaitAsync(CancellationToken.None).ConfigureAwait(false);
-							if (e.SocketError != SocketError.Success) break;
-							socket = e.AcceptSocket;
-						}
-
-						if (e.SocketError != SocketError.Success)
-							throw new SocketException((int)e.SocketError);
-
-						// accepting a connection succeeded
-						socket = e.AcceptSocket;
-
-						// the connection was established successfully
-						// => create a channel wrapping the socket
-						try
-						{
-							channel = new LogServiceServerChannel(this, socket, shutdownToken);
-
-							lock (mChannels)
-							{
-								mChannels.AddLast(channel.Node);
-							}
-
-							socket = null;  // socket is now managed by the channel
-							channel = null; // channel is now kept in the channel list
-						}
-						catch (Exception ex)
-						{
-							Debug.Fail("Creating a log service failed unexpectedly.", ex.ToString());
-						}
-					}
-					catch (SocketException ex)
-					{
-						Debug.Fail("Accepting client connection failed unexpectedly.", ex.ToString());
-						continue;
-					}
-					finally
-					{
-						// dispose the socket/channel, if the channel could not be started successfully
-						// (otherwise there is a dangling connection)
-						channel?.Dispose();
-						socket?.Dispose();
-					}
-				}
-
-				// connected channels should already be shutting down due to the server shutdown token
-				// => wait for the channels to finish shutting down
-				int startTickCount = Environment.TickCount;
-				while (true)
-				{
-					lock (mChannels)
-					{
-						if (mChannels.Count == 0)
-							break;
-					}
-
-					if (Environment.TickCount - startTickCount > ShutdownTimeout)
-					{
-						Debug.Fail("Waiting for communication channels to shut down timed out unexpectedly.");
-						break;
-					}
-
-					await Task.Delay(50, CancellationToken.None).ConfigureAwait(false);
-				}
-			}
-			finally
-			{
-				// delay shutting down some time (gives unit tests a chance to check intermediate states and stop timeouts)
-				if (TestMode_ShutdownDelay > TimeSpan.Zero)
-					await Task.Delay(TestMode_ShutdownDelay, CancellationToken.None).ConfigureAwait(false);
-
-				// signal that the server has shut down
-				// (must not monitor the passed cancellation token as this would break setting the status when shutting down!)
-				using (await mLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
-				{
-					// the shutdown was successful, if all channels have been shut down properly
-					lock (mChannels)
-					{
-						mStatus = mChannels.Count > 0
-							          ? LogServiceServerStatus.Error
-							          : LogServiceServerStatus.Stopped;
-					}
-
-					Debug.Assert(mStatus == LogServiceServerStatus.Stopped);
 				}
 			}
 		}
