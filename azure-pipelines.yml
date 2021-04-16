@@ -59,6 +59,10 @@ stages:
         packageType: 'sdk'
         version: '5.0.x'
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: NuGetToolInstaller@1
+      displayName: 'Install NuGet'
+      inputs:
+        versionSpec: '5.x'
     - task: DotNetCoreCLI@2
       displayName: 'Install GitVersion'
       inputs:
@@ -151,6 +155,10 @@ stages:
         packageType: 'sdk'
         version: '5.0.x'
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: NuGetToolInstaller@1
+      displayName: 'Install NuGet'
+      inputs:
+        versionSpec: '5.x'
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Pipeline Artifacts'
       inputs:
