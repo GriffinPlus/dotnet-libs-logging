@@ -178,13 +178,19 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// None: Special log level expressing the lowest possible threshold for filtering purposes
-		/// (no log level passes the filter).
+		/// (no log level passes the filter). Using this log level to write messages is not allowed.
+		/// A message written with this log level will be mapped to log level <see cref="Failure"/>,
+		/// a notice about this incident will be attached to the message text. The message will then
+		/// bypass any filters induced by the configuration.
 		/// </summary>
 		public static readonly LogLevel None = new LogLevel("None", -1);
 
 		/// <summary>
 		/// All: Special log level expressing the highest possible threshold for filtering purposes
-		/// (all log levels pass the filter).
+		/// (all log levels pass the filter). Using this log level to write messages is not allowed.
+		/// A message written with this log level will be mapped to log level <see cref="Failure"/>,
+		/// a notice about this incident will be attached to the message text. The message will then
+		/// bypass any filters induced by the configuration.
 		/// </summary>
 		public static readonly LogLevel All = new LogLevel("All", int.MaxValue);
 

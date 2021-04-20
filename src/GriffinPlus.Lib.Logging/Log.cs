@@ -231,6 +231,15 @@ namespace GriffinPlus.Lib.Logging
 			LogWriterTagSet tags,
 			string          text)
 		{
+			if (level.Id < 0 || level.Id == int.MaxValue)
+			{
+				level = LogLevel.Failure;
+				text = "##### Message was written using log level 'None' or 'All'. Falling back to 'Failure'. Don't do that!!!! #####" +
+				       Environment.NewLine +
+				       Environment.NewLine +
+				       text;
+			}
+
 			// remove preceding and trailing line breaks
 			text = text.Trim('\r', '\n');
 

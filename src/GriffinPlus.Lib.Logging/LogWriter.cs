@@ -82,12 +82,17 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Checks whether the specified log level is active, so a message written using that level
-		/// really gets into the log.
+		/// really gets into the log. The special log levels <see cref="LogLevel.None"/> and <see cref="LogLevel.All"/>
+		/// are always active, but must not be used write log messages. These log levels are mapped to
+		/// <see cref="LogLevel.Failure"/> and get always logged - regardless of the configuration.
 		/// </summary>
 		/// <param name="level">Log level to check.</param>
 		/// <returns>true, if the specified log level is active; otherwise false.</returns>
 		public bool IsLogLevelActive(LogLevel level)
 		{
+			if (level.Id < 0 || level.Id == int.MaxValue)
+				return true;
+
 			if (ActiveLogLevelMask.Size == 0)
 			{
 				// active log level mask is empty
