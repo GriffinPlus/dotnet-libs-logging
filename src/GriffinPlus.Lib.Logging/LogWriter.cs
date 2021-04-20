@@ -11,6 +11,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 
+using GriffinPlus.Lib.Text;
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -21,6 +23,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		private static readonly IFormatProvider                sDefaultFormatProvider = CultureInfo.InvariantCulture;
 		private static readonly ThreadLocal<StringBuilder>     sBuilder               = new ThreadLocal<StringBuilder>(() => new StringBuilder());
+		private static readonly char[]                         sLineSeparators        = Unicode.NewLineCharacters.ToCharArray();
 		private static          int                            sNextId;
 		private readonly        List<WeakReference<LogWriter>> mSecondaryWriters;
 
@@ -31,6 +34,7 @@ namespace GriffinPlus.Lib.Logging
 		internal LogWriter(string name)
 		{
 			// global logging lock is acquired here...
+			CheckName(name);
 			mSecondaryWriters = new List<WeakReference<LogWriter>>();
 			PrimaryWriter = this;
 			Id = sNextId++;
@@ -79,6 +83,25 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the bit mask indicating which log levels are active for the log writer.
 		/// </summary>
 		internal LogLevelBitMask ActiveLogLevelMask { get; set; }
+
+		/// <summary>
+		/// Checks whether the specified string is a valid log writer name
+		/// (log writer names may consist of all characters except line separators).
+		/// </summary>
+		/// <param name="name">Name to check.</param>
+		/// <exception cref="ArgumentNullException">The specified name is <c>null</c>.</exception>
+		/// <exception cref="ArgumentException">The specified name is invalid.</exception>
+		public static void CheckName(string name)
+		{
+			if (name == null) throw new ArgumentNullException(nameof(name));
+			if (name.IndexOfAny(sLineSeparators) >= 0)
+			{
+				string message =
+					$"The specified name ({name}) is not a valid log writer name.\n" +
+					"Valid names may consist of all characters except line separators.\n";
+				throw new ArgumentException(message);
+			}
+		}
 
 		/// <summary>
 		/// Checks whether the specified log level is active, so a message written using that level

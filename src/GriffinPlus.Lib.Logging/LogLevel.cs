@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
+using GriffinPlus.Lib.Text;
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -16,9 +18,10 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public sealed class LogLevel
 	{
-		private static Dictionary<string, LogLevel> sLogLevelsByName;
-		private static LogLevel[]                   sLogLevelsById;
-		private static int                          sNextId;
+		private static readonly char[]                       sLineSeparators = Unicode.NewLineCharacters.ToCharArray();
+		private static          Dictionary<string, LogLevel> sLogLevelsByName;
+		private static          LogLevel[]                   sLogLevelsById;
+		private static          int                          sNextId;
 
 		/// <summary>
 		/// Failure:
@@ -241,6 +244,7 @@ namespace GriffinPlus.Lib.Logging
 		private LogLevel(string name)
 		{
 			// global logging lock is acquired here...
+			CheckName(name);
 			Name = name;
 			Id = sNextId++;
 		}
@@ -252,6 +256,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="id">Id of the log level.</param>
 		private LogLevel(string name, int id)
 		{
+			CheckName(name);
 			Name = name;
 			Id = id;
 		}
@@ -283,12 +288,35 @@ namespace GriffinPlus.Lib.Logging
 		public static IReadOnlyDictionary<string, LogLevel> KnownLevelsByName => sLogLevelsByName;
 
 		/// <summary>
+		/// Checks whether the specified string is a valid log level name
+		/// (log level names may consist of all characters except line separators).
+		/// </summary>
+		/// <param name="name">Name to check.</param>
+		/// <exception cref="ArgumentNullException">The specified name is <c>null</c>.</exception>
+		/// <exception cref="ArgumentException">The specified name is invalid.</exception>
+		public static void CheckName(string name)
+		{
+			if (name == null) throw new ArgumentNullException(nameof(name));
+			if (name.IndexOfAny(sLineSeparators) >= 0)
+			{
+				string message =
+					$"The specified name ({name}) is not a valid log level name.\n" +
+					"Valid names may consist of all characters except line separators.\n";
+				throw new ArgumentException(message);
+			}
+		}
+
+		/// <summary>
 		/// Gets the aspect log level with the specified name (or creates a new one, if it does not exist, yet).
 		/// </summary>
 		/// <param name="name">Name of the aspect log level to get.</param>
 		/// <returns>The requested aspect log level.</returns>
+		/// <exception cref="ArgumentNullException">The specified name is <c>null</c>.</exception>
+		/// <exception cref="ArgumentException">The specified name is invalid.</exception>
 		public static LogLevel GetAspect(string name)
 		{
+			CheckName(name);
+
 			sLogLevelsByName.TryGetValue(name, out var level);
 			if (level == null)
 			{

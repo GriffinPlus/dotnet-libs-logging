@@ -283,8 +283,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="name">Name of the log writer to get.</param>
 		/// <returns>The requested log writer.</returns>
+		/// <exception cref="ArgumentNullException">The specified name is <c>null</c>.</exception>
+		/// <exception cref="ArgumentException">The specified name is invalid.</exception>
 		public static LogWriter GetWriter(string name)
 		{
+			LogWriter.CheckName(name);
+
 			sLogWritersByName.TryGetValue(name, out var writer);
 			if (writer == null)
 			{
