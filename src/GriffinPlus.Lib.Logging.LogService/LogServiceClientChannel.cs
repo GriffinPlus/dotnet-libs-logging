@@ -11,8 +11,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using GriffinPlus.Lib.Threading;
-
 namespace GriffinPlus.Lib.Logging.LogService
 {
 
@@ -51,37 +49,36 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has been started successfully.
+		/// The receiver is not started, yet.
+		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
 		/// </summary>
 		protected override void OnStarted()
 		{
 			// send a greeting to the server
 			SendGreeting();
 
-			lock (Sync)
+			// start the heartbeat task to ensure that the server does not shut the channel down due to inactivity checking
+			if (mHeartbeatInterval > TimeSpan.Zero)
 			{
-				// start the heartbeat task to ensure that the server does not shut the channel down due to inactivity checking
-				if (mHeartbeatInterval > TimeSpan.Zero)
-				{
-					// create a new cancellation token source that is signaled to shut the heartbeat task down at the end
-					// and create copy of cancellation token for the task to avoid directly referencing the token source.
-					Debug.Assert(mCancelHeartbeatTokenSource == null);
-					mCancelHeartbeatTokenSource = new CancellationTokenSource();
-					var shutdownToken = mCancelHeartbeatTokenSource.Token;
+				// create a new cancellation token source that is signaled to shut the heartbeat task down at the end
+				// and create copy of cancellation token for the task to avoid directly referencing the token source.
+				Debug.Assert(mCancelHeartbeatTokenSource == null);
+				mCancelHeartbeatTokenSource = new CancellationTokenSource();
+				var shutdownToken = mCancelHeartbeatTokenSource.Token;
 
-					try
-					{
-						Debug.Assert(mHeartbeatTask.IsCompleted);
-						mHeartbeatTask = Task.Run(
-							() => SendHeartbeatsAsync(shutdownToken),
-							CancellationToken.None);
-					}
-					catch (Exception)
-					{
-						Debug.Fail("Starting the heartbeat task failed unexpectedly.");
-						mCancelHeartbeatTokenSource.Dispose();
-						mCancelHeartbeatTokenSource = null;
-						throw;
-					}
+				try
+				{
+					Debug.Assert(mHeartbeatTask.IsCompleted);
+					mHeartbeatTask = Task.Run(
+						() => SendHeartbeatsAsync(shutdownToken),
+						CancellationToken.None);
+				}
+				catch (Exception)
+				{
+					Debug.Fail("Starting the heartbeat task failed unexpectedly.");
+					mCancelHeartbeatTokenSource.Dispose();
+					mCancelHeartbeatTokenSource = null;
+					throw;
 				}
 			}
 		}
@@ -123,7 +120,41 @@ namespace GriffinPlus.Lib.Logging.LogService
 			bool              start             = true,
 			CancellationToken cancellationToken = default)
 		{
-			return ConnectToServerAsync(address, port, start, cancellationToken).WaitAndUnwrapException();
+			Socket socket = null;
+			try
+			{
+				// create a new socket to use 
+				socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+				// prepare event arguments for connecting asynchronously
+				using (var completedEvent = new ManualResetEventSlim())
+				{
+					var e = new SocketAsyncEventArgs { RemoteEndPoint = new IPEndPoint(address, port) };
+
+					// ReSharper disable once AccessToDisposedClosure
+					e.Completed += (sender, args) => completedEvent.Set();
+
+					// connect to the server
+					if (!socket.ConnectAsync(e))
+						completedEvent.Set();
+
+					// wait for the operation to complete
+					completedEvent.Wait(cancellationToken);
+
+					// handle socket error, if necessary
+					if (e.SocketError != SocketError.Success)
+						throw new SocketException((int)e.SocketError);
+
+					// the channel connected successfully
+					var channel = new LogServiceClientChannel(e.ConnectSocket, start);
+					socket = null;
+					return channel;
+				}
+			}
+			finally
+			{
+				socket?.Dispose();
+			}
 		}
 
 		/// <summary>
@@ -352,7 +383,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
-		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected override void OnLineReceived(ReadOnlySpan<char> line)

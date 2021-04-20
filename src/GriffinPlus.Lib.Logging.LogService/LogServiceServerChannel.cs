@@ -4,6 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Reflection;
@@ -56,17 +57,15 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has been started successfully.
-		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
+		/// The receiver is not started, yet.
+		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
 		/// </summary>
 		protected override void OnStarted()
 		{
-			lock (ProcessingSync) // avoids race condition with data the is received before the greeting has been sent
-			{
-				SendGreeting();
+			SendGreeting();
 
-				// enable looping back received data, if configured
-				mIsLoopbackEnabled = mServer.TestMode_EchoReceivedData;
-			}
+			// enable looping back received data, if configured
+			mIsLoopbackEnabled = mServer.TestMode_EchoReceivedData;
 		}
 
 		/// <summary>
@@ -109,12 +108,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		protected override void OnShutdownCompleted()
 		{
-			mServer.ProcessChannelHasCompletedShuttingDown(this);
+			mServer?.ProcessChannelHasCompletedShuttingDown(this);
 		}
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
-		/// (the executing thread holds the processing lock (<see cref="LogServiceChannel.ProcessingSync"/>) when called).
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected override void OnLineReceived(ReadOnlySpan<char> line)
@@ -146,45 +144,52 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		#region Loopback Mode (for Testing)
 
-		private readonly Deque<string> mLoopbackOverflowBuffer = new Deque<string>();
+		private struct LoopbackBuffer
+		{
+			public char[] Buffer;
+			public int    Length;
+		}
+
+		private readonly Deque<LoopbackBuffer> mLoopbackOverflowQueue = new Deque<LoopbackBuffer>();
 
 		/// <summary>
 		/// Sends the specified line back to the remote peer (loopback test mode).
 		/// </summary>
-		/// <param name="line"></param>
+		/// <param name="line">Line to send back (does not include a new line character at the end).</param>
 		private void LoopbackLine(ReadOnlySpan<char> line)
 		{
-			lock (mLoopbackOverflowBuffer)
+			while (mLoopbackOverflowQueue.Count > 0)
 			{
-				while (mLoopbackOverflowBuffer.Count > 0)
-				{
-					string bufferedLine = mLoopbackOverflowBuffer[0];
-					mLoopbackOverflowBuffer.RemoveFromFront();
+				var bufferedLine = mLoopbackOverflowQueue[0];
+				mLoopbackOverflowQueue.RemoveFromFront();
 
-					try
-					{
-						Send(bufferedLine, true);
-					}
-					catch (LogServiceChannelQueueFullException)
-					{
-						// send queue is full
-						// => store line and try again later
-						mLoopbackOverflowBuffer.AddToFront(bufferedLine);
-						mLoopbackOverflowBuffer.AddToBack(line.ToString());
-						return;
-					}
-				}
-
-				try
-				{
-					Send(line, true);
-				}
-				catch (LogServiceChannelQueueFullException)
+				if (!Send(bufferedLine.Buffer, 0, bufferedLine.Length, false))
 				{
 					// send queue is full
-					// => store line and try again later
-					mLoopbackOverflowBuffer.AddToBack(line.ToString());
+					// => put the buffered line back into the queue
+					mLoopbackOverflowQueue.AddToFront(bufferedLine);
+
+					// store line to try again later
+					char[] buffer = ArrayPool<char>.Shared.Rent(line.Length + 1);
+					line.CopyTo(buffer.AsSpan());
+					buffer[line.Length] = '\n';
+					mLoopbackOverflowQueue.AddToBack(new LoopbackBuffer { Buffer = buffer, Length = line.Length + 1 });
+					return;
 				}
+
+				// sending buffered line succeeded
+				// => proceed with the next buffered line
+				ArrayPool<char>.Shared.Return(bufferedLine.Buffer);
+			}
+
+			if (!Send(line, true))
+			{
+				// send queue is full
+				// => store line to try again later
+				char[] buffer = ArrayPool<char>.Shared.Rent(line.Length + 1);
+				line.CopyTo(buffer.AsSpan());
+				buffer[line.Length] = '\n';
+				mLoopbackOverflowQueue.AddToBack(new LoopbackBuffer { Buffer = buffer, Length = line.Length + 1 });
 			}
 		}
 
@@ -193,25 +198,22 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		private void SendBufferedLoopbackLines()
 		{
-			lock (mLoopbackOverflowBuffer)
+			while (mLoopbackOverflowQueue.Count > 0)
 			{
-				while (mLoopbackOverflowBuffer.Count > 0)
-				{
-					string bufferedLine = mLoopbackOverflowBuffer[0];
-					mLoopbackOverflowBuffer.RemoveFromFront();
+				var bufferedLine = mLoopbackOverflowQueue[0];
+				mLoopbackOverflowQueue.RemoveFromFront();
 
-					try
-					{
-						Send(bufferedLine, true);
-					}
-					catch (LogServiceChannelQueueFullException)
-					{
-						// send queue is full
-						// => store line and try again later
-						mLoopbackOverflowBuffer.AddToFront(bufferedLine);
-						return;
-					}
+				if (!Send(bufferedLine.Buffer, 0, bufferedLine.Length, false))
+				{
+					// send queue is full
+					// => store line and try again later
+					mLoopbackOverflowQueue.AddToFront(bufferedLine);
+					return;
 				}
+
+				// sending buffered line succeeded
+				// => proceed with the next buffered line
+				ArrayPool<char>.Shared.Return(bufferedLine.Buffer);
 			}
 		}
 

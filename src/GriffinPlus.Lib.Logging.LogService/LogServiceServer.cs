@@ -290,26 +290,39 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <exception cref="OperationCanceledException">The operation was cancelled.</exception>
 		public async Task StopAsync(CancellationToken cancellationToken = default)
 		{
+			Task acceptingTask;
+			Task monitoringTask;
+
 			using (await mLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				// abort, if the server is already stopped or shutting down
-				if (mStatus == LogServiceServerStatus.Stopped || mStatus == LogServiceServerStatus.Stopping)
-					return;
+				acceptingTask = mAcceptingTask;
+				monitoringTask = mMonitoringTask;
 
 				// abort, if the server is in an error state
 				if (mStatus == LogServiceServerStatus.Error)
 					throw new InvalidOperationException("The server is in an error state, debug the condition!");
 
-				Debug.Assert(mStatus == LogServiceServerStatus.Starting || mStatus == LogServiceServerStatus.Running);
+				if (mStatus == LogServiceServerStatus.Starting || mStatus == LogServiceServerStatus.Running)
+				{
+					mStatus = LogServiceServerStatus.Stopping;
 
-				mStatus = LogServiceServerStatus.Stopping;
-				mShutdownServerTokenSource.Cancel();
-				mShutdownServerTokenSource.Dispose();
-				mShutdownServerTokenSource = null;
+					if (mShutdownServerTokenSource != null)
+					{
+						mShutdownServerTokenSource.Cancel();
+						mShutdownServerTokenSource.Dispose();
+						mShutdownServerTokenSource = null;
+					}
+				}
 			}
 
-			await WaitForStatusAsync(LogServiceServerStatus.Stopped, cancellationToken).ConfigureAwait(false);
-			Debug.Assert(mListenerSocket == null);
+			// wait for the accepting task and the monitoring task to complete
+			var cancellationTask = Task.Delay(Timeout.Infinite, cancellationToken);
+			await Task.WhenAny(
+					cancellationTask,
+					Task.WhenAll(acceptingTask, monitoringTask))
+				.ConfigureAwait(false);
+			if (acceptingTask.IsCompleted && monitoringTask.IsCompleted) return;
+			await cancellationTask.ConfigureAwait(false); // throws OperationCanceledException if the operation was cancelled
 		}
 
 		#endregion
@@ -325,11 +338,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 		public void WaitForStatus(LogServiceServerStatus status, int timeout)
 		{
 			int startTicks = Environment.TickCount;
-			do
+			int countdown = timeout >= 0 ? timeout : int.MaxValue;
+			const int step = 50;
+			while (countdown > 0)
 			{
 				if (Status == status) return;
 				Thread.Sleep(50);
-			} while (timeout < 0 || Environment.TickCount - startTicks < timeout);
+				countdown -= step;
+			}
 
 			throw new TimeoutException($"Waiting to reach status '{status}' timed out.");
 		}
@@ -341,11 +357,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="cancellationToken">Cancellation token that can be signaled to cancel the operation.</param>
 		public void WaitForStatus(LogServiceServerStatus status, CancellationToken cancellationToken)
 		{
+			const int step = 50;
 			while (true)
 			{
 				if (Status == status) return;
 				cancellationToken.ThrowIfCancellationRequested();
-				Thread.Sleep(50);
+				Thread.Sleep(step);
 			}
 		}
 
@@ -356,10 +373,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="cancellationToken">Cancellation token that can be signaled to cancel the operation.</param>
 		public async Task WaitForStatusAsync(LogServiceServerStatus status, CancellationToken cancellationToken)
 		{
+			const int step = 50;
 			while (true)
 			{
 				if (Status == status) return;
-				await Task.Delay(50, cancellationToken).ConfigureAwait(false);
+				await Task.Delay(step, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -488,7 +506,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 			// delay spinning up some time (gives unit tests a chance to check intermediate states and start timeouts)
 			if (TestMode_StartupDelay > TimeSpan.Zero)
-				await Task.Delay(TestMode_StartupDelay, CancellationToken.None).ConfigureAwait(false);
+				await Delay(TestMode_StartupDelay).ConfigureAwait(false);
 
 			try
 			{
@@ -529,7 +547,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					{
 						// wait some time before starting to accept a connection (for unit tests only)
 						if (TestMode_PreAcceptDelay != TimeSpan.Zero)
-							await Task.Delay(TestMode_PreAcceptDelay, CancellationToken.None).ConfigureAwait(false);
+							await Delay(TestMode_PreAcceptDelay).ConfigureAwait(false);
 
 						// abort, if the shutdown token is signaled
 						if (shutdownToken.IsCancellationRequested)
@@ -607,7 +625,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// connected channels should already be shutting down due to the server shutdown token
 				// => wait for the channels to finish shutting down
-				int startTickCount = Environment.TickCount;
+				int timeoutCountdown = ShutdownTimeout;
+				const int step = 50;
 				while (true)
 				{
 					lock (mChannels)
@@ -616,20 +635,21 @@ namespace GriffinPlus.Lib.Logging.LogService
 							break;
 					}
 
-					if (Environment.TickCount - startTickCount > ShutdownTimeout)
+					if (timeoutCountdown < 0)
 					{
 						Debug.Fail("Waiting for communication channels to shut down timed out unexpectedly.");
 						break;
 					}
 
-					await Task.Delay(50, CancellationToken.None).ConfigureAwait(false);
+					await Task.Delay(step, CancellationToken.None).ConfigureAwait(false);
+					timeoutCountdown -= step;
 				}
 			}
 			finally
 			{
 				// delay shutting down some time (gives unit tests a chance to check intermediate states and stop timeouts)
 				if (TestMode_ShutdownDelay > TimeSpan.Zero)
-					await Task.Delay(TestMode_ShutdownDelay, CancellationToken.None).ConfigureAwait(false);
+					await Delay(TestMode_ShutdownDelay).ConfigureAwait(false);
 
 				// signal that the server has shut down
 				// (must not monitor the passed cancellation token as this would break setting the status when shutting down!)
@@ -645,6 +665,38 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 					Debug.Assert(mStatus == LogServiceServerStatus.Stopped);
 				}
+			}
+		}
+
+		#endregion
+
+		#region Helpers
+
+		/// <summary>
+		/// Sleeps the specified time.
+		/// </summary>
+		/// <param name="time">Time to sleep (in ms).</param>
+		private static async Task Delay(int time)
+		{
+			const int step = 50;
+			while (time > 0)
+			{
+				await Task.Delay(step).ConfigureAwait(false);
+				time -= step;
+			}
+		}
+
+		/// <summary>
+		/// Sleeps the specified time.
+		/// </summary>
+		/// <param name="time">Time to sleep.</param>
+		private static async Task Delay(TimeSpan time)
+		{
+			var step = TimeSpan.FromMilliseconds(50);
+			while (time > TimeSpan.Zero)
+			{
+				await Task.Delay(step).ConfigureAwait(false);
+				time -= step;
 			}
 		}
 

@@ -38,11 +38,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 		private static void Main(string[] args)
 		{
 			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
 
 			BenchmarkRawLoopback(
 				"Send(string)",
 				1,
-				1000000,
+				5000000,
 				1000,
 				(
 					channel,
@@ -50,11 +52,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 					lineAsString) => channel.Send(lineAsString));
 
 			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
 
 			BenchmarkRawLoopback(
-				"Send(char[], int offset, int length)",
+				"Send(char[], int, int)",
 				1,
-				1000000,
+				5000000,
 				1000,
 				(
 					channel,
@@ -66,11 +70,13 @@ namespace GriffinPlus.Lib.Logging.Demo
 					true));
 
 			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
 
 			BenchmarkRawLoopback(
 				"Send(ReadOnlySpan<char>, bool)",
 				1,
-				1000000,
+				5000000,
 				1000,
 				(
 					channel,
@@ -80,6 +86,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 					true));
 
 			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
 
 			Console.WriteLine();
 			Console.WriteLine("Press any key to continue...");
@@ -92,11 +100,11 @@ namespace GriffinPlus.Lib.Logging.Demo
 		/// and wait for the data to be looped back.
 		/// </summary>
 		private static void BenchmarkRawLoopback(
-			string                                    sendOperationName,
-			int                                       clientCount,
-			int                                       iterations,
-			int                                       lineLength,
-			Action<LogServiceChannel, char[], string> sendOperation)
+			string                                        sendOperationName,
+			int                                           clientCount,
+			int                                           iterations,
+			int                                           lineLength,
+			Func<LogServiceChannel, char[], string, bool> sendOperation)
 		{
 			using (var server = new LogServiceServer(ServerAddress, ServerPort) { TestMode_EchoReceivedData = true })
 			using (var startEvent = new ManualResetEventSlim())
@@ -191,23 +199,16 @@ namespace GriffinPlus.Lib.Logging.Demo
 					string lineAsString = new string(lineToSend, 0, lineToSend.Length);
 					for (int iteration = 0; iteration < iterations; iteration++)
 					{
-						while (true)
+						while (!sendOperation(channel, lineToSend, lineAsString))
 						{
-							try
-							{
-								sendOperation(channel, lineToSend, lineAsString);
-								sentLineCount++;
-								break;
-							}
-							catch (LogServiceChannelQueueFullException)
-							{
-								Thread.Sleep(1);
-							}
+							Thread.Sleep(1);
 						}
+
+						sentLineCount++;
 					}
 
 					// give the channel some time to send their data and receive their looped back data
-					int timeout = 2 * 60 * 1000;
+					int timeout = 3 * 60 * 1000;
 					int step = 50;
 					while (true)
 					{
@@ -253,8 +254,8 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 				// print benchmark result to console
 				// (assumption: all chars are encoded in a single byte UTF-8 code unit)
-				long totalCharCount = clientCount * iterations * (lineLength + 1);
-				double throughputInMegaBytePerSecond = 1000 * ((double)totalCharCount / (1024 * 1024) / roundtripStopwatch.ElapsedMilliseconds);
+				long totalCharCount = (long)clientCount * iterations * (lineLength + 1);
+				double throughputInMegaBytePerSecond = (double)totalCharCount / (1024 * 1024) / (roundtripStopwatch.ElapsedMilliseconds / 1000.0);
 				Console.WriteLine($"Loopback Benchmark using {sendOperationName}");
 				Console.WriteLine($"  Clients: {clientCount} (local)");
 				Console.WriteLine($"  Data: {iterations} lines x {lineLength} chars per line => {totalCharCount:#,##} chars/bytes");
