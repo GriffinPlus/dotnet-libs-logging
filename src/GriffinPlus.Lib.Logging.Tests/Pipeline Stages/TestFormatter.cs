@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging
 			var builder = new StringBuilder();
 
 			builder.AppendFormat(
-				"{0} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7} ### {8}",
+				"{0:u} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7} ### {8}",
 				message.Timestamp,
 				message.HighPrecisionTimestamp,
 				message.LogWriterName,
