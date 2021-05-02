@@ -55,6 +55,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		private const int ReceiveBufferSize = 64 * 1024;
 
+		/// <summary>
+		/// Maximum length of a line.
+		/// </summary>
+		public const int MaxLineLength = 32 * 1024;
+
 		// channel management members
 		private           Socket                        mSocket;
 		internal readonly CancellationToken             ShutdownToken;
@@ -63,7 +68,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private           bool                          mDisposed;
 
 		/// <summary>
-		/// The channel lock (used to synchronize socket operations).
+		/// The channel lock (used to synchronize channel operations).
 		/// </summary>
 		protected readonly object Sync = new object();
 
@@ -539,11 +544,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <c>true</c>, if the specified buffer was successfully enqueued for sending;
 		/// <c>false</c>, if the send queue is full.
 		/// </returns>
-		protected internal
-#if NET461 || NETSTANDARD2_0
-			unsafe
-#endif
-			bool Send(ReadOnlySpan<char> data, bool appendNewLine)
+		protected internal bool Send(ReadOnlySpan<char> data, bool appendNewLine)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
 
@@ -583,22 +584,37 @@ namespace GriffinPlus.Lib.Logging.LogService
 					if (!completed)
 					{
 #if NET461 || NETSTANDARD2_0
-						int charsUsed;
-						int bytesUsed;
-						fixed (char* pData = &data.GetPinnableReference())
-						fixed (byte* pBuffer = &blockBuffer[blockLength])
+						// the Encoder class does not have support for spans, so we have to work around it
+						char[] buffer = null;
+						int charsUsed, bytesUsed;
+						try
 						{
+							var spanToEncode = data.Slice(charOffset);
+							buffer = ArrayPool<char>.Shared.Rent(spanToEncode.Length);
+							spanToEncode.CopyTo(buffer.AsSpan());
 							mUtf8Encoder.Convert(
-								pData + charOffset,
-								data.Length - charOffset,
-								pBuffer,
+								buffer,
+								0,
+								spanToEncode.Length,
+								blockBuffer,
+								blockLength,
 								blockCapacity - blockLength,
 								true,
 								out charsUsed,
 								out bytesUsed,
 								out completed);
 						}
+						finally
+						{
+							if (buffer != null)
+							{
+								ArrayPool<char>.Shared.Return(buffer);
+								buffer = null;
+							}
+						}
+
 #elif NETSTANDARD2_1
+
 						mUtf8Encoder.Convert(
 							data.Slice(charOffset),
 							new Span<byte>(blockBuffer, blockLength, blockCapacity - blockLength),

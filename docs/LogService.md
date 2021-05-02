@@ -10,9 +10,11 @@ The log service can be configured to listen at a specific IP address and port. B
 
 ## The Protocol
 
-This section describes the protocol between the `LogServicePipelineStage` and the log service.
+This section describes the protocol between the `LogServicePipelineStage` and the log service. A connection starts with a establishing a TCP connection from a process that wants to log to the log service.
 
-A connection starts with a establishing a TCP connection from a process that wants to log to the log service. As soon as the connection is established the client sends a *greeting* to the server. The *greeting* consists of a `HELLO` command to indicate to whom the server is talking. An `INFO` command with the version of the used log service library follows (informational version of the `GriffinPlus.Lib.Logging.LogService` assembly).
+### Greeting
+
+As soon as the connection is established the client sends a *greeting* to the server. The *greeting* consists of a `HELLO` command to indicate to whom the server is talking. An `INFO` command with the version of the used log service library follows (informational version of the `GriffinPlus.Lib.Logging.LogService` assembly).
  
 Just as the client, the log service also sends a *greeting* to indicate to whom the connecting client is talking. The *greeting* always starts with a `HELLO` command with a freely configurable name. If configured the service then sends `INFO` commands with the version of the server (file version of the entry assembly of the application) and the version of the used log service library (informational version of the `GriffinPlus.Lib.Logging.LogService` assembly).
 
@@ -24,56 +26,73 @@ Service: HELLO Griffin+ Log Service
          INFO Log Service Library Version: <version>
 ```
 
-The client can now set some information about itself, namely the name and the id of its process and the name of the application, if it differs from the name of the process. The names must be quoted, if they contain whitespaces. The Server will always respond with `OK` in case of success or `NOK (<code> <message>)` in case of an error:
+### Client Configuration
+
+The client can now set some information about itself, namely the name and the id of its process and the name of the application, if it differs from the name of the process. The Server will always respond with `OK` in case of success or `NOK (<code> <message>)` in case of an error:
 
 ```
-Client:  SETPROCESS <name> <id>
+Client:  SET PROCESS_NAME <name>
 Service: OK / NOK (<code> <message>)
 
-Client:  SETAPPLICATION <name>
+Client:  SET PROCESS_ID <id>
+Service: OK / NOK (<code> <message>)
+
+Client:  SET APPLICATION_NAME <name>
 Service: OK / NOK (<code> <message>)
 ```
 
-The client can now write log messages. The fields `writer`, `level` and `text` are mandatory, the `tag` field is optional and can be specified multiple times.
+### Writing Messages
+
+The client can write log messages using the `WRITE` command.
+
+For short messages that do not contain line breaks:
 
 ```
 Client:  WRITE
+         timestamp: <timestamp>
+         ticks: <count>
+         lost: <count>
          writer: <name>
          level: <name>
          tag: <name>
-         text: Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-         sed diam nonumy eirmod tempor invidunt ut labore et dolore
-         magna aliquyam erat, sed diam voluptua. At vero eos et
-         accusam et justo duo dolores et ea rebum. Stet clita kasd
-         gubergren, no sea takimata sanctus est Lorem ipsum dolor
-         sit amet.
-         .
+         text: <message>
 Service: OK / NOK (<code> <message>)
 ```
 
-The name of log writers, log levels and tags can become very elongated, so a client can choose to map these names to ids and use them instead to save traffic:
+For messages that contain line breaks:
 
 ```
-Client: MAPWRITER <name> <id>
-Service: OK / NOK (<code> <message>)
-
-Client: MAPLEVEL <name> <id>
-Service: OK / NOK (<code> <message>)
-
-Client: MAPTAG <name> <id>
-Service: OK / NOK (<code> <message>)
-
 Client:  WRITE
-         writer-id: <id>
-         level-id: <id>
-         tag-id: <id>
-         text: Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-         sed diam nonumy eirmod tempor invidunt ut labore et dolore
-         magna aliquyam erat, sed diam voluptua. At vero eos et
-         accusam et justo duo dolores et ea rebum. Stet clita kasd
-         gubergren, no sea takimata sanctus est Lorem ipsum dolor
-         sit amet.
+         timestamp: <timestamp>
+         ticks: <count>
+         lost: <count>
+         writer: <name>
+         level: <name>
+         tag: <name>
+         text:
+         <message-line-1>
+         <message-line-2>
+         <message-line-3>
          .
-         DONE
 Service: OK / NOK (<code> <message>)
 ```
+
+The following data is associated with a log message:
+
+| Field        | Description
+| :----------- | :--------------------------------------------------------------------- |
+| `timestamp`  | Timestamp with timezone offset (ISO 8601)
+| `ticks`      | High-precision timestamp for relative time measurements (in ns)
+| `lost`       | Number of lost messages since the last successfully written message
+| `writer`     | Name of the log writer
+| `level`      | Name of the log level
+| `tag`        | Tag associated with the message
+| `text`       | The message text
+
+All fields except the `text` field are optional, but some are strongly recommended. The fields `timestamp` and `ticks` are optional, but should be specified when writing a message. If these fields are missing, the log service will populate the fields which is usually less accurate due to the latency induced by the logging subsystem itself. The `lost` field is optional and indicates how many messages were lost since the last successfully written message. The fields `writer` and `level` are also optional and represent the name of the log writer and the log level. The `writer` field defaults to `Default` and the `level` field defaults to `Note`. The `tag` field can be specified multiple times (once for every attached log writer tag) or not at all.
+
+The `text` field specifies the text of the message. Short messages that do not contain line breaks can just follow the `text` header. The line break at the end of the line terminates the message text. Messages spanning multiple lines have to be treated differently. The message text must start at the line following the `text` header. A line just consisting of a period (`.`) character terminates the `text` field. If the text itself contains a line that starts with a period, the period is doubled to avoid terminating the `text` field unintentionally. When writing the message text be aware that lines must not be longer than 32768 characters. In the case that long messages exceed this limit, these lines can be split by simply inserting a `\n\\\n` before the length limit is reached. This inserts a backslash on a single line that serves as a splitting indicator. The service recognizes this sequence and concatenates adjacent lines.
+
+### Pipelining
+
+The protocol outlined above assumes a dialog mode: the client sends a command and the server sends back a response. Then the client sends another command and so forth. This behavior is ok for low log traffic, but it is not suitable for high load scenarios as the roundtrip time strongly influences the overall speed. Therefore the log service supports writing messages in a pipelined fashion. The client can issue commands without waiting for the server to respond. The server responds as soon as it has processed a log message. This way multiple messages can be on the line at the same time.

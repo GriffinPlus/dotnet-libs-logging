@@ -31,6 +31,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private bool mIsLoopbackEnabled;
 
 		/// <summary>
+		/// Indicates whether received data is discarded (for testing purposes only).
+		/// </summary>
+		private bool mDiscardReceivedData;
+
+		/// <summary>
 		/// List node that is used by <see cref="LogServiceServer"/> to organize channels.
 		/// </summary>
 		internal readonly LinkedListNode<LogServiceServerChannel> Node;
@@ -64,8 +69,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			SendGreeting();
 
-			// enable looping back received data, if configured
+			// enable looping back or discarding received data, if configured
 			mIsLoopbackEnabled = mServer.TestMode_EchoReceivedData;
+			mDiscardReceivedData = mServer.TestMode_DiscardReceivedData;
 		}
 
 		/// <summary>
@@ -120,11 +126,13 @@ namespace GriffinPlus.Lib.Logging.LogService
 			// let the base class do its work
 			base.OnLineReceived(line);
 
+			// discard data, if test requires it
+			if (mDiscardReceivedData)
+				return;
+
 			// loop back data, if the server should loop back data as part of a test
 			if (mIsLoopbackEnabled)
-			{
 				LoopbackLine(line);
-			}
 
 			// TODO: Process commands here...
 		}

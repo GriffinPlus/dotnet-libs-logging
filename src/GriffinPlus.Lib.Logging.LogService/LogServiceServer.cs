@@ -173,6 +173,13 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		internal bool TestMode_EchoReceivedData { get; set; } = false;
 
+		/// <summary>
+		/// [[ For Tests Only]]
+		/// Gets or sets a value indicating whether the server discards received data to allow benchmarks to test
+		/// the pure writing performance.
+		/// </summary>
+		internal bool TestMode_DiscardReceivedData { get; set; } = false;
+
 		#endregion
 
 		#region Starting the Server

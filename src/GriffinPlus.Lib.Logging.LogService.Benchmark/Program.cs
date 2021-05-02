@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,10 +38,27 @@ namespace GriffinPlus.Lib.Logging.Demo
 		/// <param name="args"></param>
 		private static void Main(string[] args)
 		{
-			GC.Collect();
-			GC.WaitForPendingFinalizers();
-			Thread.Sleep(1000);
+			// Benchmarks targeting specific methods
+			// -----------------------------------------------------------------------------------------------------------------
+			// BenchmarkRunner.Run(typeof(LogServiceClientChannelBenchmarks));
 
+			// -----------------------------------------------------------------------------------------------------------------
+			// Benchmarks for loopback performance using different Send() methods
+			// (raw networking performance, no message formatting involved)
+			// -----------------------------------------------------------------------------------------------------------------
+			// Flow:
+			// Data -> Client -> Network -> Server
+			//                                 |
+			// Data <- Client <- Network <-----/
+			// -----------------------------------------------------------------------------------------------------------------
+
+			Console.WriteLine();
+			Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------");
+			Console.WriteLine("Benchmarks for loopback performance using different Send() methods");
+			Console.WriteLine("(raw networking performance, no message formatting involved)");
+			Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------");
+
+			Console.WriteLine();
 			BenchmarkRawLoopback(
 				"Send(string)",
 				1,
@@ -51,10 +69,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 					lineAsArray,
 					lineAsString) => channel.Send(lineAsString));
 
-			GC.Collect();
-			GC.WaitForPendingFinalizers();
-			Thread.Sleep(1000);
-
+			Console.WriteLine();
 			BenchmarkRawLoopback(
 				"Send(char[], int, int)",
 				1,
@@ -69,10 +84,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 					lineAsArray.Length,
 					true));
 
-			GC.Collect();
-			GC.WaitForPendingFinalizers();
-			Thread.Sleep(1000);
-
+			Console.WriteLine();
 			BenchmarkRawLoopback(
 				"Send(ReadOnlySpan<char>, bool)",
 				1,
@@ -85,9 +97,24 @@ namespace GriffinPlus.Lib.Logging.Demo
 					lineAsArray.AsSpan(),
 					true));
 
-			GC.Collect();
-			GC.WaitForPendingFinalizers();
-			Thread.Sleep(1000);
+			// -----------------------------------------------------------------------------------------------------------------
+			// Benchmark for pure message writing performance
+			// -----------------------------------------------------------------------------------------------------------------
+			// Flow:
+			// Message -> Client -> Network -> Server -> Message is discarded
+			// -----------------------------------------------------------------------------------------------------------------
+
+			Console.WriteLine();
+			Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------");
+			Console.WriteLine("Benchmark for pure message writing performance");
+			Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------");
+
+			Console.WriteLine();
+			BenchmarkWriting(
+				1,
+				10000000,
+				10,
+				100);
 
 			Console.WriteLine();
 			Console.WriteLine("Press any key to continue...");
@@ -106,6 +133,10 @@ namespace GriffinPlus.Lib.Logging.Demo
 			int                                           lineLength,
 			Func<LogServiceChannel, char[], string, bool> sendOperation)
 		{
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
+
 			using (var server = new LogServiceServer(ServerAddress, ServerPort) { TestMode_EchoReceivedData = true })
 			using (var startEvent = new ManualResetEventSlim())
 			{
@@ -154,7 +185,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 					// the looped back greeting of the client (HELLO + INFO with version information)
 					lock (receivedLines)
 					{
-						if (receivedLines.Count != 5)
+						if (receivedLines.Count != 8)
 							throw new Exception($"Expected to receive 5 lines during the greeting, but received {receivedLines.Count} line(s).");
 
 						receivedLines.Clear();
@@ -261,6 +292,129 @@ namespace GriffinPlus.Lib.Logging.Demo
 				Console.WriteLine($"  Data: {iterations} lines x {lineLength} chars per line => {totalCharCount:#,##} chars/bytes");
 				Console.WriteLine($"  Time: {roundtripStopwatch.ElapsedMilliseconds:0.##} ms");
 				Console.WriteLine($"  Throughput: {throughputInMegaBytePerSecond:0.##} MByte/s");
+
+				// stop the server
+				server.Stop(CancellationToken.None);
+			}
+		}
+
+		/// <summary>
+		/// Creates a log service server and configures the server to discard any received data.
+		/// Then creates the specified number of clients that send the the specified amount of data to the server.
+		/// </summary>
+		private static void BenchmarkWriting(
+			int clientCount,
+			int messageCount,
+			int lineCount,
+			int lineLength)
+		{
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			Thread.Sleep(1000);
+
+			using (var server = new LogServiceServer(ServerAddress, ServerPort) { TestMode_DiscardReceivedData = true })
+			{
+				// start the server
+				// (all client connections must fit into the backlog to avoid connections to be refused)
+				server.Start(clientCount, CancellationToken.None);
+
+				// establish a client connection to the server, send random test data and test whether the server
+				// loops all data back to the client
+				LogServiceClientChannel ConnectToServerAndSendData(int seed)
+				{
+					// connect to the server, but do not start reading, yet
+					// (otherwise there is a good chance to miss the greeting)
+					var channel = LogServiceClientChannel.ConnectToServer(ServerAddress, ServerPort);
+
+					// disable the heartbeat to prevent the channel from sending 'HEARTBEAT' commands
+					// mixing up the stream of data that is looped back
+					channel.HeartbeatInterval = TimeSpan.Zero;
+
+					// give the channels some time to send, receive and loop back data
+					Thread.Sleep(1000);
+
+					// prepare message to send
+					var textBuilder = new StringBuilder();
+					for (int i = 0; i < lineCount; i++)
+					{
+						textBuilder.Append(new string('x', lineLength));
+						textBuilder.Append('\n');
+					}
+
+					var message = new LogMessage
+					{
+						Timestamp = DateTimeOffset.Now,
+						HighPrecisionTimestamp = Log.GetHighPrecisionTimestamp(),
+						ApplicationName = "My Application",
+						ProcessName = Process.GetCurrentProcess().ProcessName,
+						ProcessId = Process.GetCurrentProcess().Id,
+						LogWriterName = "My Log Writer",
+						LogLevelName = "Note",
+						Tags = new TagSet("Tag-1", "Tag-2"),
+						LostMessageCount = 1,
+						Text = textBuilder.ToString()
+					};
+
+					// send some messages
+					for (int i = 0; i < messageCount; i++)
+					{
+						while (!channel.Send(message))
+						{
+							Thread.Sleep(1);
+						}
+					}
+
+					// give the channel some time to send their data and receive their looped back data
+					int timeout = 3 * 60 * 1000;
+					int step = 50;
+					while (true)
+					{
+						if (channel.BytesQueuedToSend == 0)
+							break;
+
+						if (timeout <= 0)
+							throw new Exception("Timeout while waiting for sending to complete.");
+
+						Thread.Sleep(step);
+						timeout -= step;
+					}
+
+					return channel;
+				}
+
+				// let clients connect and send messages
+				var roundtripStopwatch = new Stopwatch();
+				var clientTasks = new List<Task<LogServiceClientChannel>>();
+				for (int i = 0; i < clientCount; i++)
+				{
+					int seed = i;
+					clientTasks.Add(
+						Task.Factory.StartNew(
+							() => ConnectToServerAndSendData(seed),
+							TaskCreationOptions.LongRunning));
+				}
+
+				// start the roundtrip time measurement
+				roundtripStopwatch.Start();
+
+				// wait until all clients have completed (they are still operational)
+				Task.WaitAll(clientTasks.Cast<Task>().ToArray());
+
+				// stop the roundtrip time measurement
+				roundtripStopwatch.Stop();
+
+				// print benchmark result to console
+				// (only the message text counts for the benchmark)
+				// (assumption: all chars are encoded in a single byte UTF-8 code unit)
+				long totalCharCount = (long)clientCount * messageCount * lineCount * (lineLength + 1);
+				double throughputInMessagesPerSecond = messageCount / (roundtripStopwatch.ElapsedMilliseconds / 1000.0);
+				double throughputInMegaBytePerSecond = (double)totalCharCount / (1024 * 1024) / (roundtripStopwatch.ElapsedMilliseconds / 1000.0);
+				Console.WriteLine("Writing Benchmark using");
+				Console.WriteLine($"  Clients:                                 {clientCount} (local)");
+				Console.WriteLine($"  Time:                                    {roundtripStopwatch.ElapsedMilliseconds:0.##} ms");
+				Console.WriteLine($"  Data (message text only):                {messageCount} messages x {lineCount} lines x {lineLength} chars per line => {totalCharCount:#,##} chars/bytes");
+				Console.WriteLine($"  Throughput (Messages/s):                 {throughputInMessagesPerSecond:0.##} Messages/s");
+				Console.WriteLine($"  Throughput (MByte/s, message text only): {throughputInMegaBytePerSecond:0.##} MByte/s");
 
 				// stop the server
 				server.Stop(CancellationToken.None);

@@ -592,7 +592,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 							const int step = 50;
 							lock (receivedLines)
 							{
-								if (receivedLines.Count >= 5)
+								if (receivedLines.Count >= 8)
 									break;
 							}
 
@@ -606,12 +606,15 @@ namespace GriffinPlus.Lib.Logging.LogService
 					// the looped back greeting of the client (HELLO + INFO with version information)
 					lock (receivedLines)
 					{
-						Assert.Equal(5, receivedLines.Count);
+						Assert.Equal(8, receivedLines.Count);
 						Assert.Equal("HELLO Griffin+ Log Service", receivedLines[0]);
 						Assert.StartsWith("INFO Server Version: ", receivedLines[1]);
 						Assert.StartsWith("INFO Log Service Library Version: ", receivedLines[2]);
 						Assert.Equal("HELLO Griffin+ .NET Log Service Client", receivedLines[3]);
 						Assert.StartsWith("INFO Log Service Library Version: ", receivedLines[4]);
+						Assert.StartsWith("SET PROCESS_NAME ", receivedLines[5]);
+						Assert.StartsWith("SET PROCESS_ID ", receivedLines[6]);
+						Assert.StartsWith("SET APPLICATION_NAME ", receivedLines[7]);
 						receivedLines.Clear();
 					}
 
