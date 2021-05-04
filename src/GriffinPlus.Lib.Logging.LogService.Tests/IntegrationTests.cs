@@ -500,12 +500,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		#endregion
 
-		#region Simulate Workload
+		#region Simulate Workload (With Random Lines)
 
 		/// <summary>
 		/// Test data for simulating a random workload.
 		/// </summary>
-		public static IEnumerable<object[]> SimulateWorkload_TestData
+		public static IEnumerable<object[]> SimulateWorkloadWithRandomLines_TestData
 		{
 			get
 			{
@@ -528,8 +528,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="iterations">Number of iterations (each iteration sends a random line using all send operations).</param>
 		/// <param name="lineLength">Length of an exchanged line.</param>
 		[Theory]
-		[MemberData(nameof(SimulateWorkload_TestData))]
-		public void SimulateWorkload(int clientCount, int iterations, int lineLength)
+		[MemberData(nameof(SimulateWorkloadWithRandomLines_TestData))]
+		public void SimulateWorkloadWithRandomLines(int clientCount, int iterations, int lineLength)
 		{
 			// all client connections must fit into the backlog to avoid connections to be refused
 			int backlog = clientCount;
@@ -753,7 +753,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			while (true)
 			{
 				if (server.Status == status) return;
-				Assert.True(timeout > 0);
+				Assert.True(timeout > 0, $"Timeout waiting for status '{status}'.");
 				Thread.Sleep(step);
 				timeout -= step;
 			}
@@ -771,7 +771,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			while (true)
 			{
 				if (server.Status == status) return;
-				Assert.True(timeout > 0);
+				Assert.True(timeout > 0, $"Timeout waiting for status '{status}'.");
 				await Task.Delay(step).ConfigureAwait(false);
 				timeout -= step;
 			}
@@ -790,7 +790,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			{
 				var channels = server.Channels;
 				if (channels.Length == expectedChannelCount) return channels;
-				Assert.True(timeout > 0);
+				Assert.True(timeout > 0, $"Timeout waiting for all clients to connect (expected: {expectedChannelCount}, actual: {channels.Length}).");
 				Thread.Sleep(step);
 				timeout -= step;
 			}
@@ -809,7 +809,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			{
 				var channels = server.Channels;
 				if (channels.Length == expectedChannelCount) return channels;
-				Assert.True(timeout > 0);
+				Assert.True(timeout > 0, $"Timeout waiting for all clients to connect (expected: {expectedChannelCount}, actual: {channels.Length}).");
 				await Task.Delay(step).ConfigureAwait(false);
 				timeout -= step;
 			}
@@ -827,7 +827,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			{
 				// ReSharper disable once PossibleMultipleEnumeration
 				if (channels.All(channel => channel.Status == LogServiceChannelStatus.ShutdownCompleted)) return;
-				Assert.True(timeout > 0);
+				Assert.True(timeout > 0, "Timeout waiting for clients to shut down.");
 				Thread.Sleep(step);
 				timeout -= step;
 			}
@@ -845,7 +845,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			{
 				// ReSharper disable once PossibleMultipleEnumeration
 				if (channels.All(channel => channel.Status == LogServiceChannelStatus.ShutdownCompleted)) return;
-				Assert.True(timeout > 0);
+				Assert.True(timeout > 0, "Timeout waiting for clients to shut down.");
 				await Task.Delay(step).ConfigureAwait(false);
 				timeout -= step;
 			}
@@ -862,7 +862,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			while (true)
 			{
 				if (channel.BytesQueuedToSend == 0) return;
-				Assert.True(timeout > 0);
+				Assert.True(timeout > 0, "Timeout waiting for sending to complete.");
 				Thread.Sleep(step);
 				timeout -= step;
 			}
@@ -879,7 +879,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			while (true)
 			{
 				if (channel.BytesQueuedToSend == 0) return;
-				Assert.True(timeout > 0);
+				Assert.True(timeout > 0, "Timeout waiting for sending to complete.");
 				await Task.Delay(step).ConfigureAwait(false);
 				timeout -= step;
 			}

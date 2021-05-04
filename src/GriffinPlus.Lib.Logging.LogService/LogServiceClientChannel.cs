@@ -199,35 +199,27 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		protected override void OnStarted()
 		{
+			Debug.Assert(Monitor.IsEntered(Sync));
+
 			// send a greeting and some information about the current process to the server
 			SendGreeting();
 			SendProcessInfo();
 			SendApplicationInfo();
 
 			// start the heartbeat task to ensure that the server does not shut the channel down due to inactivity checking
-			if (mHeartbeatInterval > TimeSpan.Zero)
-			{
-				// create a new cancellation token source that is signaled to shut the heartbeat task down at the end
-				// and create copy of cancellation token for the task to avoid directly referencing the token source.
-				Debug.Assert(mCancelHeartbeatTokenSource == null);
-				mCancelHeartbeatTokenSource = new CancellationTokenSource();
-				var shutdownToken = mCancelHeartbeatTokenSource.Token;
+			if (HeartbeatInterval > TimeSpan.Zero)
+				LogServiceClientChannelManager.RegisterHeartbeatTrigger(this);
+		}
 
-				try
-				{
-					Debug.Assert(mHeartbeatTask.IsCompleted);
-					mHeartbeatTask = Task.Run(
-						() => SendHeartbeatsAsync(shutdownToken),
-						CancellationToken.None);
-				}
-				catch (Exception)
-				{
-					Debug.Fail("Starting the heartbeat task failed unexpectedly.");
-					mCancelHeartbeatTokenSource.Dispose();
-					mCancelHeartbeatTokenSource = null;
-					throw;
-				}
-			}
+		/// <summary>
+		/// Is called when the channel has completed shutting down.
+		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
+		/// </summary>
+		protected override void OnShutdownCompleted()
+		{
+			Debug.Assert(Monitor.IsEntered(Sync));
+			base.OnShutdownCompleted();
+			LogServiceClientChannelManager.UnregisterChannel(this);
 		}
 
 		/// <summary>
@@ -236,7 +228,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="line">Line to process.</param>
 		protected override void OnLineReceived(ReadOnlySpan<char> line)
 		{
-			// let the base class do its work
+			Debug.Assert(Monitor.IsEntered(Sync));
 			base.OnLineReceived(line);
 		}
 
@@ -282,9 +274,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		#region Heartbeat
 
-		private TimeSpan                mHeartbeatInterval          = TimeSpan.FromMinutes(1);
-		private Task                    mHeartbeatTask              = Task.CompletedTask;
-		private CancellationTokenSource mCancelHeartbeatTokenSource = null;
+		private static readonly TimeSpan sDefaultHeartbeatInterval = TimeSpan.FromMinutes(1);
+		private                 TimeSpan mHeartbeatInterval        = sDefaultHeartbeatInterval;
+		private volatile        int      mHeartbeatIntervalInTicks = (int)(sDefaultHeartbeatInterval.Ticks / 10000);
 
 		/// <summary>
 		/// Gets or sets the time between two heartbeat commands sent to the server to ensure that the channel
@@ -292,6 +284,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// Default: 1 minute.
 		/// </summary>
 		/// <exception cref="ArgumentOutOfRangeException">The heartbeat interval must not be negative.</exception>
+		/// <remarks>
+		/// Due to performance reasons the heartbeat will not be sent faster than every 500ms.
+		/// </remarks>
 		public TimeSpan HeartbeatInterval
 		{
 			get
@@ -307,113 +302,57 @@ namespace GriffinPlus.Lib.Logging.LogService
 				if (value < TimeSpan.Zero)
 					throw new ArgumentOutOfRangeException(nameof(value), value, "The heartbeat interval must not be negative.");
 
+				if (value.Ticks / 10000 > int.MaxValue)
+					throw new ArgumentOutOfRangeException(nameof(value), value, "The heartbeat interval is too large.");
+
 				lock (Sync)
 				{
 					if (mHeartbeatInterval != value)
 					{
-						// stop heartbeat task, if necessary
-						if (mCancelHeartbeatTokenSource != null)
-						{
-							mCancelHeartbeatTokenSource.Cancel();
-							mCancelHeartbeatTokenSource.Dispose();
-							mCancelHeartbeatTokenSource = null;
-						}
-
 						// set new heartbeat interval
 						mHeartbeatInterval = value;
+						mHeartbeatIntervalInTicks = (int)(value.Ticks / 10000);
 
-						// start heartbeat task, if necessary
+						// start sending heartbeats periodically, if necessary
 						if (mHeartbeatInterval > TimeSpan.Zero)
-						{
-							// create a new cancellation token source that is signaled to shut the heartbeat task down at the end
-							// and create copy of cancellation token for the task to avoid directly referencing the token source.
-							Debug.Assert(mCancelHeartbeatTokenSource == null);
-							mCancelHeartbeatTokenSource = new CancellationTokenSource();
-							var shutdownToken = mCancelHeartbeatTokenSource.Token;
-
-							try
-							{
-								mHeartbeatTask = Task.Run(
-									() => SendHeartbeatsAsync(shutdownToken),
-									CancellationToken.None);
-							}
-							catch (Exception)
-							{
-								Debug.Fail("Starting the heartbeat task failed unexpectedly.");
-								mCancelHeartbeatTokenSource.Dispose();
-								mCancelHeartbeatTokenSource = null;
-								throw;
-							}
-						}
+							LogServiceClientChannelManager.RegisterHeartbeatTrigger(this);
+						else
+							LogServiceClientChannelManager.UnregisterHeartbeatTrigger(this);
 					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// Checks periodically whether sending a heartbeat command (HEARTBEAT) is due and send it, if necessary.
+		/// Sends a 'HEARTBEAT' command, if it is due.
 		/// </summary>
-		/// <param name="stoppingToken">Token that is signaled to stop the heartbeat task.</param>
-		private async Task SendHeartbeatsAsync(CancellationToken stoppingToken)
+		/// <returns>Tick count of the next heartbeat.</returns>
+		internal int SendHeartbeatIfDue()
 		{
-			using (var cts = CancellationTokenSource.CreateLinkedTokenSource(ShutdownToken, stoppingToken))
+			// determine whether the heartbeat is due
+			int currentTicks = Environment.TickCount;
+			int nextRunInTicks = currentTicks + Math.Max(mHeartbeatIntervalInTicks - currentTicks + LastSendTickCount, 0);
+
+			// send heartbeat, if it is due
+			if (nextRunInTicks == currentTicks)
 			{
-				while (!cts.IsCancellationRequested)
+				try
 				{
-					try
-					{
-						// determine whether the heartbeat is due
-						var nextRunDelay = TimeSpan.Zero;
-						lock (Sync)
-						{
-							var timeSinceLastSend = TimeSpan.FromMilliseconds(Environment.TickCount - LastSendTickCount);
-							if (timeSinceLastSend < mHeartbeatInterval)
-							{
-								// sending a heartbeat is not due
-								// => adjust the time to wait for the next check
-								nextRunDelay = mHeartbeatInterval - timeSinceLastSend;
-							}
-						}
-
-						// send heartbeat, if it is due
-						if (nextRunDelay == TimeSpan.Zero)
-						{
-							try
-							{
-								// send heartbeat
-								// (updates the timestamp of the last sending operation)
-								Send("HEARTBEAT");
-							}
-							catch (LogServiceChannelNotConnectedException)
-							{
-								// the channel has shut down
-								// => stop sending heartbeats
-								break;
-							}
-							catch (LogServiceChannelQueueFullException)
-							{
-								// the channel's send queue is full
-								// => the connection seems to be alive, but the remote peer hangs or does not receive as fast as we're sending
-								// => skip sending heartbeat this time and try again later
-							}
-							catch (Exception ex)
-							{
-								Debug.Fail("Sending heartbeat failed unexpectedly.", ex.ToString());
-							}
-
-							// adjust time to wait before sending the next heartbeat
-							nextRunDelay = mHeartbeatInterval;
-						}
-
-						// wait for the next run
-						await Task.Delay(nextRunDelay, cts.Token).ConfigureAwait(false);
-					}
-					catch (OperationCanceledException)
-					{
-						break;
-					}
+					// send heartbeat
+					// (updates the timestamp of the last sending operation)
+					Send("HEARTBEAT");
 				}
+				catch (Exception)
+				{
+					// swallow...
+				}
+
+				// heartbeat was sent
+				// => try again after the configured time...
+				return currentTicks + mHeartbeatIntervalInTicks;
 			}
+
+			return nextRunInTicks;
 		}
 
 		#endregion
@@ -990,6 +929,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					if (offset + 1 > buffer.Length) throw new InsufficientBufferSizeException();
 					buffer[offset++] = '\n';
 				}
+
 				previous = current;
 
 				// proceed with the next line
@@ -1017,7 +957,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="output">Buffer to copy the line into.</param>
 		/// <param name="outputOffset">Offset to start copying the line into (is updated to reflect the new position).</param>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void CopyLineIntoBuffer(string input, int inputOffset, int inputLength, char[] output, ref int outputOffset)
+		private static void CopyLineIntoBuffer(
+			string  input,
+			int     inputOffset,
+			int     inputLength,
+			char[]  output,
+			ref int outputOffset)
 		{
 			while (inputLength > 0)
 			{
