@@ -441,12 +441,18 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private readonly object               mSendQueueSync       = new object();
 		private readonly Encoder              mUtf8Encoder         = Encoding.UTF8.GetEncoder();
 		private          int                  mSendQueueSize       = 10 * 1024 * 1024;
+		private volatile int                  mLastSendTickCount   = Environment.TickCount;
 		private volatile bool                 mIsSenderOperational = true;
 		private          ChainableMemoryBlock mFirstSendBlock      = null;
 		private          ChainableMemoryBlock mLastSendBlock       = null;
 
 		// synchronized using interlocked operations
 		private volatile int mBytesQueuedToSend = 0;
+
+		/// <summary>
+		/// Gets the <see cref="Environment.TickCount"/> the channel has sent some data the last time.
+		/// </summary>
+		internal int LastSendTickCount => mLastSendTickCount;
 
 		/// <summary>
 		/// Gets or sets the size of the send queue (in bytes).
@@ -614,7 +620,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 						}
 
 #elif NETSTANDARD2_1
-
 						mUtf8Encoder.Convert(
 							data.Slice(charOffset),
 							new Span<byte>(blockBuffer, blockLength, blockCapacity - blockLength),
@@ -677,6 +682,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 					Monitor.Exit(block);
 				}
 			}
+
+			// update the time of the last send operation
+			mLastSendTickCount = Environment.TickCount;
 
 			// start the processing, if necessary
 			if (triggerSending) TriggerProcessing();
@@ -798,15 +806,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		private readonly SendOperation[] mSendOperations          = new SendOperation[MaxConcurrentSendOperations];
 		private          int             mSendOperationToUseIndex = 0;
-		private volatile int             mLastSendTickCount       = Environment.TickCount;
 		private volatile bool            mSendOperationCompleted  = false;
 		private volatile bool            mSendOperationFailed     = false;
 		private volatile int             mPendingSendOperations   = 0;
-
-		/// <summary>
-		/// Gets the <see cref="Environment.TickCount"/> the channel has sent some data the last time.
-		/// </summary>
-		internal int LastSendTickCount => mLastSendTickCount;
 
 		/// <summary>
 		/// Processes the completion of an asynchronous send operation.
@@ -815,12 +817,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private void ProcessSendCompleted(SocketAsyncEventArgs e)
 		{
 			var completedOperation = (SendOperation)e.UserToken;
-
-			if (e.SocketError == SocketError.Success)
-			{
-				// sending completed successfully
-				mLastSendTickCount = Environment.TickCount;
-			}
 
 			// reduce the number of queued bytes
 			int bytesQueuedToSend = Interlocked.Add(ref mBytesQueuedToSend, -e.Count);
