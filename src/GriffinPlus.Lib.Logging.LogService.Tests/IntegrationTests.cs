@@ -612,10 +612,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 					// exchange read callback (the callback checks whether received data is as expected by comparing it to a
 					// deterministic set of random characters)
 					const int sendOperationCount = 3;
-					var receiveRandom = new Random(seed);
-					byte[] expectedBytes = new byte[lineLength];
 					char[] expected = new char[lineLength];
 					int contentRegenerationCounter = 0;
+					int receiveDataOffset = seed;
 					var receiveLineCount = new StrongBox<int>(0);
 
 					void ReceiveCallback2(LogServiceChannel _, ReadOnlySpan<char> line)
@@ -624,8 +623,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 						// (each and every send operation is called with the same set of characters)
 						if (contentRegenerationCounter == 0)
 						{
-							receiveRandom.NextBytes(expectedBytes);
-							for (int i = 0; i < expected.Length; i++) expected[i] = (char)('a' + expectedBytes[i] % ('z' - 'a'));
+							for (int i = 0; i < expected.Length; i++) expected[i] = (char)('a' + (receiveDataOffset + i) % ('z' - 'a'));
+							receiveDataOffset++;
 						}
 
 						// the received line should have the expected length
@@ -648,27 +647,26 @@ namespace GriffinPlus.Lib.Logging.LogService
 					channel.LineReceived += ReceiveCallback2;
 
 					// send some random lines
-					var sendRandom = new Random(seed);
-					byte[] lineToSendBytes = new byte[lineLength];
 					char[] lineToSend = new char[lineLength];
+					int sendDataOffset = seed;
 					int sentLineCount = 0;
 					for (int iteration = 0; iteration < iterations; iteration++)
 					{
 						// prepare line of random characters
-						sendRandom.NextBytes(lineToSendBytes);
-						for (int i = 0; i < expected.Length; i++) lineToSend[i] = (char)('a' + lineToSendBytes[i] % ('z' - 'a'));
+						for (int i = 0; i < expected.Length; i++) lineToSend[i] = (char)('a' + (sendDataOffset + i) % ('z' - 'a'));
+						sendDataOffset++;
 						string lineAsString = new string(lineToSend, 0, lineToSend.Length);
 
 						// send line as string
-						while (!channel.Send(lineAsString, true)) Thread.Sleep(50);
+						while (!channel.Send(lineAsString, true)) Thread.Sleep(1);
 						sentLineCount++;
 
 						// send line as array of char
-						while (!channel.Send(lineToSend, 0, lineToSend.Length, true)) Thread.Sleep(50);
+						while (!channel.Send(lineToSend, 0, lineToSend.Length, true)) Thread.Sleep(1);
 						sentLineCount++;
 
 						// send line as span
-						while (!channel.Send(new ReadOnlySpan<char>(lineToSend, 0, lineToSend.Length), true)) Thread.Sleep(50);
+						while (!channel.Send(new ReadOnlySpan<char>(lineToSend, 0, lineToSend.Length), true)) Thread.Sleep(1);
 						sentLineCount++;
 					}
 
