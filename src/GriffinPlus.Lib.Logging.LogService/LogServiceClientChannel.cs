@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// If <c>false</c> the channel does not start reading the socket (call <see cref="Run"/> to make up for it).
 		/// </param>
 		internal LogServiceClientChannel(Socket socket, bool start) :
-			base(socket, CancellationToken.None)
+			base(socket)
 		{
 			// start channel, if it has not been shut down immediately
 			if (Status == LogServiceChannelStatus.Created && start)

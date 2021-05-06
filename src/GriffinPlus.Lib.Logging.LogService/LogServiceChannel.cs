@@ -61,11 +61,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 		public const int MaxLineLength = 32 * 1024;
 
 		// channel management members
-		private           Socket                        mSocket;
-		internal readonly CancellationToken             ShutdownToken;
-		private readonly  CancellationTokenRegistration mShutdownTokenRegistration;
-		private           LogServiceChannelStatus       mStatus = LogServiceChannelStatus.Created;
-		private           bool                          mDisposed;
+		private Socket                  mSocket;
+		private LogServiceChannelStatus mStatus = LogServiceChannelStatus.Created;
+		private bool                    mDisposed;
 
 		/// <summary>
 		/// The channel lock (used to synchronize channel operations).
@@ -80,10 +78,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="socket">
 		/// A TCP socket representing the network connection between the client and the server of the log service.
 		/// </param>
-		/// <param name="shutdownToken">
-		/// CancellationToken that is signaled to shut the channel down.
-		/// </param>
-		protected LogServiceChannel(Socket socket, CancellationToken shutdownToken)
+		protected LogServiceChannel(Socket socket)
 		{
 			mSocket = socket;
 
@@ -121,11 +116,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			{
 				mSendOperations[i] = new SendOperation((sender, e) => ProcessSendCompleted(e));
 			}
-
-			// register handler with the shutdown token (may be invoked synchronously, if the token is signaled)
-			// (FinishShutdownIfAppropriate() will dispose the token registration at the end)
-			ShutdownToken = shutdownToken;
-			mShutdownTokenRegistration = shutdownToken.Register(InitiateShutdown);
 		}
 
 		/// <summary>
@@ -200,8 +190,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				if (mStatus != LogServiceChannelStatus.Created)
 					throw new InvalidOperationException($"The channel is not in the '{LogServiceChannelStatus.Created}' state.");
 
-				// the shutdown token was not signaled
-				// => start reading
+				// start reading
 				try
 				{
 					// start receiving
@@ -285,7 +274,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				{
 					case LogServiceChannelStatus.Created:
 					{
-						// the channel has been created, but the shutdown token is already signaled
+						// the channel has been created, but not started, yet
 						// => no operations pending
 						// => just close the socket
 						if (mSocket != null)
@@ -410,10 +399,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// (keep 'malfunctional' status to indicate that an error has occurred)
 				if (mStatus != LogServiceChannelStatus.Malfunctional)
 					Status = LogServiceChannelStatus.ShutdownCompleted;
-
-				// dispose token registration to avoid leaks
-				// ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-				mShutdownTokenRegistration.Dispose();
 
 				// let derived classes perform additional cleanup
 				try

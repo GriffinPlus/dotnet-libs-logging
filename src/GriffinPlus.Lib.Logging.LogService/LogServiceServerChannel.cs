@@ -8,7 +8,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Threading;
 
 using GriffinPlus.Lib.Collections;
 
@@ -45,9 +44,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		/// <param name="server">The <see cref="LogServiceServer"/> the channel belongs to.</param>
 		/// <param name="socket">A TCP socket representing the connection between the client and the server of the log service.</param>
-		/// <param name="shutdownToken">CancellationToken that is signaled to shut the channel down.</param>
-		internal LogServiceServerChannel(LogServiceServer server, Socket socket, CancellationToken shutdownToken) :
-			base(socket, shutdownToken)
+		internal LogServiceServerChannel(LogServiceServer server, Socket socket) :
+			base(socket)
 		{
 			mServer = server;
 
