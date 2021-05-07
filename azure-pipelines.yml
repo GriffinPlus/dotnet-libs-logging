@@ -182,21 +182,21 @@ stages:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework netcoreapp2.1'
+        arguments: '--framework netcoreapp2.1 --verbosity normal'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 3.1'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework netcoreapp3.1'
+        arguments: '--framework netcoreapp3.1 --verbosity normal'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET 5.0'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net5.0'
+        arguments: '--framework net5.0 --verbosity normal'
 
 ########################################################################################################################
 # Stage: Deployment
