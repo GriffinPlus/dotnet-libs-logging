@@ -298,6 +298,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 						// (there should be no pending send/receive operations when the channel is in this state)
 						Debug.Assert(mPendingSendOperations == 0);
 						Debug.Assert(mPendingReceiveOperations == 0);
+						Status = LogServiceChannelStatus.ShuttingDown;
 						TriggerProcessing();
 						break;
 					}
@@ -317,6 +318,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 						// (there should be no pending send/receive operations when the channel is in this state)
 						Debug.Assert(mPendingSendOperations == 0);
 						Debug.Assert(mPendingReceiveOperations == 0);
+						Status = LogServiceChannelStatus.ShuttingDown;
 						TriggerProcessing();
 						break;
 					}
@@ -1058,7 +1060,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				mReceiveOperationToProcessNextIndex = (mReceiveOperationToProcessNextIndex + 1) % mReceiveOperations.Length;
 
 				// start receiving, if the buffer was received successfully
-				if (success)
+				if (success && mStatus == LogServiceChannelStatus.Operational)
 				{
 					bool receivePending;
 					try

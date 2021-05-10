@@ -81,7 +81,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			using (var server = new LogServiceServer(ServerAddress, ServerPort))
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
@@ -109,7 +108,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// the server should have stopped now
 				ExpectReachingStatus(server, LogServiceServerStatus.Stopped);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 
 				// client channels should shut down now
 				ExpectClientsToShutDown(clientChannels);
@@ -132,7 +130,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			using (var server = new LogServiceServer(ServerAddress, ServerPort))
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
@@ -164,7 +161,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// the server should have stopped now
 				await ExpectReachingStatusAsync(server, LogServiceServerStatus.Stopped).ConfigureAwait(false);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 
 				// client channels should shut down now
 				await ExpectClientsToShutDownAsync(clientChannels).ConfigureAwait(false);
@@ -190,9 +186,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 			// all client connections must fit into the backlog to avoid connections to be refused
 			int backlog = clientCount;
 
-			// a delay of 1000ms before accepting a connection should be sufficient to guarantee that no connection is
+			// a delay of 60s before accepting a connection should be sufficient to guarantee that no connection is
 			// accepted before the server shuts down
-			var preAcceptDelay = TimeSpan.FromMilliseconds(1000);
+			var preAcceptDelay = TimeSpan.FromSeconds(60);
 
 			using (var server = new LogServiceServer(ServerAddress, ServerPort)
 			{
@@ -200,7 +196,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			})
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
@@ -219,7 +214,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// even after some time the server should not have accepted any connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				Sleep((int)(preAcceptDelay.TotalMilliseconds / 10));
+				Thread.Sleep(500);
 				var serverChannels = server.Channels;
 				Assert.Empty(serverChannels);
 
@@ -228,7 +223,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// the server should have stopped now
 				ExpectReachingStatus(server, LogServiceServerStatus.Stopped);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 
 				// client channels should shut down now
 				ExpectClientsToShutDown(clientChannels);
@@ -250,9 +244,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 			// all client connections must fit into the backlog to avoid connections to be refused
 			int backlog = clientCount;
 
-			// a delay of 1000ms before accepting a connection should be sufficient to guarantee that no connection is
+			// a delay of 60s before accepting a connection should be sufficient to guarantee that no connection is
 			// accepted before the server shuts down
-			var preAcceptDelay = TimeSpan.FromMilliseconds(1000);
+			var preAcceptDelay = TimeSpan.FromSeconds(60);
 
 			using (var server = new LogServiceServer(ServerAddress, ServerPort)
 			{
@@ -260,7 +254,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			})
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
@@ -279,7 +272,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// even after some time the server should not have accepted any connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				await Delay((int)(preAcceptDelay.TotalMilliseconds / 10)).ConfigureAwait(false);
+				await Task.Delay(500).ConfigureAwait(false);
 				var serverChannels = server.Channels;
 				Assert.Empty(serverChannels);
 
@@ -288,7 +281,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// the server should have stopped now
 				await ExpectReachingStatusAsync(server, LogServiceServerStatus.Stopped).ConfigureAwait(false);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 
 				// client channels should shut down now
 				await ExpectClientsToShutDownAsync(clientChannels).ConfigureAwait(false);
@@ -317,11 +309,10 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 			using (var server = new LogServiceServer(ServerAddress, ServerPort)
 			{
-				ChannelInactivityTimeout = channelInactivityTimeout
+				ChannelInactivityTimeout = TimeSpan.FromDays(1) // effectively disable inactivity detection at start
 			})
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
@@ -329,7 +320,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				ExpectReachingStatus(server, LogServiceServerStatus.Running);
 
 				// establish client connections to the server
-				var clientChannelConnectedTime = DateTime.UtcNow;
 				var clientChannels = new List<LogServiceClientChannel>();
 				for (int i = 0; i < clientCount; i++)
 				{
@@ -344,6 +334,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// => there should be as many server channels as client channels now and all channels should be operational
 				var serverChannels = ExpectClientsToConnect(server, clientChannels.Count);
 				Assert.All(serverChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
+
+				// enable the detection of inactive channels
+				server.ChannelInactivityTimeout = channelInactivityTimeout;
 
 				// the client channels should stay operational for the specified time of inactivity
 				var inactiveChannels = new List<LogServiceChannel>();
@@ -379,7 +372,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// the server should have stopped now
 				ExpectReachingStatus(server, LogServiceServerStatus.Stopped);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 			}
 		}
 
@@ -411,11 +403,10 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 			using (var server = new LogServiceServer(ServerAddress, ServerPort)
 			{
-				ChannelInactivityTimeout = channelInactivityTimeout
+				ChannelInactivityTimeout = TimeSpan.FromDays(1) // effectively disable inactivity detection at start
 			})
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
@@ -437,7 +428,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// => there should be as many server channels as client channels now and all channels should be operational
 				var serverChannels = ExpectClientsToConnect(server, clientChannels.Count);
 				Assert.All(serverChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
-				int clientChannelsConnectedTicks = Environment.TickCount;
+
+				// enable the detection of inactive channels
+				server.ChannelInactivityTimeout = channelInactivityTimeout;
 
 				// the client channels should stay operational for at least three times the specified time of inactivity
 				// (this shows that the heartbeat keeps the channels alive - other tests cover shutting down after the inactivity timeout)
@@ -494,7 +487,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// the server should have stopped now
 				ExpectReachingStatus(server, LogServiceServerStatus.Stopped);
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 			}
 		}
 
@@ -540,7 +532,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			})
 			{
 				// check initial server state
-				Assert.Equal(TaskStatus.RanToCompletion, server.AcceptingTask.Status);
 				Assert.Equal(LogServiceServerStatus.Stopped, server.Status);
 
 				// start the server
@@ -783,7 +774,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="server">Server that should establish connections.</param>
 		/// <param name="expectedChannelCount">Expected number of channels.</param>
 		/// <param name="timeout">Timeout (in ms).</param>
-		private static LogServiceServerChannel[] ExpectClientsToConnect(LogServiceServer server, int expectedChannelCount, int timeout = 60000)
+		private static LogServiceServerChannel[] ExpectClientsToConnect(LogServiceServer server, int expectedChannelCount, int timeout = 180000)
 		{
 			const int step = 50;
 			while (true)
@@ -802,7 +793,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <param name="server">Server that should establish connections.</param>
 		/// <param name="expectedChannelCount">Expected number of channels.</param>
 		/// <param name="timeout">Timeout (in ms).</param>
-		private static async Task<LogServiceServerChannel[]> ExpectClientsToConnectAsync(LogServiceServer server, int expectedChannelCount, int timeout = 60000)
+		private static async Task<LogServiceServerChannel[]> ExpectClientsToConnectAsync(LogServiceServer server, int expectedChannelCount, int timeout = 180000)
 		{
 			const int step = 50;
 			while (true)
@@ -820,14 +811,15 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		/// <param name="channels">Channels that are expected to shut down.</param>
 		/// <param name="timeout">Timeout (in ms).</param>
-		private static void ExpectClientsToShutDown(IEnumerable<LogServiceClientChannel> channels, int timeout = 60000)
+		private static void ExpectClientsToShutDown(IEnumerable<LogServiceClientChannel> channels, int timeout = 180000)
 		{
 			const int step = 50;
+			var logServiceClientChannels = channels as LogServiceClientChannel[] ?? channels.ToArray();
 			while (true)
 			{
-				// ReSharper disable once PossibleMultipleEnumeration
-				if (channels.All(channel => channel.Status == LogServiceChannelStatus.ShutdownCompleted)) return;
-				Assert.True(timeout > 0, "Timeout waiting for clients to shut down.");
+				var remainingChannels = logServiceClientChannels.Where(channel => channel.Status != LogServiceChannelStatus.ShutdownCompleted).ToArray();
+				if (remainingChannels.Length == 0) return;
+				Assert.True(timeout > 0, $"Timeout waiting for clients to shut down (expected: {logServiceClientChannels.Count()}, actual: {remainingChannels.Length}).");
 				Thread.Sleep(step);
 				timeout -= step;
 			}
@@ -838,7 +830,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		/// <param name="channels">Channels that are expected to shut down.</param>
 		/// <param name="timeout">Timeout (in ms).</param>
-		private static async Task ExpectClientsToShutDownAsync(IEnumerable<LogServiceClientChannel> channels, int timeout = 60000)
+		private static async Task ExpectClientsToShutDownAsync(IEnumerable<LogServiceClientChannel> channels, int timeout = 180000)
 		{
 			const int step = 50;
 			while (true)
