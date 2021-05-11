@@ -330,6 +330,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 					clientChannels.Add(channel);
 				}
 
+				// all client channels should be operational now
+				Assert.All(clientChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
+
 				// give the server some time to accept all client connections
 				// => there should be as many server channels as client channels now and all channels should be operational
 				var serverChannels = ExpectClientsToConnect(server, clientChannels.Count);
@@ -339,7 +342,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				server.ChannelInactivityTimeout = channelInactivityTimeout;
 
 				// the client channels should stay operational for the specified time of inactivity
-				var inactiveChannels = new List<LogServiceChannel>();
 				int inactiveCount = 0;
 				while (inactiveCount < serverChannels.Length)
 				{
@@ -423,6 +425,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 					clientChannels.Add(channel);
 				}
+
+				// all client channels should be operational now
+				Assert.All(clientChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
 
 				// give the server some time to accept all client connections
 				// => there should be as many server channels as client channels now and all channels should be operational

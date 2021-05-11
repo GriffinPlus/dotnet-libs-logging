@@ -9,31 +9,31 @@ namespace GriffinPlus.Lib.Logging.LogService
 {
 
 	/// <summary>
-	/// Exception that is thrown when a log service communication channel is shutting down.
+	/// Exception that is thrown when a log service communication channel cannot perform a send operation because it is not operational.
 	/// </summary>
-	public class LogServiceChannelShuttingDownException : LogServiceChannelException
+	public class LogServiceChannelNotOperationalException : LogServiceChannelException
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogServiceChannelShuttingDownException"/> class.
+		/// Initializes a new instance of the <see cref="LogServiceChannelNotOperationalException"/> class.
 		/// </summary>
-		public LogServiceChannelShuttingDownException()
+		public LogServiceChannelNotOperationalException()
 		{
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogServiceChannelShuttingDownException"/> class.
+		/// Initializes a new instance of the <see cref="LogServiceChannelNotOperationalException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
-		public LogServiceChannelShuttingDownException(string message) : base(message)
+		public LogServiceChannelNotOperationalException(string message) : base(message)
 		{
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LogServiceChannelShuttingDownException"/> class.
+		/// Initializes a new instance of the <see cref="LogServiceChannelNotOperationalException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		/// <param name="innerException">The original exception that led to the exception being thrown.</param>
-		public LogServiceChannelShuttingDownException(string message, Exception innerException) : base(message, innerException)
+		public LogServiceChannelNotOperationalException(string message, Exception innerException) : base(message, innerException)
 		{
 		}
 	}

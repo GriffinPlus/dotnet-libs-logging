@@ -222,7 +222,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			get
 			{
-
 				foreach (int backlog in new[] { 1, 10 })
 				{
 					yield return new object[] { backlog, -1 };    // infinite timeout

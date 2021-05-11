@@ -4,12 +4,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Reflection;
-
-using GriffinPlus.Lib.Collections;
 
 namespace GriffinPlus.Lib.Logging.LogService
 {
@@ -130,7 +127,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 			// loop back data, if the server should loop back data as part of a test
 			if (mIsLoopbackEnabled)
-				LoopbackLine(line);
+			{
+				while (!Send(line, true)) { }
+			}
 
 			// TODO: Process commands here...
 		}
@@ -142,88 +141,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			// let the base class do its work
 			base.OnSendingCompleted();
-
-			// send data that has been buffered in loopback mode
-			if (mIsLoopbackEnabled)
-				SendBufferedLoopbackLines();
 		}
-
-		#region Loopback Mode (for Testing)
-
-		private struct LoopbackBuffer
-		{
-			public char[] Buffer;
-			public int    Length;
-		}
-
-		private readonly Deque<LoopbackBuffer> mLoopbackOverflowQueue = new Deque<LoopbackBuffer>();
-
-		/// <summary>
-		/// Sends the specified line back to the remote peer (loopback test mode).
-		/// </summary>
-		/// <param name="line">Line to send back (does not include a new line character at the end).</param>
-		private void LoopbackLine(ReadOnlySpan<char> line)
-		{
-			while (mLoopbackOverflowQueue.Count > 0)
-			{
-				var bufferedLine = mLoopbackOverflowQueue[0];
-				mLoopbackOverflowQueue.RemoveFromFront();
-
-				if (!Send(bufferedLine.Buffer, 0, bufferedLine.Length, false))
-				{
-					// send queue is full
-					// => put the buffered line back into the queue
-					mLoopbackOverflowQueue.AddToFront(bufferedLine);
-
-					// store line to try again later
-					char[] buffer = ArrayPool<char>.Shared.Rent(line.Length + 1);
-					line.CopyTo(buffer.AsSpan());
-					buffer[line.Length] = '\n';
-					mLoopbackOverflowQueue.AddToBack(new LoopbackBuffer { Buffer = buffer, Length = line.Length + 1 });
-					return;
-				}
-
-				// sending buffered line succeeded
-				// => proceed with the next buffered line
-				ArrayPool<char>.Shared.Return(bufferedLine.Buffer);
-			}
-
-			if (!Send(line, true))
-			{
-				// send queue is full
-				// => store line to try again later
-				char[] buffer = ArrayPool<char>.Shared.Rent(line.Length + 1);
-				line.CopyTo(buffer.AsSpan());
-				buffer[line.Length] = '\n';
-				mLoopbackOverflowQueue.AddToBack(new LoopbackBuffer { Buffer = buffer, Length = line.Length + 1 });
-			}
-		}
-
-		/// <summary>
-		/// Sends buffered lines to the remote peer (loopback test mode).
-		/// </summary>
-		private void SendBufferedLoopbackLines()
-		{
-			while (mLoopbackOverflowQueue.Count > 0)
-			{
-				var bufferedLine = mLoopbackOverflowQueue[0];
-				mLoopbackOverflowQueue.RemoveFromFront();
-
-				if (!Send(bufferedLine.Buffer, 0, bufferedLine.Length, false))
-				{
-					// send queue is full
-					// => store line and try again later
-					mLoopbackOverflowQueue.AddToFront(bufferedLine);
-					return;
-				}
-
-				// sending buffered line succeeded
-				// => proceed with the next buffered line
-				ArrayPool<char>.Shared.Return(bufferedLine.Buffer);
-			}
-		}
-
-		#endregion
 	}
 
 }

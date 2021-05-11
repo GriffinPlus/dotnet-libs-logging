@@ -61,9 +61,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 		public const int MaxLineLength = 32 * 1024;
 
 		// channel management members
-		private Socket                  mSocket;
-		private LogServiceChannelStatus mStatus = LogServiceChannelStatus.Created;
-		private bool                    mDisposed;
+		private readonly Socket                  mSocket;
+		private          LogServiceChannelStatus mStatus = LogServiceChannelStatus.Created;
+		private          bool                    mDisposed;
 
 		/// <summary>
 		/// The channel lock (used to synchronize channel operations).
@@ -277,11 +277,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 						// the channel has been created, but not started, yet
 						// => no operations pending
 						// => just close the socket
-						if (mSocket != null)
-						{
-							mSocket.Close();
-							mSocket = null;
-						}
+						mSocket?.Dispose();
 
 						// clean up channel resources
 						// (there should be no pending send/receive operations when the channel is in this state)
@@ -297,11 +293,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 						// the channel is connecting to a remote peer
 						// => no send/receive operations pending, but a connect operation
 						// => just close the socket to cancel connecting
-						if (mSocket != null)
-						{
-							mSocket.Close();
-							mSocket = null;
-						}
+						mSocket?.Dispose();
 
 						// clean up channel resources
 						// (there should be no pending send/receive operations when the channel is in this state)
@@ -361,8 +353,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 						if (mSocket != null)
 						{
 							mSocket.LingerState = new LingerOption(true, 0);
-							mSocket.Close();
-							mSocket = null;
+							mSocket.Dispose();
 						}
 
 						// clean up as soon as all pending operations have completed
@@ -389,11 +380,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			    mPendingReceiveOperations == 0)
 			{
 				// close the socket
-				if (mSocket != null)
-				{
-					mSocket.Close();
-					mSocket = null;
-				}
+				mSocket?.Dispose();
 
 				// the channel has completely shut down now
 				// (keep 'malfunctional' status to indicate that an error has occurred)
@@ -492,6 +479,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <c>true</c>, if the specified buffer was successfully enqueued for sending;
 		/// <c>false</c>, if the send queue is full.
 		/// </returns>
+		/// <exception cref="LogServiceChannelNotOperationalException">The log service channel is not operational.</exception>
 		protected internal bool Send(
 			char[] data,
 			int    index,
@@ -518,6 +506,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <c>true</c>, if the specified buffer was successfully enqueued for sending;
 		/// <c>false</c>, if the send queue is full.
 		/// </returns>
+		/// <exception cref="LogServiceChannelNotOperationalException">The log service channel is not operational.</exception>
 		protected internal bool Send(string line, bool appendNewLine = true)
 		{
 			if (line == null) throw new ArgumentNullException(nameof(line));
@@ -537,6 +526,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// <c>true</c>, if the specified buffer was successfully enqueued for sending;
 		/// <c>false</c>, if the send queue is full.
 		/// </returns>
+		/// <exception cref="LogServiceChannelNotOperationalException">The log service channel is not operational.</exception>
 		protected internal bool Send(ReadOnlySpan<char> data, bool appendNewLine)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
@@ -545,9 +535,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 			if (data.Length == 0)
 				return true;
 
-			// abort, if the sender is not operational, i.e. the channel is not connected
+			// abort, if the sender is not operational
 			if (!mIsSenderOperational)
-				throw new LogServiceChannelNotConnectedException(GetType().FullName);
+				throw new LogServiceChannelNotOperationalException("The channel is not operational.");
 
 			// abort, if the send queue is full
 			if (mBytesQueuedToSend > mSendQueueSize)
@@ -673,8 +663,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 			// update the time of the last send operation
 			mLastSendTickCount = Environment.TickCount;
 
-			// start the processing, if necessary
-			if (triggerSending) TriggerProcessing();
+			// start sending, if necessary
+			if (triggerSending)
+				TriggerSending();
 
 			return true;
 		}
@@ -705,29 +696,29 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		#region Processing
 
-		// all fields are synchronized using mProcessingSync
-		private readonly object               mProcessingSync        = new object();
+		// all fields are synchronized using mProcessingTriggerSync
+		private readonly object mProcessingTriggerSync = new object();
 		private readonly ManualResetEventSlim mProcessingNeededEvent = new ManualResetEventSlim();
-		private          bool                 mProcessingInProgress  = false;
+		private bool mProcessingThreadRunning = false;
 
 		/// <summary>
 		/// Triggers the processing thread that handles sending and receiving.
 		/// </summary>
 		private void TriggerProcessing()
 		{
-			lock (mProcessingSync)
+			lock (mProcessingTriggerSync)
 			{
 				mProcessingNeededEvent.Set();
-				if (!mProcessingInProgress)
+				if (!mProcessingThreadRunning)
 				{
 					ThreadPool.QueueUserWorkItem(DoProcessing);
-					mProcessingInProgress = true;
+					mProcessingThreadRunning = true;
 				}
 			}
 		}
 
 		/// <summary>
-		/// The entry point of the processing thread that handles sending, receiving and processing.
+		/// The entry point of the processing thread that handles receiving and processing.
 		/// </summary>
 		/// <param name="_"></param>
 		private void DoProcessing(object _)
@@ -737,12 +728,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 				if (!mProcessingNeededEvent.Wait(100))
 				{
 					// abort, if there is still nothing to process
-					lock (mProcessingSync)
+					lock (mProcessingTriggerSync)
 					{
 						// abort, if there is nothing to process
 						if (!mProcessingNeededEvent.IsSet)
 						{
-							mProcessingInProgress = false;
+							mProcessingThreadRunning = false;
 							return;
 						}
 					}
@@ -755,6 +746,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				lock (Sync)
 				{
 					// tell derived class, if a send operation has completed meanwhile
+					// (must be done in the processing thread to call all overrides using the same thread to avoid race conditions)
 					if (mSendOperationCompleted)
 					{
 						mSendOperationCompleted = false;
@@ -769,9 +761,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 							InitiateShutdown();
 						}
 					}
-
-					// start new send operations, if appropriate
-					StartSendOperations();
 
 					// process completed receive operations and start new ones, if appropriate
 					ProcessCompletedReceiveOperations();
@@ -789,13 +778,128 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		#endregion
 
-		#region Processing (Sender Part)
+		#region Sending
 
-		private readonly SendOperation[] mSendOperations          = new SendOperation[MaxConcurrentSendOperations];
-		private          int             mSendOperationToUseIndex = 0;
-		private volatile bool            mSendOperationCompleted  = false;
-		private volatile bool            mSendOperationFailed     = false;
-		private volatile int             mPendingSendOperations   = 0;
+		private readonly object               mSendingTriggerSync      = new object();
+		private readonly ManualResetEventSlim mSendingNeededEvent      = new ManualResetEventSlim();
+		private          bool                 mSendingThreadRunning    = false;
+		private readonly SendOperation[]      mSendOperations          = new SendOperation[MaxConcurrentSendOperations];
+		private          int                  mSendOperationToUseIndex = 0;
+		private volatile bool                 mSendOperationCompleted  = false;
+		private volatile bool                 mSendOperationFailed     = false;
+		private volatile int                  mPendingSendOperations   = 0;
+
+		/// <summary>
+		/// Triggers the sending thread.
+		/// </summary>
+		private void TriggerSending()
+		{
+			// abort, if a previous send operation failed
+			// (in this case the following operations will fail as well)
+			if (mSendOperationFailed)
+				return;
+
+			lock (mSendingTriggerSync)
+			{
+				mSendingNeededEvent.Set();
+				if (!mSendingThreadRunning)
+				{
+					ThreadPool.QueueUserWorkItem(DoSending);
+					mSendingThreadRunning = true;
+				}
+			}
+		}
+
+		/// <summary>
+		/// The entry point of the sending thread.
+		/// </summary>
+		/// <param name="_"></param>
+		private void DoSending(object _)
+		{
+			while (true)
+			{
+				if (!mSendingNeededEvent.Wait(100))
+				{
+					// abort, if there is still nothing to process
+					lock (mSendingTriggerSync)
+					{
+						// abort, if there is nothing to process
+						if (!mSendingNeededEvent.IsSet)
+						{
+							mSendingThreadRunning = false;
+							return;
+						}
+					}
+				}
+
+				// reset the event requesting sending as we'll send as much data as possible
+				// and the event is set every time a send operation completes
+				mSendingNeededEvent.Reset();
+
+				while (true)
+				{
+					// get available send operation object
+					var operation = mSendOperations[mSendOperationToUseIndex];
+					if (!operation.Available)
+						break;
+
+					// dequeue first buffer in the send queue for sending, if...
+					// a) no send operation is pending or
+					// b) there is a full block in the send queue
+					// => optimizes the throughput while keeping the latency low, avoids sending many tiny packets
+					ChainableMemoryBlock block = null;
+					lock (mSendQueueSync)
+					{
+						if (mFirstSendBlock != null && (mPendingSendOperations < 1 || mFirstSendBlock.Length == mFirstSendBlock.Capacity))
+						{
+							block = mFirstSendBlock;
+							mFirstSendBlock = mFirstSendBlock.Next;
+							if (mFirstSendBlock == null) mLastSendBlock = null;
+							block.Next = null;
+						}
+					}
+
+					// abort, if there is nothing to send
+					if (block == null)
+						break;
+
+					// Debug.WriteLine("Sending: {0} bytes", block.Length);
+
+					// wait for the writer to finish filling the block, if necessary
+					Monitor.Enter(block);
+					Monitor.Exit(block);
+
+					// attach the block to the send operation
+					Debug.Assert(operation.Buffer == null);
+					operation.Available = false;
+					operation.Buffer = block;
+
+					// proceed with the next send operation in the next run
+					mSendOperationToUseIndex = (mSendOperationToUseIndex + 1) % mSendOperations.Length;
+
+					// send the buffer
+					bool sendPending;
+					try
+					{
+						Interlocked.Increment(ref mPendingSendOperations);
+						sendPending = mSocket.SendAsync(operation.EventArgs);
+					}
+					catch (Exception)
+					{
+						// sending failed, return send operation object and close the channel
+						Interlocked.Decrement(ref mPendingSendOperations);
+						ReleaseSendOperation(operation);
+						mSendOperationFailed = true;
+						mIsSenderOperational = false;
+						TriggerProcessing(); // ensures that the error is processed appropriately and overrides are invoked
+						break;
+					}
+
+					// handle completing synchronously
+					if (!sendPending) ProcessSendCompleted(operation.EventArgs);
+				}
+			}
+		}
 
 		/// <summary>
 		/// Processes the completion of an asynchronous send operation.
@@ -811,8 +915,15 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 			try
 			{
-				if (e.SocketError == SocketError.Success) mSendOperationCompleted = true;
-				if (e.SocketError != SocketError.Success) mSendOperationFailed = true;
+				if (e.SocketError == SocketError.Success)
+					mSendOperationCompleted = true;
+
+				if (e.SocketError != SocketError.Success)
+				{
+					mSendOperationFailed = true;
+					mIsSenderOperational = false;
+				}
+
 				ReleaseSendOperation(completedOperation);
 			}
 			finally
@@ -820,83 +931,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 				Interlocked.Decrement(ref mPendingSendOperations);
 			}
 
-			// trigger processing, if necessary
-			// (maybe there is more data to send)
-			TriggerProcessing();
-		}
-
-		/// <summary>
-		/// Starts new send operations, if appropriate.
-		/// Must be called by the processing thread only.
-		/// </summary>
-		private void StartSendOperations()
-		{
-			Debug.Assert(Monitor.IsEntered(Sync));
-
-			// abort, if the channel is not operational any more
-			if (mStatus != LogServiceChannelStatus.Operational)
-				return;
-
-			while (true)
-			{
-				// get available send operation object
-				var operation = mSendOperations[mSendOperationToUseIndex];
-				if (!operation.Available)
-					break;
-
-				// dequeue first buffer in the send queue for sending, if...
-				// a) no send operation is pending or
-				// b) there is a full block in the send queue
-				// => optimizes the throughput while keeping the latency low, avoids sending many tiny packets
-				ChainableMemoryBlock block = null;
-				lock (mSendQueueSync)
-				{
-					if (mFirstSendBlock != null && (mPendingSendOperations < 1 || mFirstSendBlock.Length == mFirstSendBlock.Capacity))
-					{
-						block = mFirstSendBlock;
-						mFirstSendBlock = mFirstSendBlock.Next;
-						if (mFirstSendBlock == null) mLastSendBlock = null;
-						block.Next = null;
-					}
-				}
-
-				// abort, if there is nothing to send
-				if (block == null)
-					break;
-
-				// Debug.WriteLine("Sending: {0} bytes", block.Length);
-
-				// wait for the writer to finish filling the block, if necessary
-				Monitor.Enter(block);
-				Monitor.Exit(block);
-
-				// attach the block to the send operation
-				Debug.Assert(operation.Buffer == null);
-				operation.Available = false;
-				operation.Buffer = block;
-
-				// proceed with the next send operation in the next run
-				mSendOperationToUseIndex = (mSendOperationToUseIndex + 1) % mSendOperations.Length;
-
-				// send the buffer
-				bool sendPending;
-				try
-				{
-					Interlocked.Increment(ref mPendingSendOperations);
-					sendPending = mSocket.SendAsync(operation.EventArgs);
-				}
-				catch (Exception)
-				{
-					// sending failed, return send operation object and close the channel
-					Interlocked.Decrement(ref mPendingSendOperations);
-					ReleaseSendOperation(operation);
-					InitiateShutdown();
-					break;
-				}
-
-				// handle completing synchronously
-				if (!sendPending) ProcessSendCompleted(operation.EventArgs);
-			}
+			TriggerSending();    // ensures that the next block is sent, if necessary
+			TriggerProcessing(); // ensures that OnSendCompleted() is invoked
 		}
 
 		/// <summary>
@@ -912,14 +948,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			}
 
 			operation.Available = true;
-		}
-
-		/// <summary>
-		/// Is called when the channel has completed sending a chunk of data.
-		/// The executing thread holds the channel lock (<see cref="Sync"/>) when called.
-		/// </summary>
-		protected virtual void OnSendingCompleted()
-		{
 		}
 
 		#endregion
@@ -1197,6 +1225,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			var handler = LineReceived;
 			handler?.Invoke(this, line);
+		}
+
+		/// <summary>
+		/// Is called when the channel has completed sending a chunk of data.
+		/// The executing thread holds the channel lock (<see cref="Sync"/>) when called.
+		/// </summary>
+		protected virtual void OnSendingCompleted()
+		{
 		}
 
 		#endregion
