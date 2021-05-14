@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -25,17 +24,17 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		private const int ShutdownTimeout = 5000;
 
-		private readonly LinkedList<LogServiceServerChannel> mChannels                   = new LinkedList<LogServiceServerChannel>();
-		private readonly object                              mSync                       = new object();
-		private          LogServiceServerStatus              mStatus                     = LogServiceServerStatus.Stopped;
-		private          TimeSpan                            mChannelInactivityTimeout   = TimeSpan.FromMinutes(5);
-		private          ManualResetEventSlim                mServerThreadStartedUpEvent = null;
-		private          ManualResetEventSlim                mAsyncAcceptCompletedEvent  = null;
-		private          ManualResetEventSlim                mShutdownServerThreadEvent  = null;
-		private          Thread                              mServerThread               = null;
-		private readonly IPEndPoint                          mListenEndpoint;
-		private          Socket                              mListenerSocket;
-		private          int                                 mBacklog;
+		private readonly List<LogServiceServerChannel> mChannels                   = new List<LogServiceServerChannel>();
+		private readonly object                        mSync                       = new object();
+		private          LogServiceServerStatus        mStatus                     = LogServiceServerStatus.Stopped;
+		private          TimeSpan                      mChannelInactivityTimeout   = TimeSpan.FromMinutes(5);
+		private          ManualResetEventSlim          mServerThreadStartedUpEvent = null;
+		private          ManualResetEventSlim          mAsyncAcceptCompletedEvent  = null;
+		private          ManualResetEventSlim          mShutdownServerThreadEvent  = null;
+		private          Thread                        mServerThread               = null;
+		private readonly IPEndPoint                    mListenEndpoint;
+		private          Socket                        mListenerSocket;
+		private          int                           mBacklog;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogServiceServer"/> class.
@@ -370,25 +369,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
-		/// Is called by a <see cref="LogServiceServerChannel"/> after it has received some data.
-		/// This moves the channel to the end of the list of monitored channels as only the first channel in the list is
-		/// checked for inactivity.
-		/// </summary>
-		/// <param name="channel">The monitored server channel.</param>
-		internal void ProcessChannelHasReceivedData(LogServiceServerChannel channel)
-		{
-			lock (mChannels)
-			{
-				if (channel.Node.List != null)
-				{
-					Debug.Assert(mChannels == channel.Node.List);
-					mChannels.Remove(channel.Node);
-					mChannels.AddLast(channel.Node);
-				}
-			}
-		}
-
-		/// <summary>
 		/// Is called by a <see cref="LogServiceServerChannel"/> after it has completed shutting down.
 		/// This removes the channel from the list of monitored channels.
 		/// </summary>
@@ -397,11 +377,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			lock (mChannels)
 			{
-				if (channel.Node.List != null)
-				{
-					Debug.Assert(mChannels == channel.Node.List);
-					mChannels.Remove(channel.Node);
-				}
+				mChannels.Remove(channel);
 			}
 		}
 
@@ -413,33 +389,28 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			Debug.Assert(Monitor.IsEntered(mSync));
 
-			List<LogServiceChannel> inactiveChannels = null;
-
-			// check registered channels
-			// (the first node in the list contains the registration of the channel that is inactive the longest time)
+			// detect channels that have not been active for the configured time
+			List<LogServiceServerChannel> channelsToShutDown = null;
 			lock (mChannels)
 			{
-				while (mChannels.First != null)
+				// ReSharper disable once ForCanBeConvertedToForeach
+				for (int i = 0; i < mChannels.Count; i++)
 				{
-					var channel = mChannels.First.Value;
-
-					// abort, if the channel does not exceed the configured time of inactivity
-					var timeSinceLastActivity = TimeSpan.FromMilliseconds(Environment.TickCount - channel.LastReceiveTickCount);
-					if (timeSinceLastActivity < mChannelInactivityTimeout)
-						break;
-
-					// channel exceeds the configured time of inactivity
-					// => schedule shutting it down
-					if (inactiveChannels == null) inactiveChannels = new List<LogServiceChannel>();
-					inactiveChannels.Add(channel);
-					mChannels.RemoveFirst();
+					var channel = mChannels[i];
+					if (TimeSpan.FromMilliseconds(Environment.TickCount - channel.LastReceiveTickCount) > mChannelInactivityTimeout)
+					{
+						// the channel is inactive for longer than the configured time
+						// => shut it down...
+						if (channelsToShutDown == null) channelsToShutDown = new List<LogServiceServerChannel>();
+						channelsToShutDown.Add(channel);
+					}
 				}
 			}
 
 			// shut down all channels that have been identified to have exceeded their deadline
-			if (inactiveChannels != null)
+			if (channelsToShutDown != null)
 			{
-				foreach (var channel in inactiveChannels)
+				foreach (var channel in channelsToShutDown)
 				{
 					try
 					{
@@ -639,7 +610,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 					lock (mChannels)
 					{
-						mChannels.AddLast(channel.Node);
+						mChannels.Add(channel);
 					}
 
 					socket = null;  // socket is now managed by the channel

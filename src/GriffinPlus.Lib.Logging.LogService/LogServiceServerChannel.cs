@@ -32,11 +32,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private bool mDiscardReceivedData;
 
 		/// <summary>
-		/// List node that is used by <see cref="LogServiceServer"/> to organize channels.
-		/// </summary>
-		internal readonly LinkedListNode<LogServiceServerChannel> Node;
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="LogServiceServerChannel"/> class.
 		/// </summary>
 		/// <param name="server">The <see cref="LogServiceServer"/> the channel belongs to.</param>
@@ -45,9 +40,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			base(socket)
 		{
 			mServer = server;
-
-			// initialize the list node the server needs to organize and monitor channels
-			Node = new LinkedListNode<LogServiceServerChannel>(this);
 
 			// start server and register the channel for monitoring,
 			// if it has not been shut down immediately
@@ -92,15 +84,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 				string version = versionAttribute != null ? versionAttribute.InformationalVersion : "<unknown>";
 				Send($"INFO Log Service Library Version: {version}");
 			}
-		}
-
-		/// <summary>
-		/// Is called directly after some data has been received successfully.
-		/// </summary>
-		protected override void OnDataReceived()
-		{
-			// ReSharper disable once InconsistentlySynchronizedField
-			mServer.ProcessChannelHasReceivedData(this);
 		}
 
 		/// <summary>

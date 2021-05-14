@@ -480,10 +480,14 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// the channels have reached the configured time of inactivity
 				// => the server should shut them down now
 				// => wait some time before checking that all channels have shut down to avoid glitches
-				//    (worst case: a channel has sent a heartbeat just before sending heartbeats was disabled => increase the time by that time)
-				ExpectClientsToShutDown(clientChannels);
+				//    worst case: a channel has sent a heartbeat just before sending heartbeats was disabled
+				//    => increase the time by that time and some time for glitches
+				ExpectClientsToShutDown(clientChannels, (int)(channelInactivityTimeout + heartbeatInterval).TotalMilliseconds + 200);
 
 				// the server should have removed all channels from the channel list
+				// (there is a tiny timespan between setting the channel to 'ShutdownCompleted' and removing the channel
+				// from the channel list, so wait some time before testing)
+				Sleep(200);
 				var serverChannelsAfterShutdown = server.Channels;
 				Assert.Empty(serverChannelsAfterShutdown);
 
@@ -559,6 +563,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 					// disable the heartbeat to prevent the channel from sending 'HEARTBEAT' commands
 					// mixing up the stream of data that is looped back
+					var heartbeatInterval = channel.HeartbeatInterval;
 					channel.HeartbeatInterval = TimeSpan.Zero;
 
 					// register for the 'LineReceived' event to keep track of received data
@@ -696,6 +701,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 						}
 					}
 
+					// re-enable heartbeat to keep the channel alive without sending data intentionally
+					channel.HeartbeatInterval = heartbeatInterval;
+
 					return channel;
 				}
 
@@ -710,7 +718,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 							TaskCreationOptions.LongRunning));
 				}
 
-				// wait until all clients have completed (they are still operational)
+				// wait until all clients have completed
 				Task.WaitAll(clientTasks.Cast<Task>().ToArray());
 				var clientChannels = clientTasks.Select(task => task.Result).ToArray();
 				Assert.All(clientChannels, channel => Assert.Equal(LogServiceChannelStatus.Operational, channel.Status));
