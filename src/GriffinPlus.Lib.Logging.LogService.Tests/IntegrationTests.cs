@@ -272,7 +272,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				// even after some time the server should not have accepted any connections
 				// => there should be as many server channels as client channels now and all channels should be operational
-				await Task.Delay(500).ConfigureAwait(false);
+				// (there is a tiny timespan between setting the channel to 'ShutdownCompleted' and removing the channel
+				// from the channel list, so wait some time before testing)
+				await Delay(500).ConfigureAwait(false);
 				var serverChannels = server.Channels;
 				Assert.Empty(serverChannels);
 
@@ -366,6 +368,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 				ExpectClientsToShutDown(clientChannels);
 
 				// the server should have removed all channels from the channel list
+				// (there is a tiny timespan between setting the channel to 'ShutdownCompleted' and removing the channel
+				// from the channel list, so wait some time before testing)
+				Sleep(500);
 				var serverChannelsAfterShutdown = server.Channels;
 				Assert.Empty(serverChannelsAfterShutdown);
 
@@ -482,12 +487,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 				// => wait some time before checking that all channels have shut down to avoid glitches
 				//    worst case: a channel has sent a heartbeat just before sending heartbeats was disabled
 				//    => increase the time by that time and some time for glitches
-				ExpectClientsToShutDown(clientChannels, (int)(channelInactivityTimeout + heartbeatInterval).TotalMilliseconds + 200);
+				ExpectClientsToShutDown(clientChannels);
 
 				// the server should have removed all channels from the channel list
 				// (there is a tiny timespan between setting the channel to 'ShutdownCompleted' and removing the channel
 				// from the channel list, so wait some time before testing)
-				Sleep(200);
+				Sleep(500);
 				var serverChannelsAfterShutdown = server.Channels;
 				Assert.Empty(serverChannelsAfterShutdown);
 

@@ -32,6 +32,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 		private bool mDiscardReceivedData;
 
 		/// <summary>
+		/// Indicates whether the channel seems to be inactive
+		/// (used by <see cref="LogServiceServer"/> to delay shutting down inactive channels).
+		/// </summary>
+		internal volatile bool SeemsToBeInactive;
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="LogServiceServerChannel"/> class.
 		/// </summary>
 		/// <param name="server">The <see cref="LogServiceServer"/> the channel belongs to.</param>
@@ -96,7 +102,19 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		/// <summary>
+		/// Is called directly after some data has been received successfully.
+		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
+		/// </summary>
+		protected override void OnDataReceived()
+		{
+			// the channels has received some data
+			// => it cannot be inactive...
+			SeemsToBeInactive = false;
+		}
+
+		/// <summary>
 		/// Is called when the channel has received a complete line.
+		/// The executing thread holds the channel lock (<see cref="LogServiceChannel.Sync"/>) when called.
 		/// </summary>
 		/// <param name="line">Line to process.</param>
 		protected override void OnLineReceived(ReadOnlySpan<char> line)
@@ -115,15 +133,6 @@ namespace GriffinPlus.Lib.Logging.LogService
 			}
 
 			// TODO: Process commands here...
-		}
-
-		/// <summary>
-		/// Is called when the channel has completed sending a chunk of data.
-		/// </summary>
-		protected override void OnSendingCompleted()
-		{
-			// let the base class do its work
-			base.OnSendingCompleted();
 		}
 	}
 

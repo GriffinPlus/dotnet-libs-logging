@@ -400,6 +400,16 @@ namespace GriffinPlus.Lib.Logging.LogService
 					if (TimeSpan.FromMilliseconds(Environment.TickCount - channel.LastReceiveTickCount) > mChannelInactivityTimeout)
 					{
 						// the channel is inactive for longer than the configured time
+
+						// mark the channel as inactive, if it has not been seen inactive in the last run
+						// (it will be shut down in the next run, if it stays inactive)
+						if (!channel.SeemsToBeInactive)
+						{
+							channel.SeemsToBeInactive = true;
+							continue;
+						}
+
+						// the channel has been seen inactive in the last run and it is still inactive
 						// => shut it down...
 						if (channelsToShutDown == null) channelsToShutDown = new List<LogServiceServerChannel>();
 						channelsToShutDown.Add(channel);
