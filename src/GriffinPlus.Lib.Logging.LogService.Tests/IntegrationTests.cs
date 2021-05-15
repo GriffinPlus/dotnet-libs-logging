@@ -717,10 +717,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 				for (int i = 0; i < clientCount; i++)
 				{
 					int seed = i;
-					clientTasks.Add(
-						Task.Factory.StartNew(
-							() => ConnectToServerAndSendData(seed),
-							TaskCreationOptions.LongRunning));
+					clientTasks.Add(Task.Run(() => ConnectToServerAndSendData(seed)));
 				}
 
 				// wait until all clients have completed

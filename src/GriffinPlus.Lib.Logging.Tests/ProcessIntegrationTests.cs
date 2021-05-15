@@ -40,16 +40,13 @@ namespace GriffinPlus.Lib.Logging
 						new Func<ProcessIntegration, Task>(
 							integration =>
 							{
-								return Task.Factory.StartNew(
+								return Task.Run(
 									() => // needed to avoid blocking the only thread in the AsyncContext!
 									{
 										integration.WaitForExit();
 										Assert.True(integration.Process.HasExited);
 										return Task.CompletedTask;
-									},
-									CancellationToken.None,
-									TaskCreationOptions.LongRunning,
-									TaskScheduler.Default);
+									});
 							})
 					};
 
@@ -78,16 +75,13 @@ namespace GriffinPlus.Lib.Logging
 						new Func<ProcessIntegration, Task>(
 							integration =>
 							{
-								return Task.Factory.StartNew(
+								return Task.Run(
 									() => // needed to avoid blocking the only thread in the AsyncContext!
 									{
 										bool success = integration.WaitForExit(100);
 										Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
 										Assert.False(integration.Process.HasExited);
-									},
-									CancellationToken.None,
-									TaskCreationOptions.LongRunning,
-									TaskScheduler.Default);
+									});
 							})
 					};
 
@@ -100,7 +94,7 @@ namespace GriffinPlus.Lib.Logging
 						new Func<ProcessIntegration, Task>(
 							integration =>
 							{
-								return Task.Factory.StartNew(
+								return Task.Run(
 									() => // needed to avoid blocking the only thread in the AsyncContext!
 									{
 										bool success = integration.WaitForExit(10000);
@@ -108,10 +102,7 @@ namespace GriffinPlus.Lib.Logging
 											success,
 											"The process should have exited after 10000ms."); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
 										Assert.True(integration.Process.HasExited);
-									},
-									CancellationToken.None,
-									TaskCreationOptions.LongRunning,
-									TaskScheduler.Default);
+									});
 							})
 					};
 

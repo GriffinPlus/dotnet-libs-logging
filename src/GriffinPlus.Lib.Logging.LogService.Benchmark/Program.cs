@@ -265,10 +265,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 				for (int i = 0; i < clientCount; i++)
 				{
 					int seed = i;
-					clientTasks.Add(
-						Task.Factory.StartNew(
-							() => ConnectToServerAndSendData(seed),
-							TaskCreationOptions.LongRunning));
+					clientTasks.Add(Task.Run(() => ConnectToServerAndSendData(seed)));
 				}
 
 				// start the roundtrip time measurement
@@ -388,10 +385,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 				for (int i = 0; i < clientCount; i++)
 				{
 					int seed = i;
-					clientTasks.Add(
-						Task.Factory.StartNew(
-							() => ConnectToServerAndSendData(seed),
-							TaskCreationOptions.LongRunning));
+					clientTasks.Add(Task.Run(() => ConnectToServerAndSendData(seed)));
 				}
 
 				// start the roundtrip time measurement
