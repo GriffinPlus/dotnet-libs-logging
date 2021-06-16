@@ -77,12 +77,22 @@ namespace GriffinPlus.Lib.Logging.LogService
 					// ReSharper disable once AccessToDisposedClosure
 					e.Completed += (sender, args) => completedEvent.Set();
 
-					// connect to the server
-					if (!socket.ConnectAsync(e))
-						completedEvent.Set();
+					const int maxRetryCount = 1;
+					for (int retry = 0; retry <= maxRetryCount; retry++)
+					{
+						completedEvent.Reset();
 
-					// wait for the operation to complete
-					completedEvent.Wait(cancellationToken);
+						// connect to the server
+						if (!socket.ConnectAsync(e))
+							completedEvent.Set();
+
+						// wait for the operation to complete
+						completedEvent.Wait(cancellationToken);
+
+						// try again, if the attempt to connect has timed out
+						// (can occur sometimes in high load scenarios)
+						if (e.SocketError == SocketError.Success || e.SocketError != SocketError.TimedOut) break;
+					}
 
 					// handle socket error, if necessary
 					if (e.SocketError != SocketError.Success)
@@ -153,17 +163,35 @@ namespace GriffinPlus.Lib.Logging.LogService
 				e.Completed += ConnectCompleted;
 
 				// connect to the server
-				if (socket.ConnectAsync(e))
+				const int maxRetryCount = 1;
+				for (int retry = 0; retry <= maxRetryCount; retry++)
 				{
+					if (!socket.ConnectAsync(e))
+					{
+						// operation completed synchronously (very unlikely)
+						ConnectCompleted(socket, e);
+						return await connectTaskCompletionSource.Task.ConfigureAwait(false);
+					}
+
 					// operation is pending, the callback will be invoked on completion
 					// => wait for connecting to complete
-
 					var cancellationTask = Task.Delay(-1, cancellationToken);
 
 					await Task
 						.WhenAny(connectTaskCompletionSource.Task, cancellationTask)
 						.ConfigureAwait(false);
 
+					// retry, if the connect timed out (can easily happen in high load scenarios)
+					if (connectTaskCompletionSource.Task.IsFaulted)
+					{
+						if (connectTaskCompletionSource.Task?.Exception?.Flatten().InnerException is SocketException sex)
+						{
+							if (sex.SocketErrorCode == SocketError.TimedOut && retry < maxRetryCount)
+								continue;
+						}
+					}
+
+					// return, if the connection has been established successfully
 					if (connectTaskCompletionSource.Task.IsCompleted)
 					{
 						return await connectTaskCompletionSource
@@ -177,9 +205,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					return null; // should never occur
 				}
 
-				// operation completed synchronously (very unlikely)
-				ConnectCompleted(socket, e);
-				return await connectTaskCompletionSource.Task.ConfigureAwait(false);
+				return null; // should never occur
 			}
 			catch
 			{
