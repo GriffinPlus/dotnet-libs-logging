@@ -44,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		private void GetSqliteVersion()
 		{
-			Assert.Equal("3.32.1", LogFile.SqliteVersion);
+			Assert.Equal("3.35.5", LogFile.SqliteVersion);
 		}
 
 		#endregion
