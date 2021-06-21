@@ -39,6 +39,16 @@ namespace GriffinPlus.Lib.Logging
 		protected IProcessingPipelineStage[] mNextStages = new IProcessingPipelineStage[0];
 
 		/// <summary>
+		/// A cancellation token source providing a cancellation token that is signaled when the pipeline stage is shutting down.
+		/// </summary>
+		private CancellationTokenSource mShutdownTokenSource;
+
+		/// <summary>
+		/// A cancellation token that is signaled when the pipeline stage is shutting down.
+		/// </summary>
+		private CancellationToken mShutdownToken = new CancellationToken(true);
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
@@ -89,6 +99,18 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a cancellation token that is signaled when the stage is shutting down.
+		/// This allows derived stages to cancel pending operations.
+		/// </summary>
+		protected CancellationToken ShutdownToken
+		{
+			get
+			{
+				lock (Sync) return mShutdownToken;
+			}
+		}
+
+		/// <summary>
 		/// Initializes the processing pipeline stage.
 		/// This method is called by the logging subsystem and should not be called explicitly.
 		/// </summary>
@@ -105,6 +127,10 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// the pipeline is being initialized
 					mInitializing = true;
+
+					// initialize the shutdown token source derived stages may use to cancel operations on shutdown
+					mShutdownTokenSource = new CancellationTokenSource();
+					mShutdownToken = mShutdownTokenSource.Token;
 
 					// perform the actual initialization
 					OnInitializeBase();
@@ -159,6 +185,14 @@ namespace GriffinPlus.Lib.Logging
 
 				// shut the stage itself down
 				OnShutdownBase();
+
+				// release the cancellation token source for the shutdown token to avoid leaks
+				if (mShutdownTokenSource != null)
+				{
+					mShutdownTokenSource.Dispose();
+					mShutdownTokenSource = null;
+					mShutdownToken = new CancellationToken(true);
+				}
 
 				mInitialized = false;
 			}
