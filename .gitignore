@@ -256,3 +256,5 @@ _build/
 _deploy/
 _obj/
 GitVersion.yml
+/src/CommonAssemblyInfo.cs
+/src/CommonAssemblyInfo.mcpp

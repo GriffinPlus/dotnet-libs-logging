@@ -39,6 +39,7 @@ RestoreNuGet `
 # check consistency of NuGet packages
 PreBuildWizard `
 	-SolutionPath "$SolutionPath" `
+	-SkipNuGetConsistencyCheck `
 	-PauseOnError
 
 # build projects

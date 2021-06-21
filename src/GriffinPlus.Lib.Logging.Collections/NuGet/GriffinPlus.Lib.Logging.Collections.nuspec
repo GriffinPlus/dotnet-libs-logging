@@ -32,11 +32,11 @@ The filter can be used in conjunction with the filtered collection and the filte
 	</metadata>
 	<files>
 		<file src="..\..\..\res\nuget-icon.png" target="images\" />
-		<file src="..\..\..\_build\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.Collections.dll" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.Collections.pdb" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.Collections.xml" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.Collections.dll" target="lib\net461" />
-		<file src="..\..\..\_build\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.Collections.pdb" target="lib\net461" />
-		<file src="..\..\..\_build\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.Collections.xml" target="lib\net461" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.Collections.dll" target="lib\netstandard2.0" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.Collections.pdb" target="lib\netstandard2.0" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.Collections.xml" target="lib\netstandard2.0" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.Collections.dll" target="lib\net461" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.Collections.pdb" target="lib\net461" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.Collections\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.Collections.xml" target="lib\net461" />
 	</files>
 </package>
