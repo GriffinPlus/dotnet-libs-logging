@@ -98,6 +98,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		protected override void OnShutdownCompleted()
 		{
+			base.OnShutdownCompleted();
 			mServer?.ProcessChannelHasCompletedShuttingDown(this);
 		}
 

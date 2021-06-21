@@ -263,6 +263,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 		#region Shutting Down
 
 		/// <summary>
+		/// Is called when the channel has completed shutting down.
+		/// The executing thread holds the channel lock (<see cref="Sync"/>) when called.
+		/// </summary>
+		public event EventHandler<EventArgs> ShutdownCompleted;
+
+		/// <summary>
 		/// Initiates shutting the channel down
 		/// (returns immediately, the shutdown is running in the background).
 		/// </summary>
@@ -405,6 +411,8 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </summary>
 		protected virtual void OnShutdownCompleted()
 		{
+			var handler = ShutdownCompleted;
+			handler?.Invoke(this, EventArgs.Empty);
 		}
 
 		#endregion
@@ -697,9 +705,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 		#region Processing
 
 		// all fields are synchronized using mProcessingTriggerSync
-		private readonly object mProcessingTriggerSync = new object();
-		private readonly ManualResetEventSlim mProcessingNeededEvent = new ManualResetEventSlim();
-		private bool mProcessingThreadRunning = false;
+		private readonly object               mProcessingTriggerSync   = new object();
+		private readonly ManualResetEventSlim mProcessingNeededEvent   = new ManualResetEventSlim();
+		private          bool                 mProcessingThreadRunning = false;
 
 		/// <summary>
 		/// Triggers the processing thread that handles sending and receiving.
@@ -969,6 +977,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 		/// <summary>
 		/// Is called when the channel has received a complete line.
+		/// The executing thread holds the channel lock (<see cref="Sync"/>) when called.
 		/// </summary>
 		public event LineReceivedEventHandler LineReceived;
 
