@@ -57,6 +57,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </param>
 		/// <param name="cancellationToken">Cancellation token that can be signaled to abort the operation.</param>
 		/// <returns>The log service client channel.</returns>
+		/// <exception cref="EstablishingLogServiceConnectionFailedException">
+		/// Establishing a connection to the log service failed, see inner exception for details.
+		/// </exception>
 		public static LogServiceClientChannel ConnectToServer(
 			IPAddress         address,
 			int               port,
@@ -104,6 +107,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 					return channel;
 				}
 			}
+			catch (Exception ex)
+			{
+				throw new EstablishingLogServiceConnectionFailedException(
+					$"Establishing log service connection to tcp://{address}:{port} failed, see inner exception for details.",
+					ex);
+			}
 			finally
 			{
 				socket?.Dispose();
@@ -121,6 +130,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 		/// </param>
 		/// <param name="cancellationToken">Cancellation token that can be signaled to abort the operation.</param>
 		/// <returns>The log service client channel.</returns>
+		/// <exception cref="EstablishingLogServiceConnectionFailedException">
+		/// Establishing a connection to the log service failed, see inner exception for details.
+		/// </exception>
 		public static async Task<LogServiceClientChannel> ConnectToServerAsync(
 			IPAddress         address,
 			int               port,
@@ -208,6 +220,12 @@ namespace GriffinPlus.Lib.Logging.LogService
 				}
 
 				return null; // should never occur
+			}
+			catch (Exception ex)
+			{
+				throw new EstablishingLogServiceConnectionFailedException(
+					$"Establishing log service connection to tcp://{address}:{port} failed, see inner exception for details.",
+					ex);
 			}
 			finally
 			{
