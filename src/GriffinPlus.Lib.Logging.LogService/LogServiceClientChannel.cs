@@ -194,9 +194,11 @@ namespace GriffinPlus.Lib.Logging.LogService
 					// return, if the connection has been established successfully
 					if (connectTaskCompletionSource.Task.IsCompleted)
 					{
-						return await connectTaskCompletionSource
+						var clientChannel = await connectTaskCompletionSource
 							       .Task
 							       .ConfigureAwait(false);
+						socket = null;
+						return clientChannel;
 					}
 
 					// connecting has not completed => cancellation is pending
@@ -207,10 +209,9 @@ namespace GriffinPlus.Lib.Logging.LogService
 
 				return null; // should never occur
 			}
-			catch
+			finally
 			{
 				socket?.Dispose();
-				throw;
 			}
 		}
 
@@ -231,6 +232,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 			SendGreeting();
 			SendProcessInfo();
 			SendApplicationInfo();
+			SendPersistenceSetting(mStoringMessagesPersistently);
 
 			// start the heartbeat task to ensure that the server does not shut the channel down due to inactivity checking
 			if (HeartbeatInterval > TimeSpan.Zero)
@@ -256,6 +258,42 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			Debug.Assert(Monitor.IsEntered(Sync));
 			base.OnLineReceived(line);
+		}
+
+		#endregion
+
+		#region Controlling Persistence
+
+		private bool mStoringMessagesPersistently = true;
+
+		/// <summary>
+		/// Gets or sets a value indicating whether log messages are persistently stored in the log service.
+		/// </summary>
+		public bool StoringMessagesPersistently
+		{
+			get
+			{
+				lock (Sync)
+				{
+					return mStoringMessagesPersistently;
+				}
+			}
+
+			set
+			{
+				lock (Sync)
+				{
+					if (mStoringMessagesPersistently != value)
+					{
+						mStoringMessagesPersistently = value;
+						try { SendPersistenceSetting(value); }
+						catch
+						{
+							/* swallow */
+						}
+					}
+				}
+			}
 		}
 
 		#endregion
@@ -294,6 +332,19 @@ namespace GriffinPlus.Lib.Logging.LogService
 		{
 			string name = Log.ApplicationName;
 			Send($"SET APPLICATION_NAME {name}");
+		}
+
+		/// <summary>
+		/// Sends a command to the log service determining whether to store log messages from this client persistently.
+		/// </summary>
+		/// <param name="enable">
+		/// <c>true</c> to configure the service to store messages from this client persistently;
+		/// <c>false</c> to configure the service not to store messages from this client at all.
+		/// </param>
+		private void SendPersistenceSetting(bool enable)
+		{
+			string value = enable ? "1" : "0";
+			Send($"SET PERSISTENCE {value}");
 		}
 
 		#endregion

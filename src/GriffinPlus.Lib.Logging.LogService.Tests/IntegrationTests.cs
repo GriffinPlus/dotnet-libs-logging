@@ -591,6 +591,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 					Assert.Equal(DefaultSendQueueSize, channel.SendQueueSize);
 
 					// give the channels some time to send, receive and loop back data
+					const int expectedReceivedLines = 9;
 					{
 						int timeout = 60000;
 						while (true)
@@ -598,7 +599,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 							const int step = 50;
 							lock (receivedLines)
 							{
-								if (receivedLines.Count >= 8)
+								if (receivedLines.Count >= expectedReceivedLines)
 									break;
 							}
 
@@ -609,10 +610,10 @@ namespace GriffinPlus.Lib.Logging.LogService
 					}
 
 					// the server should have sent a greeting (HELLO + 2x INFO with version information) and
-					// the looped back greeting of the client (HELLO + INFO with version information)
+					// the looped back greeting of the client (HELLO + INFO with version information and settings)
 					lock (receivedLines)
 					{
-						Assert.Equal(8, receivedLines.Count);
+						Assert.Equal(expectedReceivedLines, receivedLines.Count);
 						Assert.Equal("HELLO Griffin+ Log Service", receivedLines[0]);
 						Assert.StartsWith("INFO Server Version: ", receivedLines[1]);
 						Assert.StartsWith("INFO Log Service Library Version: ", receivedLines[2]);
@@ -621,6 +622,7 @@ namespace GriffinPlus.Lib.Logging.LogService
 						Assert.StartsWith("SET PROCESS_NAME ", receivedLines[5]);
 						Assert.StartsWith("SET PROCESS_ID ", receivedLines[6]);
 						Assert.StartsWith("SET APPLICATION_NAME ", receivedLines[7]);
+						Assert.Equal("SET PERSISTENCE 1", receivedLines[8]);
 						receivedLines.Clear();
 					}
 
