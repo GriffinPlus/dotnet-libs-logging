@@ -29,6 +29,11 @@ namespace GriffinPlus.Lib.Logging
 		protected bool mInitialized;
 
 		/// <summary>
+		/// Indicates whether the pipeline stage is being initialized.
+		/// </summary>
+		protected bool mInitializing;
+
+		/// <summary>
 		/// Processing pipeline stages that are called after the current stage has completed processing.
 		/// </summary>
 		protected IProcessingPipelineStage[] mNextStages = new IProcessingPipelineStage[0];
@@ -73,6 +78,17 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a value indicating whether the pipeline stage is being initialized.
+		/// </summary>
+		protected bool IsInitializing
+		{
+			get
+			{
+				lock (Sync) return mInitializing;
+			}
+		}
+
+		/// <summary>
 		/// Initializes the processing pipeline stage.
 		/// This method is called by the logging subsystem and should not be called explicitly.
 		/// </summary>
@@ -85,23 +101,33 @@ namespace GriffinPlus.Lib.Logging
 					throw new InvalidOperationException("The pipeline stage is already initialized.");
 				}
 
-				// perform the actual initialization
-				OnInitializeBase();
-
-				// initialize the following pipeline stages as well (must be done within the pipeline lock of the
-				// current stage to ensure that all pipeline stages or none at all are initialized)
 				try
 				{
-					InitializeNextStages();
-				}
-				catch (Exception)
-				{
-					OnShutdownBase();
-					throw;
-				}
+					// the pipeline is being initialized
+					mInitializing = true;
 
-				// the pipeline stage is initialized now
-				mInitialized = true;
+					// perform the actual initialization
+					OnInitializeBase();
+
+					// initialize the following pipeline stages as well (must be done within the pipeline lock of the
+					// current stage to ensure that all pipeline stages or none at all are initialized)
+					try
+					{
+						InitializeNextStages();
+					}
+					catch (Exception)
+					{
+						OnShutdownBase();
+						throw;
+					}
+
+					// the pipeline stage is initialized now
+					mInitialized = true;
+				}
+				finally
+				{
+					mInitializing = false;
+				}
 			}
 		}
 
@@ -567,10 +593,11 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Throws an <see cref="InvalidOperationException"/>, if the pipeline stage is already initialized (attached to the logging subsystem).
+		/// Also, the pipeline stage must not be initializing.
 		/// </summary>
 		protected void EnsureNotAttachedToLoggingSubsystem()
 		{
-			if (mInitialized)
+			if (mInitialized || mInitializing)
 				throw new InvalidOperationException("The pipeline stage is already initialized. Configure the stage before attaching it to the logging subsystem.");
 		}
 
