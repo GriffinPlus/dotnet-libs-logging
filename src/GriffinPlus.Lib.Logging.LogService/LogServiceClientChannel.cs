@@ -1310,6 +1310,26 @@ namespace GriffinPlus.Lib.Logging.LogService
 		}
 
 		#endregion
+
+		#region Sending Commands
+
+		/// <summary>
+		/// Sends a command to clear the log viewer.
+		/// </summary>
+		public void SendClearLogViewerCommand()
+		{
+			Send("VIEWER CLEAR");
+		}
+
+		/// <summary>
+		/// Sends a command to tell the log service to save a snapshot of the current log.
+		/// </summary>
+		public void SendSaveSnapshotCommand()
+		{
+			Send("SNAPSHOT TAKE");
+		}
+
+		#endregion
 	}
 
 }
