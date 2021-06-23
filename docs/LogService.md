@@ -10,13 +10,13 @@ The log service can be configured to listen at a specific IP address and port. B
 
 ## The Protocol
 
-This section describes the protocol between the `LogServicePipelineStage` and the log service. A connection starts with a establishing a TCP connection from a process that wants to log to the log service.
+This section describes the protocol between the `LogServicePipelineStage` and the log service. A connection starts with establishing a TCP connection from a process that wants to log to the log service.
 
 ### Greeting
 
-As soon as the connection is established the client sends a *greeting* to the server. The *greeting* consists of a `HELLO` command to indicate to whom the server is talking. An `INFO` command with the version of the used log service library follows (informational version of the `GriffinPlus.Lib.Logging.LogService` assembly).
+As soon as the connection is established the client sends a *greeting* to the server. The *greeting* consists of a `HELLO` line to indicate to whom the server is talking. An `INFO` line with the version of the used log service library follows (informational version of the `GriffinPlus.Lib.Logging.LogService` assembly).
  
-Just as the client, the log service also sends a *greeting* to indicate to whom the connecting client is talking. The *greeting* always starts with a `HELLO` command with a freely configurable name. If configured the service then sends `INFO` commands with the version of the server (file version of the entry assembly of the application) and the version of the used log service library (informational version of the `GriffinPlus.Lib.Logging.LogService` assembly).
+Just as the client, the log service also sends a *greeting* to indicate to whom the connecting client is talking. The *greeting* always starts with a `HELLO` line with a freely configurable name. If configured the service then sends `INFO` lines with the version of the server (file version of the entry assembly of the application) and the version of the used log service library (informational version of the `GriffinPlus.Lib.Logging.LogService` assembly).
 
 ```
 Client:  HELLO Griffin+ .NET Log Service Client
@@ -26,29 +26,50 @@ Service: HELLO Griffin+ Log Service
          INFO Log Service Library Version: <version>
 ```
 
-### Client Configuration
+### Commands
 
-The client can now set some information about itself, namely the name and the id of its process and the name of the application, if it differs from the name of the process. The Server will always respond with `OK` in case of success or `NOK (<code> <message>)` in case of an error:
+The client can now send commands to communicate with the server. The server will always respond with `OK` in case of success or `NOK (<code> <message>)` in case of an error. A command id (alphanumeric string) is prepended to commands and responses. It allows the client to associate commands and responses which is important when it comes to pipelining commands (see below). The server recognizes every line starting with something looking like a command id as a command and will respond with `OK`or `NOK`.
 
 ```
-Client:  SET PROCESS_NAME <name>
-Service: OK / NOK (<code> <message>)
+Client:  [<command-id>] <COMMAND>
+Service: [<command-id>] OK / [<command-id>] NOK (<code> <message>)
+```
 
-Client:  SET PROCESS_ID <id>
-Service: OK / NOK (<code> <message>)
+If the command id is missing or malformed, so the server does not recognize the line as a command, it sends an `ERROR` response containing some information about what went wrong. To assist with debugging this issue the server sends the line back to the client.
 
-Client:  SET APPLICATION_NAME <name>
-Service: OK / NOK (<code> <message>)
+```
+Client:  <COMMAND>
+Service: ERROR Missing command id (<COMMAND>)
+```
+
+```
+Client:  [<malformed-command-id>] <COMMAND>
+Service: ERROR Malformed command id ([<malformed-command-id>] <COMMAND>)
+```
+
+### Client Configuration
+
+Before starting to write messages the client can set some information about itself, namely the name and the id of its process and the name of the application, if it differs from the name of the process.
+
+```
+Client:  [<command-id>] SET PROCESS_NAME <process-name>
+Service: [<command-id>] OK / [<command-id>] NOK (<code> <message>)
+
+Client:  [<command-id>] SET PROCESS_ID <process-id>
+Service: [<command-id>] OK / [<command-id>] NOK (<code> <message>)
+
+Client:  [<command-id>] SET APPLICATION_NAME <application-name>
+Service: [<command-id>] OK / [<command-id>] NOK (<code> <message>)
 ```
 
 ### Writing Messages
 
-The client can write log messages using the `WRITE` command.
+The client can write log messages using the `WRITE` command. The `text` field must always be the last field as it closes the command.
 
-For short messages that do not contain line breaks:
+For short messages that do not contain line breaks.
 
 ```
-Client:  WRITE
+Client:  [<command-id>] WRITE
          timestamp: <timestamp>
          ticks: <count>
          lost: <count>
@@ -56,13 +77,13 @@ Client:  WRITE
          level: <name>
          tag: <name>
          text: <message>
-Service: OK / NOK (<code> <message>)
+Service: [<command-id>] OK / [<command-id>] NOK (<code> <message>)
 ```
 
 For messages that contain line breaks:
 
 ```
-Client:  WRITE
+Client:  [<command-id>] WRITE
          timestamp: <timestamp>
          ticks: <count>
          lost: <count>
@@ -74,7 +95,7 @@ Client:  WRITE
          <message-line-2>
          <message-line-3>
          .
-Service: OK / NOK (<code> <message>)
+Service: [<command-id>] OK / [<command-id>] NOK (<code> <message>)
 ```
 
 The following data is associated with a log message:
