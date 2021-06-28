@@ -21,6 +21,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		IFileBackedLogMessageCollectionFilter
 	{
 		private readonly StringPool               mStringPool = new StringPool();
+		private readonly string                   mFilterDatabaseName;
 		private readonly string                   mLogWriterFilterTableName;
 		private readonly string                   mLogLevelFilterTableName;
 		private readonly string                   mTagFilterTableName;
@@ -56,12 +57,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 		public SelectableFileBackedLogMessageFilter()
 		{
 			var filterGuid = Guid.NewGuid();
-			mProcessIdFilterTableName = $"filter_{filterGuid:N}_process_id";
-			mProcessNameFilterTableName = $"filter_{filterGuid:N}_process_name";
-			mApplicationNameFilterTableName = $"filter_{filterGuid:N}_application_name";
-			mLogWriterFilterTableName = $"filter_{filterGuid:N}_log_writer";
-			mLogLevelFilterTableName = $"filter_{filterGuid:N}_log_level";
-			mTagFilterTableName = $"filter_{filterGuid:N}_tag";
+			mFilterDatabaseName = $"filter_{filterGuid:N}";
+			mProcessIdFilterTableName = "process_id";
+			mProcessNameFilterTableName = "process_name";
+			mApplicationNameFilterTableName = "application_name";
+			mLogWriterFilterTableName = "log_writer";
+			mLogLevelFilterTableName = "log_level";
+			mTagFilterTableName = "tag";
 		}
 
 		/// <summary>
@@ -71,37 +73,40 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			mAccessor = Collection.LogFile.Accessor;
 
+			// create an in-memory database for filter settings
+			mAccessor.ExecuteNonQueryCommands($"ATTACH DATABASE 'file::{mFilterDatabaseName}?mode=memory' AS {mFilterDatabaseName};");
+
 			// create temporary tables that will store the selected log writers, levels, tags, application names and process names/ids
-			mAccessor.ExecuteNonQueryCommands($"CREATE TEMPORARY TABLE {mProcessIdFilterTableName} (id INTEGER);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE TEMPORARY TABLE {mProcessNameFilterTableName} (id INTEGER);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE TEMPORARY TABLE {mApplicationNameFilterTableName} (id INTEGER);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE TEMPORARY TABLE {mLogWriterFilterTableName} (id INTEGER);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE TEMPORARY TABLE {mLogLevelFilterTableName} (id INTEGER);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE TEMPORARY TABLE {mTagFilterTableName} (id INTEGER);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE TABLE {mFilterDatabaseName}.{mProcessIdFilterTableName} (id INTEGER);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE TABLE {mFilterDatabaseName}.{mProcessNameFilterTableName} (id INTEGER);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE TABLE {mFilterDatabaseName}.{mApplicationNameFilterTableName} (id INTEGER);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE TABLE {mFilterDatabaseName}.{mLogWriterFilterTableName} (id INTEGER);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE TABLE {mFilterDatabaseName}.{mLogLevelFilterTableName} (id INTEGER);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE TABLE {mFilterDatabaseName}.{mTagFilterTableName} (id INTEGER);");
 
 			// create indices on the filter tables to accelerate lookups
-			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mProcessIdFilterTableName}_index ON {mProcessIdFilterTableName} (id);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mProcessNameFilterTableName}_index ON {mProcessNameFilterTableName} (id);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mApplicationNameFilterTableName}_index ON {mApplicationNameFilterTableName} (id);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mLogWriterFilterTableName}_index ON {mApplicationNameFilterTableName} (id);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mLogLevelFilterTableName}_index ON {mLogLevelFilterTableName} (id);");
-			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mTagFilterTableName}_index ON {mTagFilterTableName} (id);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mFilterDatabaseName}.{mProcessIdFilterTableName}_index ON {mProcessIdFilterTableName} (id);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mFilterDatabaseName}.{mProcessNameFilterTableName}_index ON {mProcessNameFilterTableName} (id);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mFilterDatabaseName}.{mApplicationNameFilterTableName}_index ON {mApplicationNameFilterTableName} (id);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mFilterDatabaseName}.{mLogWriterFilterTableName}_index ON {mApplicationNameFilterTableName} (id);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mFilterDatabaseName}.{mLogLevelFilterTableName}_index ON {mLogLevelFilterTableName} (id);");
+			mAccessor.ExecuteNonQueryCommands($"CREATE UNIQUE INDEX {mFilterDatabaseName}.{mTagFilterTableName}_index ON {mTagFilterTableName} (id);");
 
 			// prepare query to retrieve log messages
 			SetupMessageQuery();
 
 			// prepare queries to add enabled filter items
-			mAddProcessIdToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mProcessIdFilterTableName} VALUES (@id);");
+			mAddProcessIdToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mFilterDatabaseName}.{mProcessIdFilterTableName} VALUES (@id);");
 			mAddProcessIdToFilterCommand.Parameters.Add(mAddProcessIdToFilterCommand_IdParameter = new SQLiteParameter("@id", DbType.Int32));
-			mAddProcessNameToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mProcessNameFilterTableName} SELECT id FROM processes WHERE name = @name;");
+			mAddProcessNameToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mFilterDatabaseName}.{mProcessNameFilterTableName} SELECT id FROM processes WHERE name = @name;");
 			mAddProcessNameToFilterCommand.Parameters.Add(mAddProcessNameToFilterCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
-			mAddApplicationNameToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mApplicationNameFilterTableName} SELECT id FROM applications WHERE name = @name;");
+			mAddApplicationNameToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mFilterDatabaseName}.{mApplicationNameFilterTableName} SELECT id FROM applications WHERE name = @name;");
 			mAddApplicationNameToFilterCommand.Parameters.Add(mAddApplicationNameToFilterCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
-			mAddLogWriterToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mLogWriterFilterTableName} SELECT id FROM writers WHERE name = @name;");
+			mAddLogWriterToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mFilterDatabaseName}.{mLogWriterFilterTableName} SELECT id FROM writers WHERE name = @name;");
 			mAddLogWriterToFilterCommand.Parameters.Add(mAddLogWriterToFilterCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
-			mAddLogLevelToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mLogLevelFilterTableName} SELECT id FROM levels WHERE name = @name;");
+			mAddLogLevelToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mFilterDatabaseName}.{mLogLevelFilterTableName} SELECT id FROM levels WHERE name = @name;");
 			mAddLogLevelToFilterCommand.Parameters.Add(mAddLogLevelToFilterCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
-			mAddTagToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mTagFilterTableName} SELECT id FROM tags WHERE name = @name;");
+			mAddTagToFilterCommand = mAccessor.PrepareCommand($"INSERT OR IGNORE INTO {mFilterDatabaseName}.{mTagFilterTableName} SELECT id FROM tags WHERE name = @name;");
 			mAddTagToFilterCommand.Parameters.Add(mAddTagToFilterCommand_NameParameter = new SQLiteParameter("@name", DbType.String));
 
 			// set up filter tables
@@ -123,14 +128,17 @@ namespace GriffinPlus.Lib.Logging.Collections
 			mAccessor.ReleasePreparedCommand(ref mAddLogLevelToFilterCommand);
 			mAccessor.ReleasePreparedCommand(ref mAddTagToFilterCommand);
 
-
 			// drop temporary tables (drops indexes as well)
-			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mProcessIdFilterTableName};");
-			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mProcessNameFilterTableName};");
-			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mApplicationNameFilterTableName};");
-			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mLogWriterFilterTableName};");
-			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mLogLevelFilterTableName};");
-			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mTagFilterTableName};");
+			// (should not be necessary for an in-memory database, but it is cleaner so)
+			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mFilterDatabaseName}.{mProcessIdFilterTableName};");
+			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mFilterDatabaseName}.{mProcessNameFilterTableName};");
+			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mFilterDatabaseName}.{mApplicationNameFilterTableName};");
+			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mFilterDatabaseName}.{mLogWriterFilterTableName};");
+			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mFilterDatabaseName}.{mLogLevelFilterTableName};");
+			mAccessor.ExecuteNonQueryCommands($"DROP TABLE IF EXISTS {mFilterDatabaseName}.{mTagFilterTableName};");
+
+			// detach from in-memory database
+			mAccessor.ExecuteNonQueryCommands($"DETACH DATABASE {mFilterDatabaseName};");
 
 			mAccessor = null;
 		}
@@ -160,14 +168,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 					" INNER JOIN applications as a ON a.id = m.application_name_id" +
 					" INNER JOIN writers as w ON w.id = m.writer_name_id" +
 					" INNER JOIN levels as l ON l.id = m.level_name_id" +
-					(ProcessIdFilter.Enabled ? $" INNER JOIN {mProcessIdFilterTableName} ON {mProcessIdFilterTableName}.id = m.process_id" : "") +
-					(ProcessNameFilter.Enabled ? $" INNER JOIN {mProcessNameFilterTableName} ON {mProcessNameFilterTableName}.id = p.id" : "") +
-					(ApplicationNameFilter.Enabled ? $" INNER JOIN {mApplicationNameFilterTableName} ON {mApplicationNameFilterTableName}.id = a.id" : "") +
-					(LogWriterFilter.Enabled ? $" INNER JOIN {mLogWriterFilterTableName} ON {mLogWriterFilterTableName}.id = w.id" : "") +
-					(LogLevelFilter.Enabled ? $" INNER JOIN {mLogLevelFilterTableName} ON {mLogLevelFilterTableName}.id = l.id" : "") +
+					(ProcessIdFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessIdFilterTableName} ON {mFilterDatabaseName}.{mProcessIdFilterTableName}.id = m.process_id" : "") +
+					(ProcessNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessNameFilterTableName} ON {mFilterDatabaseName}.{mProcessNameFilterTableName}.id = p.id" : "") +
+					(ApplicationNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mApplicationNameFilterTableName} ON {mFilterDatabaseName}.{mApplicationNameFilterTableName}.id = a.id" : "") +
+					(LogWriterFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogWriterFilterTableName} ON {mFilterDatabaseName}.{mLogWriterFilterTableName}.id = w.id" : "") +
+					(LogLevelFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogLevelFilterTableName} ON {mFilterDatabaseName}.{mLogLevelFilterTableName}.id = l.id" : "") +
 					(TagFilter.Enabled
 						 ? " INNER JOIN tag2msg as tm ON tm.message_id = m.id" +
-						   $" INNER JOIN {mTagFilterTableName} ON {mTagFilterTableName}.id = tm.tag_id"
+						   $" INNER JOIN {mFilterDatabaseName}.{mTagFilterTableName} ON {mFilterDatabaseName}.{mTagFilterTableName}.id = tm.tag_id"
 						 : "") +
 					" WHERE {0}" +
 					(TimestampFilter.Enabled ? $" AND m.timestamp BETWEEN {fromTimestamp} AND {toTimestamp}" : "") +
@@ -189,14 +197,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 					" INNER JOIN writers as w ON w.id = m.writer_name_id" +
 					" INNER JOIN levels as l ON l.id = m.level_name_id" +
 					" INNER JOIN texts as t ON t.id = m.id" +
-					(ProcessIdFilter.Enabled ? $" INNER JOIN {mProcessIdFilterTableName} ON {mProcessIdFilterTableName}.id = m.process_id" : "") +
-					(ProcessNameFilter.Enabled ? $" INNER JOIN {mProcessNameFilterTableName} ON {mProcessNameFilterTableName}.id = p.id" : "") +
-					(ApplicationNameFilter.Enabled ? $" INNER JOIN {mApplicationNameFilterTableName} ON {mApplicationNameFilterTableName}.id = a.id" : "") +
-					(LogWriterFilter.Enabled ? $" INNER JOIN {mLogWriterFilterTableName} ON {mLogWriterFilterTableName}.id = w.id" : "") +
-					(LogLevelFilter.Enabled ? $" INNER JOIN {mLogLevelFilterTableName} ON {mLogLevelFilterTableName}.id = l.id" : "") +
+					(ProcessIdFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessIdFilterTableName} ON {mFilterDatabaseName}.{mProcessIdFilterTableName}.id = m.process_id" : "") +
+					(ProcessNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessNameFilterTableName} ON {mFilterDatabaseName}.{mProcessNameFilterTableName}.id = p.id" : "") +
+					(ApplicationNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mApplicationNameFilterTableName} ON {mFilterDatabaseName}.{mApplicationNameFilterTableName}.id = a.id" : "") +
+					(LogWriterFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogWriterFilterTableName} ON {mFilterDatabaseName}.{mLogWriterFilterTableName}.id = w.id" : "") +
+					(LogLevelFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogLevelFilterTableName} ON {mFilterDatabaseName}.{mLogLevelFilterTableName}.id = l.id" : "") +
 					(TagFilter.Enabled
 						 ? " INNER JOIN tag2msg as tm ON tm.message_id = m.id" +
-						   $" INNER JOIN {mTagFilterTableName} ON {mTagFilterTableName}.id = tm.tag_id"
+						   $" INNER JOIN {mFilterDatabaseName}.{mTagFilterTableName} ON {mFilterDatabaseName}.{mTagFilterTableName}.id = tm.tag_id"
 						 : "") +
 					" WHERE {0}" +
 					(TimestampFilter.Enabled ? $" AND m.timestamp BETWEEN {fromTimestamp} AND {toTimestamp}" : "") +
@@ -252,7 +260,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			void Operation()
 			{
 				// set up process id filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mProcessIdFilterTableName};");
+				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mProcessIdFilterTableName};");
 				if (ProcessIdFilter.Enabled)
 				{
 					foreach (var item in ProcessIdFilter.Items)
@@ -266,7 +274,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				}
 
 				// set up process name filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mProcessNameFilterTableName};");
+				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mProcessNameFilterTableName};");
 				if (ProcessNameFilter.Enabled)
 				{
 					foreach (var item in ProcessNameFilter.Items)
@@ -280,7 +288,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				}
 
 				// set up application name filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mApplicationNameFilterTableName};");
+				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mApplicationNameFilterTableName};");
 				if (ApplicationNameFilter.Enabled)
 				{
 					foreach (var item in ApplicationNameFilter.Items)
@@ -294,7 +302,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				}
 
 				// set up log writer filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mLogWriterFilterTableName};");
+				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mLogWriterFilterTableName};");
 				if (LogWriterFilter.Enabled)
 				{
 					foreach (var item in LogWriterFilter.Items)
@@ -308,7 +316,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				}
 
 				// set up log level filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mLogLevelFilterTableName};");
+				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mLogLevelFilterTableName};");
 				if (LogLevelFilter.Enabled)
 				{
 					foreach (var item in LogLevelFilter.Items)
@@ -322,7 +330,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				}
 
 				// set up tags filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mTagFilterTableName};");
+				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mTagFilterTableName};");
 				if (TagFilter.Enabled)
 				{
 					foreach (var item in TagFilter.Items)
