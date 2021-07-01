@@ -40,6 +40,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			if (messages == null) throw new ArgumentNullException(nameof(messages));
 			Messages = new List<TMessage>(messages);
+			foreach (var message in Messages) UpdateOverviewCollectionsOnAdd(message);
 		}
 
 		/// <summary>
