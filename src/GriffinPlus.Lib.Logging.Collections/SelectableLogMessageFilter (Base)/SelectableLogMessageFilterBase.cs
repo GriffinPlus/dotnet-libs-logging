@@ -488,7 +488,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				}
 				else
 				{
-					var timestamp = DateTimeOffset.Now;
+					var timestamp = new DateTimeOffset(0, TimeSpan.Zero);
 					TimestampFilter.SetMinMax(timestamp, timestamp);
 				}
 			}

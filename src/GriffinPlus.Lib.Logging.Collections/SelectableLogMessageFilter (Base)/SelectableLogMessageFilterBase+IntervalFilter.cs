@@ -122,7 +122,17 @@ namespace GriffinPlus.Lib.Logging.Collections
 				{
 					base.Reset();
 
-					mMinTimestamp = mMaxTimestamp = DateTimeOffset.Now;
+					var collection = Parent.Collection;
+					if (collection != null && collection.Count > 0)
+					{
+						mMinTimestamp = collection[0].Timestamp;
+						mMaxTimestamp = collection[collection.Count - 1].Timestamp;
+					}
+					else
+					{
+						mMinTimestamp = mMaxTimestamp = new DateTimeOffset(0, TimeSpan.Zero);
+					}
+
 					mFrom = mMinTimestamp;
 					mTo = mMaxTimestamp;
 					mInitialized = false;
