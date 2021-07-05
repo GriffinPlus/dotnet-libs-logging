@@ -15,6 +15,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Gets or sets the text a log message must contain to be matched.
 		/// </summary>
 		string SearchText { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether filtering is done case-sensitive or not.
+		/// </summary>
+		bool IsCaseSensitive { get; set; }
 	}
 
 }
