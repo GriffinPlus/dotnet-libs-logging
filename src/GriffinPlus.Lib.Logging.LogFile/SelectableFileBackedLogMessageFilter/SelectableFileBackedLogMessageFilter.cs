@@ -168,18 +168,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 					" INNER JOIN applications as a ON a.id = m.application_name_id" +
 					" INNER JOIN writers as w ON w.id = m.writer_name_id" +
 					" INNER JOIN levels as l ON l.id = m.level_name_id" +
-					(ProcessIdFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessIdFilterTableName} ON {mFilterDatabaseName}.{mProcessIdFilterTableName}.id = m.process_id" : "") +
-					(ProcessNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessNameFilterTableName} ON {mFilterDatabaseName}.{mProcessNameFilterTableName}.id = p.id" : "") +
-					(ApplicationNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mApplicationNameFilterTableName} ON {mFilterDatabaseName}.{mApplicationNameFilterTableName}.id = a.id" : "") +
-					(LogWriterFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogWriterFilterTableName} ON {mFilterDatabaseName}.{mLogWriterFilterTableName}.id = w.id" : "") +
-					(LogLevelFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogLevelFilterTableName} ON {mFilterDatabaseName}.{mLogLevelFilterTableName}.id = l.id" : "") +
-					(TagFilter.Enabled
+					(Enabled && ProcessIdFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessIdFilterTableName} ON {mFilterDatabaseName}.{mProcessIdFilterTableName}.id = m.process_id" : "") +
+					(Enabled && ProcessNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessNameFilterTableName} ON {mFilterDatabaseName}.{mProcessNameFilterTableName}.id = p.id" : "") +
+					(Enabled && ApplicationNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mApplicationNameFilterTableName} ON {mFilterDatabaseName}.{mApplicationNameFilterTableName}.id = a.id" : "") +
+					(Enabled && LogWriterFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogWriterFilterTableName} ON {mFilterDatabaseName}.{mLogWriterFilterTableName}.id = w.id" : "") +
+					(Enabled && LogLevelFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogLevelFilterTableName} ON {mFilterDatabaseName}.{mLogLevelFilterTableName}.id = l.id" : "") +
+					(Enabled && TagFilter.Enabled
 						 ? " INNER JOIN tag2msg as tm ON tm.message_id = m.id" +
 						   $" INNER JOIN {mFilterDatabaseName}.{mTagFilterTableName} ON {mFilterDatabaseName}.{mTagFilterTableName}.id = tm.tag_id"
 						 : "") +
 					" WHERE {0}" +
-					(TimestampFilter.Enabled ? $" AND m.timestamp BETWEEN {fromTimestamp} AND {toTimestamp}" : "") +
-					(TextFilter.Enabled ? $" AND m.text {likeExpression}" : "") +
+					(Enabled && TimestampFilter.Enabled ? $" AND m.timestamp BETWEEN {fromTimestamp} AND {toTimestamp}" : "") +
+					(Enabled && TextFilter.Enabled ? $" AND m.text {likeExpression}" : "") +
 					" ORDER BY m.id {1}" +
 					" {2};";
 
@@ -197,18 +197,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 					" INNER JOIN writers as w ON w.id = m.writer_name_id" +
 					" INNER JOIN levels as l ON l.id = m.level_name_id" +
 					" INNER JOIN texts as t ON t.id = m.id" +
-					(ProcessIdFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessIdFilterTableName} ON {mFilterDatabaseName}.{mProcessIdFilterTableName}.id = m.process_id" : "") +
-					(ProcessNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessNameFilterTableName} ON {mFilterDatabaseName}.{mProcessNameFilterTableName}.id = p.id" : "") +
-					(ApplicationNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mApplicationNameFilterTableName} ON {mFilterDatabaseName}.{mApplicationNameFilterTableName}.id = a.id" : "") +
-					(LogWriterFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogWriterFilterTableName} ON {mFilterDatabaseName}.{mLogWriterFilterTableName}.id = w.id" : "") +
-					(LogLevelFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogLevelFilterTableName} ON {mFilterDatabaseName}.{mLogLevelFilterTableName}.id = l.id" : "") +
-					(TagFilter.Enabled
+					(Enabled && ProcessIdFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessIdFilterTableName} ON {mFilterDatabaseName}.{mProcessIdFilterTableName}.id = m.process_id" : "") +
+					(Enabled && ProcessNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mProcessNameFilterTableName} ON {mFilterDatabaseName}.{mProcessNameFilterTableName}.id = p.id" : "") +
+					(Enabled && ApplicationNameFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mApplicationNameFilterTableName} ON {mFilterDatabaseName}.{mApplicationNameFilterTableName}.id = a.id" : "") +
+					(Enabled && LogWriterFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogWriterFilterTableName} ON {mFilterDatabaseName}.{mLogWriterFilterTableName}.id = w.id" : "") +
+					(Enabled && LogLevelFilter.Enabled ? $" INNER JOIN {mFilterDatabaseName}.{mLogLevelFilterTableName} ON {mFilterDatabaseName}.{mLogLevelFilterTableName}.id = l.id" : "") +
+					(Enabled && TagFilter.Enabled
 						 ? " INNER JOIN tag2msg as tm ON tm.message_id = m.id" +
 						   $" INNER JOIN {mFilterDatabaseName}.{mTagFilterTableName} ON {mFilterDatabaseName}.{mTagFilterTableName}.id = tm.tag_id"
 						 : "") +
 					" WHERE {0}" +
-					(TimestampFilter.Enabled ? $" AND m.timestamp BETWEEN {fromTimestamp} AND {toTimestamp}" : "") +
-					(TextFilter.Enabled ? $" AND t.text {likeExpression}" : "") +
+					(Enabled && TimestampFilter.Enabled ? $" AND m.timestamp BETWEEN {fromTimestamp} AND {toTimestamp}" : "") +
+					(Enabled && TextFilter.Enabled ? $" AND t.text {likeExpression}" : "") +
 					" ORDER BY m.id {1}" +
 					" {2};";
 
@@ -242,7 +242,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </param>
 		protected override void OnFilterChanged(bool changeEffectsFilterResult)
 		{
-			if (changeEffectsFilterResult)
+			if (mAccessor != null && changeEffectsFilterResult)
 			{
 				RebuildFilterTables();
 				SetupMessageQuery();
@@ -257,94 +257,89 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		private void RebuildFilterTables()
 		{
-			void Operation()
+			// set up process id filter
+			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mProcessIdFilterTableName};");
+			if (Enabled && ProcessIdFilter.Enabled)
 			{
-				// set up process id filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mProcessIdFilterTableName};");
-				if (ProcessIdFilter.Enabled)
+				foreach (var item in ProcessIdFilter.Items)
 				{
-					foreach (var item in ProcessIdFilter.Items)
+					if (item.Selected)
 					{
-						if (item.Selected)
-						{
-							mAddProcessIdToFilterCommand_IdParameter.Value = item.Value;
-							LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddProcessIdToFilterCommand);
-						}
-					}
-				}
-
-				// set up process name filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mProcessNameFilterTableName};");
-				if (ProcessNameFilter.Enabled)
-				{
-					foreach (var item in ProcessNameFilter.Items)
-					{
-						if (item.Selected)
-						{
-							mAddProcessNameToFilterCommand_NameParameter.Value = item.Value;
-							LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddProcessNameToFilterCommand);
-						}
-					}
-				}
-
-				// set up application name filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mApplicationNameFilterTableName};");
-				if (ApplicationNameFilter.Enabled)
-				{
-					foreach (var item in ApplicationNameFilter.Items)
-					{
-						if (item.Selected)
-						{
-							mAddApplicationNameToFilterCommand_NameParameter.Value = item.Value;
-							LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddApplicationNameToFilterCommand);
-						}
-					}
-				}
-
-				// set up log writer filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mLogWriterFilterTableName};");
-				if (LogWriterFilter.Enabled)
-				{
-					foreach (var item in LogWriterFilter.Items)
-					{
-						if (item.Selected)
-						{
-							mAddLogWriterToFilterCommand_NameParameter.Value = item.Value;
-							LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddLogWriterToFilterCommand);
-						}
-					}
-				}
-
-				// set up log level filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mLogLevelFilterTableName};");
-				if (LogLevelFilter.Enabled)
-				{
-					foreach (var item in LogLevelFilter.Items)
-					{
-						if (item.Selected)
-						{
-							mAddLogLevelToFilterCommand_NameParameter.Value = item.Value;
-							LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddLogLevelToFilterCommand);
-						}
-					}
-				}
-
-				// set up tags filter
-				mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mTagFilterTableName};");
-				if (TagFilter.Enabled)
-				{
-					foreach (var item in TagFilter.Items)
-					{
-						if (item.Selected)
-						{
-							mAddTagToFilterCommand_NameParameter.Value = item.Value;
-							LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddTagToFilterCommand);
-						}
+						mAddProcessIdToFilterCommand_IdParameter.Value = item.Value;
+						LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddProcessIdToFilterCommand);
 					}
 				}
 			}
 
-			mAccessor.ExecuteInTransaction(Operation);
+			// set up process name filter
+			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mProcessNameFilterTableName};");
+			if (Enabled && ProcessNameFilter.Enabled)
+			{
+				foreach (var item in ProcessNameFilter.Items)
+				{
+					if (item.Selected)
+					{
+						mAddProcessNameToFilterCommand_NameParameter.Value = item.Value;
+						LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddProcessNameToFilterCommand);
+					}
+				}
+			}
+
+			// set up application name filter
+			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mApplicationNameFilterTableName};");
+			if (Enabled && ApplicationNameFilter.Enabled)
+			{
+				foreach (var item in ApplicationNameFilter.Items)
+				{
+					if (item.Selected)
+					{
+						mAddApplicationNameToFilterCommand_NameParameter.Value = item.Value;
+						LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddApplicationNameToFilterCommand);
+					}
+				}
+			}
+
+			// set up log writer filter
+			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mLogWriterFilterTableName};");
+			if (Enabled && LogWriterFilter.Enabled)
+			{
+				foreach (var item in LogWriterFilter.Items)
+				{
+					if (item.Selected)
+					{
+						mAddLogWriterToFilterCommand_NameParameter.Value = item.Value;
+						LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddLogWriterToFilterCommand);
+					}
+				}
+			}
+
+			// set up log level filter
+			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mLogLevelFilterTableName};");
+			if (Enabled && LogLevelFilter.Enabled)
+			{
+				foreach (var item in LogLevelFilter.Items)
+				{
+					if (item.Selected)
+					{
+						mAddLogLevelToFilterCommand_NameParameter.Value = item.Value;
+						LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddLogLevelToFilterCommand);
+					}
+				}
+			}
+
+			// set up tags filter
+			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mTagFilterTableName};");
+			if (Enabled && TagFilter.Enabled)
+			{
+				foreach (var item in TagFilter.Items)
+				{
+					if (item.Selected)
+					{
+						mAddTagToFilterCommand_NameParameter.Value = item.Value;
+						LogFile.DatabaseAccessor.ExecuteNonQueryCommand(mAddTagToFilterCommand);
+					}
+				}
+			}
 		}
 
 		#endregion
