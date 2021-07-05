@@ -448,7 +448,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <summary>
 		/// Resets all filters to defaults and disables them.
 		/// </summary>
-		public virtual void Reset()
+		protected virtual void Reset()
 		{
 			TimestampFilter.Reset();
 			LogWriterFilter.Reset();

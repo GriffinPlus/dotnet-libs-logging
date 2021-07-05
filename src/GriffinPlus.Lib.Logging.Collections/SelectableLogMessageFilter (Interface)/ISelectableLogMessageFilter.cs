@@ -67,11 +67,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Gets the message text filter.
 		/// </summary>
 		ISelectableLogMessageFilter_FulltextFilter TextFilter { get; }
-
-		/// <summary>
-		/// Resets all filters to defaults and disables them.
-		/// </summary>
-		void Reset();
 	}
 
 }
