@@ -496,7 +496,7 @@ namespace GriffinPlus.Lib.Logging
 				readOnly,
 				usedOnly,
 				message => new[] { message.LogWriterName },
-				file => file.GetLogWriterNames(usedOnly));
+				file => file.GetLogWriterNames(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 		}
 
 		/// <summary>
@@ -526,7 +526,7 @@ namespace GriffinPlus.Lib.Logging
 				readOnly,
 				usedOnly,
 				message => new[] { message.LogLevelName },
-				file => file.GetLogLevelNames(usedOnly));
+				file => file.GetLogLevelNames(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 		}
 
 		/// <summary>
@@ -556,7 +556,7 @@ namespace GriffinPlus.Lib.Logging
 				readOnly,
 				usedOnly,
 				message => message.Tags,
-				file => file.GetTags(usedOnly));
+				file => file.GetTags(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 		}
 
 		/// <summary>
@@ -586,7 +586,7 @@ namespace GriffinPlus.Lib.Logging
 				readOnly,
 				usedOnly,
 				message => new[] { message.ApplicationName },
-				file => file.GetApplicationNames(usedOnly));
+				file => file.GetApplicationNames(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 		}
 
 		/// <summary>
@@ -616,7 +616,7 @@ namespace GriffinPlus.Lib.Logging
 				readOnly,
 				usedOnly,
 				message => new[] { message.ProcessName },
-				file => file.GetProcessNames(usedOnly));
+				file => file.GetProcessNames(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 		}
 
 		/// <summary>
@@ -700,7 +700,7 @@ namespace GriffinPlus.Lib.Logging
 					var expectedNamesSet = new HashSet<string>();
 					foreach (var message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
 					var expectedNames = new List<string>(expectedNamesSet);
-					expectedNames.Sort(); // the list returned by the log file is expected to be sorted ascendingly
+					expectedNames.Sort(StringComparer.OrdinalIgnoreCase); // the list returned by the log file is expected to be sorted ascendingly
 
 					// perform the action to test on the log file and compare with the expected result
 					string[] names = action(file);
