@@ -8,6 +8,8 @@
 using System;
 using System.Collections.Generic;
 
+using Xunit;
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -35,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 			int maxDifferentWritersCount      = 50,
 			int maxDifferentLevelsCount       = 50,
 			int maxDifferentApplicationsCount = 3,
-			int maxDifferentProcessIdsCount   = 100000) where TMessage : class, ILogMessage, new()
+			int maxDifferentProcessIdsCount   = 10000) where TMessage : class, ILogMessage, new()
 		{
 			var messages = new List<TMessage>();
 
@@ -53,7 +55,8 @@ namespace GriffinPlus.Lib.Logging
 				int processId = random.Next(1, maxDifferentProcessIdsCount);
 
 				// build tag set to associate with a message (up to 3 tags per message)
-				int tagCount = random.Next(0, 3);
+				// (the first and the last message must contain at least one tag for filter tests)
+				int tagCount = random.Next(i == 0 || i == count - 1 ? 1 : 0, 3);
 				var tags = new TagSet();
 				for (int j = 0; j < tagCount; j++) tags += allTags[random.Next(0, allTags.Count - 1)];
 
@@ -68,7 +71,7 @@ namespace GriffinPlus.Lib.Logging
 					ApplicationName = $"Application {random.Next(1, maxDifferentApplicationsCount)}",
 					ProcessName = $"Process {processId}",
 					ProcessId = processId,
-					Text = $"Just a log message with some random content ({random.Next(0, 100000)})"
+					Text = $"[{i + 1:D6}/{count:D6}] Log message # Generated Text: {i / 10:D6}/{'a' + i % 10}" // lower-case letter in text only
 				};
 
 				// move the timestamps up to 1 day into the future
@@ -77,6 +80,28 @@ namespace GriffinPlus.Lib.Logging
 				highPrecisionTimestamp += timeSkip.Ticks * 10; // the high precision timestamp is in nanoseconds, ticks are in 100ps
 
 				messages.Add(message);
+			}
+
+			// the first an the last message should have different field values to allow the tests to match properly
+			if (count > 0)
+			{
+				var firstMessage = messages[0];
+				firstMessage.LogWriterName = "log writer of first message";
+				firstMessage.LogLevelName = "log level of first message";
+				firstMessage.ApplicationName = "application name of first message";
+				firstMessage.ProcessName = "process name of first message"; 
+				firstMessage.ProcessId = int.MinValue;
+				firstMessage.Tags = new TagSet("tag-of-first-message");
+				// firstMessage.Text is just fine
+
+				var lastMessage = messages[count - 1];
+				lastMessage.LogWriterName = "log writer of last message";
+				lastMessage.LogLevelName = "log level of last message";
+				lastMessage.ApplicationName = "application name of last message";
+				lastMessage.ProcessName = "process name of last message";
+				lastMessage.ProcessId = int.MaxValue;
+				lastMessage.Tags = new TagSet("tag-of-last-message");
+				// lastMessage.Text is just fine
 			}
 
 			return messages.ToArray();
