@@ -214,7 +214,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 						// filter should accumulate items
 						// => unselect all items, but do not remove anything
 						foreach (var item in mCombinedItems)
-						{ 
+						{
 							item.Selected = false;
 						}
 					}
@@ -333,7 +333,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 								item = new Item(mDefaultGroup, value, false);
 							}
 
-							mSortedItems.Add(item);
 							int index = mSortedItems.BinarySearch(item, mComparer);
 							Debug.Assert(index < 0);
 							item.PropertyChanged += ItemPropertyChanged;
