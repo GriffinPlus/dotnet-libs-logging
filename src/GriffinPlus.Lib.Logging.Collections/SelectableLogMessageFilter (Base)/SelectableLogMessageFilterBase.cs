@@ -16,12 +16,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 {
 
 	/// <summary>
-	/// Base class for a log message filters that provides collections of fields that can be selected to be filtered.
-	/// This filter supports data-binding and is therefore a perfect fit for user interfaces that present a list
+	/// Base class for log message filters that provide collections of fields that can be selected to be filtered.
+	/// This type of filter supports data-binding and is therefore a perfect fit for user interfaces that present a list
 	/// of selectable items for log writers, levels, processes etc.
 	/// </summary>
 	public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection> :
-		ISelectableLogMessageFilter<TMessage>
+		ISelectableLogMessageFilter<TMessage>,
+		IDisposable
 		where TMessage : class, ILogMessage
 		where TUnfilteredCollection : LogMessageCollectionBase<TMessage>
 	{
@@ -46,6 +47,26 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// populate the log level filter with predefined log levels that always remain in the filter (static items)
 			LogLevelFilter.AddStaticItems(LogLevel.PredefinedLogLevels.Select(x => x.Name), PredefinedLogLevelGroup);
+		}
+
+		/// <summary>
+		/// Disposes the filter detaching it from the collection and releasing unmanaged resources.
+		/// </summary>
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		/// <summary>
+		/// Disposes the filter detaching it from the collection and releasing unmanaged resources.
+		/// </summary>
+		/// <param name="disposing">
+		/// <c>true</c>, if Dispose() was called intentionally;
+		/// <c>false</c> if running as part of the finalization.
+		/// </param>
+		protected virtual void Dispose(bool disposing)
+		{
+			DetachFromCollection();
 		}
 
 		#region PropertyChanged Event
@@ -368,7 +389,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// register from changes to the unfiltered collection
 				Collection.CollectionChanged -= OnUnfilteredCollectionChanged;
 
-				// unbind specific filters to overview collections
+				// unbind specific filters from overview collections
 				LogWriterFilter.BindToOverviewCollection(null);
 				LogLevelFilter.BindToOverviewCollection(null);
 				TagFilter.BindToOverviewCollection(null);
@@ -376,6 +397,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				ProcessNameFilter.BindToOverviewCollection(null);
 				ProcessIdFilter.BindToOverviewCollection(null);
 
+				// remove collection association
 				Collection = null;
 			}
 		}
@@ -416,7 +438,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// match message text (most expensive operation)
-			if (TextFilter.Enabled && !TextFilter.Matches(message.Text)) return false;
+			if (TextFilter.Enabled && !TextFilter.Matches(message.Text))
+				return false;
 
 			// message passed all filters
 			return true;

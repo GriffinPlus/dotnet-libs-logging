@@ -3,6 +3,7 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.ComponentModel;
 
 namespace GriffinPlus.Lib.Logging.Collections
@@ -16,7 +17,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 	/// <typeparam name="TMessage">Type of the log message.</typeparam>
 	public interface ISelectableLogMessageFilter<TMessage> :
 		ILogMessageCollectionFilterBase<TMessage>,
-		INotifyPropertyChanged
+		INotifyPropertyChanged,
+		IDisposable
 		where TMessage : class, ILogMessage
 	{
 		/// <summary>
