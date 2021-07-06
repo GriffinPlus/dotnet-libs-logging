@@ -604,7 +604,12 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		private void UpdateFirstMatchingMessageId()
 		{
-			if (mCollection.LogFile.OldestMessageId < 0) mFirstMatchingMessageId = -1;
+			if (mCollection.LogFile.OldestMessageId < 0)
+			{
+				mFirstMatchingMessageId = -1;
+				return;
+			}
+
 			var message = mFilter.GetNextMessage(mCollection.LogFile.OldestMessageId);
 			mFirstMatchingMessageId = message?.Id ?? -1;
 		}
@@ -614,7 +619,12 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		private void UpdateLastMatchingMessageId()
 		{
-			if (mCollection.LogFile.NewestMessageId < 0) mLastMatchingMessageId = -1;
+			if (mCollection.LogFile.NewestMessageId < 0)
+			{
+				mLastMatchingMessageId = -1;
+				return;
+			}
+
 			var message = mFilter.GetPreviousMessage(mCollection.LogFile.NewestMessageId);
 			mLastMatchingMessageId = message?.Id ?? -1;
 		}
