@@ -25,6 +25,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// The first log message matching the filter;
 		/// null, if no message matching the filter was found.
 		/// </returns>
+		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromMessageId"/> exceeds the bounds of the log file.</exception>
 		LogFileMessage GetPreviousMessage(long fromMessageId);
 
@@ -38,6 +39,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <c>false</c> to return the list of messages in the opposite order.
 		/// </param>
 		/// <returns>Log messages matching the filter.</returns>
+		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromMessageId"/> exceeds the bounds of the log file.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> is negative.</exception>
 		LogFileMessage[] GetPreviousMessages(
@@ -53,6 +55,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// The first log message matching the filter;
 		/// null, if no message matching the filter was found.
 		/// </returns>
+		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromMessageId"/> exceeds the bounds of the log file.</exception>
 		LogFileMessage GetNextMessage(long fromMessageId);
 
@@ -62,6 +65,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
 		/// <param name="count">Maximum number of matching log messages to get.</param>
 		/// <returns>Log messages matching the filter.</returns>
+		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromMessageId"/> exceeds the bounds of the log file.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> is negative.</exception>
 		LogFileMessage[] GetNextMessages(long fromMessageId, long count);
@@ -72,6 +76,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
 		/// <param name="toMessageId">Id of the log message in the log file to stop at.</param>
 		/// <returns>Log messages matching the filter.</returns>
+		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// <paramref name="fromMessageId"/> or <paramref name="toMessageId"/> exceeds the bounds of the log file.
 		/// </exception>
