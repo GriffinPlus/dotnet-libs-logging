@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<package>
+	<metadata minClientVersion="3.3">
+		<id>GriffinPlus.Lib.Logging.LogServicePipelineStage</id>
+		<version>$version$</version>
+		<authors>Sascha Falk</authors>
+		<copyright>Copyright (c) 2021 Sascha Falk and Contributors</copyright>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>A pipeline stage for the Griffin+ logging subsystem that forwards log messages to the Griffin+ log service.</description>
+		<license type="expression">MIT</license>
+		<projectUrl>https://github.com/GriffinPlus/dotnet-libs-logging</projectUrl>
+		<icon>images/nuget-icon.png</icon>
+		<tags>logging</tags>
+		<dependencies>
+			<group targetFramework="netstandard2.0">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
+				<dependency id="GriffinPlus.Lib.Logging.LogService" version="[$version$]" include="all" />
+			</group>
+			<group targetFramework="net461">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
+				<dependency id="GriffinPlus.Lib.Logging.LogService" version="[$version$]" include="all" />
+			</group>
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="..\..\..\res\nuget-icon.png" target="images\" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogServicePipelineStage\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.LogServicePipelineStage.dll" target="lib\netstandard2.0" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogServicePipelineStage\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.LogServicePipelineStage.pdb" target="lib\netstandard2.0" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogServicePipelineStage\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.LogServicePipelineStage.xml" target="lib\netstandard2.0" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogServicePipelineStage\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.LogServicePipelineStage.dll" target="lib\net461" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogServicePipelineStage\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.LogServicePipelineStage.pdb" target="lib\net461" />
+		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogServicePipelineStage\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.LogServicePipelineStage.xml" target="lib\net461" />
+	</files>
+</package>
