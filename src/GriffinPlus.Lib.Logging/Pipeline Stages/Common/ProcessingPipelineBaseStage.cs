@@ -592,6 +592,16 @@ namespace GriffinPlus.Lib.Logging
 		#region Helpers
 
 		/// <summary>
+		/// Throws an <see cref="InvalidOperationException"/>, if the pipeline stage is not initialized (attached to the logging subsystem).
+		/// It's also ok, if the pipeline stage is initializing at the moment.
+		/// </summary>
+		protected void EnsureAttachedToLoggingSubsystem()
+		{
+			if (!mInitialized && !mInitializing)
+				throw new InvalidOperationException("The pipeline stage is not initialized. Consider attaching the pipeline stage to the logging subsystem before.");
+		}
+
+		/// <summary>
 		/// Throws an <see cref="InvalidOperationException"/>, if the pipeline stage is already initialized (attached to the logging subsystem).
 		/// Also, the pipeline stage must not be initializing.
 		/// </summary>
