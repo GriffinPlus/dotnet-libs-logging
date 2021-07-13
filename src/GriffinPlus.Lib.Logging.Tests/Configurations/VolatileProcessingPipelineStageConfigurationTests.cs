@@ -39,7 +39,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Create_WithSyncObject()
 		{
-			var sync = new object();
+			object sync = new object();
 			var configuration = new VolatileProcessingPipelineStageConfiguration(null, sync);
 			Assert.Same(sync, configuration.Sync);
 		}

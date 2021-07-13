@@ -115,7 +115,8 @@ namespace GriffinPlus.Lib.Logging
 		protected internal object Sync { get; }
 
 		/// <summary>
-		/// Gets the setting with the specified name.
+		/// Registers the setting with the specified name
+		/// (creates a new setting with the specified default value, if the setting does not exist).
 		/// </summary>
 		/// <typeparam name="T">Type of the setting (can be a primitive type, a string or an enum).</typeparam>
 		/// <param name="name">
@@ -125,8 +126,25 @@ namespace GriffinPlus.Lib.Logging
 		/// - Period (.)
 		/// </param>
 		/// <param name="defaultValue">Default value of the setting.</param>
-		/// <returns>The requested setting.</returns>
-		public abstract IProcessingPipelineStageSetting<T> GetSetting<T>(string name, T defaultValue);
+		/// <returns>The setting.</returns>
+		public abstract IProcessingPipelineStageSetting<T> RegisterSetting<T>(string name, T defaultValue);
+
+		/// <summary>
+		/// Gets the setting with the specified name.
+		/// </summary>
+		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
+		/// <param name="name">Name of the setting.</param>
+		/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
+		public abstract IProcessingPipelineStageSetting<T> GetSetting<T>(string name);
+
+		/// <summary>
+		/// Sets the setting with the specified name (creates a new setting, if it does not exist, yet).
+		/// </summary>
+		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
+		/// <param name="name">Name of the setting.</param>
+		/// <param name="value">New value of the setting.</param>
+		/// <returns>The setting.</returns>
+		public abstract IProcessingPipelineStageSetting<T> SetSetting<T>(string name, T value);
 
 		#region Implementation of IReadOnlyDictionary<>
 

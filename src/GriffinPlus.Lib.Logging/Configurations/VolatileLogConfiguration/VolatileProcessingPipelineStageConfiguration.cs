@@ -38,18 +38,84 @@ namespace GriffinPlus.Lib.Logging
 		public override string Name { get; }
 
 		/// <summary>
+		/// Registers the setting with the specified name
+		/// (creates a new setting with the specified default value, if the setting does not exist).
+		/// </summary>
+		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
+		/// <param name="name">Name of the setting.</param>
+		/// <param name="defaultValue">Default value of the setting, if the setting does not exist, yet.</param>
+		/// <returns>The setting.</returns>
+		public override IProcessingPipelineStageSetting<T> RegisterSetting<T>(string name, T defaultValue)
+		{
+			// ensure that the specified name is well-formed and the setting value type is supported
+			CheckSettingName(name);
+			CheckSettingTypeIsSupported(typeof(T));
+
+			lock (Sync)
+			{
+				ValueFromStringConverter<T> fromConverter;
+				ValueToStringConverter<T> toConverter;
+
+				if (typeof(T).IsEnum)
+				{
+					fromConverter = ConvertStringToEnum<T>;
+					toConverter = ConvertEnumToString;
+				}
+				else
+				{
+					fromConverter = (ValueFromStringConverter<T>)ValueFromStringConverters[typeof(T)];
+					toConverter = (ValueToStringConverter<T>)ValueToStringConverters[typeof(T)];
+				}
+
+				VolatileProcessingPipelineStageRawSetting rawSetting;
+				if (!mSettings.TryGetValue(name, out var setting))
+				{
+					// the setting with the specified name was not requested before
+					// => check whether there is an underlying raw setting
+					if (!mRawSettings.TryGetValue(name, out rawSetting))
+					{
+						// the underlying raw setting does not exist => create it
+						rawSetting = new VolatileProcessingPipelineStageRawSetting(this, name, toConverter(defaultValue));
+						mRawSettings.Add(name, rawSetting);
+					}
+
+					// create a new setting with the specified name
+					setting = new VolatileProcessingPipelineStageSetting<T>(rawSetting, fromConverter, toConverter);
+					mSettings.Add(name, setting);
+				}
+
+				// setting with the same name exists
+
+				// ensure that the setting value types are the same
+				if (setting.ValueType != typeof(T))
+				{
+					string message = $"The setting exists already, but the specified types ({typeof(T).FullName}) differs from the value type of the existing setting ({setting.ValueType.FullName}).";
+					throw new ArgumentException(message);
+				}
+
+				// set the default value of the raw item, if it is not already set
+				// (this can happen, if a setting has been created without a default value before)
+				rawSetting = ((VolatileProcessingPipelineStageSetting<T>)setting).Raw;
+				if (!rawSetting.HasDefaultValue) rawSetting.DefaultValue = toConverter(defaultValue);
+
+				// ensure that the setting default values are the same
+				if (!Equals(setting.DefaultValue, defaultValue))
+				{
+					string message = $"The setting exists already, but the specified default value ({defaultValue}) does not match the default value of the existing setting ({setting.DefaultValue}).";
+					throw new ArgumentException(message);
+				}
+
+				return (IProcessingPipelineStageSetting<T>)setting;
+			}
+		}
+
+		/// <summary>
 		/// Gets the setting with the specified name.
 		/// </summary>
-		/// <typeparam name="T">Type of the setting (can be a primitive type, a string or an enum).</typeparam>
-		/// <param name="name">
-		/// Name of the setting. The following characters are allowed:
-		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
-		/// - square brackets ( [] )
-		/// - Period (.)
-		/// </param>
-		/// <param name="defaultValue">Default value of the setting.</param>
-		/// <returns>The requested setting.</returns>
-		public override IProcessingPipelineStageSetting<T> GetSetting<T>(string name, T defaultValue)
+		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
+		/// <param name="name">Name of the setting.</param>
+		/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
+		public override IProcessingPipelineStageSetting<T> GetSetting<T>(string name)
 		{
 			// ensure that the specified name is well-formed and the setting value type is supported
 			CheckSettingName(name);
@@ -73,27 +139,17 @@ namespace GriffinPlus.Lib.Logging
 						toConverter = (ValueToStringConverter<T>)ValueToStringConverters[typeof(T)];
 					}
 
+					// abort, if there is no raw setting backing the setting
 					if (!mRawSettings.TryGetValue(name, out var rawSetting))
-					{
-						rawSetting = new VolatileProcessingPipelineStageRawSetting(
-							this,
-							name,
-							toConverter(defaultValue));
+						return null;
 
-						mRawSettings.Add(name, rawSetting);
-					}
-
-					var newSetting = new VolatileProcessingPipelineStageSetting<T>(
-						rawSetting,
-						fromConverter,
-						toConverter);
-
-					mSettings.Add(name, newSetting);
-
-					return newSetting;
+					// a raw setting with the specified name exists
+					// => create a new setting based on the raw setting
+					setting = new VolatileProcessingPipelineStageSetting<T>(rawSetting, fromConverter, toConverter);
+					mSettings.Add(name, setting);
 				}
 
-				// setting with the same name exists already
+				// setting with the name exists
 
 				// ensure that the setting value types are the same
 				if (setting.ValueType != typeof(T))
@@ -102,14 +158,66 @@ namespace GriffinPlus.Lib.Logging
 					throw new ArgumentException(message);
 				}
 
-				// ensure that the setting default values are the same
-				if (!Equals(setting.DefaultValue, defaultValue))
+				return (IProcessingPipelineStageSetting<T>)setting;
+			}
+		}
+
+		/// <summary>
+		/// Sets the setting with the specified name (creates a new setting, if it does not exist, yet).
+		/// </summary>
+		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
+		/// <param name="name">Name of the setting.</param>
+		/// <param name="value">New value of the setting.</param>
+		/// <returns>The setting.</returns>
+		public override IProcessingPipelineStageSetting<T> SetSetting<T>(string name, T value)
+		{
+			// ensure that the specified name is well-formed and the setting value type is supported
+			CheckSettingName(name);
+			CheckSettingTypeIsSupported(typeof(T));
+
+			lock (Sync)
+			{
+				if (!mSettings.TryGetValue(name, out var setting))
 				{
-					string message = $"The setting exists already, but the specified default value ({defaultValue}) does not match the default value of the existing setting ({setting.DefaultValue}).";
+					ValueFromStringConverter<T> fromConverter;
+					ValueToStringConverter<T> toConverter;
+
+					if (typeof(T).IsEnum)
+					{
+						fromConverter = ConvertStringToEnum<T>;
+						toConverter = ConvertEnumToString;
+					}
+					else
+					{
+						fromConverter = (ValueFromStringConverter<T>)ValueFromStringConverters[typeof(T)];
+						toConverter = (ValueToStringConverter<T>)ValueToStringConverters[typeof(T)];
+					}
+
+					// create a new raw setting, if it does not exist, yet
+					if (!mRawSettings.TryGetValue(name, out var rawSetting))
+					{
+						rawSetting = new VolatileProcessingPipelineStageRawSetting(this, name);
+						mRawSettings.Add(name, rawSetting);
+					}
+
+					// create a new setting based on the raw setting
+					setting = new VolatileProcessingPipelineStageSetting<T>(rawSetting, fromConverter, toConverter);
+					mSettings.Add(name, setting);
+				}
+
+				// setting with the same name exists
+
+				// ensure that the setting value types are the same
+				if (setting.ValueType != typeof(T))
+				{
+					string message = $"The setting exists already, but the specified types ({typeof(T).FullName}) differs from the value type of the existing setting ({setting.ValueType.FullName}).";
 					throw new ArgumentException(message);
 				}
 
-				return setting as IProcessingPipelineStageSetting<T>;
+				// set the value
+				setting.Value = value;
+
+				return (IProcessingPipelineStageSetting<T>)setting;
 			}
 		}
 

@@ -42,6 +42,11 @@ namespace GriffinPlus.Lib.Logging
 		string ValueAsString { get; set; }
 
 		/// <summary>
+		/// Gets a value indicating whether the setting has valid default value.
+		/// </summary>
+		bool HasDefaultValue { get; }
+
+		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
 		T DefaultValue { get; }

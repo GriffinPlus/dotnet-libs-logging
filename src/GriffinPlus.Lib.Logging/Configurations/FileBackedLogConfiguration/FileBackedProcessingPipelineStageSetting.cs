@@ -37,6 +37,11 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets the raw setting containing the string representation of the setting.
+		/// </summary>
+		internal FileBackedProcessingPipelineStageRawSetting Raw => mRawSetting;
+
+		/// <summary>
 		/// Gets the name of the setting.
 		/// </summary>
 		public string Name => mRawSetting.Name;
@@ -100,6 +105,11 @@ namespace GriffinPlus.Lib.Logging
 			get => mRawSetting.Value;
 			set => mRawSetting.Value = value;
 		}
+
+		/// <summary>
+		/// Gets a value indicating whether the setting has valid default value.
+		/// </summary>
+		public bool HasDefaultValue => mRawSetting.HasDefaultValue;
 
 		/// <summary>
 		/// Gets the default value of the setting.

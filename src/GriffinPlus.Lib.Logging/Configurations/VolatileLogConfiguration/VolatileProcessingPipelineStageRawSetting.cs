@@ -3,6 +3,8 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -11,12 +13,14 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class VolatileProcessingPipelineStageRawSetting : IProcessingPipelineStageRawSetting
 	{
-		private readonly string mDefaultValue;
-		private          string mValue;
-		private          bool   mHasValue;
+		private string mValue;
+		private bool   mHasValue;
+		private string mDefaultValue;
+		private bool   mHasDefaultValue;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageRawSetting"/> class.
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageRawSetting"/> class
+		/// with a default value.
 		/// </summary>
 		/// <param name="configuration">The configuration the setting belongs to.</param>
 		/// <param name="name">Name of the setting.</param>
@@ -30,6 +34,24 @@ namespace GriffinPlus.Lib.Logging
 			Name = name;
 			mDefaultValue = mValue = defaultValue;
 			mHasValue = false;
+			mHasDefaultValue = true;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageRawSetting"/> class
+		/// without a default value.
+		/// </summary>
+		/// <param name="configuration">The configuration the setting belongs to.</param>
+		/// <param name="name">Name of the setting.</param>
+		internal VolatileProcessingPipelineStageRawSetting(
+			VolatileProcessingPipelineStageConfiguration configuration,
+			string                                       name)
+		{
+			StageConfiguration = configuration;
+			Name = name;
+			mDefaultValue = mValue = null;
+			mHasValue = false;
+			mHasDefaultValue = false;
 		}
 
 		/// <summary>
@@ -83,13 +105,37 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a value indicating whether the setting has valid default value.
+		/// </summary>
+		internal bool HasDefaultValue
+		{
+			get
+			{
+				lock (StageConfiguration.Sync) return mHasDefaultValue;
+			}
+		}
+
+		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
 		public string DefaultValue
 		{
 			get
 			{
-				lock (StageConfiguration.Sync) return mDefaultValue;
+				lock (StageConfiguration.Sync)
+				{
+					if (!mHasDefaultValue) throw new InvalidOperationException("The item does not have a default value.");
+					return mDefaultValue;
+				}
+			}
+
+			internal set
+			{
+				lock (StageConfiguration.Sync)
+				{
+					mDefaultValue = value;
+					mHasDefaultValue = true;
+				}
 			}
 		}
 

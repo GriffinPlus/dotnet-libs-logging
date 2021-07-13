@@ -3,6 +3,7 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.Collections.Generic;
 
 namespace GriffinPlus.Lib.Logging
@@ -13,8 +14,28 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class FileBackedProcessingPipelineStageRawSetting : IProcessingPipelineStageRawSetting
 	{
+		private bool   mHasDefaultValue;
+		private string mDefaultValue;
+
 		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageRawSetting"/> class.
+		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageRawSetting"/> class
+		/// without a default value.
+		/// </summary>
+		/// <param name="configuration">The configuration the setting belongs to.</param>
+		/// <param name="name">Name of the setting.</param>
+		internal FileBackedProcessingPipelineStageRawSetting(
+			FileBackedProcessingPipelineStageConfiguration configuration,
+			string                                         name)
+		{
+			StageConfiguration = configuration;
+			Name = name;
+			mHasDefaultValue = false;
+			mDefaultValue = null;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageRawSetting"/> class
+		/// with a default value.
 		/// </summary>
 		/// <param name="configuration">The configuration the setting belongs to.</param>
 		/// <param name="name">Name of the setting.</param>
@@ -26,7 +47,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			StageConfiguration = configuration;
 			Name = name;
-			DefaultValue = defaultValue;
+			mHasDefaultValue = true;
+			mDefaultValue = defaultValue;
 		}
 
 		/// <summary>
@@ -103,9 +125,39 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a value indicating whether the setting has valid default value.
+		/// </summary>
+		internal bool HasDefaultValue
+		{
+			get
+			{
+				lock (StageConfiguration.Sync) return mHasDefaultValue;
+			}
+		}
+
+		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
-		public string DefaultValue { get; }
+		public string DefaultValue
+		{
+			get
+			{
+				lock (StageConfiguration.Sync)
+				{
+					if (!mHasDefaultValue) throw new InvalidOperationException("The item does not have a default value.");
+					return mDefaultValue;
+				}
+			}
+
+			internal set
+			{
+				lock (StageConfiguration.Sync)
+				{
+					mDefaultValue = value;
+					mHasDefaultValue = true;
+				}
+			}
+		}
 
 		/// <summary>
 		/// Gets the string representation of the setting.

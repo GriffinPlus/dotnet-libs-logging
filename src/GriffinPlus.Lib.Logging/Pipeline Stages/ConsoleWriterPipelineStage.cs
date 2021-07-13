@@ -165,7 +165,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		protected override void BindSettings()
 		{
-			mDefaultStreamSetting = Settings.GetSetting(SettingName_DefaultStream, ConsoleOutputStream.Stdout);
+			mDefaultStreamSetting = Settings.RegisterSetting(SettingName_DefaultStream, ConsoleOutputStream.Stdout);
 		}
 
 		/// <summary>
