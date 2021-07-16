@@ -3,9 +3,6 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System;
-using System.Threading;
-
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable StringLiteralTypo
 // ReSharper disable UnusedParameter.Local
@@ -13,6 +10,10 @@ using System.Threading;
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable UnusedVariable
 // ReSharper disable UseObjectOrCollectionInitializer
+
+using System;
+using System.IO;
+using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
@@ -80,16 +81,16 @@ namespace GriffinPlus.Lib.Logging.Demo
 			{
 				// Add configuration for log writers that attach 'TagA'
 				// - set base log level to 'None' effectively silencing the log writer
-				// - include log level 'Note'
+				// - include log level 'Notice'
 				// - no excluded log levels
 				// - tags must contain 'TagA'
-				// => enabled log levels: 'Note'
+				// => enabled log levels: 'Notice'
 				config.AddLogWritersByWildcard(
 					"*",
 					x => x
 						.WithTag("TagA")
 						.WithBaseLevel(LogLevel.None)
-						.WithLevel(LogLevel.Note));
+						.WithLevel(LogLevel.Notice));
 
 				// Add configuration for log writers that attach 'TagB' and/or 'TagC'
 				// - set base log level to 'None' effectively silencing the log writer
@@ -105,15 +106,15 @@ namespace GriffinPlus.Lib.Logging.Demo
 						.WithLevel(LogLevel.Warning));
 
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass1' only
-				// - set base log level to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-				// - include log level 'Trace0'
+				// - set base log level to 'Notice' => enables log level 'Emergency', 'Alert', 'Critical', 'Error', 'Warning' and 'Notice'
+				// - include log level 'Trace'
 				// - exclude log level 'Warning'
 				// - tags are not evaluated
-				// => enabled log levels: 'Failure', 'Error', 'Note', 'Trace0'
+				// => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Notice', 'Trace'
 				config.AddLogWriter<MyClass1>(
 					x => x
-						.WithBaseLevel(LogLevel.Note)
-						.WithLevel(LogLevel.Trace0)
+						.WithBaseLevel(LogLevel.Notice)
+						.WithLevel(LogLevel.Trace)
 						.WithoutLevel("Warning"));
 
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass2' only
@@ -127,37 +128,37 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 				// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass3' only
 				// - set base log level to 'All' enabling all log levels (including aspects)
-				// - exclude all log levels from 'Trace10' up to 'Trace19'
+				// - exclude all log levels from 'Informational' up to 'Trace' ('Informational', 'Debug', 'Trace')
 				// - tags are not evaluated
-				// => enabled log levels: All log levels, but 'Trace[10-19]'
+				// => enabled log levels: All log levels, but 'Informational', 'Debug', 'Trace'
 				config.AddLogWriter(
 					typeof(MyClass3),
 					x => x
 						.WithBaseLevel(LogLevel.All)
-						.WithoutLevelRange(LogLevel.Trace10, LogLevel.Trace19));
+						.WithoutLevelRange(LogLevel.Informational, LogLevel.Debug));
 
 				// Add configuration for log writers matching regex pattern
 				// - pattern matches 'GriffinPlus.Lib.Logging.Demo.MyClassA' and 'GriffinPlus.Lib.Logging.Demo.MyClassB'
-				// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-				// - include all log levels from 'Trace10' up to 'Trace15'
+				// - base level defaults to 'Error' => enables log level 'Emergency', 'Alert', 'Critical', 'Error'
+				// - include all log levels from 'Informational' up to 'Trace' ('Informational', 'Debug', 'Trace')
 				// - no excluded log levels
 				// - tags are not evaluated
-				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace0'
+				// => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Informational', 'Debug'
 				config.AddLogWritersByRegex(
 					"^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$",
-					x => x.WithLevelRange(LogLevel.Trace10, LogLevel.Trace15));
+					x => x.WithLevelRange(LogLevel.Informational, LogLevel.Debug));
 
 				// Add configuration for log writers matching wildcard pattern
 				// - applies to 'GriffinPlus.Lib.Logging.Demo.MyClass4' only
 				//   (other writers are handled by preceding steps)
-				// - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-				// - include log level 'Trace15'
+				// - base level defaults to 'Error' => enables log level 'Emergency', 'Alert', 'Critical', 'Error'
+				// - include log level 'Trace'
 				// - no excluded log levels
 				// - tags are not evaluated
-				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace15'
+				// => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Trace'
 				config.AddLogWritersByWildcard(
 					"GriffinPlus.Lib.Logging.Demo.MyClass*",
-					x => x.WithLevel(LogLevel.Trace15));
+					x => x.WithLevel(LogLevel.Trace));
 
 				// Add configuration for log writer 'My Fancy Writer'
 				// (matches everything that was not handled explicitly before)
@@ -177,9 +178,9 @@ namespace GriffinPlus.Lib.Logging.Demo
 				config.AddLogWriterTiming();
 
 				// Add default configuration for log writers that have not been handled up to this point
-				// - base level defaults  to level 'Note'
+				// - base level defaults  to level 'Notice'
 				// - no included/excluded log levels
-				// => enabled log levels: 'Failure', 'Error', 'Warning', 'Note'
+				// => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Warning', 'Notice'
 				config.AddLogWriterDefault();
 
 				// Set application name (optional)
@@ -220,13 +221,15 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// Create pipeline stage for printing to the console
 			var consoleStage = new ConsoleWriterPipelineStage("Console");
-			consoleStage.MessageQueueSize = 500;                                            // buffer up to 500 messages (default)
-			consoleStage.DiscardMessagesIfQueueFull = false;                                // block if the queue is full (default)
-			consoleStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                 // wait up to 5000ms for the stage to shut down (default)
-			consoleStage.Formatter = tableFormatter;                                        // use specific formatter
-			consoleStage.DefaultStream = ConsoleOutputStream.Stdout;                        // print to stdout by default (default)
-			consoleStage.MapLogLevelToStream(LogLevel.Failure, ConsoleOutputStream.Stderr); // print failures to stderr
-			consoleStage.MapLogLevelToStream(LogLevel.Error, ConsoleOutputStream.Stderr);   // print errors to stderr
+			consoleStage.MessageQueueSize = 500;                                              // buffer up to 500 messages (default)
+			consoleStage.DiscardMessagesIfQueueFull = false;                                  // block if the queue is full (default)
+			consoleStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                   // wait up to 5000ms for the stage to shut down (default)
+			consoleStage.Formatter = tableFormatter;                                          // use specific formatter
+			consoleStage.DefaultStream = ConsoleOutputStream.Stdout;                          // print to stdout by default (default)
+			consoleStage.MapLogLevelToStream(LogLevel.Emergency, ConsoleOutputStream.Stderr); // print errors to stderr
+			consoleStage.MapLogLevelToStream(LogLevel.Alert, ConsoleOutputStream.Stderr);     // 
+			consoleStage.MapLogLevelToStream(LogLevel.Critical, ConsoleOutputStream.Stderr);  // 
+			consoleStage.MapLogLevelToStream(LogLevel.Error, ConsoleOutputStream.Stderr);     //
 
 			// Create pipeline stage for writing to a file
 			var fileStage = new FileWriterPipelineStage("File", "mylog.log", false);
@@ -236,7 +239,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 			fileStage.Formatter = jsonFormatter;                         // use specific formatter
 			fileStage.AutoFlush = false;                                 // do not flush the file after writing a log message (default)
 
-			// Create splitter pipeline stage to unconditionally feed log messages into both pipelines stages
+			// Create splitter pipeline stage to unconditionally feed log messages into all pipelines stages
 			var splitterStage = new SplitterPipelineStage("Splitter");
 			splitterStage.AddNextStage(consoleStage);
 			splitterStage.AddNextStage(fileStage);
@@ -275,7 +278,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// Use a timing logger to determine how long an operation takes. It uses log level 'Timing' and log writer
 			// 'Timing' by default, so you need to ensure that the configuration lets these messages pass).
-			sLog1.Write(LogLevel.Note, "Presenting a timing logger with default settings...");
+			sLog1.Write(LogLevel.Notice, "Presenting a timing logger with default settings...");
 			using (TimingLogger.Measure())
 			{
 				Thread.Sleep(500);
@@ -283,11 +286,22 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// Use a timing logger, customize the log writer/level it uses and associate an operation name with the
 			// measurement that is printed to the log as well.
-			sLog1.Write(LogLevel.Note, "A timing logger with custom log level/writer and operation name...");
-			using (TimingLogger.Measure(sLog1, LogLevel.Note, "Waiting for 500ms"))
+			sLog1.Write(LogLevel.Notice, "A timing logger with custom log level/writer and operation name...");
+			using (TimingLogger.Measure(sLog1, LogLevel.Notice, "Waiting for 500ms"))
 			{
 				Thread.Sleep(500);
 			}
+
+			// -----------------------------------------------------------------------------------------------------------------
+			// -----------------------------------------------------------------------------------------------------------------
+			// Wait for the user to press a key to shut the logging subsystem down
+			// -----------------------------------------------------------------------------------------------------------------
+			// -----------------------------------------------------------------------------------------------------------------
+
+			Thread.Sleep(1000);
+			Console.WriteLine();
+			Console.WriteLine("Press any key to shut the logging subsystem down...");
+			Console.ReadKey();
 
 			// -----------------------------------------------------------------------------------------------------------------
 			// -----------------------------------------------------------------------------------------------------------------
@@ -297,10 +311,6 @@ namespace GriffinPlus.Lib.Logging.Demo
 
 			// Shut the logging subsystem down
 			Log.Shutdown();
-
-			Console.WriteLine();
-			Console.WriteLine("Press any key to continue...");
-			Console.ReadKey();
 		}
 	}
 

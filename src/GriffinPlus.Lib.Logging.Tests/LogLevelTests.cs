@@ -31,31 +31,15 @@ namespace GriffinPlus.Lib.Logging
 
 		private static readonly LogLevelItem[] sExpectedPredefinedLogLevels =
 		{
-			new LogLevelItem(0, "Failure"),
-			new LogLevelItem(1, "Error"),
-			new LogLevelItem(2, "Warning"),
-			new LogLevelItem(3, "Note"),
-			new LogLevelItem(4, "Developer"),
-			new LogLevelItem(5, "Trace0"),
-			new LogLevelItem(6, "Trace1"),
-			new LogLevelItem(7, "Trace2"),
-			new LogLevelItem(8, "Trace3"),
-			new LogLevelItem(9, "Trace4"),
-			new LogLevelItem(10, "Trace5"),
-			new LogLevelItem(11, "Trace6"),
-			new LogLevelItem(12, "Trace7"),
-			new LogLevelItem(13, "Trace8"),
-			new LogLevelItem(14, "Trace9"),
-			new LogLevelItem(15, "Trace10"),
-			new LogLevelItem(16, "Trace11"),
-			new LogLevelItem(17, "Trace12"),
-			new LogLevelItem(18, "Trace13"),
-			new LogLevelItem(19, "Trace14"),
-			new LogLevelItem(20, "Trace15"),
-			new LogLevelItem(21, "Trace16"),
-			new LogLevelItem(22, "Trace17"),
-			new LogLevelItem(23, "Trace18"),
-			new LogLevelItem(24, "Trace19")
+			new LogLevelItem(0, "Emergency"),
+			new LogLevelItem(1, "Alert"),
+			new LogLevelItem(2, "Critical"),
+			new LogLevelItem(3, "Error"),
+			new LogLevelItem(4, "Warning"),
+			new LogLevelItem(5, "Notice"),
+			new LogLevelItem(6, "Informational"),
+			new LogLevelItem(7, "Debug"),
+			new LogLevelItem(8, "Trace")
 		};
 
 		#endregion
@@ -87,58 +71,26 @@ namespace GriffinPlus.Lib.Logging
 		public void Check_Predefined_LogLevel_Fields()
 		{
 			// ensure that the log level id is as expected
-			Assert.Equal(sExpectedPredefinedLogLevels[0].Id, LogLevel.Failure.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[1].Id, LogLevel.Error.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[2].Id, LogLevel.Warning.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[3].Id, LogLevel.Note.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[4].Id, LogLevel.Developer.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[5].Id, LogLevel.Trace0.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[6].Id, LogLevel.Trace1.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[7].Id, LogLevel.Trace2.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[8].Id, LogLevel.Trace3.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[9].Id, LogLevel.Trace4.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[10].Id, LogLevel.Trace5.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[11].Id, LogLevel.Trace6.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[12].Id, LogLevel.Trace7.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[13].Id, LogLevel.Trace8.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[14].Id, LogLevel.Trace9.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[15].Id, LogLevel.Trace10.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[16].Id, LogLevel.Trace11.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[17].Id, LogLevel.Trace12.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[18].Id, LogLevel.Trace13.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[19].Id, LogLevel.Trace14.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[20].Id, LogLevel.Trace15.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[21].Id, LogLevel.Trace16.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[22].Id, LogLevel.Trace17.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[23].Id, LogLevel.Trace18.Id);
-			Assert.Equal(sExpectedPredefinedLogLevels[24].Id, LogLevel.Trace19.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[0].Id, LogLevel.Emergency.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[1].Id, LogLevel.Alert.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[2].Id, LogLevel.Critical.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[3].Id, LogLevel.Error.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[4].Id, LogLevel.Warning.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[5].Id, LogLevel.Notice.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[6].Id, LogLevel.Informational.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[7].Id, LogLevel.Debug.Id);
+			Assert.Equal(sExpectedPredefinedLogLevels[8].Id, LogLevel.Trace.Id);
 
 			// ensure that the log level name is as expected
-			Assert.Equal(sExpectedPredefinedLogLevels[0].Name, LogLevel.Failure.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[1].Name, LogLevel.Error.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[2].Name, LogLevel.Warning.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[3].Name, LogLevel.Note.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[4].Name, LogLevel.Developer.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[5].Name, LogLevel.Trace0.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[6].Name, LogLevel.Trace1.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[7].Name, LogLevel.Trace2.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[8].Name, LogLevel.Trace3.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[9].Name, LogLevel.Trace4.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[10].Name, LogLevel.Trace5.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[11].Name, LogLevel.Trace6.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[12].Name, LogLevel.Trace7.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[13].Name, LogLevel.Trace8.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[14].Name, LogLevel.Trace9.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[15].Name, LogLevel.Trace10.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[16].Name, LogLevel.Trace11.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[17].Name, LogLevel.Trace12.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[18].Name, LogLevel.Trace13.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[19].Name, LogLevel.Trace14.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[20].Name, LogLevel.Trace15.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[21].Name, LogLevel.Trace16.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[22].Name, LogLevel.Trace17.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[23].Name, LogLevel.Trace18.Name);
-			Assert.Equal(sExpectedPredefinedLogLevels[24].Name, LogLevel.Trace19.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[0].Name, LogLevel.Emergency.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[1].Name, LogLevel.Alert.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[2].Name, LogLevel.Critical.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[3].Name, LogLevel.Error.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[4].Name, LogLevel.Warning.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[5].Name, LogLevel.Notice.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[6].Name, LogLevel.Informational.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[7].Name, LogLevel.Debug.Name);
+			Assert.Equal(sExpectedPredefinedLogLevels[8].Name, LogLevel.Trace.Name);
 		}
 
 		/// <summary>

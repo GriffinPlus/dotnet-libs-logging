@@ -31,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 						DateTimeOffset.Parse("2001-01-01 00:00:00Z"),
 						123,
 						Log.GetWriter("MyWriter1").WithTags(tags),
-						LogLevel.Failure,
+						LogLevel.Emergency,
 						"MyApp1",
 						"MyProcess1",
 						42,
@@ -41,7 +41,7 @@ namespace GriffinPlus.Lib.Logging
 						DateTimeOffset.Parse("2002-01-01 00:00:00Z"),
 						456,
 						Log.GetWriter("MyWriter2").WithTags(tags),
-						LogLevel.Error,
+						LogLevel.Alert,
 						"MyApp2",
 						"MyProcess2",
 						43,
@@ -51,7 +51,7 @@ namespace GriffinPlus.Lib.Logging
 						DateTimeOffset.Parse("2003-01-01 00:00:00Z"),
 						789,
 						Log.GetWriter("MyWriter3").WithTags(tags),
-						LogLevel.Warning,
+						LogLevel.Critical,
 						"MyApp3",
 						"MyProcess3",
 						44,
@@ -59,18 +59,40 @@ namespace GriffinPlus.Lib.Logging
 
 					var message4 = sMessagePool.GetMessage(
 						DateTimeOffset.Parse("2004-01-01 00:00:00Z"),
-						789,
+						1230,
 						Log.GetWriter("MyWriter4").WithTags(tags),
-						LogLevel.Note,
+						LogLevel.Error,
 						"MyApp4",
 						"MyProcess4",
 						44,
 						"MyText4");
 
+					var message5 = sMessagePool.GetMessage(
+						DateTimeOffset.Parse("2005-01-01 00:00:00Z"),
+						4560,
+						Log.GetWriter("MyWriter5").WithTags(tags),
+						LogLevel.Warning,
+						"MyApp5",
+						"MyProcess5",
+						55,
+						"MyText5");
+
+					var message6 = sMessagePool.GetMessage(
+						DateTimeOffset.Parse("2006-01-01 00:00:00Z"),
+						7890,
+						Log.GetWriter("MyWriter6").WithTags(tags),
+						LogLevel.Notice,
+						"MyApp6",
+						"MyProcess6",
+						66,
+						"MyText6");
+
 					yield return new[] { message1 };
 					yield return new[] { message1, message2 };
 					yield return new[] { message1, message2, message3 };
 					yield return new[] { message1, message2, message3, message4 };
+					yield return new[] { message1, message2, message3, message4, message5 };
+					yield return new[] { message1, message2, message3, message4, message5, message6 };
 				}
 			}
 		}

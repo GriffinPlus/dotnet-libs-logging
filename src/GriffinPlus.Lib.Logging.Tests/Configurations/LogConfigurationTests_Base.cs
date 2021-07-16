@@ -55,7 +55,7 @@ namespace GriffinPlus.Lib.Logging
 			var logWriterSettings = configuration.GetLogWriterSettings().ToArray();
 			Assert.Single(logWriterSettings);
 			var logWriterSetting = logWriterSettings[0];
-			Assert.Equal("Note", logWriterSetting.BaseLevel);
+			Assert.Equal("Notice", logWriterSetting.BaseLevel);
 			Assert.Empty(logWriterSetting.Includes);
 			Assert.Empty(logWriterSetting.Excludes);
 			Assert.Single(logWriterSetting.NamePatterns);
@@ -73,31 +73,15 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		[Theory]
-		[InlineData("Failure", 0x00000001u)]
-		[InlineData("Error", 0x00000003u)]
-		[InlineData("Warning", 0x00000007u)]
-		[InlineData("Note", 0x0000000Fu)]
-		[InlineData("Developer", 0x0000001Fu)]
-		[InlineData("Trace0", 0x0000003Fu)]
-		[InlineData("Trace1", 0x0000007Fu)]
-		[InlineData("Trace2", 0x000000FFu)]
-		[InlineData("Trace3", 0x000001FFu)]
-		[InlineData("Trace4", 0x000003FFu)]
-		[InlineData("Trace5", 0x000007FFu)]
-		[InlineData("Trace6", 0x00000FFFu)]
-		[InlineData("Trace7", 0x00001FFFu)]
-		[InlineData("Trace8", 0x00003FFFu)]
-		[InlineData("Trace9", 0x00007FFFu)]
-		[InlineData("Trace10", 0x0000FFFFu)]
-		[InlineData("Trace11", 0x0001FFFFu)]
-		[InlineData("Trace12", 0x0003FFFFu)]
-		[InlineData("Trace13", 0x0007FFFFu)]
-		[InlineData("Trace14", 0x000FFFFFu)]
-		[InlineData("Trace15", 0x001FFFFFu)]
-		[InlineData("Trace16", 0x003FFFFFu)]
-		[InlineData("Trace17", 0x007FFFFFu)]
-		[InlineData("Trace18", 0x00FFFFFFu)]
-		[InlineData("Trace19", 0x01FFFFFFu)]
+		[InlineData("Emergency", 0x00000001u)]
+		[InlineData("Alert", 0x00000003u)]
+		[InlineData("Critical", 0x00000007u)]
+		[InlineData("Error", 0x0000000Fu)]
+		[InlineData("Warning", 0x0000001Fu)]
+		[InlineData("Notice", 0x0000003Fu)]
+		[InlineData("Informational", 0x0000007Fu)]
+		[InlineData("Debug", 0x000000FFu)]
+		[InlineData("Trace", 0x000001FFu)]
 		public void Getting_Active_Log_Level_Mask_For_Specific_BaseLevel(string level, uint expectedMask)
 		{
 			var configuration = new TConfiguration();
@@ -122,19 +106,20 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("All", new string[] { }, new string[] { }, 0xFFFFFFFFu)]
 
 		// includes
-		[InlineData("None", new string[] { "Note" }, new string[] { }, 0x00000008u)]   // single predefined level only
-		[InlineData("Note", new string[] { "Trace0" }, new string[] { }, 0x0000002Fu)] // base level + predefined level
+		[InlineData("None", new string[] { "Notice" }, new string[] { }, 0x00000020u)]  // single predefined level only
+		[InlineData("Notice", new string[] { "Trace" }, new string[] { }, 0x0000013Fu)] // base level + predefined level
+
 		// excludes
-		[InlineData("All", new string[] { }, new string[] { "Note" }, 0xFFFFFFF7u)] // all except a single level
-		[InlineData("Note", new string[] { }, new string[] { "Note" }, 0x00000007u)]
-		[InlineData("Note", new string[] { }, new string[] { "Error" }, 0x0000000Du)]
+		[InlineData("All", new string[] { }, new string[] { "Notice" }, 0xFFFFFFDFu)] // all except a single level
+		[InlineData("Notice", new string[] { }, new string[] { "Notice" }, 0x0000001Fu)]
+		[InlineData("Notice", new string[] { }, new string[] { "Error" }, 0x00000037u)]
 
 		// mixed
 		[InlineData(
-			"Developer",
-			new string[] { "Error", "Trace0", "Trace19" },
-			new string[] { "Error" }, // exclude overrides include for 'Error'
-			0x0100003D)]
+			"Debug",                                     // base level
+			new string[] { "Error", "Trace", "Aspect" }, // include
+			new string[] { "Error" },                    // exclude: override include for 'Error'
+			0x000021F7u)]
 		public void Getting_Active_Log_Level_Mask_With_Includes_And_Excludes(
 			string   baseLevel,
 			string[] includes,
@@ -191,7 +176,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 			Assert.Equal($"{typeof(TConfiguration).FullName}", pattern.Pattern);
 			Assert.Empty(writer.TagPatterns);
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.False(writer.IsDefault);
@@ -226,7 +211,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 			Assert.Equal($"{type.FullName}", pattern.Pattern);
 			Assert.Empty(writer.TagPatterns);
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.False(writer.IsDefault);
@@ -261,7 +246,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Equal(wildcard, pattern.Pattern);
 			Assert.Empty(writer.TagPatterns);
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.False(writer.IsDefault);
@@ -296,7 +281,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.IsType<LogWriterConfiguration.RegexNamePattern>(pattern);
 			Assert.Equal(regex, pattern.Pattern);
 			Assert.Empty(writer.TagPatterns);
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.False(writer.IsDefault);
@@ -349,7 +334,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Equal("*", pattern.Pattern);
 			Assert.Empty(writer.TagPatterns);
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.False(writer.IsDefault);
@@ -426,7 +411,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				Assert.Empty(writer.TagPatterns);
-				Assert.Equal("Note", writer.BaseLevel);
+				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Empty(writer.Includes);
 				Assert.Empty(writer.Excludes);
 				Assert.False(writer.IsDefault);
@@ -447,7 +432,7 @@ namespace GriffinPlus.Lib.Logging
 			var pattern = writer.NamePatterns.First();
 			Assert.Equal("Wildcard: *", pattern.ToString());
 			Assert.Empty(writer.TagPatterns);
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Empty(writer.Excludes);
 			Assert.True(writer.IsDefault);

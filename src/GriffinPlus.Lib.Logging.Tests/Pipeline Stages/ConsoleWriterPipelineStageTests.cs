@@ -68,34 +68,34 @@ namespace GriffinPlus.Lib.Logging
 				foreach (var stream in new[] { ConsoleOutputStream.Stdout, ConsoleOutputStream.Stdout })
 				{
 					mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Failure, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
 					yield return new object[] { mappings };
 
 					mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Failure, stream));
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Error, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream));
 					yield return new object[] { mappings };
 
 					mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Failure, stream));
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Error, stream));
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Warning, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, stream));
 					yield return new object[] { mappings };
 
 					mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Failure, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream));
+					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, stream));
 					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Error, stream));
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Warning, stream));
-					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Note, stream));
 					yield return new object[] { mappings };
 				}
 
 				// now test whether overwriting existing mappings work
 				mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Failure, ConsoleOutputStream.Stdout));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Error, ConsoleOutputStream.Stdout));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Warning, ConsoleOutputStream.Stdout));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Error, ConsoleOutputStream.Stderr)); // overwrite (!)
+				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, ConsoleOutputStream.Stdout));
+				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stdout));
+				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, ConsoleOutputStream.Stdout));
+				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stderr)); // overwrite (!)
 				yield return new object[] { mappings };
 			}
 		}
@@ -142,7 +142,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var stage = CreateStage("Console");
 			((IProcessingPipelineStage)stage).Initialize();
-			Assert.Throws<InvalidOperationException>(() => stage.MapLogLevelToStream(LogLevel.Note, ConsoleOutputStream.Stdout));
+			Assert.Throws<InvalidOperationException>(() => stage.MapLogLevelToStream(LogLevel.Notice, ConsoleOutputStream.Stdout));
 		}
 
 		/// <summary>

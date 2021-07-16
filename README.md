@@ -48,18 +48,20 @@ The `Log` class is the crucial point of the logging subsystem. It provides acces
 
 Furthermore the `Log` class creates log writers. A log writer - represented by the `LogWriter` class - corresponds to a certain piece of code emitting log messages. Log writers are identified by their name. Usually this is the full name of a class, but it can be an arbitrary name as well. The `LogWriter` class offers a large set of overloads for writing simple and formatted messages. Generic overloads avoid boxing of value types when passing arguments to the `Write(...)` methods, thus reducing the load on the garbage collection.
 
-Each and every log message is associated with a log level represented by the `LogLevel` class. A log level indicates how severe the issue is the message is about. A log level has an integer id that expresses the severity: the lower the log level id the more severe the issue. The log level id is crucial when it comes to filtering by applying a log level threshold (see configuration section below). The `LogLevel` class contains a few commonly used predefined log levels and a recommendation when these log levels should be used:
+Each and every log message is associated with a log level represented by the `LogLevel` class. A log level indicates how severe the issue is the message is about. A log level has an integer id that expresses the severity: the lower the log level id the more severe the issue. The log level id is crucial when it comes to filtering by applying a log level threshold (see configuration section below). The log levels correspond to log levels known from *syslog*. Their log level id is the same as the corresponding severity level used by *syslog*, so it is easy to integrate *Griffin+ Logging* into an existing logging infrastructure. The `LogLevel` class contains a few commonly used predefined log levels and a recommendation when these log levels should be used:
 
-| Id  | Log Level   | Description
-|:---:|:------------|:----------------------------------------------------------------------------------------------
-|   0 | `Failure`   | The log message is about a severe error condition that threatens the system's stability.
-|   1 | `Error`     | The log message is about a "normal" error condition.
-|   2 | `Warning`   | The log message is not about an error condition, but something a user should keep an eye on.
-|   3 | `Note`      | The log message is a note a regular user should see.
-|   4 | `Developer` | A log message only developers should see.
-|   5 | `Trace0`    | A log message the implementer of the code might be interested in (least detailed)
-| ... |             | ...
-|  24 | `Trace19`   | A log message the implementer of the code might be interested in (most detailed)
+
+| Id  | Log Level       | Description
+|:---:|:----------------|:----------------------------------------------------------------------------------------------
+|   0 | `Emergency`     | Absolute "panic" condition, the system is unusable.
+|   1 | `Alert`         | Something bad happened, immediate attention is required.
+|   2 | `Critical`      | Something bad is about to happen, immediate attention is required.
+|   3 | `Error`         | Non-urgent failure in the system that needs attention.
+|   4 | `Warning`       | Something will happen if it is not dealt within a timeframe.
+|   5 | `Notice`        | Normal but significant condition that might need special handling.
+|   6 | `Informational` | Informative but not important.
+|   7 | `Debug`         | Only relevant for developers.
+|   8 | `Trace`         | Only relevant for implementers.
 
 In addition to the predefined log levels an aspect log level can be defined. Aspect log levels are primarily useful when tracking an issue that effects multiple classes. The ids of aspect log levels directly follow the predefined log levels.
 
@@ -69,7 +71,7 @@ Another option to split up the configuration is *tagging*. Log writers can be co
 
 ### Configuration
 
-The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Failure`, `Error`, `Warning` and `Note`. Messages associated with other log levels are blocked. There is no restriction for log writers. The default log configuration is purely in-memory.
+The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Emergency`, `Alert`, `Critical`, `Error`, `Warning` and `Notice`. Messages associated with other log levels are blocked. There is no restriction for log writers. The default log configuration is purely in-memory.
 
 You can tell *Griffin+ Logging* to use your own configuration by setting the `Log.Configuration` property. A configuration class only needs to implement the `ILogConfiguration` interface to work with the logging subsystem. Of course, you can implement a configuration class on your own, but in most cases one of the shipped implementations should suffice.
 
@@ -111,7 +113,7 @@ The default configuration file contains a detailed description of the settings a
 ; ------------------------------------------------------------------------------
 
 [Settings]
-ApplicationName = MyApp
+ApplicationName = GriffinPlus.Lib.Logging.Demo
 
 ; ------------------------------------------------------------------------------
 ; Log Writer Settings
@@ -139,14 +141,15 @@ ApplicationName = MyApp
 ;
 ; The logging module comes with a couple of predefined log levels expressing a
 ; wide range of severities:
-; - Failure          (most severe)
+; - Emergency        (most severe)
+; - Alert                  .
+; - Critical               .
 ; - Error                  .
 ; - Warning                .
-; - Note                   .
-; - Developer              .
-; - Trace0                 .
-; - Trace[1..18]           .
-; - Trace19          (least severe)
+; - Notice                 .
+; - Informational          .
+; - Debug                  .
+; - Trace           (least severe)
 ;
 ; Furthermore aspect log levels can be used to keep log messages belonging to
 ; a certain subject together. This is especially useful when multiple log
@@ -155,10 +158,11 @@ ApplicationName = MyApp
 ; levels.
 ;
 ; The 'Level' property defines a base log level for matching log writers, i.e.
-; setting 'Level' to 'Note' tells the log writer to write log messages with
-; at least log level 'Note', e.g. 'Note', 'Warning', 'Error' and 'Failure'.
-; Do not use aspect log levels here, since the order of aspect log levels is
-; not deterministic, especially in multi-threaded environments.
+; setting 'Level' to 'Notice' tells the log writer to write log messages with
+; at least log level 'Notice', e.g. 'Notice', 'Warning', 'Error', 'Critical',
+; 'Alert' and 'Emergency'. Do not use aspect log levels here, since the order
+; of aspect log levels is not deterministic, especially in multi-threaded
+; environments.
 ;
 ; The 'Include' property allows including certain log levels that are not
 ; covered by the 'Level' property. Multiple log levels can be separated by
@@ -172,7 +176,7 @@ ApplicationName = MyApp
 
 [LogWriter]
 Name = *
-Level = Note
+Level = Notice
 ```
 
 ### Log Message Processing Pipeline
@@ -215,10 +219,10 @@ A pipeline stage class must implement the `IProcessingPipelineStage` interface. 
 - Pipeline Stages forwarding messages to other logging systems
   - Implementations
     - `LocalLogServicePipelineStage` (***proprietary, Windows only***)
-	  - Log messages are forwarded to a service via a shared memory queue ensuring high performance
-	  - Messages up to a process crash are available as the stage does not buffer messages in-process
-	  - Available via *NuGet* package `GriffinPlus.Lib.Logging.LocalLogServicePipelineStage`
-	  - *At the moment there is no publicly available implementation of the service*
+      - Log messages are forwarded to a service via a shared memory queue ensuring high performance
+      - Messages up to a process crash are available as the stage does not buffer messages in-process
+      - Available via *NuGet* package `GriffinPlus.Lib.Logging.LocalLogServicePipelineStage`
+      - *At the moment there is no publicly available implementation of the service*
 
 ### Requesting a Log Writer
 
@@ -318,17 +322,30 @@ using System.Threading;
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
-    class MyClass1 { }
 
-    class MyClass2 { }
+    class MyClass1
+    {
+    }
 
-    class MyClass3 { }
+    class MyClass2
+    {
+    }
 
-    class MyClass4 { }
+    class MyClass3
+    {
+    }
 
-    class MyClassA { }
+    class MyClass4
+    {
+    }
 
-    class MyClassB { }
+    class MyClassA
+    {
+    }
+
+    class MyClassB
+    {
+    }
 
     class Program
     {
@@ -344,9 +361,9 @@ namespace GriffinPlus.Lib.Logging.Demo
         private static readonly LogWriter sLog7 = Log.GetWriter("My Fancy Writer");
 
         // Create tagging log writers
-        private static readonly LogWriter sLog_TagA   = sLog7.WithTag("TagA");              // same as sLog7, but tags messages with 'TagA'
-        private static readonly LogWriter sLog_TagB   = sLog7.WithTag("TagB");              // same as sLog7, but tags messages with 'TagB'
-        private static readonly LogWriter sLog_TagBC  = sLog7.WithTags("TagB", "TagC");     // same as sLog7, but tags messages with 'TagB' and 'TagC'
+        private static readonly LogWriter sLog_TagA  = sLog7.WithTag("TagA");          // same as sLog7, but tags messages with 'TagA'
+        private static readonly LogWriter sLog_TagB  = sLog7.WithTag("TagB");          // same as sLog7, but tags messages with 'TagB'
+        private static readonly LogWriter sLog_TagBC = sLog7.WithTags("TagB", "TagC"); // same as sLog7, but tags messages with 'TagB' and 'TagC'
 
         private static void Main(string[] args)
         {
@@ -369,14 +386,16 @@ namespace GriffinPlus.Lib.Logging.Demo
             {
                 // Add configuration for log writers that attach 'TagA'
                 // - set base log level to 'None' effectively silencing the log writer
-                // - include log level 'Note'
+                // - include log level 'Notice'
                 // - no excluded log levels
                 // - tags must contain 'TagA'
-                // => enabled log levels: 'Note'
-                config.AddLogWritersByWildcard("*", x => x
-                    .WithTag("TagA")
-                    .WithBaseLevel(LogLevel.None)
-                    .WithLevel(LogLevel.Note));
+                // => enabled log levels: 'Notice'
+                config.AddLogWritersByWildcard(
+                    "*",
+                    x => x
+                        .WithTag("TagA")
+                        .WithBaseLevel(LogLevel.None)
+                        .WithLevel(LogLevel.Notice));
 
                 // Add configuration for log writers that attach 'TagB' and/or 'TagC'
                 // - set base log level to 'None' effectively silencing the log writer
@@ -384,59 +403,67 @@ namespace GriffinPlus.Lib.Logging.Demo
                 // - no excluded log levels
                 // - tags must contain 'TagB' and/or 'TagC'
                 // => enabled log levels: 'Warning'
-                config.AddLogWritersByWildcard("*", x => x
-                    .WithTagRegex("^Tag[BC]$")
-                    .WithBaseLevel(LogLevel.None)
-                    .WithLevel(LogLevel.Warning));
+                config.AddLogWritersByWildcard(
+                    "*",
+                    x => x
+                        .WithTagRegex("^Tag[BC]$")
+                        .WithBaseLevel(LogLevel.None)
+                        .WithLevel(LogLevel.Warning));
 
                 // Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass1' only
-                // - set base log level to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-                // - include log level 'Trace0'
+                // - set base log level to 'Notice' => enables log level 'Emergency', 'Alert', 'Critical', 'Error', 'Warning' and 'Notice'
+                // - include log level 'Trace'
                 // - exclude log level 'Warning'
                 // - tags are not evaluated
-                // => enabled log levels: 'Failure', 'Error', 'Note', 'Trace0'
-                config.AddLogWriter<MyClass1>(x => x
-                    .WithBaseLevel(LogLevel.Note)
-                    .WithLevel(LogLevel.Trace0)
-                    .WithoutLevel("Warning"));
+                // => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Notice', 'Trace'
+                config.AddLogWriter<MyClass1>(
+                    x => x
+                        .WithBaseLevel(LogLevel.Notice)
+                        .WithLevel(LogLevel.Trace)
+                        .WithoutLevel("Warning"));
 
                 // Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass2' only
                 // - set base log level to 'None' effectively silencing the log writer
                 // - no included/excluded log levels
                 // - tags are not evaluated
                 // => no enabled log levels
-                config.AddLogWriter(typeof(MyClass2), x => x
-                    .WithBaseLevel(LogLevel.None));
+                config.AddLogWriter(
+                    typeof(MyClass2),
+                    x => x.WithBaseLevel(LogLevel.None));
 
                 // Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass3' only
                 // - set base log level to 'All' enabling all log levels (including aspects)
-                // - exclude all log levels from 'Trace10' up to 'Trace19'
+                // - exclude all log levels from 'Informational' up to 'Trace' ('Informational', 'Debug', 'Trace')
                 // - tags are not evaluated
-                // => enabled log levels: All log levels, but 'Trace[10-19]'
-                config.AddLogWriter(typeof(MyClass3), x => x
-                    .WithBaseLevel(LogLevel.All)
-                    .WithoutLevelRange(LogLevel.Trace10, LogLevel.Trace19));
+                // => enabled log levels: All log levels, but 'Informational', 'Debug', 'Trace'
+                config.AddLogWriter(
+                    typeof(MyClass3),
+                    x => x
+                        .WithBaseLevel(LogLevel.All)
+                        .WithoutLevelRange(LogLevel.Informational, LogLevel.Debug));
 
                 // Add configuration for log writers matching regex pattern
                 // - pattern matches 'GriffinPlus.Lib.Logging.Demo.MyClassA' and 'GriffinPlus.Lib.Logging.Demo.MyClassB'
-                // - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-                // - include all log levels from 'Trace10' up to 'Trace15'
+                // - base level defaults to 'Error' => enables log level 'Emergency', 'Alert', 'Critical', 'Error'
+                // - include all log levels from 'Informational' up to 'Trace' ('Informational', 'Debug', 'Trace')
                 // - no excluded log levels
                 // - tags are not evaluated
-                // => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace0'
-                config.AddLogWritersByRegex("^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$", x => x
-                    .WithLevelRange(LogLevel.Trace10, LogLevel.Trace15));
+                // => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Informational', 'Debug'
+                config.AddLogWritersByRegex(
+                    "^GriffinPlus.Lib.Logging.Demo.MyClass[A-Z]$",
+                    x => x.WithLevelRange(LogLevel.Informational, LogLevel.Debug));
 
                 // Add configuration for log writers matching wildcard pattern
                 // - applies to 'GriffinPlus.Lib.Logging.Demo.MyClass4' only
                 //   (other writers are handled by preceding steps)
-                // - base level defaults to 'Note' => enables log level 'Failure', 'Error', 'Warning' and 'Note'
-                // - include log level 'Trace15'
+                // - base level defaults to 'Error' => enables log level 'Emergency', 'Alert', 'Critical', 'Error'
+                // - include log level 'Trace'
                 // - no excluded log levels
                 // - tags are not evaluated
-                // => enabled log levels: 'Failure', 'Error', 'Warning', 'Note', 'Trace15'
-                config.AddLogWritersByWildcard("GriffinPlus.Lib.Logging.Demo.MyClass*", x => x
-                    .WithLevel(LogLevel.Trace15));
+                // => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Trace'
+                config.AddLogWritersByWildcard(
+                    "GriffinPlus.Lib.Logging.Demo.MyClass*",
+                    x => x.WithLevel(LogLevel.Trace));
 
                 // Add configuration for log writer 'My Fancy Writer'
                 // (matches everything that was not handled explicitly before)
@@ -445,18 +472,20 @@ namespace GriffinPlus.Lib.Logging.Demo
                 // - no excluded log levels
                 // - tags are not evaluated
                 // => enabled log levels: 'Demo Aspect'
-                config.AddLogWriter("My Fancy Writer", x => x
-                    .WithBaseLevel(LogLevel.None)
-                    .WithLevel("Demo Aspect"));
+                config.AddLogWriter(
+                    "My Fancy Writer",
+                    x => x
+                        .WithBaseLevel(LogLevel.None)
+                        .WithLevel("Demo Aspect"));
 
                 // Add configuration for log writer 'Timing' to enable logging time measurements written by the internal
                 // 'Timing' log writer (see below for time measurements)
                 config.AddLogWriterTiming();
 
                 // Add default configuration for log writers that have not been handled up to this point
-                // - base level defaults  to level 'Note'
+                // - base level defaults  to level 'Notice'
                 // - no included/excluded log levels
-                // => enabled log levels: 'Failure', 'Error', 'Warning', 'Note'
+                // => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Warning', 'Notice'
                 config.AddLogWriterDefault();
 
                 // Set application name (optional)
@@ -474,7 +503,7 @@ namespace GriffinPlus.Lib.Logging.Demo
 
             // Create log message formatter that prints log messages in a tabular fashion
             var tableFormatter = new TableMessageFormatter();
-            tableFormatter.AddTimestampColumn("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
+            tableFormatter.AddTimestampColumn("yyyy-MM-dd HH:mm:ss.fff"); // use custom timestamp format
             tableFormatter.AddProcessIdColumn();
             tableFormatter.AddProcessNameColumn();
             tableFormatter.AddApplicationNameColumn();
@@ -486,7 +515,7 @@ namespace GriffinPlus.Lib.Logging.Demo
             // Create log message formatter that prints log messages as JSON
             var jsonFormatter = new JsonMessageFormatter();
             jsonFormatter.Style = JsonMessageFormatterStyle.Beautified;
-            jsonFormatter.AddTimestampField("yyyy-MM-dd HH:mm:ss.fff");      // use custom timestamp format
+            jsonFormatter.AddTimestampField("yyyy-MM-dd HH:mm:ss.fff"); // use custom timestamp format
             jsonFormatter.AddProcessIdField();
             jsonFormatter.AddProcessNameField();
             jsonFormatter.AddApplicationNameField();
@@ -497,23 +526,25 @@ namespace GriffinPlus.Lib.Logging.Demo
 
             // Create pipeline stage for printing to the console
             var consoleStage = new ConsoleWriterPipelineStage("Console");
-            consoleStage.MessageQueueSize = 500;                                            // buffer up to 500 messages (default)
-            consoleStage.DiscardMessagesIfQueueFull = false;                                // block if the queue is full (default)
-            consoleStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                 // wait up to 5000ms for the stage to shut down (default)
-            consoleStage.Formatter = tableFormatter;                                        // use specific formatter
-            consoleStage.DefaultStream = ConsoleOutputStream.Stdout;                        // print to stdout by default (default)
-            consoleStage.MapLogLevelToStream(LogLevel.Failure, ConsoleOutputStream.Stderr); // print failures to stderr
-            consoleStage.MapLogLevelToStream(LogLevel.Error, ConsoleOutputStream.Stderr);   // print errors to stderr
+            consoleStage.MessageQueueSize = 500;                                              // buffer up to 500 messages (default)
+            consoleStage.DiscardMessagesIfQueueFull = false;                                  // block if the queue is full (default)
+            consoleStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                   // wait up to 5000ms for the stage to shut down (default)
+            consoleStage.Formatter = tableFormatter;                                          // use specific formatter
+            consoleStage.DefaultStream = ConsoleOutputStream.Stdout;                          // print to stdout by default (default)
+            consoleStage.MapLogLevelToStream(LogLevel.Emergency, ConsoleOutputStream.Stderr); // print errors to stderr
+            consoleStage.MapLogLevelToStream(LogLevel.Alert, ConsoleOutputStream.Stderr);     // 
+            consoleStage.MapLogLevelToStream(LogLevel.Critical, ConsoleOutputStream.Stderr);  // 
+            consoleStage.MapLogLevelToStream(LogLevel.Error, ConsoleOutputStream.Stderr);     //
 
             // Create pipeline stage for writing to a file
             var fileStage = new FileWriterPipelineStage("File", "mylog.log", false);
-            fileStage.MessageQueueSize = 500;                                               // buffer up to 500 messages (default)
-            fileStage.DiscardMessagesIfQueueFull = false;                                   // block if the queue is full (default)
-            fileStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000);                    // wait up to 5000ms for the stage to shut down (default)
-            fileStage.Formatter = jsonFormatter;                                            // use specific formatter
-            fileStage.AutoFlush = false;                                                    // do not flush the file after writing a log message (default)
+            fileStage.MessageQueueSize = 500;                            // buffer up to 500 messages (default)
+            fileStage.DiscardMessagesIfQueueFull = false;                // block if the queue is full (default)
+            fileStage.ShutdownTimeout = TimeSpan.FromMilliseconds(5000); // wait up to 5000ms for the stage to shut down (default)
+            fileStage.Formatter = jsonFormatter;                         // use specific formatter
+            fileStage.AutoFlush = false;                                 // do not flush the file after writing a log message (default)
 
-            // Create splitter pipeline stage to unconditionally feed log messages into both pipelines stages
+            // Create splitter pipeline stage to unconditionally feed log messages into all pipelines stages
             var splitterStage = new SplitterPipelineStage("Splitter");
             splitterStage.AddNextStage(consoleStage);
             splitterStage.AddNextStage(fileStage);
@@ -533,10 +564,10 @@ namespace GriffinPlus.Lib.Logging.Demo
             // -----------------------------------------------------------------------------------------------------------------
 
             // Get an aspect log level.
-            LogLevel aspect = LogLevel.GetAspect("Demo Aspect");
+            var aspect = LogLevel.GetAspect("Demo Aspect");
 
             // Write messages to all known log levels (predefined log levels + aspects).
-            foreach (LogLevel level in LogLevel.KnownLevels)
+            foreach (var level in LogLevel.KnownLevels)
             {
                 sLog1.Write(level, "This is sLog1 writing using level '{0}'.", level.Name);
                 sLog2.Write(level, "This is sLog2 writing using level '{0}'.", level.Name);
@@ -552,17 +583,30 @@ namespace GriffinPlus.Lib.Logging.Demo
 
             // Use a timing logger to determine how long an operation takes. It uses log level 'Timing' and log writer
             // 'Timing' by default, so you need to ensure that the configuration lets these messages pass).
-            sLog1.Write(LogLevel.Note, "Presenting a timing logger with default settings...");
-            using (TimingLogger.Measure()) {
+            sLog1.Write(LogLevel.Notice, "Presenting a timing logger with default settings...");
+            using (TimingLogger.Measure())
+            {
                 Thread.Sleep(500);
             }
 
             // Use a timing logger, customize the log writer/level it uses and associate an operation name with the
             // measurement that is printed to the log as well.
-            sLog1.Write(LogLevel.Note, "A timing logger with custom log level/writer and operation name...");
-            using (TimingLogger.Measure(sLog1, LogLevel.Note, "Waiting for 500ms")) {
+            sLog1.Write(LogLevel.Notice, "A timing logger with custom log level/writer and operation name...");
+            using (TimingLogger.Measure(sLog1, LogLevel.Notice, "Waiting for 500ms"))
+            {
                 Thread.Sleep(500);
             }
+
+            // -----------------------------------------------------------------------------------------------------------------
+            // -----------------------------------------------------------------------------------------------------------------
+            // Wait for the user to press a key to shut the logging subsystem down
+            // -----------------------------------------------------------------------------------------------------------------
+            // -----------------------------------------------------------------------------------------------------------------
+
+            Thread.Sleep(1000);
+            Console.WriteLine();
+            Console.WriteLine("Press any key to shut the logging subsystem down...");
+            Console.ReadKey();
 
             // -----------------------------------------------------------------------------------------------------------------
             // -----------------------------------------------------------------------------------------------------------------
@@ -572,12 +616,9 @@ namespace GriffinPlus.Lib.Logging.Demo
 
             // Shut the logging subsystem down
             Log.Shutdown();
-
-            Console.WriteLine();
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
         }
     }
+}
 ```
 
 ### Working with Log Messages

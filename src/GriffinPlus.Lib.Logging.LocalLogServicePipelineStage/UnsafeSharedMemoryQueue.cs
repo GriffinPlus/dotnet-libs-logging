@@ -7,11 +7,11 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Threading;
 // ReSharper disable RedundantUsingDirective
 using System.Security.AccessControl;
 using System.Security.Principal;
 // ReSharper restore RedundantUsingDirective
-using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {

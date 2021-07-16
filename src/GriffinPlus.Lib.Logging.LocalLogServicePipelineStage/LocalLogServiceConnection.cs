@@ -808,8 +808,9 @@ namespace GriffinPlus.Lib.Logging
 						// put command into it
 						block->Type = LogEntryBlockType.AddLogLevelName;
 						block->AddLogLevelName.Identifier = level.Id;
-						int charsToCopy = Math.Min(level.Name.Length, LogEntryBlock_AddLogLevelName.LogLevelNameSize);
-						fixed (char* pLevelName = level.Name)
+						string logLevelName = MapLogLevel(level);
+						int charsToCopy = Math.Min(logLevelName.Length, LogEntryBlock_AddLogLevelName.LogLevelNameSize);
+						fixed (char* pLevelName = logLevelName)
 						{
 							Buffer.MemoryCopy(
 								pLevelName,
@@ -1156,8 +1157,9 @@ namespace GriffinPlus.Lib.Logging
 						// prepare notification
 						block->Type = LogEntryBlockType.AddLogLevelName;
 						block->AddLogLevelName.Identifier = level.Id;
-						int charsToCopy = Math.Min(level.Name.Length, LogEntryBlock_AddLogLevelName.LogLevelNameSize);
-						fixed (char* pName = level.Name)
+						string logLevelName = MapLogLevel(level);
+						int charsToCopy = Math.Min(logLevelName.Length, LogEntryBlock_AddLogLevelName.LogLevelNameSize);
+						fixed (char* pName = logLevelName)
 						{
 							Buffer.MemoryCopy(
 								pName,
@@ -1616,6 +1618,61 @@ namespace GriffinPlus.Lib.Logging
 			mSharedMemoryQueue.EndWriting(pBlock, sizeof(LogEntryBlock), mLostMessageCount);
 			mLostMessageCount = 0;
 			return true;
+		}
+
+		#endregion
+
+		#region Mapping Log Levels
+
+		/// <summary>
+		/// Maps the specified log level to the log level name to send to the Local Log Service.
+		/// </summary>
+		/// <param name="level">Log level to map.</param>
+		/// <returns>Name of the log level to send to the Local Log Service.</returns>
+		private static string MapLogLevel(LogLevel level)
+		{
+			switch (level.Id)
+			{
+				case 0:
+					Debug.Assert(level == LogLevel.Emergency);
+					return "Failure";
+
+				case 1:
+					Debug.Assert(level == LogLevel.Alert);
+					return "Failure";
+
+				case 2:
+					Debug.Assert(level == LogLevel.Critical);
+					return "Failure";
+
+				case 3:
+					Debug.Assert(level == LogLevel.Error);
+					return "Error";
+
+				case 4:
+					Debug.Assert(level == LogLevel.Warning);
+					return "Warning";
+
+				case 5:
+					Debug.Assert(level == LogLevel.Notice);
+					return "Note";
+
+				case 6:
+					Debug.Assert(level == LogLevel.Informational);
+					return "Note";
+
+				case 7:
+					Debug.Assert(level == LogLevel.Debug);
+					return "Developer";
+
+				case 8:
+					Debug.Assert(level == LogLevel.Trace);
+					return "Trace0";
+
+				default:
+					// aspect log levels
+					return level.Name;
+			}
 		}
 
 		#endregion

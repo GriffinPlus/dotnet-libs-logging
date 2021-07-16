@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 	{
 		internal static readonly WildcardNamePattern DefaultPattern = new WildcardNamePattern("*");
 		internal static readonly INamePattern[]      NoPatterns     = new INamePattern[0];
-		internal                 string              mBaseLevel     = LogLevel.Note.Name;
+		internal                 string              mBaseLevel     = LogLevel.Notice.Name;
 		internal readonly        List<INamePattern>  mNamePatterns  = new List<INamePattern>();
 		internal readonly        List<INamePattern>  mTagPatterns   = new List<INamePattern>();
 		internal readonly        List<string>        mIncludes      = new List<string>();
@@ -110,7 +110,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromName(
 			string              name,
-			string              baseLevel = "Note",
+			string              baseLevel = "Notice",
 			IEnumerable<string> includes  = null,
 			IEnumerable<string> excludes  = null)
 		{
@@ -132,7 +132,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromWildcardPattern(
 			string              pattern,
-			string              baseLevel = "Note",
+			string              baseLevel = "Notice",
 			IEnumerable<string> includes  = null,
 			IEnumerable<string> excludes  = null)
 		{
@@ -154,7 +154,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromRegexPattern(
 			string              regex,
-			string              baseLevel = "Note",
+			string              baseLevel = "Notice",
 			IEnumerable<string> includes  = null,
 			IEnumerable<string> excludes  = null)
 		{
@@ -167,13 +167,13 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a log writer configuration covering the default log writer that matches all log writer names using base log level 'Note'
-		/// (enabling log levels 'Failure', 'Error', 'Warning', 'Note').
+		/// Gets a log writer configuration covering the default log writer that matches all log writer names using base log level 'Notice'
+		/// (enabling log levels 'Emergency', 'Alert', 'Critical', 'Error', 'Warning' and 'Notice').
 		/// </summary>
-		public static LogWriterConfiguration Default => FromWildcardPattern("*", LogLevel.Note);
+		public static LogWriterConfiguration Default => FromWildcardPattern("*", LogLevel.Notice);
 
 		/// <summary>
-		/// Gets a log writer configuration covering the default log writer 'Timing' writing using log level 'Note'.
+		/// Gets a log writer configuration covering the default log writer 'Timing' writing using log level 'Notice'.
 		/// </summary>
 		public static LogWriterConfiguration TimingWriter => FromName("Timing", LogLevel.None, new string[] { LogLevel.Timing });
 
