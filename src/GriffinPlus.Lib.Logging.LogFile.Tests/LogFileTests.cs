@@ -700,7 +700,7 @@ namespace GriffinPlus.Lib.Logging
 					var expectedNamesSet = new HashSet<string>();
 					foreach (var message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
 					var expectedNames = new List<string>(expectedNamesSet);
-					expectedNames.Sort(StringComparer.OrdinalIgnoreCase); // the list returned by the log file is expected to be sorted ascendingly
+					expectedNames.Sort(StringComparer.OrdinalIgnoreCase); // the list returned by the log file is expected to be sorted in ascending order
 
 					// perform the action to test on the log file and compare with the expected result
 					string[] names = action(file);
@@ -765,7 +765,7 @@ namespace GriffinPlus.Lib.Logging
 					var expectedNamesSet = new HashSet<int>();
 					foreach (var message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
 					var expectedNames = new List<int>(expectedNamesSet);
-					expectedNames.Sort(); // the list returned by the log file is expected to be sorted ascendingly
+					expectedNames.Sort(); // the list returned by the log file is expected to be sorted in ascending order
 
 					// perform the action to test on the log file and compare with the expected result
 					int[] result = action(file);

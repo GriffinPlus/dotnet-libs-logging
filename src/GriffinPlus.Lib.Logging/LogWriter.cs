@@ -822,10 +822,10 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var modifiedArgs = args;
+				object[] modifiedArgs = args;
 				for (int i = 0; i < modifiedArgs.Length; i++)
 				{
-					var obj = modifiedArgs[i];
+					object obj = modifiedArgs[i];
 					if (obj is Exception exception)
 					{
 						if (modifiedArgs == args) modifiedArgs = (object[])args.Clone();
@@ -858,10 +858,10 @@ namespace GriffinPlus.Lib.Logging
 			params object[] args)
 		{
 			// unwrap exceptions to ensure inner exceptions are logged as well
-			var modifiedArgs = args;
+			object[] modifiedArgs = args;
 			for (int i = 0; i < modifiedArgs.Length; i++)
 			{
-				var obj = modifiedArgs[i];
+				object obj = modifiedArgs[i];
 				if (obj is Exception exception)
 				{
 					if (modifiedArgs == args) modifiedArgs = (object[])args.Clone();
@@ -895,7 +895,7 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg = PrepareArgument(arg);
+				object carg = PrepareArgument(arg);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -925,8 +925,8 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -959,9 +959,9 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -997,10 +997,10 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1039,11 +1039,11 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1085,12 +1085,12 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1135,13 +1135,13 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1189,14 +1189,14 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
-				var carg7 = PrepareArgument(arg7);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
+				object carg7 = PrepareArgument(arg7);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1247,15 +1247,15 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
-				var carg7 = PrepareArgument(arg7);
-				var carg8 = PrepareArgument(arg8);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
+				object carg7 = PrepareArgument(arg7);
+				object carg8 = PrepareArgument(arg8);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1309,16 +1309,16 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
-				var carg7 = PrepareArgument(arg7);
-				var carg8 = PrepareArgument(arg8);
-				var carg9 = PrepareArgument(arg9);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
+				object carg7 = PrepareArgument(arg7);
+				object carg8 = PrepareArgument(arg8);
+				object carg9 = PrepareArgument(arg9);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1375,17 +1375,17 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
-				var carg7 = PrepareArgument(arg7);
-				var carg8 = PrepareArgument(arg8);
-				var carg9 = PrepareArgument(arg9);
-				var carg10 = PrepareArgument(arg10);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
+				object carg7 = PrepareArgument(arg7);
+				object carg8 = PrepareArgument(arg8);
+				object carg9 = PrepareArgument(arg9);
+				object carg10 = PrepareArgument(arg10);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1445,18 +1445,18 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
-				var carg7 = PrepareArgument(arg7);
-				var carg8 = PrepareArgument(arg8);
-				var carg9 = PrepareArgument(arg9);
-				var carg10 = PrepareArgument(arg10);
-				var carg11 = PrepareArgument(arg11);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
+				object carg7 = PrepareArgument(arg7);
+				object carg8 = PrepareArgument(arg8);
+				object carg9 = PrepareArgument(arg9);
+				object carg10 = PrepareArgument(arg10);
+				object carg11 = PrepareArgument(arg11);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1519,19 +1519,19 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
-				var carg7 = PrepareArgument(arg7);
-				var carg8 = PrepareArgument(arg8);
-				var carg9 = PrepareArgument(arg9);
-				var carg10 = PrepareArgument(arg10);
-				var carg11 = PrepareArgument(arg11);
-				var carg12 = PrepareArgument(arg12);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
+				object carg7 = PrepareArgument(arg7);
+				object carg8 = PrepareArgument(arg8);
+				object carg9 = PrepareArgument(arg9);
+				object carg10 = PrepareArgument(arg10);
+				object carg11 = PrepareArgument(arg11);
+				object carg12 = PrepareArgument(arg12);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1597,20 +1597,20 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
-				var carg7 = PrepareArgument(arg7);
-				var carg8 = PrepareArgument(arg8);
-				var carg9 = PrepareArgument(arg9);
-				var carg10 = PrepareArgument(arg10);
-				var carg11 = PrepareArgument(arg11);
-				var carg12 = PrepareArgument(arg12);
-				var carg13 = PrepareArgument(arg13);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
+				object carg7 = PrepareArgument(arg7);
+				object carg8 = PrepareArgument(arg8);
+				object carg9 = PrepareArgument(arg9);
+				object carg10 = PrepareArgument(arg10);
+				object carg11 = PrepareArgument(arg11);
+				object carg12 = PrepareArgument(arg12);
+				object carg13 = PrepareArgument(arg13);
 
 				// write message to the log
 				var builder = sBuilder.Value;
@@ -1695,21 +1695,21 @@ namespace GriffinPlus.Lib.Logging
 			if (IsLogLevelActive(level))
 			{
 				// unwrap exceptions to ensure inner exceptions are logged as well
-				var carg0 = PrepareArgument(arg0);
-				var carg1 = PrepareArgument(arg1);
-				var carg2 = PrepareArgument(arg2);
-				var carg3 = PrepareArgument(arg3);
-				var carg4 = PrepareArgument(arg4);
-				var carg5 = PrepareArgument(arg5);
-				var carg6 = PrepareArgument(arg6);
-				var carg7 = PrepareArgument(arg7);
-				var carg8 = PrepareArgument(arg8);
-				var carg9 = PrepareArgument(arg9);
-				var carg10 = PrepareArgument(arg10);
-				var carg11 = PrepareArgument(arg11);
-				var carg12 = PrepareArgument(arg12);
-				var carg13 = PrepareArgument(arg13);
-				var carg14 = PrepareArgument(arg14);
+				object carg0 = PrepareArgument(arg0);
+				object carg1 = PrepareArgument(arg1);
+				object carg2 = PrepareArgument(arg2);
+				object carg3 = PrepareArgument(arg3);
+				object carg4 = PrepareArgument(arg4);
+				object carg5 = PrepareArgument(arg5);
+				object carg6 = PrepareArgument(arg6);
+				object carg7 = PrepareArgument(arg7);
+				object carg8 = PrepareArgument(arg8);
+				object carg9 = PrepareArgument(arg9);
+				object carg10 = PrepareArgument(arg10);
+				object carg11 = PrepareArgument(arg11);
+				object carg12 = PrepareArgument(arg12);
+				object carg13 = PrepareArgument(arg13);
+				object carg14 = PrepareArgument(arg14);
 
 				// write message to the log
 				var builder = sBuilder.Value;

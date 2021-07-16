@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -72,7 +73,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TimestampFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -109,7 +110,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TimestampFilter_From(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -139,7 +140,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TimestampFilter_To(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -173,7 +174,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ApplicationNameFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -210,7 +211,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ApplicationNameFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -249,7 +250,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ProcessNameFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -286,7 +287,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ProcessNameFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -325,7 +326,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ProcessIdFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -362,7 +363,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ProcessIdFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -401,7 +402,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void LogLevelFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -438,7 +439,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void LogLevelFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -477,7 +478,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void LogWriterFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -514,7 +515,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void LogWriterFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -553,7 +554,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TagFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -590,7 +591,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TagFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -629,7 +630,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TextFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -666,7 +667,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TextFilter_IsCaseSensitive(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -703,7 +704,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TextFilter_SearchText(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out var messages))
+			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -767,7 +768,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				filter.AttachToCollection(collection);
 				TestInitialFilterSettings(filter, messages);
 
-				// detach filter from the collection, the filter should remain in the same state as it is not resetted
+				// detach filter from the collection, the filter should remain in the same state as it is not reset
 				// as part of the detaching procedure
 				filter.DetachFromCollection();
 				TestInitialFilterSettings(filter, messages);
@@ -1288,7 +1289,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 						    CultureInfo.InvariantCulture.CompareInfo.IndexOf(
 							    message.Text,
 							    searchText,
-							    isFilterCaseSensitive ? CompareOptions.None : CompareOptions.IgnoreCase) >= 0)
+							    isFilterCaseSensitive ? CompareOptions.None : CompareOptions.IgnoreCase) >=
+						    0)
 						{
 							// global or specific filter is disabled
 							// => the message passes the filter
@@ -1327,6 +1329,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			var zeroTimestamp = new DateTimeOffset(0, TimeSpan.Zero);
 			if (oldestMessage != null)
 			{
+				Debug.Assert(newestMessage != null, nameof(newestMessage) + " != null");
 				Assert.Equal(oldestMessage.Timestamp, filter.TimestampFilter.MinTimestamp);
 				Assert.Equal(newestMessage.Timestamp, filter.TimestampFilter.MaxTimestamp);
 			}
@@ -1367,14 +1370,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				x =>
 				{
 					Assert.False(x.Selected);
-					if (LogLevel.PredefinedLogLevels.Select(y => y.Name).Contains(x.Value))
-					{
-						Assert.Equal("Predefined", x.Group);
-					}
-					else
-					{
-						Assert.Equal("Aspects", x.Group);
-					}
+					Assert.Equal(LogLevel.PredefinedLogLevels.Select(y => y.Name).Contains(x.Value) ? "Predefined" : "Aspects", x.Group);
 				});
 
 			// Log Writer Filter

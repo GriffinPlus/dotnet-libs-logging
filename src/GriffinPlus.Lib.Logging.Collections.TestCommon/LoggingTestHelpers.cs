@@ -8,8 +8,6 @@
 using System;
 using System.Collections.Generic;
 
-using Xunit;
-
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -89,7 +87,7 @@ namespace GriffinPlus.Lib.Logging
 				firstMessage.LogWriterName = "log writer of first message";
 				firstMessage.LogLevelName = "log level of first message";
 				firstMessage.ApplicationName = "application name of first message";
-				firstMessage.ProcessName = "process name of first message"; 
+				firstMessage.ProcessName = "process name of first message";
 				firstMessage.ProcessId = int.MinValue;
 				firstMessage.Tags = new TagSet("tag-of-first-message");
 				// firstMessage.Text is just fine

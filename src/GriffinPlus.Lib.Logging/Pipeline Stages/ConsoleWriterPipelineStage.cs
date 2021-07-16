@@ -35,10 +35,10 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class ConsoleWriterPipelineStage : TextWriterPipelineStage<ConsoleWriterPipelineStage>
 	{
-		private readonly Dictionary<LogLevel, ConsoleOutputStream>            mStreamByLevel = new Dictionary<LogLevel, ConsoleOutputStream>();
-		private readonly StringBuilder                                        mStdoutBuilder = new StringBuilder();
-		private readonly StringBuilder                                        mStderrBuilder = new StringBuilder();
-		private          IProcessingPipelineStageSetting<ConsoleOutputStream> mDefaultStreamSetting;
+		private readonly Dictionary<LogLevel, ConsoleOutputStream>            mStreamByLevel            = new Dictionary<LogLevel, ConsoleOutputStream>();
+		private readonly StringBuilder                                        mStdoutBuilder            = new StringBuilder();
+		private readonly StringBuilder                                        mStderrBuilder            = new StringBuilder();
+		private          IProcessingPipelineStageSetting<ConsoleOutputStream> mDefaultStreamSetting     = null;
 		private          TextWriter                                           mOutputStream             = Console.Out;
 		private          TextWriter                                           mErrorStream              = Console.Error;
 		private const    string                                               SettingName_DefaultStream = "DefaultStream";

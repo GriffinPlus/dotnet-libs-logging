@@ -21,8 +21,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 	/// of selectable items for log writers, levels, processes etc.
 	/// </summary>
 	public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection> :
-		ISelectableLogMessageFilter<TMessage>,
-		IDisposable
+		ISelectableLogMessageFilter<TMessage>
 		where TMessage : class, ILogMessage
 		where TUnfilteredCollection : LogMessageCollectionBase<TMessage>
 	{
@@ -328,7 +327,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (collection == null)
 				throw new ArgumentNullException(nameof(collection));
 
-			if (!(collection is TUnfilteredCollection))
+			if (!(collection is TUnfilteredCollection collectionToAttach))
 				throw new ArgumentException($"The collection must be of type '{typeof(TUnfilteredCollection)}'");
 
 			// detach old collection, if necessary
@@ -339,7 +338,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			Reset();
 
 			// set new collection
-			Collection = (TUnfilteredCollection)collection;
+			Collection = collectionToAttach;
 
 			// register for changes to the unfiltered collection
 			Collection.CollectionChanged += OnUnfilteredCollectionChanged;

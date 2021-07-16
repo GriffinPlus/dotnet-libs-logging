@@ -753,7 +753,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				if (message.Id > startId) break;
 				expectedMessages.Add(message);
 			}
-			
+
 			// remove superfluous messages and reverse the result list, if necessary
 			expectedMessages.RemoveRange(0, Math.Max(expectedMessages.Count - count, 0));
 			if (!reverse) expectedMessages.Reverse();

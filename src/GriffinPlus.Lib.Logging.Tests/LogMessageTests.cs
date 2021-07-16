@@ -472,7 +472,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// invoke the getter of the property and compare to the expected default value
-			var value = propertyInfo.GetValue(message);
+			object value = propertyInfo.GetValue(message);
 			Assert.Equal(expectedDefaultValue, value);
 		}
 
@@ -507,7 +507,7 @@ namespace GriffinPlus.Lib.Logging
 					throw new NotImplementedException();
 			}
 
-			var value = propertyInfo.GetValue(message);
+			object value = propertyInfo.GetValue(message);
 			Assert.Equal(expectedDefaultValue, value);
 
 			if (protect)
@@ -565,7 +565,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// check default value of the property
-			var value = propertyInfo.GetValue(message);
+			object value = propertyInfo.GetValue(message);
 			Assert.Equal(expectedDefaultValue, value);
 
 			// prepare data pulling some information out of the event handler
