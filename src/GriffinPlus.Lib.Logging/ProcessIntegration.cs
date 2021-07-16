@@ -394,7 +394,8 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// write the received log message to our own log using the same log level
-			var level = LogLevel.GetAspect(message.LogLevelName ?? "Note"); // log message as 'Note', if not specified explicitly
+			// (log message as 'Notice', if not specified explicitly)
+			var level = message.LogLevelName != null ? LogLevel.GetAspect(message.LogLevelName) : LogLevel.Notice;
 			LogWriter.Write(level, builder.ToString());
 		}
 

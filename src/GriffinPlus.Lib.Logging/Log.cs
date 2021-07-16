@@ -233,8 +233,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			if (level.Id < 0 || level.Id == int.MaxValue)
 			{
-				level = LogLevel.Failure;
-				text = "##### Message was written using log level 'None' or 'All'. Falling back to 'Failure'. Don't do that!!!! #####" +
+				level = LogLevel.Error;
+				text = "##### Message was written using log level 'None' or 'All'. Falling back to 'Error'. Don't do that!!!! #####" +
 				       Environment.NewLine +
 				       Environment.NewLine +
 				       text;

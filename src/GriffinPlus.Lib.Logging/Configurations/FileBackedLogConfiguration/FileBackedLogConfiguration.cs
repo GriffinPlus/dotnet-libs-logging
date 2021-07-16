@@ -100,7 +100,7 @@ namespace GriffinPlus.Lib.Logging
 						// a severe error that cannot be fixed here
 						// => abort
 						sLog.ForceWrite(
-							LogLevel.Failure,
+							LogLevel.Error,
 							"Loading log configuration file ({0}) failed. Exception: {1}",
 							FullPath,
 							ex);
@@ -343,7 +343,7 @@ namespace GriffinPlus.Lib.Logging
 							// a severe error that cannot be fixed here
 							// => abort
 							sLog.ForceWrite(
-								LogLevel.Failure,
+								LogLevel.Error,
 								"Loading log configuration file ({0}) failed. Exception: {1}",
 								FullPath,
 								ex);

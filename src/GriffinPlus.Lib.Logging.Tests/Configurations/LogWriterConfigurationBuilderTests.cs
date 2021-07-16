@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var builder = LogWriterConfigurationBuilder.New.MatchingExactly("MyLogWriter");
 			var writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Single(writer.NamePatterns);
 			var pattern = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
@@ -49,7 +49,7 @@ namespace GriffinPlus.Lib.Logging
 			const string wildcard = "MyLogWriter*";
 			var builder = LogWriterConfigurationBuilder.New.MatchingWildcardPattern(wildcard);
 			var writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Single(writer.NamePatterns);
 			var pattern = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
@@ -73,7 +73,7 @@ namespace GriffinPlus.Lib.Logging
 			const string regex = "^My.*LogWriter$";
 			var builder = LogWriterConfigurationBuilder.New.MatchingRegex(regex);
 			var writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Single(writer.NamePatterns);
 			var pattern = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.RegexNamePattern>(pattern);
@@ -96,7 +96,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var builder = LogWriterConfigurationBuilder.New.WithTag("MyTag");
 			var writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 
 			Assert.Single(writer.NamePatterns);
 			var pattern1 = writer.NamePatterns.First();
@@ -126,7 +126,7 @@ namespace GriffinPlus.Lib.Logging
 			const string wildcard = "My*";
 			var builder = LogWriterConfigurationBuilder.New.WithTagWildcardPattern(wildcard);
 			var writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 
 			Assert.Single(writer.NamePatterns);
 			var pattern1 = writer.NamePatterns.First();
@@ -156,7 +156,7 @@ namespace GriffinPlus.Lib.Logging
 			const string regex = "^My.*Tag$";
 			var builder = LogWriterConfigurationBuilder.New.WithTagRegex(regex);
 			var writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 
 			Assert.Single(writer.NamePatterns);
 			var pattern1 = writer.NamePatterns.First();
@@ -225,7 +225,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				Assert.Same(builder, builder.WithLevel(levels[i])); // <- level as LogLevel
 				var writer = builder.Build();
-				Assert.Equal("Note", writer.BaseLevel);
+				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Includes);
 				Assert.Empty(writer.Excludes);
 			}
@@ -243,7 +243,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				Assert.Same(builder, builder.WithLevel(levels[i].Name)); // <- level as string
 				var writer = builder.Build();
-				Assert.Equal("Note", writer.BaseLevel);
+				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Includes);
 				Assert.Empty(writer.Excludes);
 			}
@@ -264,7 +264,7 @@ namespace GriffinPlus.Lib.Logging
 			// populate the exclude list with all known log levels
 			Assert.Same(builder, builder.WithoutLevel(allLevels));
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Excludes);
 
@@ -301,7 +301,7 @@ namespace GriffinPlus.Lib.Logging
 			// populate the exclude list with all known log levels
 			Assert.Same(builder, builder.WithoutLevel(allLevels));
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Excludes);
 
@@ -333,13 +333,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="fromLevelName">Name of the first log level in the range.</param>
 		/// <param name="toLevelName">Name of the last log level in the range.</param>
 		[Theory]
-		[InlineData("Failure", "Failure")] // include 'Failure' only
-		[InlineData("Failure", "Error")]   // include 'Failure' and 'Error'
-		[InlineData("Failure", "Warning")] // include 'Failure', 'Error' and 'Warning'
-		[InlineData("Failure", "Note")]    // include 'Failure', 'Error', 'Warning' and 'Note'
-		[InlineData("Error", "Error")]     // include 'Error' only
-		[InlineData("Error", "Warning")]   // include 'Error' and 'Warning'
-		[InlineData("Error", "Note")]      // include 'Error', 'Warning' and 'Note'
+		[InlineData("Emergency", "Emergency")] // include 'Emergency' only
+		[InlineData("Emergency", "Alert")]     // include 'Emergency' and 'Alert'
+		[InlineData("Emergency", "Critical")]  // include 'Emergency', 'Alert' and 'Critical'
+		[InlineData("Emergency", "Error")]     // include 'Emergency', 'Alert', 'Critical' and 'Error'
+		[InlineData("Emergency", "Warning")]   // include 'Emergency', 'Alert', 'Critical', 'Error' and 'Warning'
+		[InlineData("Alert", "Alert")]         // include 'Alert' only
+		[InlineData("Alert", "Critical")]      // include 'Alert' and 'Critical'
+		[InlineData("Alert", "Error")]         // include 'Alert', 'Critical' and 'Error'
 		public void WithLevelRange_AddOnly_LevelAsLogLevel(string fromLevelName, string toLevelName)
 		{
 			var builder = LogWriterConfigurationBuilder.New;
@@ -358,14 +359,14 @@ namespace GriffinPlus.Lib.Logging
 			// from small level id to big level id
 			Assert.Same(builder, builder.WithLevelRange(fromLevel, toLevel)); // <- level as LogLevel
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(levels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
 			// from big level id to small level id (order should be swapped automatically)
 			Assert.Same(builder, builder.WithLevelRange(toLevel, fromLevel)); // <- level as LogLevel
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(levels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 		}
@@ -376,13 +377,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="fromLevelName">Name of the first log level in the range.</param>
 		/// <param name="toLevelName">Name of the last log level in the range.</param>
 		[Theory]
-		[InlineData("Failure", "Failure")] // include 'Failure' only
-		[InlineData("Failure", "Error")]   // include 'Failure' and 'Error'
-		[InlineData("Failure", "Warning")] // include 'Failure', 'Error' and 'Warning'
-		[InlineData("Failure", "Note")]    // include 'Failure', 'Error', 'Warning' and 'Note'
-		[InlineData("Error", "Error")]     // include 'Error' only
-		[InlineData("Error", "Warning")]   // include 'Error' and 'Warning'
-		[InlineData("Error", "Note")]      // include 'Error', 'Warning' and 'Note'
+		[InlineData("Emergency", "Emergency")] // include 'Emergency' only
+		[InlineData("Emergency", "Alert")]     // include 'Emergency' and 'Alert'
+		[InlineData("Emergency", "Critical")]  // include 'Emergency', 'Alert' and 'Critical'
+		[InlineData("Emergency", "Error")]     // include 'Emergency', 'Alert', 'Critical' and 'Error'
+		[InlineData("Emergency", "Warning")]   // include 'Emergency', 'Alert', 'Critical', 'Error' and 'Warning'
+		[InlineData("Alert", "Alert")]         // include 'Alert' only
+		[InlineData("Alert", "Critical")]      // include 'Alert' and 'Critical'
+		[InlineData("Alert", "Error")]         // include 'Alert', 'Critical' and 'Error'
 		public void WithLevelRange_AddOnly_LevelAsString(string fromLevelName, string toLevelName)
 		{
 			var builder = LogWriterConfigurationBuilder.New;
@@ -401,14 +403,14 @@ namespace GriffinPlus.Lib.Logging
 			// from small level id to big level id
 			Assert.Same(builder, builder.WithLevelRange(fromLevel.Name, toLevel.Name)); // <- level as string
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(levels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
 			// from big level id to small level id (order should be swapped automatically)
 			Assert.Same(builder, builder.WithLevelRange(toLevel.Name, fromLevel.Name)); // <- level as string
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(levels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 		}
@@ -418,14 +420,14 @@ namespace GriffinPlus.Lib.Logging
 		/// removes the same log levels from the list of excluded log levels.
 		/// </summary>
 		[Theory]
-		[InlineData("Failure", "Failure")]   // include 'Failure'
-		[InlineData("Failure", "Error")]     // include 'Failure' and 'Error'
-		[InlineData("Failure", "Warning")]   // include 'Failure', 'Error' and 'Warning'
-		[InlineData("Failure", "Note")]      // include 'Failure', 'Error', 'Warning' and 'Note'
-		[InlineData("Failure", "Developer")] // include 'Failure', 'Error', 'Warning', 'Note' and 'Developer'
-		[InlineData("Error", "Error")]       // include 'Error' only
-		[InlineData("Error", "Warning")]     // include 'Error' and 'Warning'
-		[InlineData("Error", "Note")]        // include 'Error', 'Warning' and 'Note'
+		[InlineData("Emergency", "Emergency")] // include 'Emergency' only
+		[InlineData("Emergency", "Alert")]     // include 'Emergency' and 'Alert'
+		[InlineData("Emergency", "Critical")]  // include 'Emergency', 'Alert' and 'Critical'
+		[InlineData("Emergency", "Error")]     // include 'Emergency', 'Alert', 'Critical' and 'Error'
+		[InlineData("Emergency", "Warning")]   // include 'Emergency', 'Alert', 'Critical', 'Error' and 'Warning'
+		[InlineData("Alert", "Alert")]         // include 'Alert' only
+		[InlineData("Alert", "Critical")]      // include 'Alert' and 'Critical'
+		[InlineData("Alert", "Error")]         // include 'Alert', 'Critical' and 'Error'
 		public void WithLevelRange_AddRemovesExclude_LevelAsLogLevel(string fromLevelName, string toLevelName)
 		{
 			var builder = LogWriterConfigurationBuilder.New;
@@ -442,7 +444,7 @@ namespace GriffinPlus.Lib.Logging
 			// populate the exclude list with all known log levels
 			Assert.Same(builder, builder.WithoutLevel(allLevels));
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Excludes);
 
@@ -454,7 +456,7 @@ namespace GriffinPlus.Lib.Logging
 			// => log levels should automatically be removed from the exclude list
 			Assert.Same(builder, builder.WithLevelRange(fromLevel, toLevel)); // level as LogLevel
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(levelsToInclude.Select(x => x.Name), writer.Includes);
 			Assert.Equal(levelsToExclude.Select(x => x.Name), writer.Excludes);
 		}
@@ -464,14 +466,14 @@ namespace GriffinPlus.Lib.Logging
 		/// removes the same log levels from the list of excluded log levels.
 		/// </summary>
 		[Theory]
-		[InlineData("Failure", "Failure")]   // include 'Failure'
-		[InlineData("Failure", "Error")]     // include 'Failure' and 'Error'
-		[InlineData("Failure", "Warning")]   // include 'Failure', 'Error' and 'Warning'
-		[InlineData("Failure", "Note")]      // include 'Failure', 'Error', 'Warning' and 'Note'
-		[InlineData("Failure", "Developer")] // include 'Failure', 'Error', 'Warning', 'Note' and 'Developer'
-		[InlineData("Error", "Error")]       // include 'Error' only
-		[InlineData("Error", "Warning")]     // include 'Error' and 'Warning'
-		[InlineData("Error", "Note")]        // include 'Error', 'Warning' and 'Note'
+		[InlineData("Emergency", "Emergency")] // include 'Emergency' only
+		[InlineData("Emergency", "Alert")]     // include 'Emergency' and 'Alert'
+		[InlineData("Emergency", "Critical")]  // include 'Emergency', 'Alert' and 'Critical'
+		[InlineData("Emergency", "Error")]     // include 'Emergency', 'Alert', 'Critical' and 'Error'
+		[InlineData("Emergency", "Warning")]   // include 'Emergency', 'Alert', 'Critical', 'Error' and 'Warning'
+		[InlineData("Alert", "Alert")]         // include 'Alert' only
+		[InlineData("Alert", "Critical")]      // include 'Alert' and 'Critical'
+		[InlineData("Alert", "Error")]         // include 'Alert', 'Critical' and 'Error'
 		public void WithLevelRange_AddRemovesExclude_LevelAsString(string fromLevelName, string toLevelName)
 		{
 			var builder = LogWriterConfigurationBuilder.New;
@@ -488,7 +490,7 @@ namespace GriffinPlus.Lib.Logging
 			// populate the exclude list with all known log levels
 			Assert.Same(builder, builder.WithoutLevel(allLevels));
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Excludes);
 
@@ -500,7 +502,7 @@ namespace GriffinPlus.Lib.Logging
 			// => log levels should automatically be removed from the exclude list
 			Assert.Same(builder, builder.WithLevelRange(fromLevel.Name, toLevel.Name)); // level as string
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(levelsToInclude.Select(x => x.Name), writer.Includes);
 			Assert.Equal(levelsToExclude.Select(x => x.Name), writer.Excludes);
 		}
@@ -521,7 +523,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				Assert.Same(builder, builder.WithoutLevel(levels[i])); // <- level as LogLevel
 				var writer = builder.Build();
-				Assert.Equal("Note", writer.BaseLevel);
+				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Empty(writer.Includes);
 				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Excludes);
 			}
@@ -539,7 +541,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				Assert.Same(builder, builder.WithoutLevel(levels[i].Name)); // <- level as string
 				var writer = builder.Build();
-				Assert.Equal("Note", writer.BaseLevel);
+				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Empty(writer.Includes);
 				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Excludes);
 			}
@@ -560,7 +562,7 @@ namespace GriffinPlus.Lib.Logging
 			// populate the include list with all known log levels
 			Assert.Same(builder, builder.WithLevel(allLevels));
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
@@ -597,7 +599,7 @@ namespace GriffinPlus.Lib.Logging
 			// populate the include list with all known log levels
 			Assert.Same(builder, builder.WithLevel(allLevels));
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
@@ -629,13 +631,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="fromLevelName">Name of the first log level in the range.</param>
 		/// <param name="toLevelName">Name of the last log level in the range.</param>
 		[Theory]
-		[InlineData("Failure", "Failure")] // include 'Failure' only
-		[InlineData("Failure", "Error")]   // include 'Failure' and 'Error'
-		[InlineData("Failure", "Warning")] // include 'Failure', 'Error' and 'Warning'
-		[InlineData("Failure", "Note")]    // include 'Failure', 'Error', 'Warning' and 'Note'
-		[InlineData("Error", "Error")]     // include 'Error' only
-		[InlineData("Error", "Warning")]   // include 'Error' and 'Warning'
-		[InlineData("Error", "Note")]      // include 'Error', 'Warning' and 'Note'
+		[InlineData("Emergency", "Emergency")] // exclude 'Emergency' only
+		[InlineData("Emergency", "Alert")]     // exclude 'Emergency' and 'Alert'
+		[InlineData("Emergency", "Critical")]  // exclude 'Emergency', 'Alert' and 'Critical'
+		[InlineData("Emergency", "Error")]     // exclude 'Emergency', 'Alert', 'Critical' and 'Error'
+		[InlineData("Emergency", "Warning")]   // exclude 'Emergency', 'Alert', 'Critical', 'Error' and 'Warning'
+		[InlineData("Alert", "Alert")]         // exclude 'Alert' only
+		[InlineData("Alert", "Critical")]      // exclude 'Alert' and 'Critical'
+		[InlineData("Alert", "Error")]         // exclude 'Alert', 'Critical' and 'Error'
 		public void WithoutLevelRange_AddOnly_LevelAsLogLevel(string fromLevelName, string toLevelName)
 		{
 			var builder = LogWriterConfigurationBuilder.New;
@@ -654,14 +657,14 @@ namespace GriffinPlus.Lib.Logging
 			// from small level id to big level id
 			Assert.Same(builder, builder.WithoutLevelRange(fromLevel, toLevel)); // <- level as LogLevel
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Equal(levels.Select(x => x.Name), writer.Excludes);
 
 			// from big level id to small level id (order should be swapped automatically)
 			Assert.Same(builder, builder.WithoutLevelRange(toLevel, fromLevel)); // <- level as LogLevel
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Equal(levels.Select(x => x.Name), writer.Excludes);
 		}
@@ -672,13 +675,14 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="fromLevelName">Name of the first log level in the range.</param>
 		/// <param name="toLevelName">Name of the last log level in the range.</param>
 		[Theory]
-		[InlineData("Failure", "Failure")] // include 'Failure' only
-		[InlineData("Failure", "Error")]   // include 'Failure' and 'Error'
-		[InlineData("Failure", "Warning")] // include 'Failure', 'Error' and 'Warning'
-		[InlineData("Failure", "Note")]    // include 'Failure', 'Error', 'Warning' and 'Note'
-		[InlineData("Error", "Error")]     // include 'Error' only
-		[InlineData("Error", "Warning")]   // include 'Error' and 'Warning'
-		[InlineData("Error", "Note")]      // include 'Error', 'Warning' and 'Note'
+		[InlineData("Emergency", "Emergency")] // exclude 'Emergency' only
+		[InlineData("Emergency", "Alert")]     // exclude 'Emergency' and 'Alert'
+		[InlineData("Emergency", "Critical")]  // exclude 'Emergency', 'Alert' and 'Critical'
+		[InlineData("Emergency", "Error")]     // exclude 'Emergency', 'Alert', 'Critical' and 'Error'
+		[InlineData("Emergency", "Warning")]   // exclude 'Emergency', 'Alert', 'Critical', 'Error' and 'Warning'
+		[InlineData("Alert", "Alert")]         // exclude 'Alert' only
+		[InlineData("Alert", "Critical")]      // exclude 'Alert' and 'Critical'
+		[InlineData("Alert", "Error")]         // exclude 'Alert', 'Critical' and 'Error'
 		public void WithoutLevelRange_AddOnly_LevelAsString(string fromLevelName, string toLevelName)
 		{
 			var builder = LogWriterConfigurationBuilder.New;
@@ -697,14 +701,14 @@ namespace GriffinPlus.Lib.Logging
 			// from small level id to big level id
 			Assert.Same(builder, builder.WithoutLevelRange(fromLevel.Name, toLevel.Name)); // <- level as string
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Equal(levels.Select(x => x.Name), writer.Excludes);
 
 			// from big level id to small level id (order should be swapped automatically)
 			Assert.Same(builder, builder.WithoutLevelRange(toLevel.Name, fromLevel.Name)); // <- level as string
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
 			Assert.Equal(levels.Select(x => x.Name), writer.Excludes);
 		}
@@ -714,14 +718,14 @@ namespace GriffinPlus.Lib.Logging
 		/// removes the same log levels from the list of included log levels.
 		/// </summary>
 		[Theory]
-		[InlineData("Failure", "Failure")]   // include 'Failure'
-		[InlineData("Failure", "Error")]     // include 'Failure' and 'Error'
-		[InlineData("Failure", "Warning")]   // include 'Failure', 'Error' and 'Warning'
-		[InlineData("Failure", "Note")]      // include 'Failure', 'Error', 'Warning' and 'Note'
-		[InlineData("Failure", "Developer")] // include 'Failure', 'Error', 'Warning', 'Note' and 'Developer'
-		[InlineData("Error", "Error")]       // include 'Error' only
-		[InlineData("Error", "Warning")]     // include 'Error' and 'Warning'
-		[InlineData("Error", "Note")]        // include 'Error', 'Warning' and 'Note'
+		[InlineData("Emergency", "Emergency")] // exclude 'Emergency' only
+		[InlineData("Emergency", "Alert")]     // exclude 'Emergency' and 'Alert'
+		[InlineData("Emergency", "Critical")]  // exclude 'Emergency', 'Alert' and 'Critical'
+		[InlineData("Emergency", "Error")]     // exclude 'Emergency', 'Alert', 'Critical' and 'Error'
+		[InlineData("Emergency", "Warning")]   // exclude 'Emergency', 'Alert', 'Critical', 'Error' and 'Warning'
+		[InlineData("Alert", "Alert")]         // exclude 'Alert' only
+		[InlineData("Alert", "Critical")]      // exclude 'Alert' and 'Critical'
+		[InlineData("Alert", "Error")]         // exclude 'Alert', 'Critical' and 'Error'
 		public void WithoutLevelRange_AddRemovesInclude_LevelAsLogLevel(string fromLevelName, string toLevelName)
 		{
 			var builder = LogWriterConfigurationBuilder.New;
@@ -738,7 +742,7 @@ namespace GriffinPlus.Lib.Logging
 			// populate the include list with all known log levels
 			Assert.Same(builder, builder.WithLevel(allLevels));
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
@@ -750,7 +754,7 @@ namespace GriffinPlus.Lib.Logging
 			// => log levels should automatically be removed from the exclude list
 			Assert.Same(builder, builder.WithoutLevelRange(fromLevel, toLevel)); // level as LogLevel
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(levelsToInclude.Select(x => x.Name), writer.Includes);
 			Assert.Equal(levelsToExclude.Select(x => x.Name), writer.Excludes);
 		}
@@ -760,14 +764,14 @@ namespace GriffinPlus.Lib.Logging
 		/// removes the same log levels from the list of included log levels.
 		/// </summary>
 		[Theory]
-		[InlineData("Failure", "Failure")]   // include 'Failure'
-		[InlineData("Failure", "Error")]     // include 'Failure' and 'Error'
-		[InlineData("Failure", "Warning")]   // include 'Failure', 'Error' and 'Warning'
-		[InlineData("Failure", "Note")]      // include 'Failure', 'Error', 'Warning' and 'Note'
-		[InlineData("Failure", "Developer")] // include 'Failure', 'Error', 'Warning', 'Note' and 'Developer'
-		[InlineData("Error", "Error")]       // include 'Error' only
-		[InlineData("Error", "Warning")]     // include 'Error' and 'Warning'
-		[InlineData("Error", "Note")]        // include 'Error', 'Warning' and 'Note'
+		[InlineData("Emergency", "Emergency")] // exclude 'Emergency' only
+		[InlineData("Emergency", "Alert")]     // exclude 'Emergency' and 'Alert'
+		[InlineData("Emergency", "Critical")]  // exclude 'Emergency', 'Alert' and 'Critical'
+		[InlineData("Emergency", "Error")]     // exclude 'Emergency', 'Alert', 'Critical' and 'Error'
+		[InlineData("Emergency", "Warning")]   // exclude 'Emergency', 'Alert', 'Critical', 'Error' and 'Warning'
+		[InlineData("Alert", "Alert")]         // exclude 'Alert' only
+		[InlineData("Alert", "Critical")]      // exclude 'Alert' and 'Critical'
+		[InlineData("Alert", "Error")]         // exclude 'Alert', 'Critical' and 'Error'
 		public void WithoutLevelRange_AddRemovesInclude_LevelAsString(string fromLevelName, string toLevelName)
 		{
 			var builder = LogWriterConfigurationBuilder.New;
@@ -784,7 +788,7 @@ namespace GriffinPlus.Lib.Logging
 			// populate the include list with all known log levels
 			Assert.Same(builder, builder.WithLevel(allLevels));
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
@@ -796,7 +800,7 @@ namespace GriffinPlus.Lib.Logging
 			// => log levels should automatically be removed from the exclude list
 			Assert.Same(builder, builder.WithoutLevelRange(fromLevel.Name, toLevel.Name)); // level as string
 			writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Equal(levelsToInclude.Select(x => x.Name), writer.Includes);
 			Assert.Equal(levelsToExclude.Select(x => x.Name), writer.Excludes);
 		}
@@ -813,7 +817,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var builder = LogWriterConfigurationBuilder.New;
 			var writer = builder.Build();
-			Assert.Equal("Note", writer.BaseLevel);
+			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Single(writer.NamePatterns);
 			var pattern = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
