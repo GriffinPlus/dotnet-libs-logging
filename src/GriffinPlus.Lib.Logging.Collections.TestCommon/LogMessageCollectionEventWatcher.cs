@@ -87,8 +87,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 					if (x.OldItems.Count != y.OldItems.Count)
 						return false;
 
-					foreach (var xElement in x.OldItems)
-					foreach (var yElement in y.OldItems)
+					foreach (object xElement in x.OldItems)
+					foreach (object yElement in y.OldItems)
 					{
 						if (!xElement.Equals(yElement))
 							return false;
@@ -102,8 +102,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 					if (x.NewItems.Count != y.NewItems.Count)
 						return false;
 
-					foreach (var xElement in x.NewItems)
-					foreach (var yElement in y.NewItems)
+					foreach (object xElement in x.NewItems)
+					foreach (object yElement in y.NewItems)
 					{
 						if (!xElement.Equals(yElement))
 							return false;
@@ -123,7 +123,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 					if (obj.OldItems != null)
 					{
-						foreach (var item in obj.OldItems)
+						foreach (object item in obj.OldItems)
 						{
 							hashCode = (hashCode * 397) ^ (item != null ? item.GetHashCode() : 0);
 						}
@@ -135,7 +135,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 					if (obj.NewItems != null)
 					{
-						foreach (var item in obj.NewItems)
+						foreach (object item in obj.NewItems)
 						{
 							hashCode = (hashCode * 397) ^ (item != null ? item.GetHashCode() : 0);
 						}

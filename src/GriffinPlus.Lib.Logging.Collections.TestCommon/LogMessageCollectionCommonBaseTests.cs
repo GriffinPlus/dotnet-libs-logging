@@ -279,7 +279,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				// check whether the sync root is not a null reference and whether it is not the same as the collection itself
 				// (can cause deadlocks, if the collection itself is used for synchronization as well)
-				var syncRoot = ((ICollection)collection).SyncRoot;
+				object syncRoot = ((ICollection)collection).SyncRoot;
 				Assert.NotNull(syncRoot);
 				Assert.NotSame(collection, syncRoot);
 

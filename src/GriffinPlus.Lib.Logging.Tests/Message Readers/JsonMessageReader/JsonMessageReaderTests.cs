@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 			get
 			{
 				// use test data of the json message formatter to test reading log messages
-				foreach (var data in JsonMessageFormatterTests.FormatTestData)
+				foreach (object[] data in JsonMessageFormatterTests.FormatTestData)
 				{
 					// JsonMessageFormatterStyle style = (JsonMessageFormatterStyle) data[0];
 					var field = (LogMessageField)data[1];

@@ -169,7 +169,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var data in OperatorEquality_TestData)
+				foreach (object[] data in OperatorEquality_TestData)
 				{
 					yield return new[] { !(bool)data[0], data[1], data[2] };
 				}

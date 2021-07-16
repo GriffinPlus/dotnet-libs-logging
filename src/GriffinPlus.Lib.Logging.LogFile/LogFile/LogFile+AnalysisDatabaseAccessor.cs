@@ -226,7 +226,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </returns>
 			private long GetOldestMessageId()
 			{
-				var result = ExecuteScalarCommand(mGetOldestMessageIdCommand);
+				object result = ExecuteScalarCommand(mGetOldestMessageIdCommand);
 				return result != null ? Convert.ToInt64(result) : -1;
 			}
 
@@ -239,7 +239,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </returns>
 			private long GetNewestMessageId()
 			{
-				var result = ExecuteScalarCommand(mGetNewestMessageIdCommand);
+				object result = ExecuteScalarCommand(mGetNewestMessageIdCommand);
 				return result != null ? Convert.ToInt64(result) : -1;
 			}
 
@@ -460,7 +460,7 @@ namespace GriffinPlus.Lib.Logging
 					if (minimumMessageTimestamp > DateTime.MinValue)
 					{
 						mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter.Value = minimumMessageTimestamp.Ticks;
-						var result = ExecuteScalarCommand(mSelectMessageIdByTimestampForDeleteMessagesCommand);
+						object result = ExecuteScalarCommand(mSelectMessageIdByTimestampForDeleteMessagesCommand);
 						deleteByTimestampMessageId = result != null ? Convert.ToInt64(result) : -1;
 					}
 
