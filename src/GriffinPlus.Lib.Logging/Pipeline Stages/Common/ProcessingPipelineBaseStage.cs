@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 // ReSharper disable InconsistentNaming
@@ -19,9 +20,10 @@ namespace GriffinPlus.Lib.Logging
 	/// Messages are always processed in the context of the thread writing the message.
 	/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
 	/// </summary>
-	public abstract class ProcessingPipelineBaseStage : IProcessingPipelineStage
+	public abstract partial class ProcessingPipelineBaseStage : IProcessingPipelineStage
 	{
-		private IProcessingPipelineStageConfiguration mSettings;
+		private          IProcessingPipelineStageConfiguration mSettings;
+		private readonly List<IUntypedSettingProxy>            mSettingProxies = new List<IUntypedSettingProxy>();
 
 		/// <summary>
 		/// Indicates whether the pipeline stage is initialized, i.e. attached to the logging subsystem.
@@ -382,18 +384,47 @@ namespace GriffinPlus.Lib.Logging
 					{
 						var newConfiguration = value ?? new VolatileProcessingPipelineStageConfiguration(Name, null);
 						mSettings = newConfiguration;
-						BindSettings();
+						RebindSettingProxies();
 					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// Is called to allow a derived stage bind its settings when the <see cref="Settings"/> property has changed
-		/// (the pipeline stage lock <see cref="Sync"/> is acquired when this method is called).
+		/// Registers a pipeline stage setting and returns a setting proxy that refers to the current configuration.
+		/// The proxy is rebound when a new pipeline stage configuration is set. This avoids breaking the link between
+		/// the pipeline stage and its configuration.
 		/// </summary>
-		protected virtual void BindSettings()
+		/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
+		/// <param name="name">Name of the setting.</param>
+		/// <param name="defaultValue">Default value of the setting.</param>
+		/// <returns>A setting proxy that allows to access the underlying exchangeable pipeline stage configuration.</returns>
+		/// <exception cref="InvalidOperationException">The setting has already been registered.</exception>
+		protected IProcessingPipelineStageSetting<T> RegisterSetting<T>(string name, T defaultValue)
 		{
+			lock (Sync)
+			{
+				if (mSettingProxies.Any(x => x.Name == name))
+					throw new InvalidOperationException("The setting has already been registered.");
+
+				var proxy = new SettingProxy<T>(mSettings, name, defaultValue, Sync);
+				mSettingProxies.Add(proxy);
+				return proxy;
+			}
+		}
+
+		/// <summary>
+		/// Rebinds setting proxies to the current configuration.
+		/// </summary>
+		private void RebindSettingProxies()
+		{
+			lock (Sync)
+			{
+				foreach (var proxy in mSettingProxies)
+				{
+					proxy.SetProxyTarget(mSettings);
+				}
+			}
 		}
 
 		#endregion
@@ -620,6 +651,7 @@ namespace GriffinPlus.Lib.Logging
 		protected void WritePipelineError(string message, Exception ex)
 		{
 			// TODO: Implement
+			Debug.Fail(message, ex.ToString());
 		}
 
 		/// <summary>

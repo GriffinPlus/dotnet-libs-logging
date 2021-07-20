@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly Dictionary<LogLevel, ConsoleOutputStream>            mStreamByLevel            = new Dictionary<LogLevel, ConsoleOutputStream>();
 		private readonly StringBuilder                                        mStdoutBuilder            = new StringBuilder();
 		private readonly StringBuilder                                        mStderrBuilder            = new StringBuilder();
-		private          IProcessingPipelineStageSetting<ConsoleOutputStream> mDefaultStreamSetting     = null;
+		private readonly IProcessingPipelineStageSetting<ConsoleOutputStream> mDefaultStreamSetting     = null;
 		private          TextWriter                                           mOutputStream             = Console.Out;
 		private          TextWriter                                           mErrorStream              = Console.Error;
 		private const    string                                               SettingName_DefaultStream = "DefaultStream";
@@ -49,6 +49,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		public ConsoleWriterPipelineStage(string name) : base(name)
 		{
+			mDefaultStreamSetting = RegisterSetting(SettingName_DefaultStream, ConsoleOutputStream.Stdout);
 		}
 
 		/// <summary>
@@ -157,15 +158,6 @@ namespace GriffinPlus.Lib.Logging
 				EnsureNotAttachedToLoggingSubsystem();
 				mStreamByLevel[level] = stream;
 			}
-		}
-
-		/// <summary>
-		/// Is called to allow a derived stage bind its settings when the <see cref="ProcessingPipelineBaseStage.Settings"/> property has changed
-		/// (the pipeline stage lock <see cref="ProcessingPipelineBaseStage.Sync"/> is acquired when this method is called).
-		/// </summary>
-		protected override void BindSettings()
-		{
-			mDefaultStreamSetting = Settings.RegisterSetting(SettingName_DefaultStream, ConsoleOutputStream.Stdout);
 		}
 
 		/// <summary>

@@ -62,9 +62,6 @@ namespace GriffinPlus.Lib.Logging
 						TaskScheduler.Default)
 					.Unwrap();
 
-				// bind settings
-				BindSettings();
-
 				// Perform pipeline stage specific initialization
 				OnInitialize();
 			}

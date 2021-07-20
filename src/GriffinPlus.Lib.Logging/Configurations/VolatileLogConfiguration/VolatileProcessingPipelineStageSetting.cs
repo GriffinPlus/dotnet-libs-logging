@@ -4,6 +4,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Threading;
+
+using GriffinPlus.Lib.Events;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -12,7 +15,7 @@ namespace GriffinPlus.Lib.Logging
 	/// A setting in a <see cref="VolatileProcessingPipelineStageConfiguration"/>.
 	/// </summary>
 	/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
-	public class VolatileProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>, IUntypedProcessingPipelineStageSetting
+	public class VolatileProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>
 	{
 		private readonly VolatileProcessingPipelineStageRawSetting                            mRawSetting;
 		private readonly ProcessingPipelineStageConfigurationBase.ValueFromStringConverter<T> mFromStringConverter;
@@ -36,10 +39,82 @@ namespace GriffinPlus.Lib.Logging
 			mToStringConverter = valueToStringConverter;
 		}
 
+		#region SettingChanged Event
+
+		/// <summary>
+		/// Occurs when the setting changes.
+		/// The event handler is invoked in the synchronization context of the registering thread, if the thread
+		/// has a synchronization context. Otherwise the event handler is invoked by a worker thread. The execution
+		/// of the event handler is always scheduled to avoid deadlocks that might be caused by lock inversion.
+		/// </summary>
+		public event EventHandler<SettingChangedEventArgs> SettingChanged
+		{
+			add => RegisterPropertyChangedEventHandler(value, true);
+			remove => UnregisterPropertyChangedEventHandler(value);
+		}
+
+		/// <summary>
+		/// Registers the specified <see cref="EventHandler{SettingChangedEventArgs}"/> for the <see cref="SettingChanged"/> event.
+		/// Depending on <paramref name="invokeInCurrentSynchronizationContext"/> the event handler is invoked in the
+		/// synchronization context of the current thread (if any) or in a worker thread. The execution of the event
+		/// handler is always scheduled to avoid deadlocks that might be caused by lock inversion.
+		/// </summary>
+		/// <param name="handler">Event handler to register.</param>
+		/// <param name="invokeInCurrentSynchronizationContext">
+		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
+		/// <c>false</c> to invoke the event handler in a worker thread.
+		/// </param>
+		public void RegisterPropertyChangedEventHandler(
+			EventHandler<SettingChangedEventArgs> handler,
+			bool                                  invokeInCurrentSynchronizationContext)
+		{
+			EventManager<SettingChangedEventArgs>.RegisterEventHandler(
+				this,
+				nameof(SettingChanged),
+				handler,
+				invokeInCurrentSynchronizationContext ? SynchronizationContext.Current : null,
+				true);
+		}
+
+		/// <summary>
+		/// Unregisters the specified <see cref="EventHandler{SettingChangedEventArgs}"/> from the <see cref="SettingChanged"/> event.
+		/// </summary>
+		/// <param name="handler">Event handler to unregister.</param>
+		public void UnregisterPropertyChangedEventHandler(EventHandler<SettingChangedEventArgs> handler)
+		{
+			EventManager<SettingChangedEventArgs>.UnregisterEventHandler(
+				this,
+				nameof(SettingChanged),
+				handler);
+		}
+
+		/// <summary>
+		/// Raises the <see cref="SettingChanged"/> event when a property has changed.
+		/// </summary>
+		private void OnSettingChanged()
+		{
+			if (EventManager<SettingChangedEventArgs>.IsHandlerRegistered(this, nameof(SettingChanged)))
+			{
+				EventManager<SettingChangedEventArgs>.FireEvent(
+					this,
+					nameof(SettingChanged),
+					this,
+					SettingChangedEventArgs.Default);
+			}
+		}
+
+		#endregion
+
+		#region Access to the Raw Setting
+
 		/// <summary>
 		/// Gets the raw setting containing the string representation of the setting.
 		/// </summary>
 		internal VolatileProcessingPipelineStageRawSetting Raw => mRawSetting;
+
+		#endregion
+
+		#region Implementation of IProcessingPipelineStageSetting<T> and IUntypedProcessingPipelineStageSetting
 
 		/// <summary>
 		/// Gets the name of the setting.
@@ -83,7 +158,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mRawSetting.StageConfiguration.Sync)
 				{
-					mRawSetting.Value = mToStringConverter(value);
+					string oldRawValue = mRawSetting.HasValue | mRawSetting.HasDefaultValue ? mRawSetting.Value : null;
+					string newRawValue = mToStringConverter(value);
+					if (oldRawValue == newRawValue) return;
+					mRawSetting.Value = newRawValue;
+					OnSettingChanged();
 				}
 			}
 		}
@@ -103,7 +182,12 @@ namespace GriffinPlus.Lib.Logging
 		public string ValueAsString
 		{
 			get => mRawSetting.Value;
-			set => mRawSetting.Value = value;
+			set
+			{
+				if (mRawSetting.Value == value) return;
+				mRawSetting.Value = value;
+				OnSettingChanged();
+			}
 		}
 
 		/// <summary>
@@ -120,6 +204,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the default value of the setting.
 		/// </summary>
 		object IUntypedProcessingPipelineStageSetting.DefaultValue => mFromStringConverter(mRawSetting.DefaultValue);
+
+		#endregion
 
 		/// <summary>
 		/// Gets the string representation of the setting.

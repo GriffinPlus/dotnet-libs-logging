@@ -5,6 +5,7 @@ namespace GriffinPlus.Lib.Logging
 
 	/// <summary>
 	/// Interface for a setting in the configuration of a pipeline specific stage.
+	/// A raw setting is the setting in its string representation.
 	/// </summary>
 	public interface IProcessingPipelineStageRawSetting
 	{

@@ -14,6 +14,14 @@ namespace GriffinPlus.Lib.Logging
 	public interface IUntypedProcessingPipelineStageSetting
 	{
 		/// <summary>
+		/// Occurs when the setting changes.
+		/// The event handler is invoked in the synchronization context of the registering thread, if the thread
+		/// has a synchronization context. Otherwise the event handler is invoked by a worker thread. The execution
+		/// of the event handler is always scheduled to avoid deadlocks that might be caused by lock inversion.
+		/// </summary>
+		event EventHandler<SettingChangedEventArgs> SettingChanged;
+
+		/// <summary>
 		/// Gets the name of the setting.
 		/// </summary>
 		string Name { get; }
@@ -47,6 +55,27 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the default value of the setting.
 		/// </summary>
 		object DefaultValue { get; }
+
+		/// <summary>
+		/// Registers the specified <see cref="EventHandler{SettingChangedEventArgs}"/> for the <see cref="SettingChanged"/> event.
+		/// Depending on <paramref name="invokeInCurrentSynchronizationContext"/> the event handler is invoked in the
+		/// synchronization context of the current thread (if any) or in a worker thread. The execution of the event
+		/// handler is always scheduled to avoid deadlocks that might be caused by lock inversion.
+		/// </summary>
+		/// <param name="handler">Event handler to register.</param>
+		/// <param name="invokeInCurrentSynchronizationContext">
+		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
+		/// <c>false</c> to invoke the event handler in a worker thread.
+		/// </param>
+		void RegisterPropertyChangedEventHandler(
+			EventHandler<SettingChangedEventArgs> handler,
+			bool                                  invokeInCurrentSynchronizationContext);
+
+		/// <summary>
+		/// Unregisters the specified <see cref="EventHandler{SettingChangedEventArgs}"/> from the <see cref="SettingChanged"/> event.
+		/// </summary>
+		/// <param name="handler">Event handler to unregister.</param>
+		void UnregisterPropertyChangedEventHandler(EventHandler<SettingChangedEventArgs> handler);
 	}
 
 }

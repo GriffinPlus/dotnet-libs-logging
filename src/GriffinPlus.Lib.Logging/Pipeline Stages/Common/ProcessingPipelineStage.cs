@@ -36,9 +36,6 @@ namespace GriffinPlus.Lib.Logging
 		{
 			try
 			{
-				// bind settings
-				BindSettings();
-
 				// perform pipeline stage specific initializations
 				OnInitialize();
 			}
