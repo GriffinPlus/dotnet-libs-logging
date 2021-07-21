@@ -40,42 +40,49 @@ namespace GriffinPlus.Lib.Logging
 		public override string Name { get; }
 
 		/// <summary>
-		/// Registers the setting with the specified name
-		/// (creates a new setting with the specified default value, if the setting does not exist).
+		/// Registers the setting with the specified name (supports custom types using the specified converters).
+		/// Creates a new setting with the specified value, if the setting does not exist.
 		/// </summary>
-		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
-		/// <param name="name">Name of the setting.</param>
-		/// <param name="defaultValue">Default value of the setting, if the setting does not exist, yet.</param>
+		/// <typeparam name="T">Type of the setting.</typeparam>
+		/// <param name="name">
+		/// Name of the setting. The following characters are allowed:
+		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
+		/// - square brackets ( [] )
+		/// - Period (.)
+		/// </param>
+		/// <param name="defaultValue">Value of the setting, if the setting does not exist, yet.</param>
+		/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
+		/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
 		/// <returns>The setting.</returns>
-		public override IProcessingPipelineStageSetting<T> RegisterSetting<T>(string name, T defaultValue)
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists already, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		public override IProcessingPipelineStageSetting<T> RegisterSetting<T>(
+			string          name,
+			T               defaultValue,
+			Func<T, string> valueToStringConverter,
+			Func<string, T> stringToValueConverter)
 		{
-			// ensure that the specified name is well-formed and the setting value type is supported
+			// check arguments
+			if (valueToStringConverter == null) throw new ArgumentNullException(nameof(valueToStringConverter));
+			if (stringToValueConverter == null) throw new ArgumentNullException(nameof(stringToValueConverter));
 			CheckSettingName(name);
-			CheckSettingTypeIsSupported(typeof(T));
 
 			lock (Sync)
 			{
-				ValueFromStringConverter<T> fromConverter;
-				ValueToStringConverter<T> toConverter;
-
-				if (typeof(T).IsEnum)
-				{
-					fromConverter = ConvertStringToEnum<T>;
-					toConverter = ConvertEnumToString;
-				}
-				else
-				{
-					fromConverter = (ValueFromStringConverter<T>)ValueFromStringConverters[typeof(T)];
-					toConverter = (ValueToStringConverter<T>)ValueToStringConverters[typeof(T)];
-				}
-
 				FileBackedProcessingPipelineStageRawSetting rawSetting;
 				if (!mSettings.TryGetValue(name, out var setting))
 				{
 					// the setting was not requested before
 					// => create a setting
-					rawSetting = new FileBackedProcessingPipelineStageRawSetting(this, name, toConverter(defaultValue));
-					setting = new FileBackedProcessingPipelineStageSetting<T>(rawSetting, fromConverter, toConverter);
+					rawSetting = new FileBackedProcessingPipelineStageRawSetting(this, name, valueToStringConverter(defaultValue));
+					setting = new FileBackedProcessingPipelineStageSetting<T>(rawSetting, valueToStringConverter, stringToValueConverter);
 					mSettings.Add(name, setting);
 				}
 
@@ -91,12 +98,14 @@ namespace GriffinPlus.Lib.Logging
 				// set the default value of the raw item, if it is not already set
 				// (this can happen, if a setting has been created without a default value before)
 				rawSetting = ((FileBackedProcessingPipelineStageSetting<T>)setting).Raw;
-				if (!rawSetting.HasDefaultValue) rawSetting.DefaultValue = toConverter(defaultValue);
+				if (!rawSetting.HasDefaultValue) rawSetting.DefaultValue = valueToStringConverter(defaultValue);
 
 				// ensure that the setting default values are the same
-				if (!Equals(setting.DefaultValue, defaultValue))
+				string settingDefaultValueAsString = valueToStringConverter(((FileBackedProcessingPipelineStageSetting<T>)setting).DefaultValue);
+				string defaultValueAsString = valueToStringConverter(defaultValue);
+				if (settingDefaultValueAsString != defaultValueAsString)
 				{
-					string message = $"The setting exists already, but the specified default value ({defaultValue}) does not match the default value of the existing setting ({setting.DefaultValue}).";
+					string message = $"The setting exists already, but the specified default value ({defaultValueAsString}) does not match the default value of the existing setting ({settingDefaultValueAsString}).";
 					throw new ArgumentException(message);
 				}
 
@@ -105,40 +114,46 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the setting with the specified name.
+		/// Gets the setting with the specified name (supports custom types using the specified converters).
 		/// </summary>
-		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
-		/// <param name="name">Name of the setting.</param>
+		/// <typeparam name="T">Type of the setting.</typeparam>
+		/// <param name="name">
+		/// Name of the setting. The following characters are allowed:
+		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
+		/// - square brackets ( [] )
+		/// - Period (.)
+		/// </param>
+		/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
+		/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
 		/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
-		public override IProcessingPipelineStageSetting<T> GetSetting<T>(string name)
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		public override IProcessingPipelineStageSetting<T> GetSetting<T>(
+			string          name,
+			Func<T, string> valueToStringConverter,
+			Func<string, T> stringToValueConverter)
 		{
-			// ensure that the specified name is well-formed and the setting value type is supported
+			// check arguments
+			if (valueToStringConverter == null) throw new ArgumentNullException(nameof(valueToStringConverter));
+			if (stringToValueConverter == null) throw new ArgumentNullException(nameof(stringToValueConverter));
 			CheckSettingName(name);
-			CheckSettingTypeIsSupported(typeof(T));
 
 			lock (Sync)
 			{
-				ValueFromStringConverter<T> fromConverter;
-				ValueToStringConverter<T> toConverter;
-
-				if (typeof(T).IsEnum)
-				{
-					fromConverter = ConvertStringToEnum<T>;
-					toConverter = ConvertEnumToString;
-				}
-				else
-				{
-					fromConverter = (ValueFromStringConverter<T>)ValueFromStringConverters[typeof(T)];
-					toConverter = (ValueToStringConverter<T>)ValueToStringConverters[typeof(T)];
-				}
-
 				if (!mSettings.TryGetValue(name, out var setting))
 				{
 					// the setting was not requested before
 					// => create a new setting if the file contains a setting value and abort, if it does not...
 					var rawSetting = new FileBackedProcessingPipelineStageRawSetting(this, name);
 					if (!rawSetting.HasValue) return null;
-					setting = new FileBackedProcessingPipelineStageSetting<T>(rawSetting, fromConverter, toConverter);
+					setting = new FileBackedProcessingPipelineStageSetting<T>(rawSetting, valueToStringConverter, stringToValueConverter);
 					mSettings.Add(name, setting);
 				}
 
@@ -156,40 +171,48 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Sets the setting with the specified name (creates a new setting, if it does not exist, yet).
+		/// Sets the setting with the specified name (supports custom types using the specified converters).
+		/// Creates a new setting, if it does not exist, yet.
 		/// </summary>
-		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
-		/// <param name="name">Name of the setting.</param>
+		/// <typeparam name="T">Type of the setting.</typeparam>
+		/// <param name="name">
+		/// Name of the setting. The following characters are allowed:
+		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
+		/// - square brackets ( [] )
+		/// - Period (.)
+		/// </param>
 		/// <param name="value">New value of the setting.</param>
+		/// <param name="valueToStringConverter">Delegate that converts the object to its string representation.</param>
+		/// <param name="stringToValueConverter">Delegate that converts the string representation to an object of the type <typeparamref name="T"/>.</param>
 		/// <returns>The setting.</returns>
-		public override IProcessingPipelineStageSetting<T> SetSetting<T>(string name, T value)
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists already, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		public override IProcessingPipelineStageSetting<T> SetSetting<T>(
+			string          name,
+			T               value,
+			Func<T, string> valueToStringConverter,
+			Func<string, T> stringToValueConverter)
 		{
-			// ensure that the specified name is well-formed and the setting value type is supported
+			// check arguments
+			if (valueToStringConverter == null) throw new ArgumentNullException(nameof(valueToStringConverter));
+			if (stringToValueConverter == null) throw new ArgumentNullException(nameof(stringToValueConverter));
 			CheckSettingName(name);
-			CheckSettingTypeIsSupported(typeof(T));
 
 			lock (Sync)
 			{
 				if (!mSettings.TryGetValue(name, out var setting))
 				{
-					ValueFromStringConverter<T> fromConverter;
-					ValueToStringConverter<T> toConverter;
-
-					if (typeof(T).IsEnum)
-					{
-						fromConverter = ConvertStringToEnum<T>;
-						toConverter = ConvertEnumToString;
-					}
-					else
-					{
-						fromConverter = (ValueFromStringConverter<T>)ValueFromStringConverters[typeof(T)];
-						toConverter = (ValueToStringConverter<T>)ValueToStringConverters[typeof(T)];
-					}
-
 					// the setting was not requested before
 					// => create a setting
 					var rawSetting = new FileBackedProcessingPipelineStageRawSetting(this, name);
-					setting = new FileBackedProcessingPipelineStageSetting<T>(rawSetting, fromConverter, toConverter);
+					setting = new FileBackedProcessingPipelineStageSetting<T>(rawSetting, valueToStringConverter, stringToValueConverter);
 					mSettings.Add(name, setting);
 				}
 

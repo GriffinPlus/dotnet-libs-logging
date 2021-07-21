@@ -7,7 +7,8 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Interface for the pipeline configuration (must be implemented thread-safe).
+	/// Interface for the pipeline configuration.
+	/// Must be implemented thread-safe.
 	/// </summary>
 	public interface IProcessingPipelineConfiguration
 	{

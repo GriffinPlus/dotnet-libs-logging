@@ -14,29 +14,27 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A setting in a <see cref="FileBackedProcessingPipelineStageConfiguration"/>.
 	/// </summary>
-	/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
+	/// <typeparam name="T">Type of the setting value.</typeparam>
 	public class FileBackedProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>
 	{
-		private readonly FileBackedProcessingPipelineStageRawSetting                          mRawSetting;
-		private readonly ProcessingPipelineStageConfigurationBase.ValueFromStringConverter<T> mFromStringConverter;
-		private readonly ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T>   mToStringConverter;
-		private          string                                                               mCachedRawValue;
-		private          T                                                                    mCachedValue;
+		private readonly FileBackedProcessingPipelineStageRawSetting mRawSetting;
+		private readonly Func<T, string>                             mValueToStringConverter;
+		private readonly Func<string, T>                             mStringToValueConverter;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageSetting{T}"/> class.
 		/// </summary>
 		/// <param name="rawSetting">The corresponding raw setting in the configuration.</param>
-		/// <param name="valueFromStringConverter">Delegate that converts the setting value to a string.</param>
 		/// <param name="valueToStringConverter">Delegate that converts a string to the setting value.</param>
+		/// <param name="stringToValueConverter">Delegate that converts the setting value to a string.</param>
 		internal FileBackedProcessingPipelineStageSetting(
-			FileBackedProcessingPipelineStageRawSetting                          rawSetting,
-			ProcessingPipelineStageConfigurationBase.ValueFromStringConverter<T> valueFromStringConverter,
-			ProcessingPipelineStageConfigurationBase.ValueToStringConverter<T>   valueToStringConverter)
+			FileBackedProcessingPipelineStageRawSetting rawSetting,
+			Func<T, string>                             valueToStringConverter,
+			Func<string, T>                             stringToValueConverter)
 		{
 			mRawSetting = rawSetting;
-			mFromStringConverter = valueFromStringConverter;
-			mToStringConverter = valueToStringConverter;
+			mValueToStringConverter = valueToStringConverter;
+			mStringToValueConverter = stringToValueConverter;
 		}
 
 		#region SettingChanged Event
@@ -49,8 +47,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public event EventHandler<SettingChangedEventArgs> SettingChanged
 		{
-			add => RegisterPropertyChangedEventHandler(value, true);
-			remove => UnregisterPropertyChangedEventHandler(value);
+			add => RegisterSettingChangedEventHandler(value, true);
+			remove => UnregisterSettingChangedEventHandler(value);
 		}
 
 		/// <summary>
@@ -64,7 +62,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
 		/// <c>false</c> to invoke the event handler in a worker thread.
 		/// </param>
-		public void RegisterPropertyChangedEventHandler(
+		public void RegisterSettingChangedEventHandler(
 			EventHandler<SettingChangedEventArgs> handler,
 			bool                                  invokeInCurrentSynchronizationContext)
 		{
@@ -80,7 +78,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Unregisters the specified <see cref="EventHandler{SettingChangedEventArgs}"/> from the <see cref="SettingChanged"/> event.
 		/// </summary>
 		/// <param name="handler">Event handler to unregister.</param>
-		public void UnregisterPropertyChangedEventHandler(EventHandler<SettingChangedEventArgs> handler)
+		public void UnregisterSettingChangedEventHandler(EventHandler<SettingChangedEventArgs> handler)
 		{
 			EventManager<SettingChangedEventArgs>.UnregisterEventHandler(
 				this,
@@ -127,39 +125,24 @@ namespace GriffinPlus.Lib.Logging
 		public Type ValueType => typeof(T);
 
 		/// <summary>
-		/// Gets a value indicating whether the setting has valid value (true) or just its default value (false).
+		/// Gets a value indicating whether the setting has valid value (<c>true</c>)
+		/// or just its default value (<c>false</c>).
 		/// </summary>
-		public bool HasValue
-		{
-			get
-			{
-				lock (mRawSetting.StageConfiguration.Sync) return mRawSetting.HasValue;
-			}
-		}
+		public bool HasValue => mRawSetting.HasValue;
 
 		/// <summary>
 		/// Gets or sets the value of the setting.
 		/// </summary>
 		public T Value
 		{
-			get
-			{
-				lock (mRawSetting.StageConfiguration.Sync)
-				{
-					string rawValue = mRawSetting.Value;
-					if (mCachedRawValue == rawValue) return mCachedValue;
-					mCachedValue = mFromStringConverter(mRawSetting.Value);
-					mCachedRawValue = rawValue;
-					return mCachedValue;
-				}
-			}
+			get => mStringToValueConverter(mRawSetting.Value);
 
 			set
 			{
 				lock (mRawSetting.StageConfiguration.Sync)
 				{
 					string oldRawValue = mRawSetting.HasValue | mRawSetting.HasDefaultValue ? mRawSetting.Value : null;
-					string newRawValue = mToStringConverter(value);
+					string newRawValue = mValueToStringConverter(value);
 					if (oldRawValue == newRawValue) return;
 					mRawSetting.Value = newRawValue;
 					OnSettingChanged();
@@ -198,12 +181,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
-		public T DefaultValue => mFromStringConverter(mRawSetting.DefaultValue);
+		public T DefaultValue => mStringToValueConverter(mRawSetting.DefaultValue);
 
 		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
-		object IUntypedProcessingPipelineStageSetting.DefaultValue => mFromStringConverter(mRawSetting.DefaultValue);
+		object IUntypedProcessingPipelineStageSetting.DefaultValue => DefaultValue;
 
 		#endregion
 

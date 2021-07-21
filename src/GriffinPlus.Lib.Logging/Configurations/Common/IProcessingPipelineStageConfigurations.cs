@@ -9,7 +9,8 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Interface for the pipeline stage configuration collection (must be implemented thread-safe).
+	/// Interface for the pipeline stage configuration collection.
+	/// Must be implemented thread-safe.
 	/// </summary>
 	public interface IProcessingPipelineStageConfigurations : IReadOnlyList<IProcessingPipelineStageConfiguration>
 	{

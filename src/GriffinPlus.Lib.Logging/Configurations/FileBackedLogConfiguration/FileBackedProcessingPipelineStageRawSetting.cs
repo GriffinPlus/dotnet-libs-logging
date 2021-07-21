@@ -12,7 +12,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A raw setting in a <see cref="FileBackedProcessingPipelineStageConfiguration"/>.
 	/// </summary>
-	public class FileBackedProcessingPipelineStageRawSetting : IProcessingPipelineStageRawSetting
+	public class FileBackedProcessingPipelineStageRawSetting
 	{
 		private bool   mHasDefaultValue;
 		private string mDefaultValue;
@@ -55,11 +55,6 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the configuration the setting belongs to.
 		/// </summary>
 		public FileBackedProcessingPipelineStageConfiguration StageConfiguration { get; }
-
-		/// <summary>
-		/// Gets the configuration the setting belongs to.
-		/// </summary>
-		IProcessingPipelineStageConfiguration IProcessingPipelineStageRawSetting.Configuration => StageConfiguration;
 
 		/// <summary>
 		/// Gets the name of the setting.
@@ -138,6 +133,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
+		/// <exception cref="InvalidOperationException">The item does not have a default value.</exception>
 		public string DefaultValue
 		{
 			get
@@ -169,7 +165,9 @@ namespace GriffinPlus.Lib.Logging
 			{
 				return HasValue
 					       ? $"Name: '{Name}', Value: '{Value}'"
-					       : $"Name: '{Name}', Value: <no value> (defaults to: '{DefaultValue}'";
+					       : HasDefaultValue
+						       ? $"Name: '{Name}', Value: <no value> (defaults to: '{DefaultValue}'"
+						       : $"Name: '{Name}', Value: <no value> (defaults to: <no value>)";
 			}
 		}
 	}

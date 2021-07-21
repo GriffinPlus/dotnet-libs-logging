@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 using Xunit;
@@ -21,6 +22,20 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public abstract class ProcessingPipelineStageConfigurationTests_Base<TConfiguration> where TConfiguration : ProcessingPipelineStageConfigurationBase
 	{
+		[Flags]
+		public enum ColorFlags
+		{
+			None        = 0x00,
+			Red         = 0x01,
+			Green       = 0x02,
+			Blue        = 0x04,
+			Cyan        = 0x08,
+			Magenta     = 0x10,
+			Yellow      = 0x20,
+			RedAndGreen = Red | Green,
+			All         = Red | Green | Blue | Cyan | Magenta | Yellow
+		}
+
 		/// <summary>
 		/// Creates a new instance of the pipeline stage configuration to test.
 		/// </summary>
@@ -91,6 +106,10 @@ namespace GriffinPlus.Lib.Logging
 				// enumerations
 				// ----------------------------------------------------------------------------------------------------------------
 				yield return new object[] { typeof(DateTimeKind), DateTimeKind.Utc, "Utc" };
+				yield return new object[] { typeof(ColorFlags), ColorFlags.None, "None" };
+				yield return new object[] { typeof(ColorFlags), ColorFlags.Red, "Red" };
+				yield return new object[] { typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green, "RedAndGreen" };
+				yield return new object[] { typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green | ColorFlags.Blue, "RedAndGreen, Blue" };
 			}
 		}
 
@@ -168,6 +187,16 @@ namespace GriffinPlus.Lib.Logging
 				// enumerations
 				// ----------------------------------------------------------------------------------------------------------------
 				yield return new object[] { typeof(DateTimeKind), DateTimeKind.Utc, "Utc", DateTimeKind.Local, "Local" };
+				yield return new object[] { typeof(ColorFlags), ColorFlags.None, "None", ColorFlags.Red, "Red" };
+				yield return new object[] { typeof(ColorFlags), ColorFlags.Red, "Red", ColorFlags.None, "None" };
+				yield return new object[]
+				{
+					typeof(ColorFlags),
+					ColorFlags.Red | ColorFlags.Green | ColorFlags.Blue,
+					"RedAndGreen, Blue",
+					ColorFlags.Red | ColorFlags.Green,
+					"RedAndGreen"
+				};
 			}
 		}
 
@@ -186,7 +215,10 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue,
 			string defaultValueAsString)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting)).MakeGenericMethod(type);
+			var method = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+				.MakeGenericMethod(type);
 			var configuration = CreateConfiguration("Stage");
 			var setting1 = method.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 
@@ -246,7 +278,10 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue2,
 			string valueAsString2)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting)).MakeGenericMethod(type);
+			var method = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+				.MakeGenericMethod(type);
 			var configuration = CreateConfiguration("Stage");
 			method.Invoke(configuration, new[] { "Setting", defaultValue1 });
 			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting", defaultValue2 })).InnerException);
@@ -275,7 +310,10 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting)).MakeGenericMethod(type);
+			var method = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+				.MakeGenericMethod(type);
 			var configuration = CreateConfiguration("Stage");
 			var setting11 = method.Invoke(configuration, new[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 			var setting21 = method.Invoke(configuration, new[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
@@ -351,8 +389,14 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue,
 			string defaultValueAsString)
 		{
-			var registerSettingsMethod = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting)).MakeGenericMethod(type);
-			var getSettingMethod = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.GetSetting)).MakeGenericMethod(type);
+			var registerSettingsMethod = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+				.MakeGenericMethod(type);
+			var getSettingMethod = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
+				.MakeGenericMethod(type);
 			var configuration = CreateConfiguration("Stage");
 			var registeredSetting = registerSettingsMethod.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 			var setting = getSettingMethod.Invoke(configuration, new object[] { "Setting" }) as IUntypedProcessingPipelineStageSetting;
@@ -364,8 +408,8 @@ namespace GriffinPlus.Lib.Logging
 		#region RegisterSetting() followed by SetSetting()
 
 		/// <summary>
-		/// Tests registering a setting with a specific default value using <see cref="ProcessingPipelineStageConfigurationBase.RegisterSetting{T}"/>
-		/// followed by setting the value to some other value using <see cref="ProcessingPipelineStageConfigurationBase.SetSetting{T}"/>.
+		/// Tests registering a setting with a specific default value using <see cref="ProcessingPipelineStageConfigurationBase.RegisterSetting{T}(string,T)"/>
+		/// followed by setting the value to some other value using <see cref="ProcessingPipelineStageConfigurationBase.SetSetting{T}(string,T)"/>.
 		/// </summary>
 		/// <param name="type">Type of setting value.</param>
 		/// <param name="defaultValue">Default value of the setting.</param>
@@ -381,8 +425,14 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			var registerMethod = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting)).MakeGenericMethod(type);
-			var setMethod = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.SetSetting)).MakeGenericMethod(type);
+			var registerMethod = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+				.MakeGenericMethod(type);
+			var setMethod = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
+				.MakeGenericMethod(type);
 			var configuration = CreateConfiguration("Stage");
 
 			// register setting with default value
@@ -436,14 +486,17 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests getting a setting that does not exist.
-		/// <see cref="ProcessingPipelineStageConfigurationBase.GetSetting{T}"/> should return <c>null</c>.
+		/// <see cref="ProcessingPipelineStageConfigurationBase.GetSetting{T}(string)"/> should return <c>null</c>.
 		/// </summary>
 		/// <param name="type">Type of setting value.</param>
 		[Theory]
 		[MemberData(nameof(GetSettingTestData_SettingDoesNotExist))]
 		public void GetSetting_SettingDoesNotExist(Type type)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.GetSetting)).MakeGenericMethod(type);
+			var method = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
+				.MakeGenericMethod(type);
 			var configuration = CreateConfiguration("Stage");
 			var setting = method.Invoke(configuration, new object[] { "Setting" }) as IUntypedProcessingPipelineStageSetting;
 			Assert.Null(setting);
@@ -454,7 +507,7 @@ namespace GriffinPlus.Lib.Logging
 		#region SetSetting()
 
 		/// <summary>
-		/// Tests setting a setting using <see cref="ProcessingPipelineStageConfigurationBase.SetSetting{T}"/>.
+		/// Tests setting a setting using <see cref="ProcessingPipelineStageConfigurationBase.SetSetting{T}(string,T)"/>.
 		/// The setting does not exist at start, so there is no default value associated with the setting.
 		/// </summary>
 		/// <param name="type">Type of setting value.</param>
@@ -467,7 +520,10 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase).GetMethod(nameof(ProcessingPipelineStageConfigurationBase.SetSetting)).MakeGenericMethod(type);
+			var method = typeof(ProcessingPipelineStageConfigurationBase)
+				.GetMethods()
+				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
+				.MakeGenericMethod(type);
 			var configuration = CreateConfiguration("Stage");
 			var setting1 = method.Invoke(configuration, new[] { "Setting1", value }) as IUntypedProcessingPipelineStageSetting;
 			var setting2 = method.Invoke(configuration, new[] { "Setting2", value }) as IUntypedProcessingPipelineStageSetting;

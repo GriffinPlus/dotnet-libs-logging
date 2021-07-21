@@ -18,22 +18,6 @@ namespace GriffinPlus.Lib.Logging
 	public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipelineStageConfiguration
 	{
 		/// <summary>
-		/// Delegate to a method that converts an object of the specified type to its string representation.
-		/// </summary>
-		/// <typeparam name="T">Type of the object to convert.</typeparam>
-		/// <param name="obj">Object to convert to its string representation.</param>
-		/// <returns>String representation of the specified object.</returns>
-		protected internal delegate string ValueToStringConverter<in T>(T obj);
-
-		/// <summary>
-		/// Delegate to a method that converts a string to an object of the specified type.
-		/// </summary>
-		/// <typeparam name="T">Type of the object to convert the string to.</typeparam>
-		/// <param name="s">String to convert to the specified object.</param>
-		/// <returns>The object.</returns>
-		protected internal delegate T ValueFromStringConverter<out T>(string s);
-
-		/// <summary>
 		/// Mapping of methods for converting objects of a specific type to string.
 		/// </summary>
 		protected static readonly Dictionary<Type, Delegate> ValueFromStringConverters = new Dictionary<Type, Delegate>();
@@ -56,38 +40,38 @@ namespace GriffinPlus.Lib.Logging
 			var culture = CultureInfo.InvariantCulture;
 
 			// signed integers
-			ValueFromStringConverters[typeof(sbyte)] = new ValueFromStringConverter<sbyte>(s => Convert.ToSByte(s, culture));
-			ValueToStringConverters[typeof(sbyte)] = new ValueToStringConverter<sbyte>(v => Convert.ToString(v, culture));
-			ValueFromStringConverters[typeof(short)] = new ValueFromStringConverter<short>(s => Convert.ToInt16(s, culture));
-			ValueToStringConverters[typeof(short)] = new ValueToStringConverter<short>(v => Convert.ToString(v, culture));
-			ValueFromStringConverters[typeof(int)] = new ValueFromStringConverter<int>(s => Convert.ToInt32(s, culture));
-			ValueToStringConverters[typeof(int)] = new ValueToStringConverter<int>(v => Convert.ToString(v, culture));
-			ValueFromStringConverters[typeof(long)] = new ValueFromStringConverter<long>(s => Convert.ToInt64(s, culture));
-			ValueToStringConverters[typeof(long)] = new ValueToStringConverter<long>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(sbyte)] = new Func<string, sbyte>(s => Convert.ToSByte(s, culture));
+			ValueToStringConverters[typeof(sbyte)] = new Func<sbyte, string>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(short)] = new Func<string, short>(s => Convert.ToInt16(s, culture));
+			ValueToStringConverters[typeof(short)] = new Func<short, string>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(int)] = new Func<string, int>(s => Convert.ToInt32(s, culture));
+			ValueToStringConverters[typeof(int)] = new Func<int, string>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(long)] = new Func<string, long>(s => Convert.ToInt64(s, culture));
+			ValueToStringConverters[typeof(long)] = new Func<long, string>(v => Convert.ToString(v, culture));
 
 			// unsigned integers
-			ValueFromStringConverters[typeof(byte)] = new ValueFromStringConverter<byte>(s => Convert.ToByte(s, culture));
-			ValueToStringConverters[typeof(byte)] = new ValueToStringConverter<byte>(v => Convert.ToString(v, culture));
-			ValueFromStringConverters[typeof(ushort)] = new ValueFromStringConverter<ushort>(s => Convert.ToUInt16(s, culture));
-			ValueToStringConverters[typeof(ushort)] = new ValueToStringConverter<ushort>(v => Convert.ToString(v, culture));
-			ValueFromStringConverters[typeof(uint)] = new ValueFromStringConverter<uint>(s => Convert.ToUInt32(s, culture));
-			ValueToStringConverters[typeof(uint)] = new ValueToStringConverter<uint>(v => Convert.ToString(v, culture));
-			ValueFromStringConverters[typeof(ulong)] = new ValueFromStringConverter<ulong>(s => Convert.ToUInt64(s, culture));
-			ValueToStringConverters[typeof(ulong)] = new ValueToStringConverter<ulong>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(byte)] = new Func<string, byte>(s => Convert.ToByte(s, culture));
+			ValueToStringConverters[typeof(byte)] = new Func<byte, string>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(ushort)] = new Func<string, ushort>(s => Convert.ToUInt16(s, culture));
+			ValueToStringConverters[typeof(ushort)] = new Func<ushort, string>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(uint)] = new Func<string, uint>(s => Convert.ToUInt32(s, culture));
+			ValueToStringConverters[typeof(uint)] = new Func<uint, string>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(ulong)] = new Func<string, ulong>(s => Convert.ToUInt64(s, culture));
+			ValueToStringConverters[typeof(ulong)] = new Func<ulong, string>(v => Convert.ToString(v, culture));
 
 			// floating point numbers
-			ValueFromStringConverters[typeof(float)] = new ValueFromStringConverter<float>(s => Convert.ToSingle(s, culture));
-			ValueToStringConverters[typeof(float)] = new ValueToStringConverter<float>(v => Convert.ToString(v, culture));
-			ValueFromStringConverters[typeof(double)] = new ValueFromStringConverter<double>(s => Convert.ToDouble(s, culture));
-			ValueToStringConverters[typeof(double)] = new ValueToStringConverter<double>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(float)] = new Func<string, float>(s => Convert.ToSingle(s, culture));
+			ValueToStringConverters[typeof(float)] = new Func<float, string>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(double)] = new Func<string, double>(s => Convert.ToDouble(s, culture));
+			ValueToStringConverters[typeof(double)] = new Func<double, string>(v => Convert.ToString(v, culture));
 
 			// decimal numbers
-			ValueFromStringConverters[typeof(decimal)] = new ValueFromStringConverter<decimal>(s => Convert.ToDecimal(s, culture));
-			ValueToStringConverters[typeof(decimal)] = new ValueToStringConverter<decimal>(v => Convert.ToString(v, culture));
+			ValueFromStringConverters[typeof(decimal)] = new Func<string, decimal>(s => Convert.ToDecimal(s, culture));
+			ValueToStringConverters[typeof(decimal)] = new Func<decimal, string>(v => Convert.ToString(v, culture));
 
 			// strings
-			ValueFromStringConverters[typeof(string)] = new ValueFromStringConverter<string>(s => s);
-			ValueToStringConverters[typeof(string)] = new ValueToStringConverter<string>(v => v);
+			ValueFromStringConverters[typeof(string)] = new Func<string, string>(s => s);
+			ValueToStringConverters[typeof(string)] = new Func<string, string>(v => v);
 
 			// enumerations are handled in a generic way, see below...
 		}
@@ -115,36 +99,249 @@ namespace GriffinPlus.Lib.Logging
 		protected internal object Sync { get; }
 
 		/// <summary>
-		/// Registers the setting with the specified name
-		/// (creates a new setting with the specified default value, if the setting does not exist).
+		/// Registers the setting with the specified name (supports primitive types, enums and string).
+		/// Creates a new setting with the specified value, if the setting does not exist.
 		/// </summary>
-		/// <typeparam name="T">Type of the setting (can be a primitive type, a string or an enum).</typeparam>
+		/// <typeparam name="T">Type of the setting.</typeparam>
 		/// <param name="name">
 		/// Name of the setting. The following characters are allowed:
 		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
 		/// - square brackets ( [] )
 		/// - Period (.)
 		/// </param>
-		/// <param name="defaultValue">Default value of the setting.</param>
+		/// <param name="defaultValue">Value of the setting, if the setting does not exist, yet.</param>
 		/// <returns>The setting.</returns>
-		public abstract IProcessingPipelineStageSetting<T> RegisterSetting<T>(string name, T defaultValue);
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists already, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		/// <exception cref="NotSupportedException">
+		/// The specified type <typeparamref name="T"/> is not supported.
+		/// </exception>
+		public virtual IProcessingPipelineStageSetting<T> RegisterSetting<T>(string name, T defaultValue)
+		{
+			// ensure that the specified name is well-formed and the setting value type is supported
+			CheckSettingName(name);
+			CheckSettingTypeIsSupported(typeof(T));
+
+			Func<string, T> stringToValueConverter;
+			Func<T, string> valueToStringConverter;
+
+			if (typeof(T).IsEnum)
+			{
+				stringToValueConverter = ConvertStringToEnum<T>;
+				valueToStringConverter = ConvertEnumToString;
+			}
+			else
+			{
+				stringToValueConverter = (Func<string, T>)ValueFromStringConverters[typeof(T)];
+				valueToStringConverter = (Func<T, string>)ValueToStringConverters[typeof(T)];
+			}
+
+			lock (Sync)
+			{
+				return RegisterSetting(
+					name,
+					defaultValue,
+					valueToStringConverter,
+					stringToValueConverter);
+			}
+		}
 
 		/// <summary>
-		/// Gets the setting with the specified name.
+		/// Registers the setting with the specified name (supports custom types using the specified converters).
+		/// Creates a new setting with the specified value, if the setting does not exist.
 		/// </summary>
-		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
-		/// <param name="name">Name of the setting.</param>
+		/// <typeparam name="T">Type of the setting.</typeparam>
+		/// <param name="name">
+		/// Name of the setting. The following characters are allowed:
+		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
+		/// - square brackets ( [] )
+		/// - Period (.)
+		/// </param>
+		/// <param name="defaultValue">Value of the setting, if the setting does not exist, yet.</param>
+		/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
+		/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
+		/// <returns>The setting.</returns>
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists already, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		public abstract IProcessingPipelineStageSetting<T> RegisterSetting<T>(
+			string          name,
+			T               defaultValue,
+			Func<T, string> valueToStringConverter,
+			Func<string, T> stringToValueConverter);
+
+		/// <summary>
+		/// Gets the setting with the specified name (supports primitive types, enums and string).
+		/// </summary>
+		/// <typeparam name="T">Type of the setting.</typeparam>
+		/// <param name="name">
+		/// Name of the setting. The following characters are allowed:
+		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
+		/// - square brackets ( [] )
+		/// - Period (.)
+		/// </param>
 		/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
-		public abstract IProcessingPipelineStageSetting<T> GetSetting<T>(string name);
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		/// <exception cref="NotSupportedException">
+		/// The specified type <typeparamref name="T"/> is not supported.
+		/// </exception>
+		public virtual IProcessingPipelineStageSetting<T> GetSetting<T>(string name)
+		{
+			Func<string, T> stringToValueConverter;
+			Func<T, string> valueToStringConverter;
+
+			if (typeof(T).IsEnum)
+			{
+				stringToValueConverter = ConvertStringToEnum<T>;
+				valueToStringConverter = ConvertEnumToString;
+			}
+			else
+			{
+				stringToValueConverter = (Func<string, T>)ValueFromStringConverters[typeof(T)];
+				valueToStringConverter = (Func<T, string>)ValueToStringConverters[typeof(T)];
+			}
+
+			lock (Sync)
+			{
+				return GetSetting(
+					name,
+					valueToStringConverter,
+					stringToValueConverter);
+			}
+		}
 
 		/// <summary>
-		/// Sets the setting with the specified name (creates a new setting, if it does not exist, yet).
+		/// Gets the setting with the specified name (supports custom types using the specified converters).
 		/// </summary>
-		/// <typeparam name="T">Type of the setting (can be a primitive type or string).</typeparam>
-		/// <param name="name">Name of the setting.</param>
+		/// <typeparam name="T">Type of the setting.</typeparam>
+		/// <param name="name">
+		/// Name of the setting. The following characters are allowed:
+		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
+		/// - square brackets ( [] )
+		/// - Period (.)
+		/// </param>
+		/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
+		/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
+		/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		public abstract IProcessingPipelineStageSetting<T> GetSetting<T>(
+			string          name,
+			Func<T, string> valueToStringConverter,
+			Func<string, T> stringToValueConverter);
+
+		/// <summary>
+		/// Sets the setting with the specified name (supports primitive types, enums and string).
+		/// Creates a new setting, if it does not exist, yet.
+		/// </summary>
+		/// <typeparam name="T">Type of the setting.</typeparam>
+		/// <param name="name">
+		/// Name of the setting. The following characters are allowed:
+		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
+		/// - square brackets ( [] )
+		/// - Period (.)
+		/// </param>
 		/// <param name="value">New value of the setting.</param>
 		/// <returns>The setting.</returns>
-		public abstract IProcessingPipelineStageSetting<T> SetSetting<T>(string name, T value);
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists already, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The specified <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		/// <exception cref="NotSupportedException">
+		/// The specified type <typeparamref name="T"/> is not supported.
+		/// </exception>
+		public virtual IProcessingPipelineStageSetting<T> SetSetting<T>(string name, T value)
+		{
+			// ensure that the specified name is well-formed and the setting value type is supported
+			CheckSettingName(name);
+			CheckSettingTypeIsSupported(typeof(T));
+
+			Func<string, T> stringToValueConverter;
+			Func<T, string> valueToStringConverter;
+
+			if (typeof(T).IsEnum)
+			{
+				stringToValueConverter = ConvertStringToEnum<T>;
+				valueToStringConverter = ConvertEnumToString;
+			}
+			else
+			{
+				stringToValueConverter = (Func<string, T>)ValueFromStringConverters[typeof(T)];
+				valueToStringConverter = (Func<T, string>)ValueToStringConverters[typeof(T)];
+			}
+
+			lock (Sync)
+			{
+				return SetSetting(
+					name,
+					value,
+					valueToStringConverter,
+					stringToValueConverter);
+			}
+		}
+
+		/// <summary>
+		/// Sets the setting with the specified name (supports custom types using the specified converters).
+		/// Creates a new setting, if it does not exist, yet.
+		/// </summary>
+		/// <typeparam name="T">Type of the setting.</typeparam>
+		/// <param name="name">
+		/// Name of the setting. The following characters are allowed:
+		/// - alphanumeric characters ( a-z, A-Z, 0-9 )
+		/// - square brackets ( [] )
+		/// - Period (.)
+		/// </param>
+		/// <param name="value">New value of the setting.</param>
+		/// <param name="valueToStringConverter">Delegate that converts the object to its string representation.</param>
+		/// <param name="stringToValueConverter">Delegate that converts the string representation to an object of the type <typeparamref name="T"/>.</param>
+		/// <returns>The setting.</returns>
+		/// <exception cref="ArgumentNullException">
+		/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// The setting exists already, but the specified type differs from the value type of the existing setting.
+		/// </exception>
+		/// <exception cref="FormatException">
+		/// The <paramref name="name"/> is not a valid setting name.
+		/// </exception>
+		public abstract IProcessingPipelineStageSetting<T> SetSetting<T>(
+			string          name,
+			T               value,
+			Func<T, string> valueToStringConverter,
+			Func<string, T> stringToValueConverter);
 
 		#region Implementation of IReadOnlyDictionary<>
 

@@ -21,6 +21,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			private readonly string                                mSettingName;
 			private readonly T                                     mDefaultSettingValue;
+			private readonly Func<T, string>                       mValueToStringConverter;
+			private readonly Func<string, T>                       mStringToValueConverter;
 			private readonly object                                mSync;
 			private          IProcessingPipelineStageConfiguration mConfiguration;
 			private          IProcessingPipelineStageSetting<T>    mSetting;
@@ -32,14 +34,35 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="name">Name of the setting.</param>
 			/// <param name="defaultValue">Default value of the setting.</param>
 			/// <param name="sync">The synchronization object of the pipeline stage.</param>
-			public SettingProxy(
+			internal SettingProxy(
 				IProcessingPipelineStageConfiguration configuration,
 				string                                name,
 				T                                     defaultValue,
+				object                                sync) : this(configuration, name, defaultValue, null, null, sync)
+			{
+			}
+
+			/// <summary>
+			/// Initializes a new instance of the <see cref="SettingProxy{T}"/> class.
+			/// </summary>
+			/// <param name="configuration">The pipeline stage configuration containing the setting.</param>
+			/// <param name="name">Name of the setting.</param>
+			/// <param name="defaultValue">Default value of the setting.</param>
+			/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
+			/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
+			/// <param name="sync">The synchronization object of the pipeline stage.</param>
+			internal SettingProxy(
+				IProcessingPipelineStageConfiguration configuration,
+				string                                name,
+				T                                     defaultValue,
+				Func<T, string>                       valueToStringConverter,
+				Func<string, T>                       stringToValueConverter,
 				object                                sync)
 			{
 				mSettingName = name;
 				mDefaultSettingValue = defaultValue;
+				mValueToStringConverter = valueToStringConverter;
+				mStringToValueConverter = stringToValueConverter;
 				mSync = sync;
 
 				SetProxyTarget(configuration);
@@ -58,7 +81,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="handler">Event handler to register.</param>
 			/// <param name="invokeInCurrentSynchronizationContext">Must always be <c>false</c>, invokes the event handler in a worker thread.</param>
 			/// <exception cref="NotSupportedException">Invoking handler in the current synchronization context is not supported.</exception>
-			public void RegisterPropertyChangedEventHandler(
+			public void RegisterSettingChangedEventHandler(
 				EventHandler<SettingChangedEventArgs> handler,
 				bool                                  invokeInCurrentSynchronizationContext = false)
 			{
@@ -74,7 +97,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Unregisters the specified <see cref="EventHandler{SettingChangedEventArgs}"/> from the <see cref="SettingChanged"/> event.
 			/// </summary>
 			/// <param name="handler">Event handler to unregister.</param>
-			public void UnregisterPropertyChangedEventHandler(EventHandler<SettingChangedEventArgs> handler)
+			public void UnregisterSettingChangedEventHandler(EventHandler<SettingChangedEventArgs> handler)
 			{
 				SettingChanged -= handler;
 			}
@@ -93,9 +116,11 @@ namespace GriffinPlus.Lib.Logging
 						// to notify clients to re-evaluate the setting. It's necessary to let the executing thread invoke event
 						// handlers synchronously to ensure the stage is set up properly at the end.
 						mConfiguration = configuration;
-						mSetting?.UnregisterPropertyChangedEventHandler(OnSettingPropertyChanged);
-						mSetting = mConfiguration.RegisterSetting(mSettingName, mDefaultSettingValue);
-						mSetting?.RegisterPropertyChangedEventHandler(OnSettingPropertyChanged, false);
+						mSetting?.UnregisterSettingChangedEventHandler(OnSettingPropertyChanged);
+						mSetting = mValueToStringConverter != null && mStringToValueConverter != null
+							           ? mConfiguration.RegisterSetting(mSettingName, mDefaultSettingValue, mValueToStringConverter, mStringToValueConverter)
+							           : mConfiguration.RegisterSetting(mSettingName, mDefaultSettingValue);
+						mSetting?.RegisterSettingChangedEventHandler(OnSettingPropertyChanged, false);
 						OnSettingPropertyChanged(this, SettingChangedEventArgs.Default);
 					}
 				}

@@ -3,13 +3,12 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// ReSharper disable UnusedMemberInSuper.Global
-
 namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Interface of a log configuration (must be implemented thread-safe).
+	/// Interface of a log configuration.
+	/// Must be implemented thread-safe.
 	/// </summary>
 	public interface ILogConfiguration
 	{

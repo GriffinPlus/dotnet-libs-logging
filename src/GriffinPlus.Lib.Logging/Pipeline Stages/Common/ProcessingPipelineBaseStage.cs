@@ -414,6 +414,43 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Registers a pipeline stage setting and returns a setting proxy that refers to the current configuration.
+		/// The setting uses the specified convert delegates to convert an object of the specified type to its string
+		/// representation and vice versa. The proxy is rebound when a new pipeline stage configuration is set.
+		/// This avoids breaking the link between the pipeline stage and its configuration.
+		/// </summary>
+		/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
+		/// <param name="name">Name of the setting.</param>
+		/// <param name="defaultValue">Default value of the setting.</param>
+		/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
+		/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
+		/// <returns>A setting proxy that allows to access the underlying exchangeable pipeline stage configuration.</returns>
+		/// <exception cref="InvalidOperationException">The setting has already been registered.</exception>
+		protected IProcessingPipelineStageSetting<T> RegisterSetting<T>(
+			string          name,
+			T               defaultValue,
+			Func<T, string> valueToStringConverter,
+			Func<string, T> stringToValueConverter)
+		{
+			lock (Sync)
+			{
+				if (mSettingProxies.Any(x => x.Name == name))
+					throw new InvalidOperationException("The setting has already been registered.");
+
+				var proxy = new SettingProxy<T>(
+					mSettings,
+					name,
+					defaultValue,
+					valueToStringConverter,
+					stringToValueConverter,
+					Sync);
+
+				mSettingProxies.Add(proxy);
+				return proxy;
+			}
+		}
+
+		/// <summary>
 		/// Rebinds setting proxies to the current configuration.
 		/// </summary>
 		private void RebindSettingProxies()

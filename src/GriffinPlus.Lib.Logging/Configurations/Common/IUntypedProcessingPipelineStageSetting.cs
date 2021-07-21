@@ -9,7 +9,8 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Untyped interface for a setting in a <see cref="IProcessingPipelineStageConfiguration"/> (must be implemented thread-safe).
+	/// Untyped interface for a setting in a <see cref="IProcessingPipelineStageConfiguration"/>.
+	/// Must be implemented thread-safe.
 	/// </summary>
 	public interface IUntypedProcessingPipelineStageSetting
 	{
@@ -67,7 +68,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
 		/// <c>false</c> to invoke the event handler in a worker thread.
 		/// </param>
-		void RegisterPropertyChangedEventHandler(
+		void RegisterSettingChangedEventHandler(
 			EventHandler<SettingChangedEventArgs> handler,
 			bool                                  invokeInCurrentSynchronizationContext);
 
@@ -75,7 +76,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Unregisters the specified <see cref="EventHandler{SettingChangedEventArgs}"/> from the <see cref="SettingChanged"/> event.
 		/// </summary>
 		/// <param name="handler">Event handler to unregister.</param>
-		void UnregisterPropertyChangedEventHandler(EventHandler<SettingChangedEventArgs> handler);
+		void UnregisterSettingChangedEventHandler(EventHandler<SettingChangedEventArgs> handler);
 	}
 
 }
