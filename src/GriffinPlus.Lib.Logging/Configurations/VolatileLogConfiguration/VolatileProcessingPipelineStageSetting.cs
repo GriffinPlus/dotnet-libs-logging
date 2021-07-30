@@ -17,6 +17,9 @@ namespace GriffinPlus.Lib.Logging
 	/// <typeparam name="T">Type of the setting value.</typeparam>
 	public class VolatileProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>
 	{
+		// ReSharper disable once StaticMemberInGenericType
+		private static readonly bool sUseDefensiveCopying;
+
 		private readonly VolatileProcessingPipelineStageConfiguration mConfiguration;
 		private readonly Func<T, string>                              mValueToStringConverter;
 		private readonly Func<string, T>                              mStringToValueConverter;
@@ -26,6 +29,18 @@ namespace GriffinPlus.Lib.Logging
 		private          bool                                         mHasDefaultValue;
 		private          T                                            mDefaultValue;
 		private          string                                       mDefaultValueAsString;
+
+		/// <summary>
+		/// Initializes the <see cref="VolatileProcessingPipelineStageSetting{T}"/> class.
+		/// </summary>
+		static VolatileProcessingPipelineStageSetting()
+		{
+			// Check whether the value type and derived types (if any) are immutable.
+			// May return <c>false</c> although all derived types are immutable in practice,
+			// but the analysis could not guarantee that this is always the case (false-negative).
+			// => Immutable types can be shared by the setting and client code without defensive copying
+			sUseDefensiveCopying = !Immutability.HasImmutableDerivationsOnly<T>();
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageSetting{T}"/> class
@@ -179,9 +194,14 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mConfiguration.Sync)
 				{
-					// if the setting has a value, make a deep copy of the value to avoid that the value gets modified afterwards
-					if (mHasValue) return mStringToValueConverter(mValueToStringConverter(mValue));
-					return mStringToValueConverter(mValueToStringConverter(mDefaultValue));
+					if (sUseDefensiveCopying)
+					{
+						if (mHasValue) return mStringToValueConverter(mValueToStringConverter(mValue));
+						return mStringToValueConverter(mValueToStringConverter(mDefaultValue));
+					}
+
+					if (mHasValue) return mValue;
+					return mDefaultValue;
 				}
 			}
 
@@ -189,10 +209,10 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mConfiguration.Sync)
 				{
-					string oldValueAsString = mHasValue ? mValueToStringConverter(mValue) : mHasDefaultValue ? mValueToStringConverter(mDefaultValue) : null;
+					string oldValueAsString = mHasValue ? mValueAsString : mHasDefaultValue ? mDefaultValueAsString : null;
 					string newValueAsString = mValueToStringConverter(value);
 					if (oldValueAsString == newValueAsString) return;
-					mValue = mStringToValueConverter(newValueAsString); // deep copy value avoids that it can get modified afterwards
+					mValue = sUseDefensiveCopying ? mStringToValueConverter(newValueAsString) : value;
 					mValueAsString = newValueAsString;
 					mHasValue = true;
 					OnSettingChanged();
@@ -256,7 +276,8 @@ namespace GriffinPlus.Lib.Logging
 			get
 			{
 				if (!mHasDefaultValue) throw new InvalidOperationException("The item does not have a default value.");
-				return mStringToValueConverter(mValueToStringConverter(mDefaultValue));
+				if (sUseDefensiveCopying) return mStringToValueConverter(mDefaultValueAsString);
+				return mDefaultValue;
 			}
 
 			internal set
@@ -264,7 +285,7 @@ namespace GriffinPlus.Lib.Logging
 				lock (mConfiguration.Sync)
 				{
 					string valueAsString = mValueToStringConverter(value);
-					mDefaultValue = mStringToValueConverter(valueAsString);
+					mDefaultValue = sUseDefensiveCopying ? mStringToValueConverter(valueAsString) : value;
 					mDefaultValueAsString = valueAsString;
 					mHasDefaultValue = true;
 				}
