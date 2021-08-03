@@ -48,6 +48,12 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Gets a logger that directly writes into the log of the operating system
+		/// (windows event log on windows, syslog on linux).
+		/// </summary>
+		public static ISystemLogger SystemLogger { get; } = SystemLoggerFactory.Create();
+
+		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
 		public static string ApplicationName

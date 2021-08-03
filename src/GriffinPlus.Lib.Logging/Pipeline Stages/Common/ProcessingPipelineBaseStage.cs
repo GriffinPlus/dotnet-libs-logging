@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 // ReSharper disable InconsistentNaming
@@ -162,6 +163,7 @@ namespace GriffinPlus.Lib.Logging
 				// shut the stage itself down
 				OnShutdownBase();
 
+				// the stage has completed shutting down
 				mInitialized = false;
 			}
 		}
@@ -680,6 +682,32 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Writes a pipeline info message
+		/// (can be used by pipeline stages to emit error information before the pipeline is set up).
+		/// </summary>
+		/// <param name="message">Message describing the error condition.</param>
+		protected void WritePipelineInfo(string message)
+		{
+			var builder = new StringBuilder();
+			builder.AppendLine($"Pipeline Stage: {Name}");
+			builder.AppendLine($"Message: {message}");
+			Log.SystemLogger.WriteInfo(builder.ToString());
+		}
+
+		/// <summary>
+		/// Writes a pipeline warning message
+		/// (can be used by pipeline stages to emit error information before the pipeline is set up).
+		/// </summary>
+		/// <param name="message">Message describing the error condition.</param>
+		protected void WritePipelineWarning(string message)
+		{
+			var builder = new StringBuilder();
+			builder.AppendLine($"Pipeline Stage: {Name}");
+			builder.AppendLine($"Message: {message}");
+			Log.SystemLogger.WriteWarning(builder.ToString());
+		}
+
+		/// <summary>
 		/// Writes a pipeline error message
 		/// (can be used by pipeline stages to emit error information before the pipeline is set up).
 		/// </summary>
@@ -687,8 +715,17 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="ex">Exception that lead to the error (if any).</param>
 		protected void WritePipelineError(string message, Exception ex)
 		{
-			// TODO: Implement
-			Debug.Fail(message, ex.ToString());
+			var builder = new StringBuilder();
+			builder.AppendLine($"Pipeline Stage: {Name}");
+			builder.AppendLine($"Message: {message}");
+
+			if (ex != null)
+			{
+				builder.AppendLine("Exception:");
+				builder.AppendLine(LogWriter.UnwrapException(ex));
+			}
+
+			Log.SystemLogger.WriteError(builder.ToString());
 		}
 
 		/// <summary>
