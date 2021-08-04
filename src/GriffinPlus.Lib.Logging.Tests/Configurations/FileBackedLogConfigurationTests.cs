@@ -19,10 +19,12 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public override void Saving_Default_Configuration()
 		{
-			var configuration = new FileBackedLogConfiguration("FileBackedLogConfigurationTests.gplogconf");
-			Assert.Equal(AppDomain.CurrentDomain.FriendlyName, configuration.ApplicationName);
-			configuration.Save();
-			Assert.True(File.Exists(configuration.FullPath));
+			using (var configuration = new FileBackedLogConfiguration("FileBackedLogConfigurationTests.gplogconf"))
+			{
+				Assert.Equal(AppDomain.CurrentDomain.FriendlyName, configuration.ApplicationName);
+				configuration.Save();
+				Assert.True(File.Exists(configuration.FullPath));
+			}
 		}
 	}
 

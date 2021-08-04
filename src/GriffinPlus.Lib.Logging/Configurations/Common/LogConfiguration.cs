@@ -23,6 +23,23 @@ namespace GriffinPlus.Lib.Logging
 		where TConfiguration : LogConfiguration<TConfiguration>
 	{
 		/// <summary>
+		/// Disposes the object cleaning up unmanaged resources.
+		/// </summary>
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		/// <summary>
+		/// Disposes the configuration cleaning up unmanaged resources
+		/// </summary>
+		/// <param name="disposing">
+		/// true, if called explicitly;
+		/// false, if called due to finalization.
+		/// </param>
+		protected abstract void Dispose(bool disposing);
+
+		/// <summary>
 		/// Gets the object to use when synchronizing access to the log configuration.
 		/// </summary>
 		protected internal object Sync { get; } = new object();

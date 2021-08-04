@@ -17,13 +17,15 @@ namespace GriffinPlus.Lib.Logging
 		/// Creates a new instance of the pipeline stage configuration to test.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
-		/// <returns>The created pipeline stage configuration.</returns>
-		protected override FileBackedProcessingPipelineStageConfiguration CreateConfiguration(string name)
+		/// <param name="stageConfiguration">Receives the stage configuration to test.</param>
+		/// <returns>The created configuration containing the stage configuration (must be disposed at the end of the test).</returns>
+		protected override ILogConfiguration CreateConfiguration(string name, out FileBackedProcessingPipelineStageConfiguration stageConfiguration)
 		{
 			// the file-backed pipeline stage configuration can exist only within the file-backed log configuration
 			// (use specific file name to avoid sharing violation when running other tests that use the default constructor of the configuration as well)
 			var logConfiguration = new FileBackedLogConfiguration("FileBackedProcessingPipelineStageConfigurationTests.gplogconf");
-			return new FileBackedProcessingPipelineStageConfiguration(logConfiguration, name);
+			stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, name);
+			return logConfiguration;
 		}
 
 		/// <summary>
@@ -33,9 +35,11 @@ namespace GriffinPlus.Lib.Logging
 		public void Create()
 		{
 			// use specific file name to avoid sharing violation when running other tests that use the default constructor of the configuration as well
-			var logConfiguration = new FileBackedLogConfiguration("FileBackedProcessingPipelineStageConfigurationTests.gplogconf");
-			var stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, "Stage");
-			Assert.NotNull(stageConfiguration.Sync);
+			using (var logConfiguration = new FileBackedLogConfiguration("FileBackedProcessingPipelineStageConfigurationTests.gplogconf"))
+			{
+				var stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, "Stage");
+				Assert.NotNull(stageConfiguration.Sync);
+			}
 		}
 	}
 

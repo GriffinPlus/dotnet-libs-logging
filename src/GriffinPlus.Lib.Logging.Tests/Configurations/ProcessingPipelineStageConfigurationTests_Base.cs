@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Common unit tests targeting the <see cref="VolatileProcessingPipelineStageConfiguration"/> and the
 	/// <see cref="FileBackedProcessingPipelineConfiguration"/> class.
 	/// </summary>
-	public abstract class ProcessingPipelineStageConfigurationTests_Base<TConfiguration> where TConfiguration : ProcessingPipelineStageConfigurationBase
+	public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration> where TStageConfiguration : ProcessingPipelineStageConfigurationBase
 	{
 		[Flags]
 		public enum ColorFlags
@@ -40,8 +40,9 @@ namespace GriffinPlus.Lib.Logging
 		/// Creates a new instance of the pipeline stage configuration to test.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
-		/// <returns>The created pipeline stage configuration.</returns>
-		protected abstract TConfiguration CreateConfiguration(string name);
+		/// <param name="stageConfiguration">Receives the stage configuration to test.</param>
+		/// <returns>The created configuration containing the stage configuration (must be disposed at the end of the test).</returns>
+		protected abstract ILogConfiguration CreateConfiguration(string name, out TStageConfiguration stageConfiguration);
 
 		public static IEnumerable<object[]> SettingTypeAndOneValue_TestData
 		{
@@ -215,25 +216,28 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue,
 			string defaultValueAsString)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
-				.MakeGenericMethod(type);
-			var configuration = CreateConfiguration("Stage");
-			var setting1 = method.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			using (CreateConfiguration("Stage", out var configuration))
+			{
+				var method = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+					.MakeGenericMethod(type);
 
-			// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
-			RegisterSetting_UntypedInterface(setting1, defaultValue, defaultValueAsString);
+				var setting1 = method.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 
-			// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TConfiguration>)
-				.GetMethod(nameof(RegisterSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
-				.MakeGenericMethod(type);
-			typedTestMethod.Invoke(this, new[] { setting1, defaultValue, defaultValueAsString });
+				// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
+				RegisterSetting_UntypedInterface(setting1, defaultValue, defaultValueAsString);
 
-			// test getting the same setting once again (should succeed, if default value is the same)
-			var setting2 = method.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
-			Assert.Same(setting1, setting2);
+				// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
+				var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
+					.GetMethod(nameof(RegisterSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
+					.MakeGenericMethod(type);
+				typedTestMethod.Invoke(this, new[] { setting1, defaultValue, defaultValueAsString });
+
+				// test getting the same setting once again (should succeed, if default value is the same)
+				var setting2 = method.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+				Assert.Same(setting1, setting2);
+			}
 		}
 
 		private static void RegisterSetting_UntypedInterface(
@@ -278,13 +282,15 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue2,
 			string valueAsString2)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
-				.MakeGenericMethod(type);
-			var configuration = CreateConfiguration("Stage");
-			method.Invoke(configuration, new[] { "Setting", defaultValue1 });
-			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting", defaultValue2 })).InnerException);
+			using (CreateConfiguration("Stage", out var configuration))
+			{
+				var method = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+					.MakeGenericMethod(type);
+				method.Invoke(configuration, new[] { "Setting", defaultValue1 });
+				Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting", defaultValue2 })).InnerException);
+			}
 		}
 
 		#endregion
@@ -310,22 +316,24 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
-				.MakeGenericMethod(type);
-			var configuration = CreateConfiguration("Stage");
-			var setting11 = method.Invoke(configuration, new[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
-			var setting21 = method.Invoke(configuration, new[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			using (CreateConfiguration("Stage", out var configuration))
+			{
+				var method = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+					.MakeGenericMethod(type);
+				var setting11 = method.Invoke(configuration, new[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+				var setting21 = method.Invoke(configuration, new[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
 
-			// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
-			RegisterSettingAndSetValue_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
+				// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
+				RegisterSettingAndSetValue_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
 
-			// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TConfiguration>)
-				.GetMethod(nameof(RegisterSettingAndSetValue_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
-				.MakeGenericMethod(type);
-			typedTestMethod.Invoke(this, new[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
+				// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
+				var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
+					.GetMethod(nameof(RegisterSettingAndSetValue_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
+					.MakeGenericMethod(type);
+				typedTestMethod.Invoke(this, new[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
+			}
 		}
 
 		private static void RegisterSettingAndSetValue_UntypedInterface(
@@ -389,18 +397,20 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue,
 			string defaultValueAsString)
 		{
-			var registerSettingsMethod = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
-				.MakeGenericMethod(type);
-			var getSettingMethod = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
-				.MakeGenericMethod(type);
-			var configuration = CreateConfiguration("Stage");
-			var registeredSetting = registerSettingsMethod.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
-			var setting = getSettingMethod.Invoke(configuration, new object[] { "Setting" }) as IUntypedProcessingPipelineStageSetting;
-			Assert.Same(registeredSetting, setting);
+			using (CreateConfiguration("Stage", out var configuration))
+			{
+				var registerSettingsMethod = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+					.MakeGenericMethod(type);
+				var getSettingMethod = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
+					.MakeGenericMethod(type);
+				var registeredSetting = registerSettingsMethod.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+				var setting = getSettingMethod.Invoke(configuration, new object[] { "Setting" }) as IUntypedProcessingPipelineStageSetting;
+				Assert.Same(registeredSetting, setting);
+			}
 		}
 
 		#endregion
@@ -425,32 +435,34 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			var registerMethod = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
-				.MakeGenericMethod(type);
-			var setMethod = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
-				.MakeGenericMethod(type);
-			var configuration = CreateConfiguration("Stage");
+			using (CreateConfiguration("Stage", out var configuration))
+			{
+				var registerMethod = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
+					.MakeGenericMethod(type);
+				var setMethod = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
+					.MakeGenericMethod(type);
 
-			// register setting with default value
-			var registeredSetting = registerMethod.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
-			Assert.True(registeredSetting.HasDefaultValue);
-			Assert.False(registeredSetting.HasValue);
-			Assert.Equal(defaultValue, registeredSetting.DefaultValue);
-			Assert.Equal(defaultValue, registeredSetting.Value);
-			Assert.Equal(defaultValueAsString, registeredSetting.ValueAsString);
+				// register setting with default value
+				var registeredSetting = registerMethod.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+				Assert.True(registeredSetting.HasDefaultValue);
+				Assert.False(registeredSetting.HasValue);
+				Assert.Equal(defaultValue, registeredSetting.DefaultValue);
+				Assert.Equal(defaultValue, registeredSetting.Value);
+				Assert.Equal(defaultValueAsString, registeredSetting.ValueAsString);
 
-			// set setting
-			var setSetting = setMethod.Invoke(configuration, new[] { "Setting", value }) as IUntypedProcessingPipelineStageSetting;
-			Assert.Same(registeredSetting, setSetting);
-			Assert.True(setSetting.HasDefaultValue);
-			Assert.True(setSetting.HasValue);
-			Assert.Equal(defaultValue, setSetting.DefaultValue);
-			Assert.Equal(value, setSetting.Value);
-			Assert.Equal(valueAsString, setSetting.ValueAsString);
+				// set setting
+				var setSetting = setMethod.Invoke(configuration, new[] { "Setting", value }) as IUntypedProcessingPipelineStageSetting;
+				Assert.Same(registeredSetting, setSetting);
+				Assert.True(setSetting.HasDefaultValue);
+				Assert.True(setSetting.HasValue);
+				Assert.Equal(defaultValue, setSetting.DefaultValue);
+				Assert.Equal(value, setSetting.Value);
+				Assert.Equal(valueAsString, setSetting.ValueAsString);
+			}
 		}
 
 		#endregion
@@ -493,13 +505,15 @@ namespace GriffinPlus.Lib.Logging
 		[MemberData(nameof(GetSettingTestData_SettingDoesNotExist))]
 		public void GetSetting_SettingDoesNotExist(Type type)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
-				.MakeGenericMethod(type);
-			var configuration = CreateConfiguration("Stage");
-			var setting = method.Invoke(configuration, new object[] { "Setting" }) as IUntypedProcessingPipelineStageSetting;
-			Assert.Null(setting);
+			using (CreateConfiguration("Stage", out var configuration))
+			{
+				var method = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
+					.MakeGenericMethod(type);
+				var setting = method.Invoke(configuration, new object[] { "Setting" }) as IUntypedProcessingPipelineStageSetting;
+				Assert.Null(setting);
+			}
 		}
 
 		#endregion
@@ -520,22 +534,24 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			var method = typeof(ProcessingPipelineStageConfigurationBase)
-				.GetMethods()
-				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
-				.MakeGenericMethod(type);
-			var configuration = CreateConfiguration("Stage");
-			var setting1 = method.Invoke(configuration, new[] { "Setting1", value }) as IUntypedProcessingPipelineStageSetting;
-			var setting2 = method.Invoke(configuration, new[] { "Setting2", value }) as IUntypedProcessingPipelineStageSetting;
+			using (CreateConfiguration("Stage", out var configuration))
+			{
+				var method = typeof(ProcessingPipelineStageConfigurationBase)
+					.GetMethods()
+					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
+					.MakeGenericMethod(type);
+				var setting1 = method.Invoke(configuration, new[] { "Setting1", value }) as IUntypedProcessingPipelineStageSetting;
+				var setting2 = method.Invoke(configuration, new[] { "Setting2", value }) as IUntypedProcessingPipelineStageSetting;
 
-			// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
-			SetSetting_UntypedInterface(setting1, value, valueAsString);
+				// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
+				SetSetting_UntypedInterface(setting1, value, valueAsString);
 
-			// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-			var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TConfiguration>)
-				.GetMethod(nameof(SetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
-				.MakeGenericMethod(type);
-			typedTestMethod.Invoke(this, new[] { setting2, value, valueAsString });
+				// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
+				var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
+					.GetMethod(nameof(SetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
+					.MakeGenericMethod(type);
+				typedTestMethod.Invoke(this, new[] { setting2, value, valueAsString });
+			}
 		}
 
 		private static void SetSetting_UntypedInterface(

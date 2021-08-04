@@ -17,10 +17,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Creates a new instance of the pipeline stage configuration to test.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
-		/// <returns>The created pipeline stage configuration.</returns>
-		protected override VolatileProcessingPipelineStageConfiguration CreateConfiguration(string name)
+		/// <param name="stageConfiguration">Receives the stage configuration to test.</param>
+		/// <returns>The created configuration containing the stage configuration (must be disposed at the end of the test).</returns>
+		protected override ILogConfiguration CreateConfiguration(string name, out VolatileProcessingPipelineStageConfiguration stageConfiguration)
 		{
-			return new VolatileProcessingPipelineStageConfiguration(name, null);
+			stageConfiguration = new VolatileProcessingPipelineStageConfiguration(name, null);
+			return null; // the stage configuration can exist without an incorporating log configuration
 		}
 
 		/// <summary>

@@ -33,6 +33,17 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Disposes the configuration cleaning up unmanaged resources
+		/// </summary>
+		/// <param name="disposing">
+		/// true, if called explicitly;
+		/// false, if called due to finalization.
+		/// </param>
+		protected override void Dispose(bool disposing)
+		{
+		}
+
+		/// <summary>
 		/// Gets or sets the name of the application.
 		/// </summary>
 		public override string ApplicationName

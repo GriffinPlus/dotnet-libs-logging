@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log configuration with ini-style file backing (thread-safe).
 	/// </summary>
-	public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfiguration>, IDisposable
+	public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfiguration>
 	{
 		/// <summary>
 		/// The default path of the log configuration file.
@@ -131,21 +131,13 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Disposes the object cleaning up unmanaged resources.
-		/// </summary>
-		public void Dispose()
-		{
-			Dispose(true);
-		}
-
-		/// <summary>
 		/// Disposes the object cleaning up unmanaged resources
 		/// </summary>
 		/// <param name="disposing">
 		/// true, if called explicitly;
 		/// false, if called due to finalization.
 		/// </param>
-		protected virtual void Dispose(bool disposing)
+		protected override void Dispose(bool disposing)
 		{
 			lock (Sync)
 			{

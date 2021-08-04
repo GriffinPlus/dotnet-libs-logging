@@ -3,6 +3,8 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -10,7 +12,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Interface of a log configuration.
 	/// Must be implemented thread-safe.
 	/// </summary>
-	public interface ILogConfiguration
+	public interface ILogConfiguration : IDisposable
 	{
 		/// <summary>
 		/// Gets a value indicating whether the configuration is the default configuration that was created
