@@ -409,7 +409,7 @@ namespace GriffinPlus.Lib.Logging
 				if (mSettingProxies.Any(x => x.Name == name))
 					throw new InvalidOperationException("The setting has already been registered.");
 
-				var proxy = new SettingProxy<T>(mSettings, name, defaultValue, Sync);
+				var proxy = new SettingProxy<T>(this, mSettings, name, defaultValue);
 				mSettingProxies.Add(proxy);
 				return proxy;
 			}
@@ -440,12 +440,12 @@ namespace GriffinPlus.Lib.Logging
 					throw new InvalidOperationException("The setting has already been registered.");
 
 				var proxy = new SettingProxy<T>(
+					this,
 					mSettings,
 					name,
 					defaultValue,
 					valueToStringConverter,
-					stringToValueConverter,
-					Sync);
+					stringToValueConverter);
 
 				mSettingProxies.Add(proxy);
 				return proxy;
