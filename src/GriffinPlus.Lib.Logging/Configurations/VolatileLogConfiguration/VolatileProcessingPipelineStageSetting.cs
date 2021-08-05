@@ -275,9 +275,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				if (!mHasDefaultValue) throw new InvalidOperationException("The item does not have a default value.");
-				if (sUseDefensiveCopying) return mStringToValueConverter(mDefaultValueAsString);
-				return mDefaultValue;
+				lock (mConfiguration.Sync)
+				{
+					if (!mHasDefaultValue) throw new InvalidOperationException("The item does not have a default value.");
+					if (sUseDefensiveCopying) return mStringToValueConverter(mDefaultValueAsString);
+					return mDefaultValue;
+				}
 			}
 
 			internal set

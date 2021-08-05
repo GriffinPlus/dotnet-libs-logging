@@ -238,6 +238,17 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
+			/// Gets or sets the default value of the setting as a string (for serialization purposes).
+			/// </summary>
+			public string DefaultValueAsString
+			{
+				get
+				{
+					lock (mSync) return mSetting.DefaultValueAsString;
+				}
+			}
+
+			/// <summary>
 			/// Is called by a worker thread when the backing setting changes.
 			/// </summary>
 			/// <param name="sender">The backing setting.</param>
