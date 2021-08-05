@@ -266,7 +266,7 @@ namespace GriffinPlus.Lib.Logging
 			writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
-			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Excludes);
+			Assert.Equal(allLevels.Select(x => x.Name), writer.Excludes);
 
 			// include the first log level
 			// => log level should automatically be removed from the exclude list
@@ -303,7 +303,7 @@ namespace GriffinPlus.Lib.Logging
 			writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
-			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Excludes);
+			Assert.Equal(allLevels.Select(x => x.Name), writer.Excludes);
 
 			// include the first log level
 			// => log level should automatically be removed from the exclude list
@@ -446,7 +446,7 @@ namespace GriffinPlus.Lib.Logging
 			writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
-			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Excludes);
+			Assert.Equal(allLevels.Select(x => x.Name), writer.Excludes);
 
 			// determine log levels that should be included and those that should be excluded
 			var levelsToInclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
@@ -492,7 +492,7 @@ namespace GriffinPlus.Lib.Logging
 			writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Empty(writer.Includes);
-			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Excludes);
+			Assert.Equal(allLevels.Select(x => x.Name), writer.Excludes);
 
 			// determine log levels that should be included and those that should be excluded
 			var levelsToInclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
@@ -563,7 +563,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Same(builder, builder.WithLevel(allLevels));
 			writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
-			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Includes);
+			Assert.Equal(allLevels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
 			// exclude the first log level
@@ -600,7 +600,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Same(builder, builder.WithLevel(allLevels));
 			writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
-			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Includes);
+			Assert.Equal(allLevels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
 			// exclude the first log level
@@ -743,7 +743,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Same(builder, builder.WithLevel(allLevels));
 			writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
-			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Includes);
+			Assert.Equal(allLevels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
 			// determine log levels that should be included and those that should be excluded
@@ -789,7 +789,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Same(builder, builder.WithLevel(allLevels));
 			writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
-			Assert.Equal(LogLevel.KnownLevels.Select(x => x.Name), writer.Includes);
+			Assert.Equal(allLevels.Select(x => x.Name), writer.Includes);
 			Assert.Empty(writer.Excludes);
 
 			// determine log levels that should be included and those that should be excluded
