@@ -98,6 +98,11 @@ namespace GriffinPlus.Lib.Logging
 		public static int MaxId => sNextId - 1;
 
 		/// <summary>
+		/// Gets the first log level id that is assigned to an aspect log level.
+		/// </summary>
+		public static int FirstAspectId => Timing.Id; // 'Timing' is the only pre-initialized aspect level
+
+		/// <summary>
 		/// All predefined log levels (the index corresponds to the id of the log level).
 		/// </summary>
 		private static readonly LogLevel[] sPredefinedLogLevels =

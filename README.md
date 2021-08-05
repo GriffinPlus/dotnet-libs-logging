@@ -1,4 +1,4 @@
-# Griffin+ Logging
+# Griffin + Logging
 
 [![Azure DevOps builds (branch)](https://img.shields.io/azure-devops/build/griffinplus/2f589a5e-e2ab-4c08-bee5-5356db2b2aeb/26/master?label=Build)](https://dev.azure.com/griffinplus/DotNET%20Libraries/_build/latest?definitionId=26&branchName=master)
 [![Tests (master)](https://img.shields.io/azure-devops/tests/griffinplus/DotNET%20Libraries/26/master?label=Tests)](https://dev.azure.com/griffinplus/DotNET%20Libraries/_build/latest?definitionId=26&branchName=master)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
@@ -9,12 +9,13 @@
 |------------------------------------------------------|---------------------------------------------------------------------------------------------|
 | GriffinPlus.Lib.Logging                              | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging) |
 | GriffinPlus.Lib.Logging.Collections                  | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.Collections.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Collections) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.Collections.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Collections) |
+| GriffinPlus.Lib.Logging.ElasticsearchPipelineStage   | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage) |
 | GriffinPlus.Lib.Logging.LocalLogServicePipelineStage | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) |
 | GriffinPlus.Lib.Logging.LogFile                      | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LogFile.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LogFile.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) |
 
 ## Overview
 
-*Griffin+ Logging* is a simple, but modular extensible logging facility that focusses on applications built on the .NET framework. It addresses many issues that have arised during multiple years of developing .NET libraries and applications. *Griffin+ Logging* is part of the *Griffin+* library suite and used in other *Griffin+* projects to channelize and process log message streams. Nevertheless *Griffin+ Logging* can be used in other projects as well as it only references our slim [common library](https://github.com/GriffinPlus/dotnet-libs-common) for very basic functionality.
+*Griffin+ Logging* is a simple, but modular extensible logging facility that focusses on applications built on the .NET framework. It addresses many issues that have arised during multiple years of developing .NET libraries and applications. *Griffin+ Logging* is part of the *Griffin+* library suite and used in other *Griffin+* projects to channelize and process log message streams.
 
 ## Supported Platforms
 
@@ -218,6 +219,10 @@ A pipeline stage class must implement the `IProcessingPipelineStage` interface. 
       - Processing is done asynchronously
 - Pipeline Stages forwarding messages to other logging systems
   - Implementations
+    - `ElasticsearchPipelineStage`
+      - Log messages are forwarded to an Elasticsearch cluster
+      - Message documents comply with the [Elasticsearch Common Schema (ECS) version 1.10](https://www.elastic.co/guide/en/ecs/current/index.html)
+      - Available via *NuGet* package `GriffinPlus.Lib.Logging.ElasticsearchPipelineStage`
     - `LocalLogServicePipelineStage` (***proprietary, Windows only***)
       - Log messages are forwarded to a service via a shared memory queue ensuring high performance
       - Messages up to a process crash are available as the stage does not buffer messages in-process
@@ -319,6 +324,8 @@ The following example shows how *Griffin+ Logging* can be used. The source code 
 using System;
 using System.IO;
 using System.Threading;
+
+using GriffinPlus.Lib.Logging.Elasticsearch;
 
 namespace GriffinPlus.Lib.Logging.Demo
 {
@@ -544,10 +551,31 @@ namespace GriffinPlus.Lib.Logging.Demo
             fileStage.Formatter = jsonFormatter;                         // use specific formatter
             fileStage.AutoFlush = false;                                 // do not flush the file after writing a log message (default)
 
+            // Create pipeline stage that forwards to Elasticsearch using the Elasticsearch Common Schema (ECS) version 1.10.
+            // The stage supports the following password-based authentication schemes:
+            // - Basic authentication (with custom credentials only)
+            // - Digest authentication (with custom credentials only)
+            // - NTLM Authentication (with custom credentials and login user credentials)
+            // - Kerberos Authentication (with custom credentials and login user credentials)
+            // - Negotiate Authentication (with custom credentials and login user credentials)
+            var elasticsearchStage = new ElasticsearchPipelineStage("Elasticsearch");
+            elasticsearchStage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server (default)
+            elasticsearchStage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes (default)
+            elasticsearchStage.Username = "";                                              // username to use when authenticating (default, empty to use login user)
+            elasticsearchStage.Password = "";                                              // password to use when authenticating (default, empty to use login user)
+            elasticsearchStage.Domain = "";                                                // domain to use when authenticating (default, for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
+            elasticsearchStage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request (default)
+            elasticsearchStage.BulkRequestMaxMessageCount = 1000;                          // maximum number of messages in a bulk request (default)
+            elasticsearchStage.IndexName = "logs";                                         // elasticsearch index to write log messages into (default)
+            elasticsearchStage.OrganizationId = "griffin.plus";                            // value of the 'organization.id' field (default)
+            elasticsearchStage.OrganizationName = "Griffin+";                              // value of the 'organization.name' field (default)
+            elasticsearchStage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages (default)
+
             // Create splitter pipeline stage to unconditionally feed log messages into all pipelines stages
             var splitterStage = new SplitterPipelineStage("Splitter");
             splitterStage.AddNextStage(consoleStage);
             splitterStage.AddNextStage(fileStage);
+            splitterStage.AddNextStage(elasticsearchStage);
 
             // Activate the stages
             Log.ProcessingPipeline = splitterStage;
@@ -618,7 +646,9 @@ namespace GriffinPlus.Lib.Logging.Demo
             Log.Shutdown();
         }
     }
+
 }
+
 ```
 
 ### Working with Log Messages

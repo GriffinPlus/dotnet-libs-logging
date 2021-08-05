@@ -15,6 +15,8 @@ using System;
 using System.IO;
 using System.Threading;
 
+using GriffinPlus.Lib.Logging.Elasticsearch;
+
 namespace GriffinPlus.Lib.Logging.Demo
 {
 
@@ -239,10 +241,31 @@ namespace GriffinPlus.Lib.Logging.Demo
 			fileStage.Formatter = jsonFormatter;                         // use specific formatter
 			fileStage.AutoFlush = false;                                 // do not flush the file after writing a log message (default)
 
+			// Create pipeline stage that forwards to Elasticsearch using the Elasticsearch Common Schema (ECS) version 1.10.
+			// The stage supports the following password-based authentication schemes:
+			// - Basic authentication (with custom credentials only)
+			// - Digest authentication (with custom credentials only)
+			// - NTLM Authentication (with custom credentials and login user credentials)
+			// - Kerberos Authentication (with custom credentials and login user credentials)
+			// - Negotiate Authentication (with custom credentials and login user credentials)
+			var elasticsearchStage = new ElasticsearchPipelineStage("Elasticsearch");
+			elasticsearchStage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server (default)
+			elasticsearchStage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes (default)
+			elasticsearchStage.Username = "";                                              // username to use when authenticating (default, empty to use login user)
+			elasticsearchStage.Password = "";                                              // password to use when authenticating (default, empty to use login user)
+			elasticsearchStage.Domain = "";                                                // domain to use when authenticating (default, for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
+			elasticsearchStage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request (default)
+			elasticsearchStage.BulkRequestMaxMessageCount = 1000;                          // maximum number of messages in a bulk request (default)
+			elasticsearchStage.IndexName = "logs";                                         // elasticsearch index to write log messages into (default)
+			elasticsearchStage.OrganizationId = "griffin.plus";                            // value of the 'organization.id' field (default)
+			elasticsearchStage.OrganizationName = "Griffin+";                              // value of the 'organization.name' field (default)
+			elasticsearchStage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages (default)
+
 			// Create splitter pipeline stage to unconditionally feed log messages into all pipelines stages
 			var splitterStage = new SplitterPipelineStage("Splitter");
 			splitterStage.AddNextStage(consoleStage);
 			splitterStage.AddNextStage(fileStage);
+			splitterStage.AddNextStage(elasticsearchStage);
 
 			// Activate the stages
 			Log.ProcessingPipeline = splitterStage;
