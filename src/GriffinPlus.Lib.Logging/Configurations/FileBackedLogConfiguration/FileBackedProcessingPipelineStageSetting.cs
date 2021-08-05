@@ -188,6 +188,11 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		object IUntypedProcessingPipelineStageSetting.DefaultValue => DefaultValue;
 
+		/// <summary>
+		/// Gets or sets the default value of the setting as a string (for serialization purposes).
+		/// </summary>
+		public string DefaultValueAsString => mRawSetting.DefaultValue;
+
 		#endregion
 
 		/// <summary>

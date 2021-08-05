@@ -249,6 +249,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.False(setting.HasValue);
 			Assert.Equal(defaultValue, setting.DefaultValue);
 			Assert.Equal(defaultValue, setting.Value);
+			Assert.Equal(defaultValueAsString, setting.DefaultValueAsString);
 			Assert.Equal(defaultValueAsString, setting.ValueAsString);
 		}
 
@@ -261,6 +262,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.False(setting.HasValue);
 			Assert.Equal(defaultValue, setting.DefaultValue);
 			Assert.Equal(defaultValue, setting.Value);
+			Assert.Equal(defaultValueAsString, setting.DefaultValueAsString);
 			Assert.Equal(defaultValueAsString, setting.ValueAsString);
 		}
 
@@ -347,6 +349,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.False(setting.HasValue);
 			Assert.Equal(defaultValue, setting.DefaultValue);
 			Assert.Equal(defaultValue, setting.Value);
+			Assert.Equal(defaultValueAsString, setting.DefaultValueAsString);
 			Assert.Equal(defaultValueAsString, setting.ValueAsString);
 
 			setting.Value = value;
@@ -354,6 +357,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.True(setting.HasValue);
 			Assert.Equal(defaultValue, setting.DefaultValue);
 			Assert.Equal(value, setting.Value);
+			Assert.Equal(defaultValueAsString, setting.DefaultValueAsString);
 			Assert.Equal(valueAsString, setting.ValueAsString);
 		}
 
@@ -368,6 +372,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.False(setting.HasValue);
 			Assert.Equal(defaultValue, setting.DefaultValue);
 			Assert.Equal(defaultValue, setting.Value);
+			Assert.Equal(defaultValueAsString, setting.DefaultValueAsString);
 			Assert.Equal(defaultValueAsString, setting.ValueAsString);
 
 			setting.Value = (T)value;
@@ -375,6 +380,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.True(setting.HasValue);
 			Assert.Equal(defaultValue, setting.DefaultValue);
 			Assert.Equal(value, setting.Value);
+			Assert.Equal(defaultValueAsString, setting.DefaultValueAsString);
 			Assert.Equal(valueAsString, setting.ValueAsString);
 		}
 
@@ -452,6 +458,7 @@ namespace GriffinPlus.Lib.Logging
 				Assert.False(registeredSetting.HasValue);
 				Assert.Equal(defaultValue, registeredSetting.DefaultValue);
 				Assert.Equal(defaultValue, registeredSetting.Value);
+				Assert.Equal(defaultValueAsString, registeredSetting.DefaultValueAsString);
 				Assert.Equal(defaultValueAsString, registeredSetting.ValueAsString);
 
 				// set setting
@@ -461,6 +468,7 @@ namespace GriffinPlus.Lib.Logging
 				Assert.True(setSetting.HasValue);
 				Assert.Equal(defaultValue, setSetting.DefaultValue);
 				Assert.Equal(value, setSetting.Value);
+				Assert.Equal(defaultValueAsString, setSetting.DefaultValueAsString);
 				Assert.Equal(valueAsString, setSetting.ValueAsString);
 			}
 		}
@@ -561,6 +569,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			Assert.False(setting.HasDefaultValue);
 			Assert.Throws<InvalidOperationException>(() => setting.DefaultValue);
+			Assert.Throws<InvalidOperationException>(() => setting.DefaultValueAsString);
 
 			Assert.True(setting.HasValue);
 			Assert.Equal(value, setting.Value);
@@ -574,6 +583,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			Assert.False(setting.HasDefaultValue);
 			Assert.Throws<InvalidOperationException>(() => setting.DefaultValue);
+			Assert.Throws<InvalidOperationException>(() => setting.DefaultValueAsString);
 
 			Assert.True(setting.HasValue);
 			Assert.Equal(value, setting.Value);

@@ -58,6 +58,11 @@ namespace GriffinPlus.Lib.Logging
 		object DefaultValue { get; }
 
 		/// <summary>
+		/// Gets the default value of the setting as a string (for serialization purposes).
+		/// </summary>
+		string DefaultValueAsString { get; }
+
+		/// <summary>
 		/// Registers the specified <see cref="EventHandler{SettingChangedEventArgs}"/> for the <see cref="SettingChanged"/> event.
 		/// Depending on <paramref name="invokeInCurrentSynchronizationContext"/> the event handler is invoked in the
 		/// synchronization context of the current thread (if any) or in a worker thread. The execution of the event

@@ -297,6 +297,22 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		object IUntypedProcessingPipelineStageSetting.DefaultValue => DefaultValue;
 
+
+		/// <summary>
+		/// Gets or sets the default value of the setting as a string (for serialization purposes).
+		/// </summary>
+		public string DefaultValueAsString
+		{
+			get
+			{
+				lock (mConfiguration.Sync)
+				{
+					if (!mHasDefaultValue) throw new InvalidOperationException("The item does not have a default value.");
+					return mDefaultValueAsString;
+				}
+			}
+		}
+
 		#endregion
 
 		/// <summary>
