@@ -143,7 +143,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					string oldRawValue = mRawSetting.HasValue | mRawSetting.HasDefaultValue ? mRawSetting.Value : null;
 					string newRawValue = mValueToStringConverter(value);
-					if (oldRawValue == newRawValue) return;
+					if (mRawSetting.HasValue && oldRawValue == newRawValue) return;
 					mRawSetting.Value = newRawValue;
 					OnSettingChanged();
 				}
@@ -167,7 +167,7 @@ namespace GriffinPlus.Lib.Logging
 			get => mRawSetting.Value;
 			set
 			{
-				if (mRawSetting.Value == value) return;
+				if (mRawSetting.HasValue && mRawSetting.Value == value) return;
 				mRawSetting.Value = value;
 				OnSettingChanged();
 			}

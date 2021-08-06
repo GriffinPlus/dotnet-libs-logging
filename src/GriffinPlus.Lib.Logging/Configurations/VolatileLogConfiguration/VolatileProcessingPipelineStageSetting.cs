@@ -211,7 +211,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					string oldValueAsString = mHasValue ? mValueAsString : mHasDefaultValue ? mDefaultValueAsString : null;
 					string newValueAsString = mValueToStringConverter(value);
-					if (oldValueAsString == newValueAsString) return;
+					if (mHasValue && oldValueAsString == newValueAsString) return;
 					mValue = sUseDefensiveCopying ? mStringToValueConverter(newValueAsString) : value;
 					mValueAsString = newValueAsString;
 					mHasValue = true;
@@ -247,7 +247,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mConfiguration.Sync)
 				{
-					if (mValueAsString == value) return;
+					if (mHasValue && mValueAsString == value) return;
 					Value = mStringToValueConverter(value); // ensures that mValueAsString is set properly
 				}
 			}
