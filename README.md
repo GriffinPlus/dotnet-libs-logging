@@ -5,13 +5,13 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-round)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-| NuGet Package                                        |                                                                                             |
-|------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| GriffinPlus.Lib.Logging                              | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging) |
-| GriffinPlus.Lib.Logging.Collections                  | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.Collections.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Collections) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.Collections.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Collections) |
-| GriffinPlus.Lib.Logging.ElasticsearchPipelineStage   | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage) |
-| GriffinPlus.Lib.Logging.LocalLogServicePipelineStage | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) |
-| GriffinPlus.Lib.Logging.LogFile                      | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LogFile.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LogFile.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) |
+| NuGet Package                                                                                                             |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|---------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [GriffinPlus.Lib.Logging](README.md)                                                                                      | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging)
+| [GriffinPlus.Lib.Logging.Collections](README.md)                                                                          | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.Collections.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Collections) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.Collections.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Collections)
+| [GriffinPlus.Lib.Logging.ElasticsearchPipelineStage](src/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/README.md)    | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage)
+| [GriffinPlus.Lib.Logging.LocalLogServicePipelineStage](README.md)                                                         | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage)
+| [GriffinPlus.Lib.Logging.LogFile](README.md)                                                                              | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LogFile.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LogFile.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile)
 
 ## Overview
 
@@ -223,6 +223,7 @@ A pipeline stage class must implement the `IProcessingPipelineStage` interface. 
       - Log messages are forwarded to an Elasticsearch cluster
       - Message documents comply with the [Elasticsearch Common Schema (ECS) version 1.10](https://www.elastic.co/guide/en/ecs/current/index.html)
       - Available via *NuGet* package `GriffinPlus.Lib.Logging.ElasticsearchPipelineStage`
+      - [Documentation](src/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/README.md)
     - `LocalLogServicePipelineStage` (***proprietary, Windows only***)
       - Log messages are forwarded to a service via a shared memory queue ensuring high performance
       - Messages up to a process crash are available as the stage does not buffer messages in-process
@@ -250,7 +251,7 @@ public LogWriter WithTags(params string[] tags);
 
 Tags may consist of the following characters only:
 - alphanumeric characters: `[a-z]`, `[A-Z]`, `[0-9]`
-- extra characters: `[_ . , : ; + - #]`
+- extra characters: `_`, `.`, `,`, `:`, `;`, `+`, `-`, `#`
 - brackets: `(`, `)`, `[`, `]`, `{`, `}`, `<`, `>`
 
 ### Choosing a Log Level
