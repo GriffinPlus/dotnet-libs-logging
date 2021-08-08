@@ -574,8 +574,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				mBulkRequestMaxSize = BulkRequestMaxSize;
 
 				// reload fixed fields
-				mOrganizationId = OrganizationId;
-				mOrganizationName = OrganizationName;
+				// (set to null, if the string is empty to omit these fields when generating requests)
+				mOrganizationId = string.IsNullOrWhiteSpace(OrganizationId) ? null : OrganizationId;
+				mOrganizationName = string.IsNullOrWhiteSpace(OrganizationName) ? null : OrganizationName;
 
 				// rebuild request URLs
 				mEndpoints.Clear();

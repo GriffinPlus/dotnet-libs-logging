@@ -49,7 +49,7 @@ Log.ProcessingPipeline = stage;
 
 The pipeline stage allows to configure multiple *Elasticsearch* endpoints for redundancy. The stage will try the first configured endpoint and use it until it fails. Then it tries to use the next endpoint in the list until it fails and so on. An endpoint that failed is not used for 30 seconds.
 
-When it comes to authenticating the pipeline stage supports the authentication schemes `Basic`, `Digest`, `Ntlm`, `Kerberos` and `Negotiate`. The required schemes can be selected by or'ing the schemes as `AuthenticationScheme` is a flag enumeration. To use custom credentials you need to set the `Username` and the `Password` property. If any of both is empty the stage will use the credentials of the login user. Furthermore for the authentication schemes `Digest`, `Ntlm`, `Kerberos` and `Negotiate` you need to initialize the `Domain` property appropriately. Due to security reasons using login credentials is only supported for the authentication schemes `Ntlm`, `Kerberos` and `Negotiate`.
+When it comes to authenticating the pipeline stage supports the authentication schemes `Basic`, `Digest`, `Ntlm`, `Kerberos` and `Negotiate`. The required schemes can be selected by or'ing the schemes as `AuthenticationScheme` is a flag enumeration. The value `PasswordBased` is predefined to sum up all these authentication schemes in a single value. To use custom credentials you need to set the `Username` and the `Password` property. If any of both is empty the stage will use the credentials of the login user. Furthermore for the authentication schemes `Digest`, `Ntlm`, `Kerberos` and `Negotiate` you need to initialize the `Domain` property appropriately. Due to security reasons using login credentials is only supported for the authentication schemes `Ntlm`, `Kerberos` and `Negotiate`.
 
 By default the stage limits the number of messages incorporated in a bulk request to 1000 messages and the size of the bulk request to 5 Megabytes. This can be overridden using the `BulkRequestMaxMessageCount` and the `BulkRequestMaxSize` property.
 
@@ -57,7 +57,7 @@ The pipeline stage allows to choose the name of the *Elasticsearch* index messag
 
 When sending a message to *Elasticsearch* the stage allows to set the ECS fields `organization.id` and `organization.name` in the document to help to distinguish between messages written by different organizations.
 
-At last the `SendQueueSize` property allows to adjust the number of messages the stage can buffer, before it discards messages. If an application is expected to generate bursts of messages or in case of varying network throughput it can be a good idea to enlarge the send queue.
+At last the `SendQueueSize` property allows to adjust the number of messages the stage can buffer, before it discards messages. If an application is expected to generate bursts of messages or in case of varying network throughput it can be a good idea to enlarge the send queue. The default queue size is 50000 messages.
 
 It is possible to configure these settings without recompiling the application. The pipeline stage utilizes the *Log Configuration System* for this. *Griffin+ Logging* ships with the `FileBackedLogConfiguration` class that allows to store settings in an *ini-like* configuration file. For more information about log configurations please see the top-level [documentation](../../README.md) of *Griffin+ Logging*. The following section can be put into this log configuration file to configure the settings of the stage.
 
@@ -79,6 +79,8 @@ Data.Organization.Id = griffin.plus
 Data.Organization.Name = Griffin+
 Stage.SendQueueSize = 50000
 ```
+
+The [demo project](../GriffinPlus.Lib.Logging.Demo) shows how to set up and integrate the pipeline stage. If the configuration file does not exist, the demo project saves a new one with the settings that have been configured programmatically. This way you can set your own defaults and write a configuration file using these defaults. An existing log configuration file will only be loaded, but not modified. This way an application can generate a missing log configuration file with sensible defaults on the first run and the user can modify the configuration file as needed.
 
 ## Message Fields
 
