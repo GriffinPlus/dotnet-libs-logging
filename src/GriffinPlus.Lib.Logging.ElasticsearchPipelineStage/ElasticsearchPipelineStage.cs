@@ -47,6 +47,13 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		private readonly Queue<LocalLogMessage> mProcessingQueue = new Queue<LocalLogMessage>();
 
 		/// <summary>
+		/// Indicates whether the stage discards messages, if the queue is full (default).
+		/// This should only be disabled for testing purposes as blocking for sending a log message is usually not desirable.
+		/// Synchronized via monitor using <see cref="mProcessingQueue"/>.
+		/// </summary>
+		private bool mDiscardMessagesIfQueueFull = true;
+
+		/// <summary>
 		/// The maximum number of messages in <see cref="mProcessingQueue"/>.
 		/// </summary>
 		private int mProcessingQueueSize = 0;
@@ -149,7 +156,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			mProcessingQueueSize = mSetting_Stage_SendQueueSize.Value;
 		}
 
-		#region Stage Settings
+		#region Stage Settings (Backed by Configuration)
 
 		#region ApiBaseUrls
 
@@ -350,6 +357,30 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 		#endregion
 
+		#region Stage Settings (Not Backed by Configuration)
+
+		#region DiscardMessagesIfQueueFull
+
+		/// <summary>
+		/// Indicates whether the stage discards messages, if the queue is full (default).
+		/// This should only be disabled for testing purposes as blocking for sending a log message is usually not desirable.
+		/// </summary>
+		public bool DiscardMessagesIfQueueFull
+		{
+			get
+			{
+				lock (mProcessingQueue) return mDiscardMessagesIfQueueFull;
+			}
+			set
+			{
+				lock (mProcessingQueue) mDiscardMessagesIfQueueFull = value;
+			}
+		}
+
+		#endregion
+
+		#endregion
+
 		#region Overrides
 
 		/// <summary>
@@ -433,17 +464,31 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		{
 			Debug.Assert(Monitor.IsEntered(Sync));
 
-			lock (mProcessingQueue)
+			while (true)
 			{
-				// abort and discard the message, if the processing queue is full
-				if (mProcessingQueue.Count >= mProcessingQueueSize)
-					return true;
+				lock (mProcessingQueue)
+				{
+					// enqueue message for sending, if there is space in the queue
+					if (mProcessingQueue.Count < mProcessingQueueSize)
+					{
+						message.AddRef();
+						mProcessingQueue.Enqueue(message);
+						break;
+					}
 
-				// enqueue the message for processing
-				message.AddRef();
-				mProcessingQueue.Enqueue(message);
+					// the queue is full
+					// => discard the message, if configured (default)
+					if (mDiscardMessagesIfQueueFull)
+						return true;
+				}
+
+				// the queue is full
+				// => wait some time before trying to enqueue it again
+				Thread.Sleep(10);
 			}
 
+			// the message was enqueued successfully
+			// => trigger processing
 			TriggerProcessing();
 			return true;
 		}
