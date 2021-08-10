@@ -45,7 +45,7 @@ namespace GriffinPlus.Lib.Logging
 		protected ProcessingPipelineBaseStage(string name)
 		{
 			Name = name ?? throw new ArgumentNullException(nameof(name));
-			Settings = new VolatileProcessingPipelineStageConfiguration(name, Sync);
+			Settings = new VolatileProcessingPipelineStageConfiguration(name);
 		}
 
 		/// <summary>
@@ -386,7 +386,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (mSettings != value)
 					{
-						var newConfiguration = value ?? new VolatileProcessingPipelineStageConfiguration(Name, null);
+						var newConfiguration = value ?? new VolatileProcessingPipelineStageConfiguration(Name);
 						mSettings = newConfiguration;
 						RebindSettingProxies();
 					}

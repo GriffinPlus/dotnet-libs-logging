@@ -22,11 +22,20 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
+		public VolatileProcessingPipelineStageConfiguration(string name) : base(null)
+		{
+			Name = name;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class (for internal use only).
+		/// </summary>
+		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
 		/// <param name="sync">
 		/// The configuration lock used to synchronize access to the configuration.
 		/// Specify <c>null</c> to create a new lock.
 		/// </param>
-		public VolatileProcessingPipelineStageConfiguration(string name, object sync) : base(sync)
+		internal VolatileProcessingPipelineStageConfiguration(string name, object sync) : base(sync)
 		{
 			Name = name;
 		}

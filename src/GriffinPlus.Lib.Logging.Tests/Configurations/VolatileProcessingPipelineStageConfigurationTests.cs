@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The created configuration containing the stage configuration (must be disposed at the end of the test).</returns>
 		protected override ILogConfiguration CreateConfiguration(string name, out VolatileProcessingPipelineStageConfiguration stageConfiguration)
 		{
-			stageConfiguration = new VolatileProcessingPipelineStageConfiguration(name, null);
+			stageConfiguration = new VolatileProcessingPipelineStageConfiguration(name);
 			return null; // the stage configuration can exist without an incorporating log configuration
 		}
 
@@ -31,7 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Create_WithoutSyncObject()
 		{
-			var configuration = new VolatileProcessingPipelineStageConfiguration("Stage", null);
+			var configuration = new VolatileProcessingPipelineStageConfiguration("Stage");
 			Assert.NotNull(configuration.Sync);
 		}
 
