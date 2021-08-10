@@ -13,7 +13,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A pool of log messages allowing log messages to be re-used to reduce garbage collection pressure (thread-safe).
 	/// </summary>
-	class LocalLogMessagePool
+	public class LocalLogMessagePool
 	{
 		private readonly ConcurrentBag<LocalLogMessage> mMessages;
 
