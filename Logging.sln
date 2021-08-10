@@ -78,6 +78,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.Ela
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.Tests", "src\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.Tests\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.Tests.csproj", "{E70893CD-2E9C-4083-B403-4633BB02E380}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark.ElasticsearchPipelineStage", "src\Benchmark.ElasticsearchPipelineStage\Benchmark.ElasticsearchPipelineStage.csproj", "{97C8D0D6-E425-4C77-BC36-139963D7260A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -132,6 +134,10 @@ Global
 		{E70893CD-2E9C-4083-B403-4633BB02E380}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E70893CD-2E9C-4083-B403-4633BB02E380}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E70893CD-2E9C-4083-B403-4633BB02E380}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97C8D0D6-E425-4C77-BC36-139963D7260A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97C8D0D6-E425-4C77-BC36-139963D7260A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97C8D0D6-E425-4C77-BC36-139963D7260A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97C8D0D6-E425-4C77-BC36-139963D7260A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
