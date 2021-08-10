@@ -23,9 +23,6 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public abstract partial class ProcessingPipelineBaseStage : IProcessingPipelineStage
 	{
-		private          IProcessingPipelineStageConfiguration mSettings;
-		private readonly List<IUntypedSettingProxy>            mSettingProxies = new List<IUntypedSettingProxy>();
-
 		/// <summary>
 		/// Indicates whether the pipeline stage is initialized, i.e. attached to the logging subsystem.
 		/// </summary>
@@ -364,6 +361,11 @@ namespace GriffinPlus.Lib.Logging
 
 		#region Settings Backed by the Log Configuration
 
+		// all members below are synchronized using mSettingsSync
+		private          IProcessingPipelineStageConfiguration mSettings;
+		private readonly List<IUntypedSettingProxy>            mSettingProxies = new List<IUntypedSettingProxy>();
+		private readonly object                                mSettingsSync   = new object();
+
 		/// <summary>
 		/// Gets or sets the configuration the pipeline stage operates with.
 		/// </summary>
@@ -372,7 +374,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				lock (Sync)
+				lock (mSettingsSync)
 				{
 					return mSettings;
 				}
@@ -380,7 +382,7 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
-				lock (Sync)
+				lock (mSettingsSync)
 				{
 					if (mSettings != value)
 					{
@@ -404,7 +406,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <exception cref="InvalidOperationException">The setting has already been registered.</exception>
 		protected IProcessingPipelineStageSetting<T> RegisterSetting<T>(string name, T defaultValue)
 		{
-			lock (Sync)
+			lock (mSettingsSync)
 			{
 				if (mSettingProxies.Any(x => x.Name == name))
 					throw new InvalidOperationException("The setting has already been registered.");
@@ -434,7 +436,7 @@ namespace GriffinPlus.Lib.Logging
 			Func<T, string> valueToStringConverter,
 			Func<string, T> stringToValueConverter)
 		{
-			lock (Sync)
+			lock (mSettingsSync)
 			{
 				if (mSettingProxies.Any(x => x.Name == name))
 					throw new InvalidOperationException("The setting has already been registered.");
@@ -457,7 +459,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private void RebindSettingProxies()
 		{
-			lock (Sync)
+			lock (mSettingProxies)
 			{
 				foreach (var proxy in mSettingProxies)
 				{

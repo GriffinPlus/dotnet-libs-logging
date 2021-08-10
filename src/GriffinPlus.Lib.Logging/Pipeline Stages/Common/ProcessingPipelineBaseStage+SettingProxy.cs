@@ -25,6 +25,7 @@ namespace GriffinPlus.Lib.Logging
 			private readonly T                                     mDefaultSettingValue;
 			private readonly Func<T, string>                       mValueToStringConverter;
 			private readonly Func<string, T>                       mStringToValueConverter;
+			private readonly object                                mSync = new object();
 			private          IProcessingPipelineStageConfiguration mConfiguration;
 			private          IProcessingPipelineStageSetting<T>    mSetting;
 
@@ -109,7 +110,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="configuration">The configuration the proxy should bind to.</param>
 			public void SetProxyTarget(IProcessingPipelineStageConfiguration configuration)
 			{
-				lock (mStage.Sync)
+				lock (mSync)
 				{
 					if (mConfiguration != configuration)
 					{
@@ -134,7 +135,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync) return mSetting.Name;
+					lock (mSync) return mSetting.Name;
 				}
 			}
 
@@ -145,7 +146,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync) return mSetting.ValueType;
+					lock (mSync) return mSetting.ValueType;
 				}
 			}
 
@@ -156,7 +157,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync) return mSetting.HasValue;
+					lock (mSync) return mSetting.HasValue;
 				}
 			}
 
@@ -169,7 +170,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync)
+					lock (mSync)
 					{
 						var setting = mSetting;
 
@@ -204,7 +205,7 @@ namespace GriffinPlus.Lib.Logging
 
 				set
 				{
-					lock (mStage.Sync) mSetting.Value = value;
+					lock (mSync) mSetting.Value = value;
 				}
 			}
 
@@ -217,7 +218,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync)
+					lock (mSync)
 					{
 						IUntypedProcessingPipelineStageSetting setting = mSetting;
 
@@ -252,7 +253,7 @@ namespace GriffinPlus.Lib.Logging
 
 				set
 				{
-					lock (mStage.Sync) ((IUntypedProcessingPipelineStageSetting)mSetting).Value = value;
+					lock (mSync) ((IUntypedProcessingPipelineStageSetting)mSetting).Value = value;
 				}
 			}
 
@@ -263,11 +264,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync) return mSetting.ValueAsString;
+					lock (mSync) return mSetting.ValueAsString;
 				}
 				set
 				{
-					lock (mStage.Sync) mSetting.ValueAsString = value;
+					lock (mSync) mSetting.ValueAsString = value;
 				}
 			}
 
@@ -278,7 +279,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync) return mSetting.HasDefaultValue;
+					lock (mSync) return mSetting.HasDefaultValue;
 				}
 			}
 
@@ -289,7 +290,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync) return mSetting.DefaultValue;
+					lock (mSync) return mSetting.DefaultValue;
 				}
 			}
 
@@ -300,7 +301,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync) return ((IUntypedProcessingPipelineStageSetting)mSetting).DefaultValue;
+					lock (mSync) return ((IUntypedProcessingPipelineStageSetting)mSetting).DefaultValue;
 				}
 			}
 
@@ -311,7 +312,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				get
 				{
-					lock (mStage.Sync) return mSetting.DefaultValueAsString;
+					lock (mSync) return mSetting.DefaultValueAsString;
 				}
 			}
 
@@ -332,7 +333,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <returns>String representation of the setting.</returns>
 			public override string ToString()
 			{
-				lock (mStage.Sync)
+				lock (mSync)
 				{
 					return mSetting.ToString();
 				}

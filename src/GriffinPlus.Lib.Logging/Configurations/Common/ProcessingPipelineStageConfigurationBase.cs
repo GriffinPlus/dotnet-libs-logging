@@ -94,7 +94,7 @@ namespace GriffinPlus.Lib.Logging
 		public abstract string Name { get; }
 
 		/// <summary>
-		/// Gets the object used to synchronize access to the configuration (and its settings).
+		/// Gets the object used to synchronize access to the pipeline stage (and its settings).
 		/// </summary>
 		protected internal object Sync { get; }
 
