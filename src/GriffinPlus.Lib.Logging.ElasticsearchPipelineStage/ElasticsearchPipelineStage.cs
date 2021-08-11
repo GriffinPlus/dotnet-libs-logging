@@ -41,10 +41,15 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		private const int RetryEndpointAfterErrorTimeMs = 30000;
 
 		/// <summary>
+		/// The fully qualified domain name of the local computer.
+		/// </summary>
+		private static readonly string sHostname;
+
+		/// <summary>
 		/// The processing queue, passes messages from the logging thread to the processing thread.
 		/// Synchronized via monitor using itself.
 		/// </summary>
-		private readonly Queue<LocalLogMessage> mProcessingQueue = new Queue<LocalLogMessage>();
+		private readonly Deque<LocalLogMessage> mProcessingQueue = new Deque<LocalLogMessage>();
 
 		/// <summary>
 		/// Indicates whether the stage discards messages, if the queue is full (default).
@@ -68,23 +73,40 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// </summary>
 		private CancellationTokenSource mShutdownCancellationTokenSource = null;
 
+		/// <summary>
+		/// Initializes the <see cref="ElasticsearchPipelineStage"/> class.
+		/// </summary>
+		static ElasticsearchPipelineStage()
+		{
+			// try to determine the fully qualified domain name of the computer
+			try
+			{
+				sHostname = Dns.GetHostEntry("").HostName;
+			}
+			catch (Exception)
+			{
+				// swallow...
+				Debug.Fail("Determining the hostname of the local computer failed.");
+			}
+		}
+
 		// members managed by the processing thread
 		private volatile bool                   mReloadConfiguration        = true;
 		private volatile bool                   mIsShutdownRequested        = false;
 		private readonly Deque<EndpointInfo>    mEndpoints                  = new Deque<EndpointInfo>();
 		private readonly Deque<LocalLogMessage> mMessagesPreparedToSend     = new Deque<LocalLogMessage>();
-		private readonly EcsMessage             mEcsMessage                 = new EcsMessage();
-		private readonly BulkRequestAction      mBulkRequestAction          = new BulkRequestAction { Index = new BulkRequestAction_Index() };
-		private readonly JsonWriterOptions      mJsonWriterOptions          = new JsonWriterOptions { SkipValidation = false };
-		private readonly JsonSerializerOptions  mJsonSerializerOptions      = new JsonSerializerOptions { IgnoreNullValues = true, NumberHandling = JsonNumberHandling.Strict };
+		private readonly JsonWriterOptions      mJsonWriterOptions          = new JsonWriterOptions { SkipValidation = true };
+		private readonly JsonSerializerOptions  mJsonSerializerOptions      = new JsonSerializerOptions { IgnoreNullValues = true, NumberHandling = JsonNumberHandling.Strict, IncludeFields = true };
 		private readonly MemoryStream           mContentStream              = new MemoryStream();
 		private readonly Utf8JsonWriter         mRequestContentWriter       = null;
 		private          HttpClient             mHttpClient                 = null;
-		private          string                 mIndexName                  = null; // caches IndexName
-		private          int                    mBulkRequestMaxSize         = 0;    // caches BulkRequestMaxSize
-		private          int                    mBulkRequestMaxMessageCount = 0;    // caches BulkRequestMaxMessageCount
-		private          string                 mOrganizationId             = null; // caches OrganizationId
-		private          string                 mOrganizationName           = null; // caches OrganizationName
+		private          string                 mIndexName                  = null;          // caches IndexName
+		private          int                    mBulkRequestMaxSize         = 0;             // caches BulkRequestMaxSize
+		private          int                    mBulkRequestMaxMessageCount = 0;             // caches BulkRequestMaxMessageCount
+		private          string                 mOrganizationId             = null;          // caches OrganizationId
+		private          string                 mOrganizationName           = null;          // caches OrganizationName
+		private          TimeSpan               mLastTimezoneOffset         = TimeSpan.Zero; // Timezone formatted into mLastTimezoneOffsetAsString
+		private          string                 mLastTimezoneOffsetAsString = "+00:00";      // caches the timezone in its string representation
 
 		// defaults of settings determining the behavior of the stage
 		private static readonly Uri[]                sDefault_ApiBaseUrls                        = { new Uri("http://127.0.0.1:9200/") };
@@ -439,7 +461,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				Debug.Assert(mProcessingQueue.Count == 0);
 				while (mProcessingQueue.Count > 0)
 				{
-					mProcessingQueue.Dequeue().Release();
+					mProcessingQueue.RemoveFromFront().Release();
 				}
 			}
 		}
@@ -472,7 +494,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					if (mProcessingQueue.Count < mProcessingQueueSize)
 					{
 						message.AddRef();
-						mProcessingQueue.Enqueue(message);
+						mProcessingQueue.AddToBack(message);
 						break;
 					}
 
@@ -542,15 +564,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						// reload configuration and prepare the http client, if necessary
 						ReloadConfigurationIfNecessary();
 
-						// dequeue messages to send
-						lock (mProcessingQueue)
-						{
-							while (mProcessingQueue.Count > 0 && mMessagesPreparedToSend.Count < mBulkRequestMaxMessageCount)
-							{
-								var message = mProcessingQueue.Dequeue();
-								mMessagesPreparedToSend.AddToBack(message);
-							}
-						}
+						// prepare request body
+						PrepareRequestBody();
 
 						// abort, if there is nothing to send
 						if (mMessagesPreparedToSend.Count == 0)
@@ -571,10 +586,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							break;
 						}
 
-						// prepare request body...
-						PrepareRequestBody();
-
-						// ... and send it to the server
+						// send request to the server
 						int delay = SendRequest(cancellationToken);
 
 						// slow down processing, if no endpoints are operational
@@ -688,28 +700,33 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// </summary>
 		private void PrepareRequestBody()
 		{
-			mContentStream.SetLength(0);
-			long lastStreamPosition = -1;
-			for (int i = 0; i < mMessagesPreparedToSend.Count; i++)
+			// serializes an indexing operation in a bulk request
+			void SerializeIndexingRequest(LocalLogMessage message)
 			{
-				// init bulk request item object for indexing
-				var message = mMessagesPreparedToSend[i];
-				mBulkRequestAction.Index.Index = mIndexName;
-
 				// serialize bulk request item object for indexing
 				mRequestContentWriter.Reset();
-				JsonSerializer.Serialize(mRequestContentWriter, mBulkRequestAction, mJsonSerializerOptions);
+				WriteBulkRequestIndexAction_ECS110(mRequestContentWriter);
 
 				// finalize line with a newline character
 				mContentStream.WriteByte((byte)'\n');
 
 				// serialize the actual log message
 				mRequestContentWriter.Reset();
-				mEcsMessage.Initialize(message, mOrganizationId, mOrganizationName);
-				JsonSerializer.Serialize(mRequestContentWriter, mEcsMessage, mJsonSerializerOptions);
+				WriteJsonMessage_ECS110(mRequestContentWriter, message);
 
 				// finalize line with a newline character
 				mContentStream.WriteByte((byte)'\n');
+			}
+
+			// serialize messages remaining from the last run (can occur, if indexing operations failed)
+			// ---------------------------------------------------------------------------------------------------------
+			mContentStream.SetLength(0);
+			long lastStreamPosition = -1;
+			for (int i = 0; i < mMessagesPreparedToSend.Count; i++)
+			{
+				// serialize indexing request
+				var message = mMessagesPreparedToSend[i];
+				SerializeIndexingRequest(message);
 
 				// abort, if the maximum number of bytes in the bulk request is reached
 				if (mContentStream.Position > mBulkRequestMaxSize)
@@ -731,6 +748,47 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					break;
 				}
 
+				lastStreamPosition = mContentStream.Position;
+			}
+
+			// dequeue new messages from the processing queue and serialize them
+			// ---------------------------------------------------------------------------------------------------------
+			while (true)
+			{
+				// dequeue message from the processing queue
+				LocalLogMessage message;
+				lock (mProcessingQueue)
+				{
+					if (mProcessingQueue.Count == 0 || mMessagesPreparedToSend.Count >= mBulkRequestMaxMessageCount) break;
+					message = mProcessingQueue.RemoveFromFront();
+				}
+
+				// serialize indexing request
+				SerializeIndexingRequest(message);
+
+				// abort, if the maximum number of bytes in the bulk request is reached
+				if (mContentStream.Position > mBulkRequestMaxSize)
+				{
+					if (lastStreamPosition < 0)
+					{
+						// the current message is so big that it does not fit into a bulk request
+						// => discard it
+						WritePipelineError(
+							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mBulkRequestMaxSize} bytes). Discarding message...",
+							null);
+						message.Release();
+						continue;
+					}
+
+					// put message back into the processing queue
+					lock (mProcessingQueue) mProcessingQueue.AddToFront(message);
+
+					// truncate the stream to contain only the last messages to avoid exceeding the maximum request size
+					mContentStream.SetLength(lastStreamPosition);
+					break;
+				}
+
+				mMessagesPreparedToSend.AddToBack(message);
 				lastStreamPosition = mContentStream.Position;
 			}
 		}
@@ -898,6 +956,326 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// Gets a value indicating whether the connection to the Elasticsearch cluster is operational.
 		/// </summary>
 		public bool IsOperational => mIsOperational;
+
+		#endregion
+
+		#region Writing Bulk Request
+
+		/// <summary>
+		/// Writes a bulk request action for indexing a document.
+		/// </summary>
+		/// <param name="writer">JSON writer to use.</param>
+		private void WriteBulkRequestIndexAction_ECS110(Utf8JsonWriter writer)
+		{
+			// write the request action document
+			writer.WriteStartObject();
+			writer.WriteStartObject("index");
+			writer.WriteString("_index", mIndexName);
+			writer.WriteEndObject();
+			writer.WriteEndObject();
+
+			// flush the writer
+			writer.Flush();
+		}
+
+		/// <summary>
+		/// Writes the specified log message to a JSON document complying with ECS version 1.10.
+		/// </summary>
+		/// <param name="writer">JSON writer to use.</param>
+		/// <param name="message">Message to write.</param>
+		private void WriteJsonMessage_ECS110(Utf8JsonWriter writer, LocalLogMessage message)
+		{
+			// determine the event severity and the name of the log level to use in the written JSON document
+			GetEcsLevelAndSeverity(message, out int ecsEventSeverity, out string ecsLogLevel);
+
+			// start a new object
+			writer.WriteStartObject();
+
+			// Path: @timestamp
+			// Type: date
+			// ------------------------------------------------------------------------------------------------------------------
+			// Date/time when the event originated.
+			// This is the date/time extracted from the event, typically representing when the event was generated by the source.
+			// If the event source has no original timestamp, this value is typically populated by the first time the event was
+			// received by the pipeline. Required field for all events.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-base.html#field-timestamp
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteString("@timestamp", message.Timestamp.UtcDateTime);
+
+			// Path: event
+			// Type: object
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteStartObject("event");
+
+			// Path: event.severity
+			// Type: long
+			// ------------------------------------------------------------------------------------------------------------------
+			// The numeric severity of the event according to your event source.
+			// What the different severity values mean can be different between sources and use cases.
+			// It’s up to the implementer to make sure severities are consistent across events from the same source.
+			// The syslog severity belongs in log.syslog.severity.code. event.severity is meant to represent the severity
+			// according to the event source (e.g.firewall, IDS). If the event source does not publish its own severity,
+			// you may optionally copy the log.syslog.severity.code to event.severity.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-event.html#field-event-severity
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteNumber("severity", ecsEventSeverity);
+
+			// Path: event.timezone
+			// Type: keyword
+			// ------------------------------------------------------------------------------------------------------------------
+			// This field should be populated when the event’s timestamp does not include timezone information already
+			// (e.g. default Syslog timestamps). It’s optional otherwise. Acceptable timezone formats are:
+			// a canonical ID(e.g. "Europe/Amsterdam"), abbreviated(e.g. "EST") or an HH:mm differential(e.g. "-05:00").
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-event.html#field-event-timezone
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteString("timezone", ToTimezoneOffset(message.Timestamp.Offset));
+
+			// end of the 'event' field
+			writer.WriteEndObject();
+
+			// Path: host
+			// Type: object
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteStartObject("host");
+
+			// Path: host.hostname
+			// Type: keyword
+			// ------------------------------------------------------------------------------------------------------------------
+			// Hostname of the host.
+			// It normally contains what the hostname command returns on the host machine.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-host.html#field-host-hostname
+			// ------------------------------------------------------------------------------------------------------------------
+			if (sHostname != null) writer.WriteString("hostname", sHostname);
+
+			// Path: host.TicksNs
+			// Type: long
+			// ------------------------------------------------------------------------------------------------------------------
+			// Tick counter of the host (custom field, shared by processes on the host, in ns).
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteNumber("TicksNs", message.HighPrecisionTimestamp);
+
+			// end of the 'host' field
+			writer.WriteEndObject();
+
+			// Path: log
+			// Type: object
+			// ------------------------------------------------------------------------------------------------------------------
+			// Details about the event’s logging mechanism or logging transport.
+			// The log.* fields are typically populated with details about the logging mechanism used to create and/or transport
+			// the event. For example, syslog details belong under log.syslog.*. The details specific to your event source are
+			// typically not logged under log.*, but rather in event.* or in other ECS fields.
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteStartObject("log");
+
+			// Path: log.level
+			// Type: keyword
+			// ------------------------------------------------------------------------------------------------------------------
+			// Original log level of the log event.
+			// If the source of the event provides a log level or textual severity, this is the one that goes in log.level.
+			// If your source doesn't specify one, you may put your event transport ’s severity here (e.g.Syslog severity).
+			// Some examples are warn, err, i, informational.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-log.html#field-log-level
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteString("level", ecsLogLevel);
+
+			// Path: log.logger
+			// Type: keyword
+			// ------------------------------------------------------------------------------------------------------------------
+			// The name of the logger inside an application.
+			// This is usually the name of the class which initialized the logger, or can be a custom name.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-log.html#field-log-logger
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteString("logger", message.LogWriter.Name);
+
+			// end of the 'log' field
+			writer.WriteEndObject();
+
+			// Path: message
+			// Type: text
+			// ------------------------------------------------------------------------------------------------------------------
+			// For log events the message field contains the log message, optimized for viewing in a log viewer.
+			// For structured logs without an original message field, other fields can be concatenated to form a human-readable
+			// summary of the event. If multiple messages exist, they can be combined into one message.
+			// ------------------------------------------------------------------------------------------------------------------
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-base.html#field-message
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteString("message", message.Text);
+
+			// Path: organization
+			// Type: object
+			// ------------------------------------------------------------------------------------------------------------------
+			if (mOrganizationId != null || mOrganizationName != null)
+			{
+				writer.WriteStartObject("organization");
+
+				// Path: organization.id
+				// Type: keyword
+				// ------------------------------------------------------------------------------------------------------------------
+				// Unique identifier for the organization.
+				// See: https://www.elastic.co/guide/en/ecs/current/ecs-organization.html#field-organization-id
+				// ------------------------------------------------------------------------------------------------------------------
+				if (mOrganizationId != null) writer.WriteString("id", mOrganizationId);
+
+				// Path: organization.name
+				// Type: keyword
+				// ------------------------------------------------------------------------------------------------------------------
+				// Organization name.
+				// See: https://www.elastic.co/guide/en/ecs/current/ecs-organization.html#field-organization-name
+				// ------------------------------------------------------------------------------------------------------------------
+				if (mOrganizationName != null) writer.WriteString("name", mOrganizationName);
+
+				// end of the 'organization' field
+				writer.WriteEndObject();
+			}
+
+			// Path: process
+			// Type: object
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteStartObject("process");
+
+			// Path: process.name
+			// Type: keyword
+			// ------------------------------------------------------------------------------------------------------------------
+			// Process name.
+			// Sometimes called program name or similar.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-process.html#field-process-name
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteString("name", message.ProcessName);
+
+			// Path: process.pid
+			// Type: long
+			// ------------------------------------------------------------------------------------------------------------------
+			// Process id.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-process.html#field-process-pid
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteNumber("pid", message.ProcessId);
+
+			// Path: process.title
+			// Type: keyword
+			// ------------------------------------------------------------------------------------------------------------------
+			// Process title.
+			// The process title is some times the same as process name.
+			// Can also be different: for example a browser setting its title to the web page currently opened.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-process.html#field-process-title
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteString("title", message.ApplicationName);
+
+			// end of the 'process' field
+			writer.WriteEndObject();
+
+			// Path: tags
+			// Type: keyword
+			// ------------------------------------------------------------------------------------------------------------------
+			// List of keywords used to tag each event.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-base.html#field-tags
+			// ------------------------------------------------------------------------------------------------------------------
+			var tags = message.Tags;
+			int tagsCount = tags.Count;
+			if (tagsCount > 0)
+			{
+				writer.WritePropertyName("tags");
+				writer.WriteStartArray();
+				for (int i = 0; i < tagsCount; i++) writer.WriteStringValue(tags[i].Name);
+				writer.WriteEndArray();
+			}
+
+			// close the top-level object
+			writer.WriteEndObject();
+
+			// flush the writer
+			writer.Flush();
+		}
+
+		/// <summary>
+		/// Converts the specified timezone offset to a string in the format '-hh:mm' (negative timezone offsets)
+		/// respectively '+hh:mm' (positive timezone offsets).
+		/// </summary>
+		/// <param name="offset">Timezone offset to format.</param>
+		/// <returns></returns>
+		private string ToTimezoneOffset(TimeSpan offset)
+		{
+			if (mLastTimezoneOffset == offset) return mLastTimezoneOffsetAsString;
+			mLastTimezoneOffset = offset;
+			mLastTimezoneOffsetAsString = offset.Ticks >= 0
+				                              ? (+offset).ToString(@"\+hh\:mm")
+				                              : (-offset).ToString(@"\-hh\:mm");
+			return mLastTimezoneOffsetAsString;
+		}
+
+		/// <summary>
+		/// Gets the severity level to put into ECS field 'event.severity' and the name of the log level
+		/// to put into ECS field 'log.level'.
+		/// </summary>
+		/// <param name="message">Message containing to retrieve the severity id and the log level name from.</param>
+		/// <param name="ecsEventSeverity">Receives the event severity to put into ECS field 'event.severity'.</param>
+		/// <param name="ecsLogLevel">Receives the log level to put into ECS field 'log.level'.</param>
+		private static void GetEcsLevelAndSeverity(
+			LocalLogMessage message,
+			out int         ecsEventSeverity,
+			out string      ecsLogLevel)
+		{
+			// initialize the event severity (the log level id complies with the syslog level ids)
+			// and the name of the log level
+			ecsEventSeverity = message.LogLevel.Id;
+			switch (message.LogLevel.Id)
+			{
+				// ReSharper disable StringLiteralTypo
+
+				case 0:
+					Debug.Assert(message.LogLevel == LogLevel.Emergency);
+					ecsLogLevel = "emerg";
+					break;
+
+				case 1:
+					Debug.Assert(message.LogLevel == LogLevel.Alert);
+					ecsLogLevel = "alert";
+					break;
+
+				case 2:
+					Debug.Assert(message.LogLevel == LogLevel.Critical);
+					ecsLogLevel = "crit";
+					break;
+
+				case 3:
+					Debug.Assert(message.LogLevel == LogLevel.Error);
+					ecsLogLevel = "error";
+					break;
+
+				case 4:
+					Debug.Assert(message.LogLevel == LogLevel.Warning);
+					ecsLogLevel = "warn";
+					break;
+
+				case 5:
+					Debug.Assert(message.LogLevel == LogLevel.Notice);
+					ecsLogLevel = "notice";
+					break;
+
+				case 6:
+					Debug.Assert(message.LogLevel == LogLevel.Informational);
+					ecsLogLevel = "info";
+					break;
+
+				case 7:
+					Debug.Assert(message.LogLevel == LogLevel.Debug);
+					ecsLogLevel = "debug";
+					break;
+
+				case 8:
+					Debug.Assert(message.LogLevel == LogLevel.Trace);
+					ecsLogLevel = "trace";
+					break;
+
+				// ReSharper restore StringLiteralTypo
+
+				default:
+					// aspect log levels
+					// (all aspects must have the same severity id to avoid mixing them up in an aggregated log)
+					ecsEventSeverity = 9;
+					ecsLogLevel = message.LogLevel.Name;
+					break;
+			}
+		}
 
 		#endregion
 	}
