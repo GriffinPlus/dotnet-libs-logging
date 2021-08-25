@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="GriffinPlus.Lib.Common" Version="1.2.1" />
+		<PackageReference Include="GriffinPlus.Lib.Common" Version="1.3.0" />
 		<PackageReference Include="GriffinPlus.Lib.Expressions" Version="1.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
 		<PackageReference Include="xunit" Version="2.4.1" />

@@ -14,11 +14,11 @@
 		<tags>logging</tags>
 		<dependencies>
 			<group targetFramework="net461">
-				<dependency id="GriffinPlus.Lib.Common" version="[1.2.1,2)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[1.3.0,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="5.0.1" include="all" />
 			</group>
 			<group targetFramework="netstandard2.0">
-				<dependency id="GriffinPlus.Lib.Common" version="[1.2.1,2)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[1.3.0,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="5.0.1" include="all" />
 			</group>
 		</dependencies>
