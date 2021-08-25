@@ -12,7 +12,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -96,8 +95,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		private readonly Deque<EndpointInfo>    mEndpoints                  = new Deque<EndpointInfo>();
 		private readonly Deque<LocalLogMessage> mMessagesPreparedToSend     = new Deque<LocalLogMessage>();
 		private readonly JsonWriterOptions      mJsonWriterOptions          = new JsonWriterOptions { SkipValidation = true };
-		private readonly JsonSerializerOptions  mJsonSerializerOptions      = new JsonSerializerOptions { IgnoreNullValues = true, NumberHandling = JsonNumberHandling.Strict, IncludeFields = true };
 		private readonly MemoryStream           mContentStream              = new MemoryStream();
+		private readonly BulkResponsePool       mBulkResponsePool           = new BulkResponsePool();
 		private readonly Utf8JsonWriter         mRequestContentWriter       = null;
 		private          HttpClient             mHttpClient                 = null;
 		private          string                 mIndexName                  = null;          // caches IndexName
@@ -830,8 +829,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						// the bulk request was processed by the server
 						// => check outcome of actions in the response
 						byte[] responseData = response.Content.ReadAsByteArrayAsync().WaitAndUnwrapException(cancellationToken);
-						var bulkResponse = JsonSerializer.Deserialize<BulkResponse>(responseData, mJsonSerializerOptions);
-						Debug.Assert(bulkResponse != null, nameof(bulkResponse) + " != null");
+						var bulkResponse = mBulkResponsePool.GetBulkResponse();
+						bulkResponse.InitFromJson(responseData);
 
 						// check response for elasticsearch errors
 						if (bulkResponse.Errors)
@@ -839,7 +838,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							// there are messages that were not indexed successfully
 							// => evaluate the the response
 							var bulkResponseItems = bulkResponse.Items;
-							for (int i = bulkResponseItems.Length - 1; i >= 0; i--)
+							for (int i = bulkResponseItems.Count - 1; i >= 0; i--)
 							{
 								int status = bulkResponseItems[i].Index.Status;
 								if (status >= 200 && status <= 299) // usually 201 (created)
@@ -872,10 +871,13 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						else
 						{
 							// all messages were indexed successfully
-							int count = bulkResponse.Items.Length;
+							int count = bulkResponse.Items.Count;
 							for (int i = 0; i < count; i++) mMessagesPreparedToSend[i].Release();
 							mMessagesPreparedToSend.RemoveRange(0, count);
 						}
+
+						// return the response to the pool to reduce the number of allocations
+						bulkResponse.ReturnToPool();
 
 						// request was send to the Elasticsearch cluster
 						// => the endpoint can be considered operational...
