@@ -30,19 +30,20 @@ Create an instance of the pipeline stage, configure it to your needs and let the
 - using no authentication or NTLM, Kerberos or Negotiate with login user credentials
 
 ```csharp
+// initialize the pipeline stage (with default values, for illustration purposes only)
 var stage = new ElasticsearchPipelineStage("Elasticsearch");
-stage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server (default)
-stage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes (default)
-stage.Username = "";                                              // username to use when authenticating (default, empty to use login user)
-stage.Password = "";                                              // password to use when authenticating (default, empty to use login user)
-stage.Domain = "";                                                // domain to use when authenticating (default, for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
-stage.BulkRequestMaxConcurrencyLevel = 5;                         // maximum number of requests on the line (default)
-stage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request (default)
-stage.BulkRequestMaxMessageCount = 0;                             // maximum number of messages in a bulk request (default, 0 = unlimited)
-stage.IndexName = "logs";                                         // elasticsearch index to write log messages into (default)
-stage.OrganizationId = "griffin.plus";                            // value of the 'organization.id' field (default)
-stage.OrganizationName = "Griffin+";                              // value of the 'organization.name' field (default)
-stage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages (default)
+stage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server
+stage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes
+stage.Username = "";                                              // username to use when authenticating (empty to use login user)
+stage.Password = "";                                              // password to use when authenticating (empty to use login user)
+stage.Domain = "";                                                // domain to use when authenticating (for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
+stage.BulkRequestMaxConcurrencyLevel = 5;                         // maximum number of requests on the line
+stage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request
+stage.BulkRequestMaxMessageCount = 0;                             // maximum number of messages in a bulk request (0 = unlimited)
+stage.IndexName = "logs";                                         // elasticsearch index to write log messages into
+stage.OrganizationId = "";                                        // value of the 'organization.id' field
+stage.OrganizationName = "";                                      // value of the 'organization.name' field
+stage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages
 
 // let the logging subsystem use the pipeline stage
 Log.ProcessingPipeline = stage;
@@ -56,7 +57,7 @@ By default the stage limits the size of a bulk request to 5 Mebibytes. This can 
 
 Via the `IndexName` property the pipeline stage allows to choose the name of the *Elasticsearch* index messages should be sent to. By default the name of the index is `logs`.
 
-When sending a message to *Elasticsearch*, the stage allows to set the ECS fields `organization.id` and `organization.name` in the document to help to distinguish messages written by different organizations.
+When sending a message to *Elasticsearch*, the stage allows to set the ECS fields `organization.id` and `organization.name` in the document to help to distinguish messages written by different organizations. By default these properties are empty strings, i.e. the fields are not sent along with the message.
 
 At last the `SendQueueSize` property allows to adjust the number of messages the stage can buffer, before it discards messages. If an application is expected to generate bursts of messages or in case of varying network throughput, it can be a good idea to enlarge the send queue. The default queue size is 50000 messages.
 
@@ -77,8 +78,8 @@ Server.BulkRequest.MaxConcurrencyLevel = 5
 Server.BulkRequest.MaxSize = 5242880
 Server.BulkRequest.MaxMessageCount = 1000
 Server.IndexName = logs
-Data.Organization.Id = griffin.plus
-Data.Organization.Name = Griffin+
+Data.Organization.Id = 
+Data.Organization.Name = 
 Stage.SendQueueSize = 50000
 ```
 

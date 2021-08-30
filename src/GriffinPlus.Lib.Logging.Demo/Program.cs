@@ -249,18 +249,18 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// - Kerberos Authentication (with custom credentials and login user credentials)
 			// - Negotiate Authentication (with custom credentials and login user credentials)
 			var elasticsearchStage = new ElasticsearchPipelineStage("Elasticsearch");
-			elasticsearchStage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server (default)
-			elasticsearchStage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes (default)
-			elasticsearchStage.Username = "";                                              // username to use when authenticating (default, empty to use login user)
-			elasticsearchStage.Password = "";                                              // password to use when authenticating (default, empty to use login user)
-			elasticsearchStage.Domain = "";                                                // domain to use when authenticating (default, for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
-			elasticsearchStage.BulkRequestMaxConcurrencyLevel = 5;                         // maximum number of requests on the line at the same time (default)
-			elasticsearchStage.BulkRequestMaxMessageCount = 0;                             // maximum number of messages in a bulk request (default, 0 = unlimited)
-			elasticsearchStage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request (default)
-			elasticsearchStage.IndexName = "logs";                                         // elasticsearch index to write log messages into (default)
-			elasticsearchStage.OrganizationId = "griffin.plus";                            // value of the 'organization.id' field (default)
-			elasticsearchStage.OrganizationName = "Griffin+";                              // value of the 'organization.name' field (default)
-			elasticsearchStage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages (default)
+			elasticsearchStage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server
+			elasticsearchStage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes
+			elasticsearchStage.Username = "";                                              // username to use when authenticating (empty to use login user)
+			elasticsearchStage.Password = "";                                              // password to use when authenticating (empty to use login user)
+			elasticsearchStage.Domain = "";                                                // domain to use when authenticating (for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
+			elasticsearchStage.BulkRequestMaxConcurrencyLevel = 5;                         // maximum number of requests on the line
+			elasticsearchStage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request
+			elasticsearchStage.BulkRequestMaxMessageCount = 0;                             // maximum number of messages in a bulk request (0 = unlimited)
+			elasticsearchStage.IndexName = "logs";                                         // elasticsearch index to write log messages into
+			elasticsearchStage.OrganizationId = "";                                        // value of the 'organization.id' field
+			elasticsearchStage.OrganizationName = "";                                      // value of the 'organization.name' field
+			elasticsearchStage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages
 
 			// Create splitter pipeline stage to unconditionally feed log messages into all pipelines stages
 			var splitterStage = new SplitterPipelineStage("Splitter");

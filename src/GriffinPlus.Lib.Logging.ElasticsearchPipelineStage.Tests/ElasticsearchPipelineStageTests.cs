@@ -146,7 +146,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Data.Organization.Id'
 			// ------------------------------------------------------------------------------------
-			string expectedOrganizationId = "griffin.plus";
+			string expectedOrganizationId = "";
 			var organizationIdSetting = stage.Settings.GetSetting<string>("Data.Organization.Id");
 			Assert.Equal(expectedOrganizationId, organizationIdSetting.DefaultValue);
 			Assert.Equal(expectedOrganizationId, organizationIdSetting.Value);
@@ -156,7 +156,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Data.Organization.Name'
 			// ------------------------------------------------------------------------------------
-			string expectedOrganizationName = "Griffin+";
+			string expectedOrganizationName = "";
 			var organizationNameSetting = stage.Settings.GetSetting<string>("Data.Organization.Name");
 			Assert.Equal(expectedOrganizationName, organizationNameSetting.DefaultValue);
 			Assert.Equal(expectedOrganizationName, organizationNameSetting.Value);

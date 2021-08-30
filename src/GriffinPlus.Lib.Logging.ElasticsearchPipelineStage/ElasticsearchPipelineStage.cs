@@ -121,12 +121,12 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		private static readonly string               sDefault_Server_Authentication_Username         = "";
 		private static readonly string               sDefault_Server_Authentication_Password         = "";
 		private static readonly string               sDefault_Server_Authentication_Domain           = "";
+		private static readonly int                  sDefault_Server_BulkRequest_MaxConcurrencyLevel = 5;
 		private static readonly int                  sDefault_Server_BulkRequest_MaxMessageCount     = 0; // unlimited
 		private static readonly int                  sDefault_Server_BulkRequest_MaxSize             = 5 * 1024 * 1024;
 		private static readonly string               sDefault_Server_IndexName                       = "logs";
-		private static readonly int                  sDefault_Server_BulkRequest_MaxConcurrencyLevel = 5;
-		private static readonly string               sDefault_Data_Organization_Id                   = "griffin.plus";
-		private static readonly string               sDefault_Data_Organization_Name                 = "Griffin+";
+		private static readonly string               sDefault_Data_Organization_Id                   = "";
+		private static readonly string               sDefault_Data_Organization_Name                 = "";
 		private static readonly int                  sDefault_Stage_SendQueueSize                    = 50000;
 
 		// the settings determining the behavior of the stage
@@ -350,6 +350,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 		/// <summary>
 		/// Gets the string to put into the ECS field 'organization.id' of every a written message.
+		/// Default: &lt;empty&gt;
 		/// </summary>
 		public string OrganizationId
 		{
@@ -363,6 +364,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 		/// <summary>
 		/// Gets the string to put into the ECS field 'organization.name' of every a written message.
+		/// Default: &lt;empty&gt;
 		/// </summary>
 		public string OrganizationName
 		{
