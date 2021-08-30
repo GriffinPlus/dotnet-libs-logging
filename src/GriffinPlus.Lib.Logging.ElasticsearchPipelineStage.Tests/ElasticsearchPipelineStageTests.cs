@@ -18,22 +18,23 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 	/// </summary>
 	public class ElasticsearchPipelineStageTests
 	{
-		private readonly Uri[] mSetting_Server_ApiBaseUrls =
+		private Uri[] Setting_Server_ApiBaseUrls { get; } =
 		{
 			new Uri("http://127.0.0.1:9200/"), // Elasticsearch is working on this endpoint
 			new Uri("http://127.0.0.1:9201/")  // there is no Elasticsearch server running at this endpoint
 		};
 
-		private readonly AuthenticationScheme mSetting_Server_Authentication_Schemes      = AuthenticationScheme.Basic | AuthenticationScheme.Digest;
-		private readonly string               mSetting_Server_Authentication_Username     = "JohnDoe";
-		private readonly string               mSetting_Server_Authentication_Password     = "Secret";
-		private readonly string               mSetting_Server_Authentication_Domain       = "My-Domain";
-		private readonly string               mSetting_Server_IndexName                   = "My-Index";
-		private readonly int                  mSetting_Server_BulkRequest_MaxMessageCount = 1500;
-		private readonly int                  mSetting_Server_BulkRequest_MaxSize         = 10 * 1024 * 1024;
-		private readonly string               mSetting_Data_Organization_Id               = "My-Organization-Id";
-		private readonly string               mSetting_Data_Organization_Name             = "My-Organization-Name";
-		private readonly int                  mSetting_Stage_SendQueueSize                = 10000;
+		private const AuthenticationScheme Setting_Server_Authentication_Schemes          = AuthenticationScheme.Basic | AuthenticationScheme.Digest;
+		private const string               Setting_Server_Authentication_Username         = "JohnDoe";
+		private const string               Setting_Server_Authentication_Password         = "Secret";
+		private const string               Setting_Server_Authentication_Domain           = "My-Domain";
+		private const string               Setting_Server_IndexName                       = "My-Index";
+		private const int                  Setting_Server_BulkRequest_MaxConcurrencyLevel = 3;
+		private const int                  Setting_Server_BulkRequest_MaxMessageCount     = 1500;
+		private const int                  Setting_Server_BulkRequest_MaxSize             = 10 * 1024 * 1024;
+		private const string               Setting_Data_Organization_Id                   = "My-Organization-Id";
+		private const string               Setting_Data_Organization_Name                 = "My-Organization-Name";
+		private const int                  Setting_Stage_SendQueueSize                    = 10000;
 
 		#region Construction
 
@@ -103,9 +104,19 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			// the corresponding stage property should reflect the default setting
 			Assert.Equal(expectedDomain, stage.Domain);
 
+			// check setting 'Server.BulkRequest.MaxConcurrencyLevel'
+			// ------------------------------------------------------------------------------------
+			int expectedMaxConcurrencyLevel = 5;
+			var maxConcurrencyLevelSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxConcurrencyLevel");
+			Assert.Equal(expectedMaxConcurrencyLevel, maxConcurrencyLevelSetting.DefaultValue);
+			Assert.Equal(expectedMaxConcurrencyLevel, maxConcurrencyLevelSetting.Value);
+
+			// the corresponding stage property should reflect the default setting
+			Assert.Equal(expectedMaxConcurrencyLevel, stage.BulkRequestMaxConcurrencyLevel);
+
 			// check setting 'Server.BulkRequest.MaxMessageCount'
 			// ------------------------------------------------------------------------------------
-			int expectedMaxMessageCount = 1000;
+			int expectedMaxMessageCount = 0; // unlimited
 			var maxMessageCountSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxMessageCount");
 			Assert.Equal(expectedMaxMessageCount, maxMessageCountSetting.DefaultValue);
 			Assert.Equal(expectedMaxMessageCount, maxMessageCountSetting.Value);
@@ -183,34 +194,36 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			// let the configuration provide the appropriate Elasticsearch endpoints
 			var configuration = new VolatileLogConfiguration();
 			var stageSettings = configuration.ProcessingPipeline.Stages.AddNew("Elasticsearch");
-			stageSettings.SetSetting("Server.ApiBaseUrls", mSetting_Server_ApiBaseUrls, UriArrayToString, StringToUriArray);
-			stageSettings.SetSetting("Server.Authentication.Schemes", mSetting_Server_Authentication_Schemes);
-			stageSettings.SetSetting("Server.Authentication.Username", mSetting_Server_Authentication_Username);
-			stageSettings.SetSetting("Server.Authentication.Password", mSetting_Server_Authentication_Password);
-			stageSettings.SetSetting("Server.Authentication.Domain", mSetting_Server_Authentication_Domain);
-			stageSettings.SetSetting("Server.BulkRequest.MaxMessageCount", mSetting_Server_BulkRequest_MaxMessageCount);
-			stageSettings.SetSetting("Server.BulkRequest.MaxSize", mSetting_Server_BulkRequest_MaxSize);
-			stageSettings.SetSetting("Server.IndexName", mSetting_Server_IndexName);
-			stageSettings.SetSetting("Data.Organization.Id", mSetting_Data_Organization_Id);
-			stageSettings.SetSetting("Data.Organization.Name", mSetting_Data_Organization_Name);
-			stageSettings.SetSetting("Stage.SendQueueSize", mSetting_Stage_SendQueueSize);
+			stageSettings.SetSetting("Server.ApiBaseUrls", Setting_Server_ApiBaseUrls, UriArrayToString, StringToUriArray);
+			stageSettings.SetSetting("Server.Authentication.Schemes", Setting_Server_Authentication_Schemes);
+			stageSettings.SetSetting("Server.Authentication.Username", Setting_Server_Authentication_Username);
+			stageSettings.SetSetting("Server.Authentication.Password", Setting_Server_Authentication_Password);
+			stageSettings.SetSetting("Server.Authentication.Domain", Setting_Server_Authentication_Domain);
+			stageSettings.SetSetting("Server.BulkRequest.MaxConcurrencyLevel", Setting_Server_BulkRequest_MaxConcurrencyLevel);
+			stageSettings.SetSetting("Server.BulkRequest.MaxMessageCount", Setting_Server_BulkRequest_MaxMessageCount);
+			stageSettings.SetSetting("Server.BulkRequest.MaxSize", Setting_Server_BulkRequest_MaxSize);
+			stageSettings.SetSetting("Server.IndexName", Setting_Server_IndexName);
+			stageSettings.SetSetting("Data.Organization.Id", Setting_Data_Organization_Id);
+			stageSettings.SetSetting("Data.Organization.Name", Setting_Data_Organization_Name);
+			stageSettings.SetSetting("Stage.SendQueueSize", Setting_Stage_SendQueueSize);
 			stage.Settings = configuration.ProcessingPipeline.Stages.First(x => x.Name == "Elasticsearch");
 
 			// initialize the stage
 			((IProcessingPipelineStage)stage).Initialize();
 			Assert.True(stage.IsInitialized);
 			Assert.True(stage.IsOperational);
-			Assert.Equal(mSetting_Server_ApiBaseUrls, stage.ApiBaseUrls);
-			Assert.Equal(mSetting_Server_Authentication_Schemes, stage.AuthenticationSchemes);
-			Assert.Equal(mSetting_Server_Authentication_Username, stage.Username);
-			Assert.Equal(mSetting_Server_Authentication_Password, stage.Password);
-			Assert.Equal(mSetting_Server_Authentication_Domain, stage.Domain);
-			Assert.Equal(mSetting_Server_BulkRequest_MaxMessageCount, stage.BulkRequestMaxMessageCount);
-			Assert.Equal(mSetting_Server_BulkRequest_MaxSize, stage.BulkRequestMaxSize);
-			Assert.Equal(mSetting_Server_IndexName, stage.IndexName);
-			Assert.Equal(mSetting_Data_Organization_Id, stage.OrganizationId);
-			Assert.Equal(mSetting_Data_Organization_Name, stage.OrganizationName);
-			Assert.Equal(mSetting_Stage_SendQueueSize, stage.SendQueueSize);
+			Assert.Equal(Setting_Server_ApiBaseUrls, stage.ApiBaseUrls);
+			Assert.Equal(Setting_Server_Authentication_Schemes, stage.AuthenticationSchemes);
+			Assert.Equal(Setting_Server_Authentication_Username, stage.Username);
+			Assert.Equal(Setting_Server_Authentication_Password, stage.Password);
+			Assert.Equal(Setting_Server_Authentication_Domain, stage.Domain);
+			Assert.Equal(Setting_Server_BulkRequest_MaxConcurrencyLevel, stage.BulkRequestMaxConcurrencyLevel);
+			Assert.Equal(Setting_Server_BulkRequest_MaxMessageCount, stage.BulkRequestMaxMessageCount);
+			Assert.Equal(Setting_Server_BulkRequest_MaxSize, stage.BulkRequestMaxSize);
+			Assert.Equal(Setting_Server_IndexName, stage.IndexName);
+			Assert.Equal(Setting_Data_Organization_Id, stage.OrganizationId);
+			Assert.Equal(Setting_Data_Organization_Name, stage.OrganizationName);
+			Assert.Equal(Setting_Stage_SendQueueSize, stage.SendQueueSize);
 
 			// wait for some time before shutting down
 			Thread.Sleep(2000);

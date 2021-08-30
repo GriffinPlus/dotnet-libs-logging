@@ -36,8 +36,9 @@ stage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all
 stage.Username = "";                                              // username to use when authenticating (default, empty to use login user)
 stage.Password = "";                                              // password to use when authenticating (default, empty to use login user)
 stage.Domain = "";                                                // domain to use when authenticating (default, for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
+stage.BulkRequestMaxConcurrencyLevel = 5;                         // maximum number of requests on the line (default)
 stage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request (default)
-stage.BulkRequestMaxMessageCount = 1000;                          // maximum number of messages in a bulk request (default)
+stage.BulkRequestMaxMessageCount = 0;                             // maximum number of messages in a bulk request (default, 0 = unlimited)
 stage.IndexName = "logs";                                         // elasticsearch index to write log messages into (default)
 stage.OrganizationId = "griffin.plus";                            // value of the 'organization.id' field (default)
 stage.OrganizationName = "Griffin+";                              // value of the 'organization.name' field (default)
@@ -51,7 +52,7 @@ The pipeline stage allows to configure multiple *Elasticsearch* endpoints for re
 
 When it comes to authenticating the pipeline stage supports the authentication schemes `Basic`, `Digest`, `Ntlm`, `Kerberos` and `Negotiate`. The required schemes can be selected by or'ing the schemes, because `AuthenticationScheme` is a flag enumeration. The value `PasswordBased` is predefined to sum up all these authentication schemes in a single value. To use custom credentials you need to set the `Username` and the `Password` property. If any of both is empty the stage will use the credentials of the login user. Furthermore for the authentication schemes `Digest`, `Ntlm`, `Kerberos` and `Negotiate` you need to initialize the `Domain` property appropriately. Due to security reasons using login credentials is only supported for the authentication schemes `Ntlm`, `Kerberos` and `Negotiate`.
 
-By default the stage limits the number of messages incorporated in a bulk request to 1000 messages and the size of the bulk request to 5 Megabytes. This can be overridden using the `BulkRequestMaxMessageCount` and the `BulkRequestMaxSize` property.
+By default the stage limits the size of a bulk request to 5 Mebibytes. This can be overridden using the `BulkRequestMaxSize` property. The request size must be in the range between 10 KiB and 100 MiB. Invalid sizes are adjusted to the nearest valid size to avoid malfunctions. There is also an option to limit the number of messages in a request using the `BulkRequestMaxMessageCount` property. The default is `0` which means that the number of messages in a request is not limited. As long as there are messages available there is at least one request on the line. Under high-load the stage sends additional requests up the maximum number defined by the `BulkRequestMaxConcurrencyLevel` property. By default the stage allows to send up to 5 bulk requests in parallel. These requests must be filled entirely to be sent. If there are less messages to send the stage waits for the last request to complete, then sends the next one. This behavior spares bulk request slots on the *Elasticsearch* server.
 
 Via the `IndexName` property the pipeline stage allows to choose the name of the *Elasticsearch* index messages should be sent to. By default the name of the index is `logs`.
 
@@ -72,6 +73,7 @@ Server.Authentication.Schemes = PasswordBased
 Server.Authentication.Username = 
 Server.Authentication.Password = 
 Server.Authentication.Domain = 
+Server.BulkRequest.MaxConcurrencyLevel = 5
 Server.BulkRequest.MaxSize = 5242880
 Server.BulkRequest.MaxMessageCount = 1000
 Server.IndexName = logs

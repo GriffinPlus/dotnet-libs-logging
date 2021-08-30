@@ -13,7 +13,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <summary>
 		/// Information about an Elasticsearch API endpoint.
 		/// </summary>
-		protected class EndpointInfo
+		private sealed class EndpointInfo
 		{
 			private bool mIsOperational;
 

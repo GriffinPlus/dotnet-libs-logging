@@ -6,11 +6,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +25,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 	/// <summary>
 	/// A log message processing pipeline stage that forwards log messages to an Elasticsearch cluster.
 	/// </summary>
-	public partial class ElasticsearchPipelineStage : ProcessingPipelineStage<ElasticsearchPipelineStage>
+	public sealed partial class ElasticsearchPipelineStage : ProcessingPipelineStage<ElasticsearchPipelineStage>
 	{
 		/// <summary>
 		/// Maximum time the processing thread is allowed to run after the stage has started to shut down (in ms).
@@ -38,6 +36,16 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// The time an endpoint is not used after an error occurred (in ms).
 		/// </summary>
 		private const int RetryEndpointAfterErrorTimeMs = 30000;
+
+		/// <summary>
+		/// Minimum size of a bulk request (in bytes).
+		/// </summary>
+		private const int MinimumBulkRequestSize = 10 * 1024;
+
+		/// <summary>
+		/// Maximum size of a bulk request (in bytes).
+		/// </summary>
+		private const int MaximumBulkRequestSize = 100 * 1024 * 1024;
 
 		/// <summary>
 		/// The fully qualified domain name of the local computer.
@@ -90,35 +98,36 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		}
 
 		// members managed by the processing thread
-		private volatile bool                   mReloadConfiguration        = true;
-		private volatile bool                   mIsShutdownRequested        = false;
-		private readonly Deque<EndpointInfo>    mEndpoints                  = new Deque<EndpointInfo>();
-		private readonly Deque<LocalLogMessage> mMessagesPreparedToSend     = new Deque<LocalLogMessage>();
-		private readonly JsonWriterOptions      mJsonWriterOptions          = new JsonWriterOptions { SkipValidation = true };
-		private readonly MemoryStream           mContentStream              = new MemoryStream();
-		private readonly BulkResponsePool       mBulkResponsePool           = new BulkResponsePool();
-		private readonly Utf8JsonWriter         mRequestContentWriter       = null;
-		private          HttpClient             mHttpClient                 = null;
-		private          string                 mIndexName                  = null;          // caches IndexName
-		private          int                    mBulkRequestMaxSize         = 0;             // caches BulkRequestMaxSize
-		private          int                    mBulkRequestMaxMessageCount = 0;             // caches BulkRequestMaxMessageCount
-		private          string                 mOrganizationId             = null;          // caches OrganizationId
-		private          string                 mOrganizationName           = null;          // caches OrganizationName
-		private          TimeSpan               mLastTimezoneOffset         = TimeSpan.Zero; // Timezone formatted into mLastTimezoneOffsetAsString
-		private          string                 mLastTimezoneOffsetAsString = "+00:00";      // caches the timezone in its string representation
+		private volatile bool                 mReloadConfiguration            = true;                       // tells the processing thread to reload the configuration
+		private volatile bool                 mIsShutdownRequested            = false;                      // tells the processing thread to shut down
+		private readonly Deque<EndpointInfo>  mEndpoints                      = new Deque<EndpointInfo>();  // elasticsearch endpoints to send requests to
+		private readonly BulkResponsePool     mBulkResponsePool               = new BulkResponsePool();     // a pool of objects used when deserializing bulk responses
+		private readonly Deque<SendOperation> mFreeSendOperations             = new Deque<SendOperation>(); // free send operations
+		private readonly Deque<SendOperation> mScheduledSendOperations        = new Deque<SendOperation>(); // send operations ready for sending
+		private readonly List<SendOperation>  mPendingSendOperations          = new List<SendOperation>();  // send operations on the line
+		private          HttpClient           mHttpClient                     = null;                       // http client to use when sending requests to elasticsearch
+		private          string               mIndexName                      = null;                       // caches IndexName
+		private          int                  mBulkRequestMaxConcurrencyLevel = 0;                          // caches BulkRequestMaxConcurrencyLevel
+		private          int                  mBulkRequestMaxSize             = 0;                          // caches BulkRequestMaxSize
+		private          int                  mBulkRequestMaxMessageCount     = 0;                          // caches BulkRequestMaxMessageCount
+		private          string               mOrganizationId                 = null;                       // caches OrganizationId
+		private          string               mOrganizationName               = null;                       // caches OrganizationName
+		private          TimeSpan             mLastTimezoneOffset             = TimeSpan.Zero;              // Timezone formatted into mLastTimezoneOffsetAsString
+		private          string               mLastTimezoneOffsetAsString     = "+00:00";                   // caches the timezone in its string representation
 
 		// defaults of settings determining the behavior of the stage
-		private static readonly Uri[]                sDefault_ApiBaseUrls                        = { new Uri("http://127.0.0.1:9200/") };
-		private static readonly AuthenticationScheme sDefault_Server_Authentication_Schemes      = AuthenticationScheme.PasswordBased;
-		private static readonly string               sDefault_Server_Authentication_Username     = "";
-		private static readonly string               sDefault_Server_Authentication_Password     = "";
-		private static readonly string               sDefault_Server_Authentication_Domain       = "";
-		private static readonly int                  sDefault_Server_BulkRequest_MaxMessageCount = 1000;
-		private static readonly int                  sDefault_Server_BulkRequest_MaxSize         = 5 * 1024 * 1024;
-		private static readonly string               sDefault_Server_IndexName                   = "logs";
-		private static readonly string               sDefault_Data_Organization_Id               = "griffin.plus";
-		private static readonly string               sDefault_Data_Organization_Name             = "Griffin+";
-		private static readonly int                  sDefault_Stage_SendQueueSize                = 50000;
+		private static readonly Uri[]                sDefault_ApiBaseUrls                            = { new Uri("http://127.0.0.1:9200/") };
+		private static readonly AuthenticationScheme sDefault_Server_Authentication_Schemes          = AuthenticationScheme.PasswordBased;
+		private static readonly string               sDefault_Server_Authentication_Username         = "";
+		private static readonly string               sDefault_Server_Authentication_Password         = "";
+		private static readonly string               sDefault_Server_Authentication_Domain           = "";
+		private static readonly int                  sDefault_Server_BulkRequest_MaxMessageCount     = 0; // unlimited
+		private static readonly int                  sDefault_Server_BulkRequest_MaxSize             = 5 * 1024 * 1024;
+		private static readonly string               sDefault_Server_IndexName                       = "logs";
+		private static readonly int                  sDefault_Server_BulkRequest_MaxConcurrencyLevel = 5;
+		private static readonly string               sDefault_Data_Organization_Id                   = "griffin.plus";
+		private static readonly string               sDefault_Data_Organization_Name                 = "Griffin+";
+		private static readonly int                  sDefault_Stage_SendQueueSize                    = 50000;
 
 		// the settings determining the behavior of the stage
 		private readonly IProcessingPipelineStageSetting<Uri[]>                mSetting_Server_ApiBaseUrls;
@@ -126,6 +135,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		private readonly IProcessingPipelineStageSetting<string>               mSetting_Server_Authentication_Username;
 		private readonly IProcessingPipelineStageSetting<string>               mSetting_Server_Authentication_Password;
 		private readonly IProcessingPipelineStageSetting<string>               mSetting_Server_Authentication_Domain;
+		private readonly IProcessingPipelineStageSetting<int>                  mSetting_Server_BulkRequest_MaxConcurrencyLevel;
 		private readonly IProcessingPipelineStageSetting<int>                  mSetting_Server_BulkRequest_MaxMessageCount;
 		private readonly IProcessingPipelineStageSetting<int>                  mSetting_Server_BulkRequest_MaxSize;
 		private readonly IProcessingPipelineStageSetting<string>               mSetting_Server_IndexName;
@@ -140,8 +150,6 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		public ElasticsearchPipelineStage(string name) : base(name)
 		{
-			mRequestContentWriter = new Utf8JsonWriter(mContentStream, mJsonWriterOptions);
-
 			mSetting_Server_ApiBaseUrls = RegisterSetting("Server.ApiBaseUrls", sDefault_ApiBaseUrls, UriArrayToString, StringToUriArray);
 			mSetting_Server_ApiBaseUrls.RegisterSettingChangedEventHandler(OnSettingChanged, false);
 
@@ -156,6 +164,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			mSetting_Server_Authentication_Domain = RegisterSetting("Server.Authentication.Domain", sDefault_Server_Authentication_Domain);
 			mSetting_Server_Authentication_Domain.RegisterSettingChangedEventHandler(OnSettingChanged, false);
+
+			mSetting_Server_BulkRequest_MaxConcurrencyLevel = RegisterSetting("Server.BulkRequest.MaxConcurrencyLevel", sDefault_Server_BulkRequest_MaxConcurrencyLevel);
+			mSetting_Server_BulkRequest_MaxConcurrencyLevel.RegisterSettingChangedEventHandler(OnSettingChanged, false);
 
 			mSetting_Server_BulkRequest_MaxMessageCount = RegisterSetting("Server.BulkRequest.MaxMessageCount", sDefault_Server_BulkRequest_MaxMessageCount);
 			mSetting_Server_BulkRequest_MaxMessageCount.RegisterSettingChangedEventHandler(OnSettingChanged, false);
@@ -279,10 +290,26 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 		#endregion
 
+		#region BulkRequestMaxConcurrencyLevel
+
+		/// <summary>
+		/// Gets or sets the maximum number of bulk requests that may are on the line at the same time.
+		/// There is always one request on the line. More requests are sent, if there are enough messages to fill them up entirely.
+		/// Default: 5
+		/// </summary>
+		public int BulkRequestMaxConcurrencyLevel
+		{
+			get => mSetting_Server_BulkRequest_MaxConcurrencyLevel.Value;
+			set => mSetting_Server_BulkRequest_MaxConcurrencyLevel.Value = value;
+		}
+
+		#endregion
+
 		#region BulkRequestMaxMessageCount
 
 		/// <summary>
 		/// Gets or sets the maximum number of messages to bundle in a bulk request.
+		/// Default: 0 (unlimited)
 		/// </summary>
 		public int BulkRequestMaxMessageCount
 		{
@@ -296,6 +323,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 		/// <summary>
 		/// Gets or sets the maximum size of a bulk request (in bytes).
+		/// Default: 5242880 bytes (5 MiB)
 		/// </summary>
 		public int BulkRequestMaxSize
 		{
@@ -368,6 +396,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			lock (mProcessingQueue)
 			{
 				mProcessingQueueSize = mSetting_Stage_SendQueueSize.Value;
+				if (mProcessingQueueSize < 1) mProcessingQueueSize = 1;
 			}
 
 			// tell the process thread to reload its configuration
@@ -519,6 +548,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// </summary>
 		private void TriggerProcessing()
 		{
+			if (mProcessingNeededEvent.IsSet)
+				return;
+
 			lock (mProcessingTriggerSync)
 			{
 				mProcessingNeededEvent.Set();
@@ -531,7 +563,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <summary>
 		/// The entry point of the processing thread that bundles messages and sends them to the Elasticsearch cluster.
 		/// </summary>
-		/// <param name="obj">The cancellation token that is signaled when the stage is shutting down</param>
+		/// <param name="obj">The cancellation token that is signaled when the stage has exceeded its time to shut down gracefully.</param>
 		private void DoProcessing(object obj)
 		{
 			var cancellationToken = (CancellationToken)obj;
@@ -541,7 +573,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				while (true)
 				{
 					// wait for new messages to process
-					if (!mProcessingNeededEvent.Wait(100, cancellationToken))
+					if (!mProcessingNeededEvent.Wait(1000, cancellationToken))
 					{
 						// abort, if there are no new messages in the processing queue...
 						lock (mProcessingTriggerSync)
@@ -558,39 +590,150 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					// (the thread drains the processing queue, if possible, before waiting for the processing event again)
 					mProcessingNeededEvent.Reset();
 
-					while (true)
-					{
-						// reload configuration and prepare the http client, if necessary
+					// reload configuration and prepare the http client, if necessary
+					// (ensure there are no send pending operations to avoid mixing up send operations)
+					// --------------------------------------------------------------------------------------------------------------
+					if (mReloadConfiguration && mScheduledSendOperations.Count == 0 && mPendingSendOperations.Count == 0)
 						ReloadConfigurationIfNecessary();
 
-						// prepare request body
-						PrepareRequestBody();
+					// abort, if there are no endpoints specified
+					// --------------------------------------------------------------------------------------------------------------
+					if (mEndpoints.Count == 0) continue;
 
-						// abort, if there is nothing to send
-						if (mMessagesPreparedToSend.Count == 0)
+					// wait some time, if the currently selected endpoint failed recently (calms the processing loop down, if no endpoint is operational)
+					// (the best choice is always at the beginning of the endpoint list, non-operational endpoints are put to the end of the list)
+					// --------------------------------------------------------------------------------------------------------------
+					var endpoint = mEndpoints[0];
+					int ticks = Environment.TickCount;
+					if (!endpoint.IsOperational && ticks - endpoint.ErrorTickCount < RetryEndpointAfterErrorTimeMs)
+					{
+						int delay = RetryEndpointAfterErrorTimeMs - ticks + endpoint.ErrorTickCount;
+						Task.Delay(delay, cancellationToken).WaitAndUnwrapException(cancellationToken);
+					}
+
+					// process completed send operations
+					// --------------------------------------------------------------------------------------------------------------
+					for (int i = 0; i < mPendingSendOperations.Count; i++)
+					{
+						var operation = mPendingSendOperations[i];
+
+						if (operation.HasCompletedSending)
 						{
-							if (mIsShutdownRequested)
+							// the operation has completed
+							mPendingSendOperations.RemoveAt(i--);
+
+							if (operation.ProcessSendCompleted())
 							{
-								// the stage is shutting down
-								// => let the processing thread exit...
-								lock (mProcessingTriggerSync)
+								// the endpoint is operational
+								// (elasticsearch processed the request)
+								SetEndpointOperational(operation.Endpoint, true);
+
+								if (operation.MessageCount == 0)
 								{
-									mProcessingThreadRunning = false;
-									return;
+									// the request was processed entirely
+									// => prepare operation for re-use
+									mFreeSendOperations.AddToBack(operation);
+								}
+								else
+								{
+									// there are still messages left (most probably due to an overload condition)
+									// => enqueue send operation once again to send remaining messages
+									mScheduledSendOperations.AddToFront(operation); // old messages must be sent first!
+								}
+							}
+							else
+							{
+								// the endpoint is not operational
+								// => try to send the entire request once again using some other endpoint...
+								SetEndpointOperational(operation.Endpoint, false);
+								mScheduledSendOperations.AddToFront(operation); // old messages must be sent first!
+							}
+						}
+					}
+
+					if (!mReloadConfiguration)
+					{
+						// add messages to send operations (free => scheduled)
+						// --------------------------------------------------------------------------------------------------------------
+						// Try to optimize for different load scenarios:
+						// - low load (not enough messages to fill a request):
+						//   => send only one request at a time (may not be full)
+						//   => latency is determined by the roundtrip time of a bulk request
+						// - high load (enough messages to fill a request):
+						//   => send multiple full requests concurrently
+						//   => throughput is optimized by sending concurrently
+						while (mFreeSendOperations.Count > 0)
+						{
+							// get the first available send operation from the list
+							// (may already contain messages)
+							var operation = mFreeSendOperations[0];
+
+							// add more messages to the request, if it is not full, yet
+							while (true)
+							{
+								var message = DequeueMessage();
+								if (message == null) break;
+								if (!operation.AddMessage(message))
+								{
+									PushMessageBack(message);
+									break;
 								}
 							}
 
-							// normal operation
-							// => return to waiting for more messages...
+							// abort, if the request buffer does not contain any messages or
+							// the request is not full and there is no request scheduled or already on the line
+							if (operation.MessageCount == 0 || !operation.IsFull && mScheduledSendOperations.Count + mPendingSendOperations.Count != 0)
+								break;
+
+							// schedule the send operation
+							mFreeSendOperations.RemoveFromFront();
+							mScheduledSendOperations.AddToBack(operation);
+						}
+					}
+
+					// start scheduled send operations
+					// --------------------------------------------------------------------------------------------------------------
+					while (mScheduledSendOperations.Count > 0 && mPendingSendOperations.Count < mBulkRequestMaxConcurrencyLevel)
+					{
+						var operation = mScheduledSendOperations[0];
+
+						// start sending the request
+						if (operation.StartSending(endpoint, cancellationToken))
+						{
+							// the send operation was started successfully
+							// => track operation in the 'in progress' list
+							operation = mScheduledSendOperations.RemoveFromFront();
+							mPendingSendOperations.Add(operation);
+						}
+						else
+						{
+							// the send operation could not be started
+							// => the endpoint seems to be inoperable
+							// (moves the endpoint to the end of the endpoint list, so the next attempt will use another endpoint)
+							SetEndpointOperational(endpoint, false);
 							break;
 						}
+					}
 
-						// send request to the server
-						int delay = SendRequest(cancellationToken);
+					// abort, if there are no send operations pending
+					// (only if reloading the configuration is not pending, otherwise the stage might end up with messages in the
+					// processing queue as there is a chance that the 'processing needed' event is not set any more)
+					// --------------------------------------------------------------------------------------------------------------
+					if (!mReloadConfiguration && mPendingSendOperations.Count == 0)
+					{
+						if (mIsShutdownRequested)
+						{
+							// the stage is shutting down
+							// => let the processing thread exit...
+							lock (mProcessingTriggerSync)
+							{
+								mProcessingThreadRunning = false;
+							}
+						}
 
-						// slow down processing, if no endpoints are operational
-						if (delay > 0)
-							Task.Delay(delay, cancellationToken).WaitAndUnwrapException(cancellationToken);
+						// normal operation
+						// => return to waiting for more messages...
+						break;
 					}
 				}
 			}
@@ -599,9 +742,10 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				// the stage is shutting down and the processing thread has exceeded its overrun time
 				Debug.Assert(ex.CancellationToken == cancellationToken);
 
-				// discard messages that are still in the request preparation buffer
-				for (int i = 0; i < mMessagesPreparedToSend.Count; i++) mMessagesPreparedToSend[i].Release();
-				mMessagesPreparedToSend.Clear();
+				// reset send operations
+				foreach (var operation in mFreeSendOperations) operation.Reset();
+				foreach (var operation in mScheduledSendOperations) operation.Reset();
+				foreach (var operation in mPendingSendOperations) operation.Reset();
 
 				// let the processing thread exit...
 				lock (mProcessingTriggerSync)
@@ -626,6 +770,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 				// reload bulk request settings
 				mIndexName = IndexName;
+				mBulkRequestMaxConcurrencyLevel = BulkRequestMaxConcurrencyLevel;
 				mBulkRequestMaxMessageCount = BulkRequestMaxMessageCount;
 				mBulkRequestMaxSize = BulkRequestMaxSize;
 
@@ -634,11 +779,43 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				mOrganizationId = string.IsNullOrWhiteSpace(OrganizationId) ? null : OrganizationId;
 				mOrganizationName = string.IsNullOrWhiteSpace(OrganizationName) ? null : OrganizationName;
 
+				// adjust settings
+				mBulkRequestMaxConcurrencyLevel = mBulkRequestMaxConcurrencyLevel > 1 ? mBulkRequestMaxConcurrencyLevel : 1;
+				mBulkRequestMaxMessageCount = mBulkRequestMaxMessageCount > 0 ? mBulkRequestMaxMessageCount : int.MaxValue;
+				mBulkRequestMaxSize = mBulkRequestMaxSize >= MinimumBulkRequestSize ? mBulkRequestMaxSize : MinimumBulkRequestSize;
+				mBulkRequestMaxSize = mBulkRequestMaxSize <= MaximumBulkRequestSize ? mBulkRequestMaxSize : MaximumBulkRequestSize;
+
 				// rebuild request URLs
 				mEndpoints.Clear();
 				foreach (var apiBaseUrl in ApiBaseUrls)
 				{
 					mEndpoints.AddToBack(new EndpointInfo(apiBaseUrl));
+				}
+
+				// initialize send operations (requests are prepared while other requests are on the line, so the number
+				// of send operations must be one element greater than the number of concurrent send operations)
+				int sendOperationCount = mBulkRequestMaxConcurrencyLevel + 1;
+				Debug.Assert(mScheduledSendOperations.Count == 0);
+				Debug.Assert(mPendingSendOperations.Count == 0);
+				if (mFreeSendOperations.Count > sendOperationCount)
+				{
+					// too many send operations
+					// => remove operations from the back of the list
+					//    (the first operation may still contain messages to send)
+					while (mFreeSendOperations.Count > sendOperationCount)
+					{
+						mFreeSendOperations.RemoveFromBack();
+					}
+				}
+				else if (mFreeSendOperations.Count < sendOperationCount)
+				{
+					// too less send operations
+					// => add missing operations to the back of the list
+					//    (the first operation may still contain messages to send)
+					for (int i = mFreeSendOperations.Count; i < sendOperationCount; i++)
+					{
+						mFreeSendOperations.AddToBack(new SendOperation(this));
+					}
 				}
 			}
 		}
@@ -694,225 +871,28 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		}
 
 		/// <summary>
-		/// Prepares the body of the next bulk request to index messages buffered in <see cref="mMessagesPreparedToSend"/>.
-		/// The resulting body is stored in <see cref="mContentStream"/>.
+		/// Dequeues a message to process.
 		/// </summary>
-		private void PrepareRequestBody()
+		/// <returns>A message to process (<c>null</c> if the queue is empty).</returns>
+		private LocalLogMessage DequeueMessage()
 		{
-			// serializes an indexing operation in a bulk request
-			void SerializeIndexingRequest(LocalLogMessage message)
+			lock (mProcessingQueue)
 			{
-				// serialize bulk request item object for indexing
-				mRequestContentWriter.Reset();
-				WriteBulkRequestIndexAction_ECS110(mRequestContentWriter);
-
-				// finalize line with a newline character
-				mContentStream.WriteByte((byte)'\n');
-
-				// serialize the actual log message
-				mRequestContentWriter.Reset();
-				WriteJsonMessage_ECS110(mRequestContentWriter, message);
-
-				// finalize line with a newline character
-				mContentStream.WriteByte((byte)'\n');
-			}
-
-			// serialize messages remaining from the last run (can occur, if indexing operations failed)
-			// ---------------------------------------------------------------------------------------------------------
-			mContentStream.SetLength(0);
-			long lastStreamPosition = -1;
-			for (int i = 0; i < mMessagesPreparedToSend.Count; i++)
-			{
-				// serialize indexing request
-				var message = mMessagesPreparedToSend[i];
-				SerializeIndexingRequest(message);
-
-				// abort, if the maximum number of bytes in the bulk request is reached
-				if (mContentStream.Position > mBulkRequestMaxSize)
-				{
-					if (lastStreamPosition < 0)
-					{
-						// the current message is so big that it does not fit into a bulk request
-						// => discard it
-						WritePipelineError(
-							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mBulkRequestMaxSize} bytes). Discarding message...",
-							null);
-						message.Release();
-						mMessagesPreparedToSend.RemoveAt(i--);
-						continue;
-					}
-
-					// truncate the stream to contain only the last messages to avoid exceeding the maximum request size
-					mContentStream.SetLength(lastStreamPosition);
-					break;
-				}
-
-				lastStreamPosition = mContentStream.Position;
-			}
-
-			// dequeue new messages from the processing queue and serialize them
-			// ---------------------------------------------------------------------------------------------------------
-			while (true)
-			{
-				// dequeue message from the processing queue
-				LocalLogMessage message;
-				lock (mProcessingQueue)
-				{
-					if (mProcessingQueue.Count == 0 || mMessagesPreparedToSend.Count >= mBulkRequestMaxMessageCount) break;
-					message = mProcessingQueue.RemoveFromFront();
-				}
-
-				// serialize indexing request
-				SerializeIndexingRequest(message);
-
-				// abort, if the maximum number of bytes in the bulk request is reached
-				if (mContentStream.Position > mBulkRequestMaxSize)
-				{
-					if (lastStreamPosition < 0)
-					{
-						// the current message is so big that it does not fit into a bulk request
-						// => discard it
-						WritePipelineError(
-							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mBulkRequestMaxSize} bytes). Discarding message...",
-							null);
-						message.Release();
-						continue;
-					}
-
-					// put message back into the processing queue
-					lock (mProcessingQueue) mProcessingQueue.AddToFront(message);
-
-					// truncate the stream to contain only the last messages to avoid exceeding the maximum request size
-					mContentStream.SetLength(lastStreamPosition);
-					break;
-				}
-
-				mMessagesPreparedToSend.AddToBack(message);
-				lastStreamPosition = mContentStream.Position;
+				if (mProcessingQueue.Count == 0) return null;
+				return mProcessingQueue.RemoveFromFront();
 			}
 		}
 
 		/// <summary>
-		/// Sends the request body that has been prepared in <see cref="mContentStream"/> to one of the configured
-		/// bulk request endpoints in <see cref="mEndpoints"/>.
+		/// Pushes the specified message back into the processing queue.
 		/// </summary>
-		/// <param name="cancellationToken">Token that can be signaled to cancel the operation.</param>
-		/// <returns>Delay to wait before trying again (in ms).</returns>
-		private int SendRequest(CancellationToken cancellationToken)
+		/// <param name="message">Message to push back into the processing queue.</param>
+		private void PushMessageBack(LocalLogMessage message)
 		{
-			while (true)
+			lock (mProcessingQueue)
 			{
-				// take the first endpoint in the list
-				// (the best choice is always at the beginning of the list, non-operational endpoints are put to the end of the list)
-				var endpoint = mEndpoints[0];
-
-				// abort, if the endpoint failed recently
-				// (the first endpoint in the list is the most promising one...)
-				int ticks = Environment.TickCount;
-				if (!endpoint.IsOperational && ticks - endpoint.ErrorTickCount < RetryEndpointAfterErrorTimeMs)
-					return RetryEndpointAfterErrorTimeMs - ticks + endpoint.ErrorTickCount;
-
-				// create http request telling Elasticsearch to index the messages
-				mContentStream.Position = 0;
-				var content = new StreamContent(mContentStream);
-				content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-ndjson");
-				var request = new HttpRequestMessage(HttpMethod.Post, endpoint.BulkRequestApiUrl) { Content = content };
-
-				try
-				{
-					var response = mHttpClient
-						.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken)
-						.WaitAndUnwrapException(cancellationToken);
-
-					if (response.StatusCode == HttpStatusCode.OK)
-					{
-						// the bulk request was processed by the server
-						// => check outcome of actions in the response
-						byte[] responseData = response.Content.ReadAsByteArrayAsync().WaitAndUnwrapException(cancellationToken);
-						var bulkResponse = mBulkResponsePool.GetBulkResponse();
-						bulkResponse.InitFromJson(responseData);
-
-						// check response for elasticsearch errors
-						if (bulkResponse.Errors)
-						{
-							// there are messages that were not indexed successfully
-							// => evaluate the the response
-							var bulkResponseItems = bulkResponse.Items;
-							for (int i = bulkResponseItems.Count - 1; i >= 0; i--)
-							{
-								int status = bulkResponseItems[i].Index.Status;
-								if (status >= 200 && status <= 299) // usually 201 (created)
-								{
-									// message was indexed successfully
-									mMessagesPreparedToSend[i].Release();
-									mMessagesPreparedToSend.RemoveAt(i);
-								}
-								else if (status == 429) // rate limit
-								{
-									// the server is under heavy load
-									// => keep message and try again later
-									WritePipelineWarning("Elasticsearch server seems to be overloaded (responded with 429). Trying again later...");
-								}
-								else
-								{
-									// indexing failed (no chance to solve this issue automatically)
-									// => log error and discard message
-									WritePipelineError(
-										$"Elasticsearch endpoint ({request.RequestUri}) responded with {status}. Discarding message to index..." +
-										Environment.NewLine +
-										$"Error: {bulkResponseItems[i].Index.Error}",
-										null);
-
-									mMessagesPreparedToSend[i].Release();
-									mMessagesPreparedToSend.RemoveAt(i);
-								}
-							}
-						}
-						else
-						{
-							// all messages were indexed successfully
-							int count = bulkResponse.Items.Count;
-							for (int i = 0; i < count; i++) mMessagesPreparedToSend[i].Release();
-							mMessagesPreparedToSend.RemoveRange(0, count);
-						}
-
-						// return the response to the pool to reduce the number of allocations
-						bulkResponse.ReturnToPool();
-
-						// request was send to the Elasticsearch cluster
-						// => the endpoint can be considered operational...
-						SetEndpointOperational(endpoint, true);
-						break;
-					}
-
-					// the bulk request failed entirely which is a severe condition
-					// => the endpoint is not operational...
-					SetEndpointOperational(endpoint, false);
-
-					// log incident...
-					WritePipelineError(
-						$"The request to endpoint {request.RequestUri} failed with error code {(int)response.StatusCode} ({response.ReasonPhrase}).",
-						null);
-				}
-				catch (HttpRequestException ex)
-				{
-					// an error that occurred transporting the request to the elasticsearch server -or-
-					// a timeout occurred (only .NET Framework)
-					// => log and keep messages
-					WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({request.RequestUri}) failed.", ex);
-					SetEndpointOperational(endpoint, false);
-				}
-				catch (OperationCanceledException ex)
-				{
-					// the cancellation token was signaled -or-
-					// a timeout occurred (only .NET Core, .NET 5.0 or higher)
-					if (ex.CancellationToken == cancellationToken) throw;
-					WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({request.RequestUri}) failed.", ex);
-					SetEndpointOperational(endpoint, false);
-				}
+				mProcessingQueue.AddToFront(message);
 			}
-
-			return 0;
 		}
 
 		/// <summary>
@@ -934,8 +914,10 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				// => move it to the head of the list
 				if (mEndpoints[0] != endpoint)
 				{
-					mEndpoints.Remove(endpoint);
-					mEndpoints.AddToFront(endpoint);
+					if (mEndpoints.Remove(endpoint))
+					{
+						mEndpoints.AddToFront(endpoint);
+					}
 				}
 			}
 			else
@@ -944,8 +926,10 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				// => move it to the tail of the list
 				if (mEndpoints[mEndpoints.Count - 1] != endpoint)
 				{
-					mEndpoints.Remove(endpoint);
-					mEndpoints.AddToBack(endpoint);
+					if (mEndpoints.Remove(endpoint))
+					{
+						mEndpoints.AddToBack(endpoint);
+					}
 				}
 			}
 		}
