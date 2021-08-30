@@ -58,6 +58,14 @@ namespace GriffinPlus.Lib.Logging
 				builder.AppendLine("This can be done by a) starting the application with administrative rights -or- b) registering the source manually.");
 				builder.AppendLine("Once the source is registered administrative rights are not needed any more.");
 				builder.AppendLine($"Executable: {executablePath}");
+				builder.AppendLine();
+				builder.AppendLine("You can import the following registry file to solve the issue:");
+				builder.AppendLine();
+				builder.AppendLine("--- FILE START -------------------------------------------------------------------------------------------------");
+				builder.AppendLine("Windows Registry Editor Version 5.00");
+				builder.AppendLine($"[HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\{source}]");
+				builder.AppendLine("\"EventMessageFile\" = \"C:\\\\Windows\\\\Microsoft.NET\\\\Framework64\\\\v4.0.30319\\\\EventLogMessages.dll\"");
+				builder.AppendLine("--- FILE END ---------------------------------------------------------------------------------------------------");
 				mEventLog.WriteEntry(builder.ToString(), EventLogEntryType.Warning);
 			}
 		}

@@ -70,6 +70,20 @@ Another option to split up the configuration is *tagging*. Log writers can be co
 
 ## Using
 
+### System Logger Configuration
+
+*Griffin+ Logging* itself is a logging facility, but it cannot use itself to communicate incidents. If something goes wrong within the logging subsystem, the system logger is used to communicate issues.
+
+On *Windows* the *Event Log* is used. An application needs to register a *log source*, so messages can be differentiated in the log. The following registry snippet adds a source for the application `MyApp.exe`. Please replace `MyApp` with the name of your application's executable (without the `.exe`). The application will also run without registering a log source, but the event log will look a bit messy.
+
+```
+Windows Registry Editor Version 5.00
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Application\MyApp]
+"EventMessageFile" = "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\EventLogMessages.dll"
+```
+
+If the application is running with administrative rights, it will register the log source on its own.
+
 ### Configuration
 
 The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Emergency`, `Alert`, `Critical`, `Error`, `Warning` and `Notice`. Messages associated with other log levels are blocked. There is no restriction for log writers. The default log configuration is purely in-memory.
