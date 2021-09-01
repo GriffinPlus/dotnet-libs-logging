@@ -141,18 +141,14 @@ stages:
       inputs:
         artifact: 'Binaries'
         targetPath: '$(Build.SourcesDirectory)/_build'
-    - task: VSTest@2
+    - task: DotNetCoreCLI@2
       displayName: 'Test .NET Framework 4.6.1'
       condition: eq(variables['agent.os'], 'Windows_NT')
       inputs:
-        configuration: '$(BuildConfiguration)'
-        testSelector: 'testAssemblies'
-        testAssemblyVer2: |
-          **\*Tests.dll
-          !**\.obj\**
-        searchFolder: '$(Build.SourcesDirectory)/_build'
-        runSettingsFile: '$(Build.SourcesDirectory)/src/tests.runsettings'
-        otherConsoleOptions: '/Framework:.NETFramework,Version=v4.6.1'
+        command: 'test'
+        projects: '**/*Tests/*.csproj'
+        nobuild: true
+        arguments: '--framework net461 --verbosity normal'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 2.1'
       inputs:
