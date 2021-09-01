@@ -2,7 +2,7 @@
 
 <package>
 	<metadata minClientVersion="3.3">
-		<id>GriffinPlus.Lib.Logging.LogServicePipelineStage</id>
+		<id>GriffinPlus.Lib.Logging.ElasticsearchPipelineStage</id>
 		<version>$version$</version>
 		<authors>Sascha Falk</authors>
 		<copyright>Copyright (c) 2021 Sascha Falk and Contributors</copyright>
