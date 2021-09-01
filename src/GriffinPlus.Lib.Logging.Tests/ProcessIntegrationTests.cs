@@ -168,9 +168,9 @@ namespace GriffinPlus.Lib.Logging
 
 			// create a file containing mix log messages as JSON
 			var data = JsonMessageReaderTests.GetTestData(
-					1,      // generate one test set only
-					100000, // the test set should contain 100000 log messages
-					100000,
+					1,       // generate one test set only
+					10000,   // the test set should contain 10000 log messages
+					10000,   //
 					newline, // use specified newline character sequence only to make reconstruction possible when receiving data via stdout/stderr
 					false)
 				.First(); // do not inject random whitespaces between log messages as these would screw up printing to the console and vice versa

@@ -130,7 +130,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The tuples contain the combined JSON string and the log messages the string represents.
 		/// </returns>
 		public static IEnumerable<Tuple<string, ILogMessage[], HashSet<int>>> GetTestData(
-			int    testSetCount                          = 100000,
+			int    testSetCount                          = 10000,
 			int    minMessageCount                       = 1,
 			int    maxMessageCount                       = 30,
 			string newline                               = null,
@@ -185,7 +185,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var reader = new JsonMessageReader();
 
-			foreach (var data in GetTestData(100000, 2))
+			foreach (var data in GetTestData(minMessageCount: 2))
 			{
 				string json = data.Item1;
 				var expectedMessages = data.Item2;
@@ -205,7 +205,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var reader = new JsonMessageReader();
 
-			foreach (var data in GetTestData(100000, 2))
+			foreach (var data in GetTestData(minMessageCount: 2))
 			{
 				string json = data.Item1;
 				var expectedMessages = data.Item2;
