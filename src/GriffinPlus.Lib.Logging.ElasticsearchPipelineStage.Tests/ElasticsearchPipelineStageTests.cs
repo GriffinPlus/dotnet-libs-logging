@@ -226,7 +226,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			Assert.Equal(Setting_Stage_SendQueueSize, stage.SendQueueSize);
 
 			// wait for some time before shutting down
-			Thread.Sleep(2000);
+			Thread.Sleep(1000);
 
 			// shut the stage down
 			((IProcessingPipelineStage)stage).Shutdown();

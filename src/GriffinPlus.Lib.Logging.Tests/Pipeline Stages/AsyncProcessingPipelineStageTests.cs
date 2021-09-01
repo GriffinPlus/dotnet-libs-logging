@@ -193,9 +193,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Same(message, stage2.MessagePassedToProcessSync);
 
 			// give the processing threads time to call ProcessAsync()
-			// (just waiting for some time seems to fail on azure pipelines,
-			// probably jobs are moved within the cloud causing undeterministic delays)
-			for (int i = 0; i < 10; i++) Thread.Sleep(100);
+			Thread.Sleep(500);
 
 			Assert.True(stage1.ProcessAsyncWasCalled);
 			Assert.True(stage2.ProcessAsyncWasCalled);
