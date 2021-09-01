@@ -104,7 +104,7 @@ stages:
   ######################################################################################################################
   - job:
     displayName: ''
-    timeoutInMinutes: 120
+    timeoutInMinutes: 180
     strategy:
       matrix:
         'Windows Server 2019':
