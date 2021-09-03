@@ -577,7 +577,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					// wait for new messages to process
 					if (!mProcessingNeededEvent.Wait(1000, cancellationToken))
 					{
-						// abort, if there are no new messages in the processing queue...
+						// the processing event has not been signaled for some time
+						// => no new messages to process and no completed send operations
+						// => abort processing thread
 						lock (mProcessingTriggerSync)
 						{
 							if (!mProcessingNeededEvent.IsSet)
@@ -730,12 +732,13 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							lock (mProcessingTriggerSync)
 							{
 								mProcessingThreadRunning = false;
+								break;
 							}
 						}
 
 						// normal operation
 						// => return to waiting for more messages...
-						break;
+						continue;
 					}
 				}
 			}
@@ -754,6 +757,10 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				{
 					mProcessingThreadRunning = false;
 				}
+			}
+			catch (Exception ex)
+			{
+				WritePipelineError("Unhandled exception in DoProcessing().", ex);
 			}
 		}
 
