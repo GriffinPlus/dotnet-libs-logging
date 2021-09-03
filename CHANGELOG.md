@@ -1,6 +1,14 @@
 # Changelog
 ---
 
+## Release v4.0.2
+
+### Bugfixes
+
+- Fix unexpected disposal of content stream along with the send task of the ElasticsearchPipelineStage
+
+---
+
 ## Release v4.0.1
 
 ### Bugfixes
