@@ -1,7 +1,14 @@
 # Changelog
 ---
 
-## Release v4.0.0
+## Release v4.0.1
+
+### Bugfixes
+
+- Remove explicit reference to System.Net.Http in ElasticsearchPipelineStage project
+- Fix ElasticsearchPipelineStage shutting down too early
+
+---
 
 **This release contains some breaking changes!**
 
