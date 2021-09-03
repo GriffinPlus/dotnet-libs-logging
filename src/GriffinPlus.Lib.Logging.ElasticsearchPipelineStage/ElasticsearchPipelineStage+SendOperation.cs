@@ -84,7 +84,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				ResetContentStream();
 
 				// release the send task
-				mSendBulkRequestTask?.Dispose();
+				// mSendBulkRequestTask?.Dispose(); // do not dispose, otherwise mContentStream is closed as well
 				mSendBulkRequestTask = null;
 
 				// release the request message
@@ -266,7 +266,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				catch (Exception ex)
 				{
 					// some unexpected error occurred
-					mStage.WritePipelineError($"An unexpected exception occurred sending a HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage.RequestUri}) failed.", ex);
+					mStage.WritePipelineError($"An unexpected exception occurred sending a HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) failed.", ex);
 					return false;
 				}
 			}
@@ -323,7 +323,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 									// indexing failed (no chance to solve this issue automatically)
 									// => log error and discard message
 									mStage.WritePipelineError(
-										$"Elasticsearch endpoint ({mSendBulkRequestMessage.RequestUri}) responded with {status}. Discarding message to index..." +
+										$"Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) responded with {status}. Discarding message to index..." +
 										Environment.NewLine +
 										$"Error: {bulkResponseItems[i].Index.Error}",
 										null);
@@ -353,7 +353,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 					// log incident...
 					mStage.WritePipelineError(
-						$"The request to endpoint {mSendBulkRequestMessage.RequestUri} failed with error code {(int)response.StatusCode} ({response.ReasonPhrase}).",
+						$"The request to endpoint {mSendBulkRequestMessage?.RequestUri} failed with error code {(int)response.StatusCode} ({response.ReasonPhrase}).",
 						null);
 
 					// the bulk request failed entirely which is a severe condition
@@ -365,7 +365,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					// an error that occurred transporting the request to the elasticsearch server -or-
 					// a timeout occurred (only .NET Framework)
 					// => log and keep messages
-					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage.RequestUri}) failed.", ex);
+					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) failed.", ex);
 					return false;
 				}
 				catch (OperationCanceledException ex)
@@ -373,13 +373,13 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					// the cancellation token was signaled -or-
 					// a timeout occurred (only .NET Core, .NET 5.0 or higher)
 					if (ex.CancellationToken == mCancellationToken) throw;
-					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage.RequestUri}) failed.", ex);
+					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) failed.", ex);
 					return false;
 				}
 				catch (Exception ex)
 				{
 					// an unexpected exception occurred
-					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage.RequestUri}) failed.", ex);
+					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) failed.", ex);
 					return false;
 				}
 				finally
@@ -387,7 +387,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					bulkResponse?.ReturnToPool();
 					// mSendBulkRequestMessage?.Dispose(); // do not dispose, otherwise mContentStream is closed as well
 					mSendBulkRequestMessage = null;
-					mSendBulkRequestTask?.Dispose();
+					// mSendBulkRequestTask?.Dispose(); // do not dispose, otherwise mContentStream is closed as well
 					mSendBulkRequestTask = null;
 				}
 			}
