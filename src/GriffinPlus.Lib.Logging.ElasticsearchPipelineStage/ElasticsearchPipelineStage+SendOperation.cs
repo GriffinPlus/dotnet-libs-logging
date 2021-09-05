@@ -4,8 +4,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using GriffinPlus.Lib.Collections;
+using GriffinPlus.Lib.Io;
 using GriffinPlus.Lib.Threading;
 
 // ReSharper disable ForCanBeConvertedToForeach
@@ -29,9 +30,10 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		private sealed class SendOperation
 		{
 			private readonly ElasticsearchPipelineStage mStage;
-			private readonly Deque<LocalLogMessage>     mMessagesPreparedToSend;
-			private readonly MemoryStream               mContentStream;
-			private readonly Utf8JsonWriter             mRequestContentWriter;
+			private readonly JsonWriterOptions          mJsonWriterOptions      = new JsonWriterOptions { SkipValidation = true };
+			private readonly Deque<LocalLogMessage>     mMessagesPreparedToSend = new Deque<LocalLogMessage>();
+			private          MemoryBlockStream          mContentStream;
+			private          Utf8JsonWriter             mRequestContentWriter;
 			private          HttpRequestMessage         mSendBulkRequestMessage;
 			private          Task<HttpResponseMessage>  mSendBulkRequestTask;
 			private          CancellationToken          mCancellationToken;
@@ -43,10 +45,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			public SendOperation(ElasticsearchPipelineStage stage)
 			{
 				mStage = stage;
-				mMessagesPreparedToSend = new Deque<LocalLogMessage>();
-				mContentStream = new MemoryStream();
-				var jsonWriterOptions = new JsonWriterOptions { SkipValidation = true };
-				mRequestContentWriter = new Utf8JsonWriter(mContentStream, jsonWriterOptions);
+				mContentStream = new MemoryBlockStream(ArrayPool<byte>.Shared);
+				mRequestContentWriter = new Utf8JsonWriter(mContentStream, mJsonWriterOptions);
+				IsFull = false;
 			}
 
 			/// <summary>
@@ -80,16 +81,16 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				for (int i = 0; i < mMessagesPreparedToSend.Count; i++) mMessagesPreparedToSend[i].Release();
 				mMessagesPreparedToSend.Clear();
 
-				// reset the content stream
-				ResetContentStream();
-
 				// release the send task
-				// mSendBulkRequestTask?.Dispose(); // do not dispose, otherwise mContentStream is closed as well
+				mSendBulkRequestTask?.Dispose();
 				mSendBulkRequestTask = null;
 
 				// release the request message
-				// mSendBulkRequestMessage?.Dispose(); // do not dispose, otherwise mContentStream is closed as well
+				mSendBulkRequestMessage?.Dispose();
 				mSendBulkRequestMessage = null;
+
+				// reset the content stream
+				ResetContentStream();
 			}
 
 			/// <summary>
@@ -97,8 +98,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// </summary>
 			private void ResetContentStream()
 			{
-				mRequestContentWriter.Reset();
-				mContentStream.SetLength(0);
+				mContentStream?.Dispose(); // returns buffers back to the pool
+				mContentStream = new MemoryBlockStream(ArrayPool<byte>.Shared);
+				mRequestContentWriter = new Utf8JsonWriter(mContentStream, mJsonWriterOptions);
 				IsFull = false;
 			}
 
@@ -129,17 +131,18 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				// serialize indexing request for the message into the stream
 				SerializeIndexingRequest(message);
 
-				// abort, if the maximum number of bytes in the bulk request is reached
 				if (mContentStream.Position > mStage.mBulkRequestMaxSize)
 				{
+					// the maximum request size has been exceeded
 					if (lastStreamPosition < 0)
 					{
 						// the current message is so big that it does not fit into a bulk request
 						// => discard it
 						mStage.WritePipelineError(
-							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxSize} bytes). Discarding message...",
+							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxMessageCount} bytes). Discarding message...",
 							null);
 						message.Release();
+						mContentStream.SetLength(0);
 						return true; // pretend to have added it to the request...
 					}
 
@@ -169,7 +172,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					var message = mMessagesPreparedToSend[i];
 					SerializeIndexingRequest(message);
 
-					// abort, if the maximum number of bytes in the bulk request is reached
+					// determine whether the maximum request size is exceeded
 					if (mContentStream.Position > mStage.mBulkRequestMaxSize)
 					{
 						if (lastStreamPosition < 0)
@@ -177,19 +180,21 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							// the current message is so big that it does not fit into a bulk request
 							// => discard it
 							mStage.WritePipelineError(
-								$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxSize} bytes). Discarding message...",
+								$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxMessageCount} bytes). Discarding message...",
 								null);
 							message.Release();
 							mMessagesPreparedToSend.RemoveAt(i--);
+							mContentStream.SetLength(0);
 							continue;
 						}
 
-						// truncate the stream to contain only the last messages to avoid exceeding the maximum request size
+						// the maximum request size has been exceeded
 						mContentStream.SetLength(lastStreamPosition);
 						IsFull = true;
 						break;
 					}
 
+					// the message was prepared to the request successfully
 					lastStreamPosition = mContentStream.Position;
 				}
 			}
@@ -197,7 +202,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// <summary>
 			/// Serializes an indexing operation in a bulk request
 			/// </summary>
-			/// <param name="message"></param>
+			/// <param name="message">Message to serialize.</param>
 			private void SerializeIndexingRequest(LocalLogMessage message)
 			{
 				// serialize bulk request item object for indexing
@@ -231,6 +236,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			public bool StartSending(EndpointInfo endpoint, CancellationToken cancellationToken)
 			{
 				Debug.Assert(mSendBulkRequestMessage == null, "A send operation is already pending.");
+				Debug.Assert(MessageCount > 0);
 
 				Endpoint = endpoint;
 				mCancellationToken = cancellationToken;
@@ -385,9 +391,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				finally
 				{
 					bulkResponse?.ReturnToPool();
-					// mSendBulkRequestMessage?.Dispose(); // do not dispose, otherwise mContentStream is closed as well
+					mSendBulkRequestMessage?.Dispose();
 					mSendBulkRequestMessage = null;
-					// mSendBulkRequestTask?.Dispose(); // do not dispose, otherwise mContentStream is closed as well
+					mSendBulkRequestTask?.Dispose();
 					mSendBulkRequestTask = null;
 				}
 			}
