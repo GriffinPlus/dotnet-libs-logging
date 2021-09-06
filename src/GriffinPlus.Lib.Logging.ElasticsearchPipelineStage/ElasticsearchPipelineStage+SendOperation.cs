@@ -82,8 +82,18 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				mMessagesPreparedToSend.Clear();
 
 				// release the send task
-				mSendBulkRequestTask?.Dispose();
-				mSendBulkRequestTask = null;
+				if (mSendBulkRequestTask != null)
+				{
+					// wait for the task to complete
+					// (usually the task has completed before Reset() is called, but when the send operation is cancelled
+					// the task might not be cancelled, yet... just wait until the task completes before proceeding, otherwise
+					// disposing the task will throw an exception)
+					if (!mSendBulkRequestTask.IsCompleted)
+						mSendBulkRequestTask.WaitWithoutException(CancellationToken.None);
+
+					mSendBulkRequestTask.Dispose();
+					mSendBulkRequestTask = null;
+				}
 
 				// release the request message
 				mSendBulkRequestMessage?.Dispose();
