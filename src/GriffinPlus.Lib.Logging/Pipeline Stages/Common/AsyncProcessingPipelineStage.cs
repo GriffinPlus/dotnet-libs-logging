@@ -24,6 +24,7 @@ namespace GriffinPlus.Lib.Logging
 	public abstract class AsyncProcessingPipelineStage<TStage> : ProcessingPipelineBaseStage
 		where TStage : AsyncProcessingPipelineStage<TStage>
 	{
+		private AsyncContextThread             mAsyncContextThread;
 		private Task                           mAsyncProcessingTask;
 		private AsyncAutoResetEvent            mTriggerAsyncProcessingEvent;
 		private LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
@@ -55,12 +56,8 @@ namespace GriffinPlus.Lib.Logging
 				mTriggerAsyncProcessingEvent = new AsyncAutoResetEvent(false);
 				mAsyncProcessingCancellationTokenSource = new CancellationTokenSource();
 				mTerminateProcessingTask = false;
-				mAsyncProcessingTask = Task.Factory.StartNew(
-						ProcessingTask,
-						CancellationToken.None,
-						TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
-						TaskScheduler.Default)
-					.Unwrap();
+				mAsyncContextThread = new AsyncContextThread();
+				mAsyncProcessingTask = mAsyncContextThread.Factory.Run(ProcessingTask);
 
 				// Perform pipeline stage specific initialization
 				OnInitialize();
@@ -92,7 +89,9 @@ namespace GriffinPlus.Lib.Logging
 			Debug.Assert(mAsyncProcessingMessageStack == null || mAsyncProcessingMessageStack.UsedItemCount == 0);
 
 			// clean up processing thread related stuff
+			mAsyncContextThread?.Join();
 			mAsyncProcessingCancellationTokenSource?.Dispose();
+			mAsyncContextThread = null;
 			mAsyncProcessingTask = null;
 			mAsyncProcessingCancellationTokenSource = null;
 			mAsyncProcessingMessageStack = null;
@@ -265,7 +264,8 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// When overridden in a derived class, processes the specified log messages asynchronously
-		/// (is executed in the context of a worker thread).
+		/// (the method is executed by the stage's processing thread, do not use <c>ConfigureAwait(false)</c> to resume
+		/// execution in the processing thread when awaiting a task).
 		/// </summary>
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
@@ -287,12 +287,10 @@ namespace GriffinPlus.Lib.Logging
 			while (true)
 			{
 				// wait for messages to process
-				await mTriggerAsyncProcessingEvent
-					.WaitAsync(mAsyncProcessingCancellationTokenSource.Token)
-					.ConfigureAwait(false);
+				await mTriggerAsyncProcessingEvent.WaitAsync(mAsyncProcessingCancellationTokenSource.Token);
 
 				// process the messages
-				await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);
+				await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token);
 
 				// abort, if requested
 				if (mTerminateProcessingTask)
@@ -300,7 +298,7 @@ namespace GriffinPlus.Lib.Logging
 					// process the last messages, if there is time left...
 					if (!mAsyncProcessingCancellationTokenSource.IsCancellationRequested)
 					{
-						await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token).ConfigureAwait(false);
+						await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token);
 					}
 
 					break;
@@ -319,7 +317,7 @@ namespace GriffinPlus.Lib.Logging
 
 			try
 			{
-				await ProcessAsync(messages, cancellationToken).ConfigureAwait(false);
+				await ProcessAsync(messages, cancellationToken);
 			}
 			catch (Exception ex)
 			{

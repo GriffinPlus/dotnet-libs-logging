@@ -199,14 +199,14 @@ namespace GriffinPlus.Lib.Logging
 			{
 				if (mStdoutBuilder.Length > 0)
 				{
-					await mOutputStream.WriteAsync(mStdoutBuilder.ToString()).ConfigureAwait(false);
-					await mOutputStream.FlushAsync().ConfigureAwait(false);
+					await mOutputStream.WriteAsync(mStdoutBuilder.ToString());
+					await mOutputStream.FlushAsync();
 				}
 
 				if (mStderrBuilder.Length > 0)
 				{
-					await mErrorStream.WriteAsync(mStderrBuilder.ToString()).ConfigureAwait(false);
-					await mErrorStream.FlushAsync().ConfigureAwait(false);
+					await mErrorStream.WriteAsync(mStderrBuilder.ToString());
+					await mErrorStream.FlushAsync();
 				}
 			}
 			catch

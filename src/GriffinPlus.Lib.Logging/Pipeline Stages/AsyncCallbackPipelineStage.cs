@@ -96,7 +96,8 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Processes the specified log messages asynchronously
-		/// (is executed in the context of a worker thread).
+		/// (the method is executed by the stage's processing thread, do not use <c>ConfigureAwait(false)</c> to resume
+		/// execution in the processing thread when awaiting a task).
 		/// </summary>
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>

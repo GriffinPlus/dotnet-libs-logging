@@ -68,7 +68,9 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Processes the specified log messages asynchronously.
+		/// Processes the specified log messages asynchronously
+		/// (the method is executed by the stage's processing thread, do not use <c>ConfigureAwait(false)</c> to resume
+		/// execution in the processing thread when awaiting a task).
 		/// </summary>
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
@@ -100,7 +102,7 @@ namespace GriffinPlus.Lib.Logging
 
 			if (mFormattedMessageQueue.Count > 0)
 			{
-				int count = await EmitOutputAsync(mFormattedMessageQueue.ToArray(), cancellationToken).ConfigureAwait(false);
+				int count = await EmitOutputAsync(mFormattedMessageQueue.ToArray(), cancellationToken);
 				for (int i = 0; i < count; i++)
 				{
 					var item = mFormattedMessageQueue.Dequeue();

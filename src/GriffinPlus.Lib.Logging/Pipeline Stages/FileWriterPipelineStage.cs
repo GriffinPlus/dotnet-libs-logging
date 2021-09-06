@@ -126,8 +126,8 @@ namespace GriffinPlus.Lib.Logging
 			// write to the file and flush it to ensure that all data is passed to the operating system
 			try
 			{
-				await mWriter.WriteAsync(mOutputBuilder.ToString()).ConfigureAwait(false);
-				await mWriter.FlushAsync().ConfigureAwait(false);
+				await mWriter.WriteAsync(mOutputBuilder.ToString());
+				await mWriter.FlushAsync();
 			}
 			catch
 			{
