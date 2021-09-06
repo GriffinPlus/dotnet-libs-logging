@@ -84,6 +84,10 @@ Windows Registry Editor Version 5.00
 
 If the application is running with administrative rights, it will register the log source on its own.
 
+### Unhandled Exceptions
+
+*Griffin+ Logging* registers the `AppDomain.UnhandledException` event and logs unhandled exceptions using the system logger and the configured pipeline stages, if possible. Afterwards it terminates the process to avoid executing the process with an undetermined process state any further. Terminating the process can be disabled by setting `Log.TerminateProcessOnUnhandledException` to `false`.
+
 ### Configuration
 
 The main purpose of the *log configuration* is loading logging specific settings and providing information about which log levels should be enabled on which log writers. By default *Griffin+ Logging* comes with a configuration that allows all messages associated with log levels destined for a user's eyes to be logged, namely log level `Emergency`, `Alert`, `Critical`, `Error`, `Warning` and `Notice`. Messages associated with other log levels are blocked. There is no restriction for log writers. The default log configuration is purely in-memory.

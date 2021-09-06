@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -22,18 +23,19 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		internal static readonly object Sync = new object();
 
-		private static readonly int                              sProcessId           = Process.GetCurrentProcess().Id;
-		private static readonly string                           sProcessName         = Process.GetCurrentProcess().ProcessName;
-		private static readonly LocalLogMessagePool              sLogMessagePool      = new LocalLogMessagePool();
-		private static          List<LogWriter>                  sLogWritersById      = new List<LogWriter>();
-		private static          Dictionary<string, LogWriter>    sLogWritersByName    = new Dictionary<string, LogWriter>();
-		private static          List<LogWriterTag>               sLogWriterTagsById   = new List<LogWriterTag>();
-		private static          Dictionary<string, LogWriterTag> sLogWriterTagsByName = new Dictionary<string, LogWriterTag>();
-		private static          ILogConfiguration                sLogConfiguration;
-		private static volatile IProcessingPipelineStage         sProcessingPipeline;
-		private static readonly AsyncLocal<uint>                 sAsyncId = new AsyncLocal<uint>();
-		private static          int                              sAsyncIdCounter;
-		private static readonly LogWriter                        sLog = GetWriter("Logging");
+		private static readonly int                              sProcessId                            = Process.GetCurrentProcess().Id;
+		private static readonly string                           sProcessName                          = Process.GetCurrentProcess().ProcessName;
+		private static readonly LocalLogMessagePool              sLogMessagePool                       = new LocalLogMessagePool();
+		private static          List<LogWriter>                  sLogWritersById                       = new List<LogWriter>();
+		private static          Dictionary<string, LogWriter>    sLogWritersByName                     = new Dictionary<string, LogWriter>();
+		private static          List<LogWriterTag>               sLogWriterTagsById                    = new List<LogWriterTag>();
+		private static          Dictionary<string, LogWriterTag> sLogWriterTagsByName                  = new Dictionary<string, LogWriterTag>();
+		private static          ILogConfiguration                sLogConfiguration                     = null;
+		private static volatile IProcessingPipelineStage         sProcessingPipeline                   = null;
+		private static volatile bool                             sTerminateProcessOnUnhandledException = true;
+		private static readonly AsyncLocal<uint>                 sAsyncId                              = new AsyncLocal<uint>();
+		private static          int                              sAsyncIdCounter                       = 0;
+		private static readonly LogWriter                        sLog                                  = GetWriter("Logging");
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
@@ -45,6 +47,9 @@ namespace GriffinPlus.Lib.Logging
 				InitDefaultConfiguration();
 				ProcessingPipeline = new ConsoleWriterPipelineStage("Console") { IsDefaultStage = true };
 			}
+
+			// register handler for unhandled exceptions
+			AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 		}
 
 		/// <summary>
@@ -52,6 +57,17 @@ namespace GriffinPlus.Lib.Logging
 		/// (windows event log on windows, syslog on linux).
 		/// </summary>
 		public static ISystemLogger SystemLogger { get; } = SystemLoggerFactory.Create();
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the logging subsystem terminates the process after an unhandled exception
+		/// is caught and logged. This is usually the best way to deal with such a condition to avoid executing a program
+		/// that is in an undetermined state. Default: <c>true</c>.
+		/// </summary>
+		public static bool TerminateProcessOnUnhandledException
+		{
+			get => sTerminateProcessOnUnhandledException;
+			set => sTerminateProcessOnUnhandledException = value;
+		}
 
 		/// <summary>
 		/// Gets or sets the name of the application.
@@ -475,6 +491,61 @@ namespace GriffinPlus.Lib.Logging
 			foreach (var stage in allStages)
 			{
 				stage.Settings = null;
+			}
+		}
+
+		/// <summary>
+		/// Is called when an exception is not caught.
+		/// </summary>
+		/// <param name="sender">The source of the unhandled exception event.</param>
+		/// <param name="e">An <see cref="UnhandledExceptionEventArgs"/> that contains the event data.</param>
+		private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+		{
+			var exception = e.ExceptionObject as Exception;
+
+			var builder = new StringBuilder();
+			builder.AppendLine("An unhandled exception occurred!");
+			builder.AppendLine();
+			builder.AppendLine($"Runtime terminating: {e.IsTerminating}");
+			builder.AppendLine();
+			builder.AppendLine("Environment:");
+			builder.AppendLine($"  Operating System: {Environment.OSVersion} ({(Environment.Is64BitOperatingSystem ? 64 : 32)} bit)");
+			builder.AppendLine($"  Command Line: {Environment.CommandLine}");
+			builder.AppendLine($"  User Interactive: {Environment.UserInteractive}");
+
+			if (sender is AppDomain appDomain)
+			{
+				builder.AppendLine();
+				builder.AppendLine("AppDomain Information:");
+				builder.AppendLine($"  Is Default AppDomain: {appDomain.IsDefaultAppDomain()}");
+				builder.AppendLine($"  Base Directory: {appDomain.BaseDirectory}");
+				builder.AppendLine($"  Friendly Name: {appDomain.FriendlyName}");
+				builder.AppendLine($"  Relative Search Path: {appDomain.RelativeSearchPath ?? "<not set>"}");
+				builder.AppendLine($"  Shadow Copy Files: {appDomain.ShadowCopyFiles}");
+			}
+
+			if (exception != null)
+			{
+				builder.AppendLine();
+				builder.AppendLine("Exception:");
+				builder.AppendLine(LogWriter.UnwrapException(exception));
+			}
+
+			// log to system log
+			SystemLogger.WriteError(builder.ToString());
+
+			// try to put the message into the regular log as well
+			sLog.ForceWrite(LogLevel.Alert, builder.ToString());
+
+			// terminate the application immediately
+			if (TerminateProcessOnUnhandledException)
+			{
+				// shut the logging subsystem down to ensure that any buffered messages are processed properly
+				// to avoid loosing messages that might contain information about the incident
+				Shutdown();
+
+				// terminate the application immediately (use windows error reporting, if available)
+				Environment.FailFast("An unhandled exception occurred.", exception);
 			}
 		}
 
