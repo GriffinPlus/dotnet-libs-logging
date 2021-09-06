@@ -59,6 +59,11 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		private readonly Deque<LocalLogMessage> mProcessingQueue = new Deque<LocalLogMessage>();
 
 		/// <summary>
+		/// Event that is signaled to trigger the processing thread.
+		/// </summary>
+		private readonly ManualResetEventSlim mProcessingNeededEvent = new ManualResetEventSlim();
+
+		/// <summary>
 		/// Indicates whether the stage discards messages, if the queue is full (default).
 		/// This should only be disabled for testing purposes as blocking for sending a log message is usually not desirable.
 		/// Synchronized via monitor using <see cref="mProcessingQueue"/>.
@@ -74,6 +79,11 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// Indicates whether the stage is operational.
 		/// </summary>
 		private volatile bool mIsOperational = true;
+
+		/// <summary>
+		/// The processing thread.
+		/// </summary>
+		private Thread mProcessingThread = null;
 
 		/// <summary>
 		/// Cancellation token source that is signaled when the stage is shutting down.
@@ -442,19 +452,25 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		{
 			Debug.Assert(Monitor.IsEntered(Sync));
 			Debug.Assert(mShutdownCancellationTokenSource == null);
+			Debug.Assert(mProcessingThread == null);
+
 			mShutdownCancellationTokenSource = new CancellationTokenSource();
 			mReloadConfiguration = true;
 			mIsShutdownRequested = false;
+			mProcessingThread = new Thread(ProcessingThreadProc) { Name = "Elasticsearch Pipeline Stage Processing Thread" };
+			mProcessingThread.Start(mShutdownCancellationTokenSource.Token);
 		}
 
 		/// <summary>
 		/// Shuts the pipeline stage down when the stage is detached from the logging system.
+		/// The method might also be called to clean up a failed initialization.
 		/// </summary>
 		protected override void OnShutdown()
 		{
 			Debug.Assert(Monitor.IsEntered(Sync));
 			Debug.Assert(mShutdownCancellationTokenSource != null);
 			Debug.Assert(!mShutdownCancellationTokenSource.IsCancellationRequested);
+			Debug.Assert(mProcessingThread != null);
 
 			try
 			{
@@ -462,26 +478,19 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				mIsShutdownRequested = true;
 
 				// cancel hanging operations after some time
-				mShutdownCancellationTokenSource.CancelAfter(MaxProcessingOverrunTimeMs);
+				mShutdownCancellationTokenSource?.CancelAfter(MaxProcessingOverrunTimeMs);
 
 				// release processing thread, so it can terminate, if appropriate
-				mProcessingNeededEvent.Set();
+				mProcessingNeededEvent?.Set();
 
 				// wait for the processing thread to complete
-				while (true)
-				{
-					lock (mProcessingTriggerSync)
-					{
-						if (!mProcessingThreadRunning) break;
-					}
-
-					Thread.Sleep(10);
-				}
+				mProcessingThread?.Join();
 			}
 			finally
 			{
-				mShutdownCancellationTokenSource.Dispose();
+				mShutdownCancellationTokenSource?.Dispose();
 				mShutdownCancellationTokenSource = null;
+				mProcessingThread = null;
 			}
 
 			// discard messages that are still in the processing queue
@@ -499,11 +508,6 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		#endregion
 
 		#region Processing
-
-		// all fields are synchronized using mProcessingTriggerSync
-		private readonly object               mProcessingTriggerSync   = new object();
-		private readonly ManualResetEventSlim mProcessingNeededEvent   = new ManualResetEventSlim();
-		private          bool                 mProcessingThreadRunning = false;
 
 		/// <summary>
 		/// Processes a log message synchronously.
@@ -550,195 +554,165 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// </summary>
 		private void TriggerProcessing()
 		{
-			if (mProcessingNeededEvent.IsSet)
-				return;
-
-			lock (mProcessingTriggerSync)
-			{
+			if (!mProcessingNeededEvent.IsSet)
 				mProcessingNeededEvent.Set();
-				if (mProcessingThreadRunning) return;
-				ThreadPool.QueueUserWorkItem(DoProcessing, mShutdownCancellationTokenSource.Token);
-				mProcessingThreadRunning = true;
-			}
 		}
 
 		/// <summary>
 		/// The entry point of the processing thread that bundles messages and sends them to the Elasticsearch cluster.
 		/// </summary>
 		/// <param name="obj">The cancellation token that is signaled when the stage has exceeded its time to shut down gracefully.</param>
-		private void DoProcessing(object obj)
+		private void ProcessingThreadProc(object obj)
 		{
 			var cancellationToken = (CancellationToken)obj;
+			int forcedWait = 0;
 
 			try
 			{
 				while (true)
 				{
-					// wait for new messages to process
-					if (!mProcessingNeededEvent.Wait(1000, cancellationToken))
+					try
 					{
-						// the processing event has not been signaled for some time
-						// => no new messages to process and no completed send operations
-						// => abort processing thread
-						lock (mProcessingTriggerSync)
+						// wait for something to do
+						// --------------------------------------------------------------------------------------------------------------
+						if (forcedWait == 0) mProcessingNeededEvent.Wait(cancellationToken);
+						else Task.Delay(forcedWait, cancellationToken).WaitAndUnwrapException(cancellationToken);
+						mProcessingNeededEvent.Reset();
+						forcedWait = 0;
+
+						// reload configuration and prepare the http client, if necessary
+						// (ensure there are no send pending operations to avoid mixing up send operations)
+						// --------------------------------------------------------------------------------------------------------------
+						if (mReloadConfiguration && mScheduledSendOperations.Count == 0 && mPendingSendOperations.Count == 0)
+							ReloadConfigurationIfNecessary();
+
+						// abort, if there are no endpoints specified
+						// --------------------------------------------------------------------------------------------------------------
+						if (mEndpoints.Count == 0) continue;
+
+						// process completed send operations
+						// --------------------------------------------------------------------------------------------------------------
+						for (int i = 0; i < mPendingSendOperations.Count; i++)
 						{
-							if (!mProcessingNeededEvent.IsSet)
+							var operation = mPendingSendOperations[i];
+
+							if (operation.HasCompletedSending)
 							{
-								mProcessingThreadRunning = false;
-								return;
-							}
-						}
-					}
+								// the operation has completed
+								mPendingSendOperations.RemoveAt(i--);
 
-					// reset processing event to avoid triggering the next run without data
-					// (the thread drains the processing queue, if possible, before waiting for the processing event again)
-					mProcessingNeededEvent.Reset();
-
-					// reload configuration and prepare the http client, if necessary
-					// (ensure there are no send pending operations to avoid mixing up send operations)
-					// --------------------------------------------------------------------------------------------------------------
-					if (mReloadConfiguration && mScheduledSendOperations.Count == 0 && mPendingSendOperations.Count == 0)
-						ReloadConfigurationIfNecessary();
-
-					// abort, if there are no endpoints specified
-					// --------------------------------------------------------------------------------------------------------------
-					if (mEndpoints.Count == 0) continue;
-
-					// wait some time, if the currently selected endpoint failed recently (calms the processing loop down, if no endpoint is operational)
-					// (the best choice is always at the beginning of the endpoint list, non-operational endpoints are put to the end of the list)
-					// --------------------------------------------------------------------------------------------------------------
-					var endpoint = mEndpoints[0];
-					int ticks = Environment.TickCount;
-					if (!endpoint.IsOperational && ticks - endpoint.ErrorTickCount < RetryEndpointAfterErrorTimeMs)
-					{
-						int delay = RetryEndpointAfterErrorTimeMs - ticks + endpoint.ErrorTickCount;
-						Task.Delay(delay, cancellationToken).WaitAndUnwrapException(cancellationToken);
-					}
-
-					// process completed send operations
-					// --------------------------------------------------------------------------------------------------------------
-					for (int i = 0; i < mPendingSendOperations.Count; i++)
-					{
-						var operation = mPendingSendOperations[i];
-
-						if (operation.HasCompletedSending)
-						{
-							// the operation has completed
-							mPendingSendOperations.RemoveAt(i--);
-
-							if (operation.ProcessSendCompleted())
-							{
-								// the endpoint is operational
-								// (elasticsearch processed the request)
-								SetEndpointOperational(operation.Endpoint, true);
-
-								if (operation.MessageCount == 0)
+								if (operation.ProcessSendCompleted())
 								{
-									// the request was processed entirely
-									// => prepare operation for re-use
-									mFreeSendOperations.AddToBack(operation);
+									// the endpoint is operational
+									// (elasticsearch processed the request)
+									SetEndpointOperational(operation.Endpoint, true);
+
+									if (operation.MessageCount == 0)
+									{
+										// the request was processed entirely
+										// => prepare operation for re-use
+										mFreeSendOperations.AddToBack(operation);
+									}
+									else
+									{
+										// there are still messages left (most probably due to an overload condition)
+										// => enqueue send operation once again to send remaining messages
+										mScheduledSendOperations.AddToFront(operation); // old messages must be sent first!
+									}
 								}
 								else
 								{
-									// there are still messages left (most probably due to an overload condition)
-									// => enqueue send operation once again to send remaining messages
+									// the endpoint is not operational
+									// => try to send the entire request once again using some other endpoint...
+									SetEndpointOperational(operation.Endpoint, false);
 									mScheduledSendOperations.AddToFront(operation); // old messages must be sent first!
 								}
 							}
+						}
+
+						// return to waiting, if the currently selected endpoint failed recently (calms the processing loop down, if no endpoint is operational)
+						// (the best choice is always at the beginning of the endpoint list, non-operational endpoints are put to the end of the list)
+						// --------------------------------------------------------------------------------------------------------------
+						var endpoint = mEndpoints[0];
+						int ticks = Environment.TickCount;
+						if (!endpoint.IsOperational && ticks - endpoint.ErrorTickCount < RetryEndpointAfterErrorTimeMs && !mIsShutdownRequested)
+						{
+							forcedWait = RetryEndpointAfterErrorTimeMs - ticks + endpoint.ErrorTickCount;
+							continue;
+						}
+
+						if (!mReloadConfiguration)
+						{
+							// add messages to send operations (free => scheduled)
+							// --------------------------------------------------------------------------------------------------------------
+							// Try to optimize for different load scenarios:
+							// - low load (not enough messages to fill a request):
+							//   => send only one request at a time (may not be full)
+							//   => latency is determined by the roundtrip time of a bulk request
+							// - high load (enough messages to fill a request):
+							//   => send multiple full requests concurrently
+							//   => throughput is optimized by sending concurrently
+							while (mFreeSendOperations.Count > 0)
+							{
+								// get the first available send operation from the list
+								// (may already contain messages)
+								var operation = mFreeSendOperations[0];
+
+								// add more messages to the request, if it is not full, yet
+								while (true)
+								{
+									var message = DequeueMessage();
+									if (message == null) break;
+									if (!operation.AddMessage(message))
+									{
+										PushMessageBack(message);
+										break;
+									}
+								}
+
+								// abort, if the request buffer does not contain any messages or
+								// the request is not full and there is no request scheduled or already on the line
+								if (operation.MessageCount == 0 || !operation.IsFull && mScheduledSendOperations.Count + mPendingSendOperations.Count != 0)
+									break;
+
+								// schedule the send operation
+								mFreeSendOperations.RemoveFromFront();
+								mScheduledSendOperations.AddToBack(operation);
+							}
+						}
+
+						// start scheduled send operations
+						// --------------------------------------------------------------------------------------------------------------
+						while (mScheduledSendOperations.Count > 0 && mPendingSendOperations.Count < mBulkRequestMaxConcurrencyLevel)
+						{
+							var operation = mScheduledSendOperations[0];
+
+							// start sending the request
+							if (operation.StartSending(endpoint, cancellationToken))
+							{
+								// the send operation was started successfully
+								// => track operation in the 'in progress' list
+								operation = mScheduledSendOperations.RemoveFromFront();
+								mPendingSendOperations.Add(operation);
+							}
 							else
 							{
-								// the endpoint is not operational
-								// => try to send the entire request once again using some other endpoint...
-								SetEndpointOperational(operation.Endpoint, false);
-								mScheduledSendOperations.AddToFront(operation); // old messages must be sent first!
+								// the send operation could not be started
+								// => the endpoint seems to be inoperable
+								// (moves the endpoint to the end of the endpoint list, so the next attempt will use another endpoint)
+								SetEndpointOperational(endpoint, false);
+								break;
 							}
 						}
-					}
 
-					if (!mReloadConfiguration)
-					{
-						// add messages to send operations (free => scheduled)
+						// abort, if shutdown is requested and no send operations are pending
 						// --------------------------------------------------------------------------------------------------------------
-						// Try to optimize for different load scenarios:
-						// - low load (not enough messages to fill a request):
-						//   => send only one request at a time (may not be full)
-						//   => latency is determined by the roundtrip time of a bulk request
-						// - high load (enough messages to fill a request):
-						//   => send multiple full requests concurrently
-						//   => throughput is optimized by sending concurrently
-						while (mFreeSendOperations.Count > 0)
-						{
-							// get the first available send operation from the list
-							// (may already contain messages)
-							var operation = mFreeSendOperations[0];
-
-							// add more messages to the request, if it is not full, yet
-							while (true)
-							{
-								var message = DequeueMessage();
-								if (message == null) break;
-								if (!operation.AddMessage(message))
-								{
-									PushMessageBack(message);
-									break;
-								}
-							}
-
-							// abort, if the request buffer does not contain any messages or
-							// the request is not full and there is no request scheduled or already on the line
-							if (operation.MessageCount == 0 || !operation.IsFull && mScheduledSendOperations.Count + mPendingSendOperations.Count != 0)
-								break;
-
-							// schedule the send operation
-							mFreeSendOperations.RemoveFromFront();
-							mScheduledSendOperations.AddToBack(operation);
-						}
-					}
-
-					// start scheduled send operations
-					// --------------------------------------------------------------------------------------------------------------
-					while (mScheduledSendOperations.Count > 0 && mPendingSendOperations.Count < mBulkRequestMaxConcurrencyLevel)
-					{
-						var operation = mScheduledSendOperations[0];
-
-						// start sending the request
-						if (operation.StartSending(endpoint, cancellationToken))
-						{
-							// the send operation was started successfully
-							// => track operation in the 'in progress' list
-							operation = mScheduledSendOperations.RemoveFromFront();
-							mPendingSendOperations.Add(operation);
-						}
-						else
-						{
-							// the send operation could not be started
-							// => the endpoint seems to be inoperable
-							// (moves the endpoint to the end of the endpoint list, so the next attempt will use another endpoint)
-							SetEndpointOperational(endpoint, false);
+						if (!mReloadConfiguration && mPendingSendOperations.Count == 0 && mIsShutdownRequested)
 							break;
-						}
 					}
-
-					// abort, if there are no send operations pending
-					// (only if reloading the configuration is not pending, otherwise the stage might end up with messages in the
-					// processing queue as there is a chance that the 'processing needed' event is not set any more)
-					// --------------------------------------------------------------------------------------------------------------
-					if (!mReloadConfiguration && mPendingSendOperations.Count == 0)
+					catch (Exception ex) when(!(ex is OperationCanceledException))
 					{
-						if (mIsShutdownRequested)
-						{
-							// the stage is shutting down
-							// => let the processing thread exit...
-							lock (mProcessingTriggerSync)
-							{
-								mProcessingThreadRunning = false;
-								break;
-							}
-						}
-
-						// normal operation
-						// => return to waiting for more messages...
-						continue;
+						WritePipelineError("Unhandled exception in ProcessingThreadProc().", ex);
 					}
 				}
 			}
@@ -747,20 +721,22 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				// the stage is shutting down and the processing thread has exceeded its overrun time
 				Debug.Assert(ex.CancellationToken == cancellationToken);
 
-				// reset send operations
-				foreach (var operation in mFreeSendOperations) operation.Reset();
-				foreach (var operation in mScheduledSendOperations) operation.Reset();
-				foreach (var operation in mPendingSendOperations) operation.Reset();
-
-				// let the processing thread exit...
-				lock (mProcessingTriggerSync)
+				// put scheduled send operations back into the list of free send operations...
+				foreach (var operation in mScheduledSendOperations)
 				{
-					mProcessingThreadRunning = false;
+					operation.Reset();
+					mFreeSendOperations.AddToBack(operation);
 				}
-			}
-			catch (Exception ex)
-			{
-				WritePipelineError("Unhandled exception in DoProcessing().", ex);
+
+				// put pending send operations back into the list of free send operations...
+				foreach (var operation in mPendingSendOperations)
+				{
+					operation.Reset();
+					mFreeSendOperations.AddToBack(operation);
+				}
+
+				// ... and reset send operations
+				foreach (var operation in mFreeSendOperations) operation.Reset();
 			}
 		}
 
