@@ -1,11 +1,39 @@
 # Changelog
 ---
 
+## Release v4.0.3
+
+### Bugfixes
+
+#### Fix issue with cancellation on shutdown in `ElasticsearchPipelineStage`
+
+If the `ElasticsearchPipelineStage` does not complete shutting down within 30 seconds, a cancellation token is signaled to cancel pending send operations. This could lead to an `OperationAbortedException` to be thrown before the send tasks have actually been set to completed. Disposing these incomplete tasks as part of the cleanup procedure could throw an exception as well.
+
+#### Fix generation of registry snippet in `WindowsSystemLogger` class
+
+The system logger now writes the correct registry snippet to register the appropriate log source to the Windows event log.
+
+#### Fix using dedicated thread in `AsyncProcessingPipelineStage` class
+
+The pipeline stage created a dedicated thread at startup, but lost it after awaiting the first task. The thread always continued on a worker thread. The pipeline stage now creates a dedicated thread with its own synchronization context, so execution can continue on that thread - provided that `ConfigureAwait(false)` *is not* used which allows the continuation to run on a worker thread.
+
+### Other Changes
+
+#### Optimization of memory usage of `ElasticsearchPipelineStage`
+
+Replaced `MemoryStream` with `MemoryBlockStream` in `ElasticsearchPipelineStage`. The `MemoryBlockStream` rents buffers from the application's array pool. When there is nothing to do, all buffers are returned to the pool. This reduces the memory consumption in times with less log traffic. Buffers are 80 KiB in size, so they are allocated on the regular heap, not on the large object heap. Not using the large object heap is always a good idea, because objects on this heap are collected rarely and the heap is not compacted which can cause heap fragmentation issues.
+
+#### Using dedicated processing thread in `ElasticsearchPipelineStage`
+
+The pipeline stage used thread pool threads to do any processing. This is usually the way with the best throughput as the thread pool tries to limit the number of threads to the number of cores to minimize context switches. Queuing work for a thread pool thread is rather cheap, but the overhead to handle this was not. As a mitigation the processing thread was kept for some time to process additional work. Putting a thread pool thread asleep lets the cpu core associated with it sleep as well. This could lead to significant performance loss. Using a dedicated thread introduces additional context switches, but this seems to have less impact than putting a CPU core asleep.
+
+---
+
 ## Release v4.0.2
 
 ### Bugfixes
 
-- Fix unexpected disposal of content stream along with the send task of the ElasticsearchPipelineStage
+- Fix unexpected disposal of content stream along with the send task of the `ElasticsearchPipelineStage`
 
 ---
 
@@ -13,8 +41,8 @@
 
 ### Bugfixes
 
-- Remove explicit reference to System.Net.Http in ElasticsearchPipelineStage project
-- Fix ElasticsearchPipelineStage shutting down too early
+- Remove explicit reference to System.Net.Http in `ElasticsearchPipelineStage` project
+- Fix `ElasticsearchPipelineStage` shutting down too early
 
 ---
 
