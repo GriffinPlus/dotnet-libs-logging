@@ -457,7 +457,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			mShutdownCancellationTokenSource = new CancellationTokenSource();
 			mReloadConfiguration = true;
 			mIsShutdownRequested = false;
-			mProcessingThread = new Thread(ProcessingThreadProc) { Name = "Elasticsearch Pipeline Stage Processing Thread" };
+			mProcessingThread = new Thread(ProcessingThreadProc) { Name = "Elasticsearch Pipeline Stage Processing Thread", IsBackground = true };
 			mProcessingThread.Start(mShutdownCancellationTokenSource.Token);
 		}
 
