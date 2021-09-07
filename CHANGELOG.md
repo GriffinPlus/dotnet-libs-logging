@@ -1,6 +1,24 @@
 # Changelog
 ---
 
+## Release v4.0.4
+
+### Other Changes
+
+#### Logging unhandled exceptions using the system logger
+
+An application usually terminates when unhandled exceptions occur. Log messages buffered in stages might get lost in this case. These exceptions are now logged using the system logger and the configured pipeline stages to allow further investigation. After logging the incident the logging subsystem is shut down gracefully and the process is terminated. Terminating the process can be disabled by setting the `TerminateProcessOnUnhandledException` property of the `Log` class to `false`.
+
+#### Report not shutting down gracefully to system log
+
+Some pipeline stages need some time to process buffered messages, so exiting the process without shutting down gracefully can result in message loss.
+
+#### `ElasticsearchPipelineStage` does not block process exit, if not shut down gracefully
+
+Formerly a foreground thread was used for processing. The foreground thread could keep the process from exiting, if the pipeline stage was not shut down gracefully at the end.
+
+---
+
 ## Release v4.0.3
 
 ### Bugfixes
