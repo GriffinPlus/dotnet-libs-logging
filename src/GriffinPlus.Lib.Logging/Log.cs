@@ -292,6 +292,16 @@ namespace GriffinPlus.Lib.Logging
 						pipeline.ProcessMessage(message);
 					}
 				}
+				catch (Exception ex)
+				{
+					// log to system log
+					var builder = new StringBuilder();
+					builder.AppendLine("Processing a log message failed unexpectedly.");
+					builder.AppendLine();
+					builder.AppendLine("Exception:");
+					builder.AppendLine(LogWriter.UnwrapException(ex));
+					SystemLogger.WriteError(builder.ToString());
+				}
 				finally
 				{
 					// let the message return to the pool
