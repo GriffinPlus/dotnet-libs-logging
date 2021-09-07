@@ -48,8 +48,9 @@ namespace GriffinPlus.Lib.Logging
 				ProcessingPipeline = new ConsoleWriterPipelineStage("Console") { IsDefaultStage = true };
 			}
 
-			// register handler for unhandled exceptions
+			// register handler for unhandled exceptions and process exit
 			AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+			AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 		}
 
 		/// <summary>
@@ -495,9 +496,29 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Is called when the process exits.
+		/// </summary>
+		/// <param name="sender">The AppDomain that exited.</param>
+		/// <param name="e">Not used.</param>
+		private static void OnProcessExit(object sender, EventArgs e)
+		{
+			lock (Sync)
+			{
+				if (sProcessingPipeline != null && sProcessingPipeline.IsInitialized)
+				{
+					// report the incident using the system logger
+					var builder = new StringBuilder();
+					builder.AppendLine("The logging subsystem has not been shut down properly before the application exited.");
+					builder.AppendLine("You should call Log.Shutdown() to shutdown the logging subsystem gracefully to avoid loosing messages.");
+					SystemLogger.WriteError(builder.ToString());
+				}
+			}
+		}
+
+		/// <summary>
 		/// Is called when an exception is not caught.
 		/// </summary>
-		/// <param name="sender">The source of the unhandled exception event.</param>
+		/// <param name="sender">The source of the unhandled exception event (may be null on some frameworks).</param>
 		/// <param name="e">An <see cref="UnhandledExceptionEventArgs"/> that contains the event data.</param>
 		private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
