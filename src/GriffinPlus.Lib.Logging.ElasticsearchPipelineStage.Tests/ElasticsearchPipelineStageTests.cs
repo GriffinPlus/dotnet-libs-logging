@@ -174,9 +174,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			// the corresponding stage property should reflect the default setting
 			Assert.Equal(expectedSendQueueSize, stage.SendQueueSize);
 
-			// the stage should be operational at start
+			// the stage should be in-operational at start
 			// ------------------------------------------------------------------------------------
-			Assert.True(stage.IsOperational);
+			Assert.False(stage.IsOperational);
 		}
 
 		#endregion
@@ -211,7 +211,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			// initialize the stage
 			((IProcessingPipelineStage)stage).Initialize();
 			Assert.True(stage.IsInitialized);
-			Assert.True(stage.IsOperational);
+			Assert.False(stage.IsOperational);
 			Assert.Equal(Setting_Server_ApiBaseUrls, stage.ApiBaseUrls);
 			Assert.Equal(Setting_Server_Authentication_Schemes, stage.AuthenticationSchemes);
 			Assert.Equal(Setting_Server_Authentication_Username, stage.Username);

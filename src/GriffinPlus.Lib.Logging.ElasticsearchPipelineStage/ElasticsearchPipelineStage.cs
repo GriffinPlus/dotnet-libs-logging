@@ -78,7 +78,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <summary>
 		/// Indicates whether the stage is operational.
 		/// </summary>
-		private volatile bool mIsOperational = true;
+		private volatile bool mIsOperational = false;
 
 		/// <summary>
 		/// The processing thread.
@@ -457,6 +457,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			mShutdownCancellationTokenSource = new CancellationTokenSource();
 			mReloadConfiguration = true;
 			mIsShutdownRequested = false;
+			mIsOperational = false;
 			mProcessingThread = new Thread(ProcessingThreadProc) { Name = "Elasticsearch Pipeline Stage Processing Thread", IsBackground = true };
 			mProcessingThread.Start(mShutdownCancellationTokenSource.Token);
 		}
@@ -477,8 +478,13 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				// tell the processing thread to shut down
 				mIsShutdownRequested = true;
 
-				// cancel hanging operations after some time
-				mShutdownCancellationTokenSource?.CancelAfter(MaxProcessingOverrunTimeMs);
+				// cancel hanging operations after some time if the stage is operational,
+				// otherwise cancel the processing thread immediately to avoid hanging unnecessarily
+				if (mShutdownCancellationTokenSource != null)
+				{
+					if (mIsOperational) mShutdownCancellationTokenSource.CancelAfter(MaxProcessingOverrunTimeMs);
+					else mShutdownCancellationTokenSource.Cancel();
+				}
 
 				// release processing thread, so it can terminate, if appropriate
 				mProcessingNeededEvent?.Set();
@@ -710,7 +716,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						if (!mReloadConfiguration && mPendingSendOperations.Count == 0 && mIsShutdownRequested)
 							break;
 					}
-					catch (Exception ex) when(!(ex is OperationCanceledException))
+					catch (Exception ex) when (!(ex is OperationCanceledException))
 					{
 						WritePipelineError("Unhandled exception in ProcessingThreadProc().", ex);
 					}
@@ -772,10 +778,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 				// rebuild request URLs
 				mEndpoints.Clear();
-				foreach (var apiBaseUrl in ApiBaseUrls)
-				{
-					mEndpoints.AddToBack(new EndpointInfo(apiBaseUrl));
-				}
+				foreach (var apiBaseUrl in ApiBaseUrls) mEndpoints.AddToBack(new EndpointInfo(apiBaseUrl));
+				mIsOperational = mEndpoints.Any(x => x.IsOperational);
 
 				// initialize send operations (requests are prepared while other requests are on the line, so the number
 				// of send operations must be one element greater than the number of concurrent send operations)
