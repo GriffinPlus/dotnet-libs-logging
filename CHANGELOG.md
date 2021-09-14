@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release v4.0.5
+
+### Bugfixes
+
+#### Fix shutting down elasticsearch pipeline stage when endpoint is not available
+
+If no elasticsearch endpoint was available the processing thread went to sleep before trying again. In this case the pipeline stage did not shut down until the shutdown timeout elapsed causing an unnecessary delay of 30 seconds.
+
+---
+
 ## Release v4.0.4
 
 ### Other Changes
