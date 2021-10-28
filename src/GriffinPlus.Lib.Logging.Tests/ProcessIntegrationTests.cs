@@ -17,6 +17,8 @@ using GriffinPlus.Lib.Threading;
 
 using Xunit;
 
+// ReSharper disable AccessToDisposedClosure
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -184,125 +186,124 @@ namespace GriffinPlus.Lib.Logging
 				File.WriteAllText(testDataFile, data.Item1, Encoding.UTF8);
 
 				// set up the process integration for running the console printer process
-				var integration = PrepareConsolePrinterIntegration(stream, testDataFile);
-				integration.IsLoggingMessagesEnabled = false;
-
-				var stdoutReceivedText = new StringBuilder();
-				var stdoutReceivedMessages = new List<ILogMessage>();
-				var stdoutTextFinishedEvent = new AsyncManualResetEvent();
-				var stdoutMessageFinishedEvent = new AsyncManualResetEvent();
-
-				var stderrReceivedText = new StringBuilder();
-				var stderrReceivedMessages = new List<ILogMessage>();
-				var stderrTextFinishedEvent = new AsyncManualResetEvent();
-				var stderrMessageFinishedEvent = new AsyncManualResetEvent();
-
-				// run processing in a thread that supports marshalling calls into it
-				// to avoid that event handlers are called out of order by pool threads
-				var thread = new AsyncContextThread();
-				thread.Factory.Run(
-						async () =>
-						{
-							integration.OutputStreamReceivedText += (sender, args) =>
-							{
-								// abort, if the process has exited
-								if (args.Line == null)
-								{
-									stdoutTextFinishedEvent.Set();
-									return;
-								}
-
-								stdoutReceivedText.Append(args.Line);
-								stdoutReceivedText.Append(newline);
-							};
-
-							integration.OutputStreamReceivedMessage += (sender, args) =>
-							{
-								// abort, if the process has exited
-								if (args.Message == null)
-								{
-									stdoutMessageFinishedEvent.Set();
-									return;
-								}
-
-								stdoutReceivedMessages.Add(args.Message);
-							};
-
-							integration.ErrorStreamReceivedText += (sender, args) =>
-							{
-								// abort, if the process has exited
-								if (args.Line == null)
-								{
-									stderrTextFinishedEvent.Set();
-									return;
-								}
-
-								stderrReceivedText.Append(args.Line);
-								stderrReceivedText.Append(newline);
-							};
-
-							integration.ErrorStreamReceivedMessage += (sender, args) =>
-							{
-								// abort, if the process has exited
-								if (args.Message == null)
-								{
-									stderrMessageFinishedEvent.Set();
-									return;
-								}
-
-								stderrReceivedMessages.Add(args.Message);
-							};
-
-							// start process
-							integration.StartProcess();
-
-							// run the various WaitForExit[Async] methods
-							// (some may return before the process has actually exited)
-							await waitForExit(integration);
-
-							// wait for all event handlers to receive the terminating event arguments
-							// (abort after 30 seconds)
-							using (var cts = new CancellationTokenSource(30000))
-							{
-								await stdoutTextFinishedEvent.WaitAsync(cts.Token);
-								await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
-								await stderrTextFinishedEvent.WaitAsync(cts.Token);
-								await stderrMessageFinishedEvent.WaitAsync(cts.Token);
-							}
-						})
-					.WaitAndUnwrapException();
-
-				if (stream == "stdout")
+				using (var integration = PrepareConsolePrinterIntegration(stream, testDataFile))
 				{
-					// stderr should not have received anything
-					Assert.Equal(0, stderrReceivedText.Length);
-					Assert.Empty(stderrReceivedMessages);
+					integration.IsLoggingMessagesEnabled = false;
 
-					// stdout should have received the text emitted by the console printer...
-					Assert.Equal(data.Item1.Length, stdoutReceivedText.Length);
-					Assert.Equal(data.Item1, stdoutReceivedText.ToString());
+					var stdoutReceivedText = new StringBuilder();
+					var stdoutReceivedMessages = new List<ILogMessage>();
+					var stdoutTextFinishedEvent = new AsyncManualResetEvent();
+					var stdoutMessageFinishedEvent = new AsyncManualResetEvent();
 
-					// ... and the text should have been parsed into log messages
-					Assert.Equal(data.Item2.Length, stdoutReceivedMessages.Count);
-					Assert.Equal(data.Item2, stdoutReceivedMessages.ToArray());
+					var stderrReceivedText = new StringBuilder();
+					var stderrReceivedMessages = new List<ILogMessage>();
+					var stderrTextFinishedEvent = new AsyncManualResetEvent();
+					var stderrMessageFinishedEvent = new AsyncManualResetEvent();
+
+					// run processing in a thread that supports marshalling calls into it
+					// to avoid that event handlers are called out of order by pool threads
+					var thread = new AsyncContextThread();
+					thread.Factory.Run(
+							async () =>
+							{
+								integration.OutputStreamReceivedText += (sender, args) =>
+								{
+									// abort, if the process has exited
+									if (args.Line == null)
+									{
+										stdoutTextFinishedEvent.Set();
+										return;
+									}
+
+									stdoutReceivedText.Append(args.Line);
+									stdoutReceivedText.Append(newline);
+								};
+
+								integration.OutputStreamReceivedMessage += (sender, args) =>
+								{
+									// abort, if the process has exited
+									if (args.Message == null)
+									{
+										stdoutMessageFinishedEvent.Set();
+										return;
+									}
+
+									stdoutReceivedMessages.Add(args.Message);
+								};
+
+								integration.ErrorStreamReceivedText += (sender, args) =>
+								{
+									// abort, if the process has exited
+									if (args.Line == null)
+									{
+										stderrTextFinishedEvent.Set();
+										return;
+									}
+
+									stderrReceivedText.Append(args.Line);
+									stderrReceivedText.Append(newline);
+								};
+
+								integration.ErrorStreamReceivedMessage += (sender, args) =>
+								{
+									// abort, if the process has exited
+									if (args.Message == null)
+									{
+										stderrMessageFinishedEvent.Set();
+										return;
+									}
+
+									stderrReceivedMessages.Add(args.Message);
+								};
+
+								// start process
+								integration.StartProcess();
+
+								// run the various WaitForExit[Async] methods
+								// (some may return before the process has actually exited)
+								await waitForExit(integration);
+
+								// wait for all event handlers to receive the terminating event arguments
+								// (abort after 30 seconds)
+								using (var cts = new CancellationTokenSource(30000))
+								{
+									await stdoutTextFinishedEvent.WaitAsync(cts.Token);
+									await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
+									await stderrTextFinishedEvent.WaitAsync(cts.Token);
+									await stderrMessageFinishedEvent.WaitAsync(cts.Token);
+								}
+							})
+						.WaitAndUnwrapException();
+
+					if (stream == "stdout")
+					{
+						// stderr should not have received anything
+						Assert.Equal(0, stderrReceivedText.Length);
+						Assert.Empty(stderrReceivedMessages);
+
+						// stdout should have received the text emitted by the console printer...
+						Assert.Equal(data.Item1.Length, stdoutReceivedText.Length);
+						Assert.Equal(data.Item1, stdoutReceivedText.ToString());
+
+						// ... and the text should have been parsed into log messages
+						Assert.Equal(data.Item2.Length, stdoutReceivedMessages.Count);
+						Assert.Equal(data.Item2, stdoutReceivedMessages.ToArray());
+					}
+					else
+					{
+						// stdout should not have received anything
+						Assert.Equal(0, stdoutReceivedText.Length);
+						Assert.Empty(stdoutReceivedMessages);
+
+						// stderr should have received the text emitted by the console printer...
+						Assert.Equal(data.Item1.Length, stderrReceivedText.Length);
+						Assert.Equal(data.Item1, stderrReceivedText.ToString());
+
+						// ... and the text should have been parsed into log messages
+						Assert.Equal(data.Item2.Length, stderrReceivedMessages.Count);
+						Assert.Equal(data.Item2, stderrReceivedMessages.ToArray());
+					}
 				}
-				else
-				{
-					// stdout should not have received anything
-					Assert.Equal(0, stdoutReceivedText.Length);
-					Assert.Empty(stdoutReceivedMessages);
-
-					// stderr should have received the text emitted by the console printer...
-					Assert.Equal(data.Item1.Length, stderrReceivedText.Length);
-					Assert.Equal(data.Item1, stderrReceivedText.ToString());
-
-					// ... and the text should have been parsed into log messages
-					Assert.Equal(data.Item2.Length, stderrReceivedMessages.Count);
-					Assert.Equal(data.Item2, stderrReceivedMessages.ToArray());
-				}
-
-				// keep integration object alive to avoid premature collection
-				GC.KeepAlive(integration);
 			}
 			finally
 			{

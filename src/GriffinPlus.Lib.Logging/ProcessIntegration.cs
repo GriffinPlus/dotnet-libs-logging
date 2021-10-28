@@ -20,12 +20,13 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A class that assists with redirecting output/error streams into the Griffin+ logging subsystem.
 	/// </summary>
-	public partial class ProcessIntegration
+	public partial class ProcessIntegration : IDisposable
 	{
 		private readonly JsonMessageReader mOutputMessageReader = new JsonMessageReader();
 		private readonly JsonMessageReader mErrorMessageReader  = new JsonMessageReader();
 		private          bool              mSyncingOutputMessageReader;
 		private          bool              mSyncingErrorMessageReader;
+		private          bool              mDisposed;
 
 		/// <summary>
 		/// Occurs when the integrated process has written a line to its output stream.
@@ -124,6 +125,7 @@ namespace GriffinPlus.Lib.Logging
 			Process.StartInfo.RedirectStandardInput = true;
 			Process.StartInfo.RedirectStandardOutput = true;
 			Process.StartInfo.RedirectStandardError = true;
+			Process.EnableRaisingEvents = true;
 			Process.ErrorDataReceived += ProcessErrorDataReceived;
 			Process.OutputDataReceived += ProcessOutputDataReceived;
 
@@ -136,6 +138,19 @@ namespace GriffinPlus.Lib.Logging
 				string filename = process.StartInfo.FileName;
 				string name = Path.GetFileName(filename);
 				LogWriter = Log.GetWriter($"External Process ({name})");
+			}
+		}
+
+		/// <summary>
+		/// Disposes the process releasing associated resources.
+		/// </summary>
+		public void Dispose()
+		{
+			if (!mDisposed)
+			{
+				Process?.WaitForExit();
+				Process?.Dispose();
+				mDisposed = true;
 			}
 		}
 
