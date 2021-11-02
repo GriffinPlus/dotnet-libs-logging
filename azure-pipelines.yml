@@ -6,10 +6,8 @@
 # The pipeline runs unit tests on the following target frameworks and platforms:
 #
 # - Windows Server 2019, .NET 4.6.1      (net461)
-# - Windows Server 2019, .NET Core 2.1   (netcoreapp2.1)
 # - Windows Server 2019, .NET Core 3.1   (netcoreapp3.1)
 # - Windows Server 2019, .NET 5.0        (net5.0, no platform specific TPMs)
-# - Ubuntu 20.04,        .NET Core 2.1   (netcoreapp2.1)
 # - Ubuntu 20.04,        .NET Core 3.1   (netcoreapp3.1)
 # - Ubuntu 20.04,        .NET 5.0        (net5.0, no platform specific TPMs)
 #
@@ -172,13 +170,6 @@ stages:
         projects: '**/*Tests/*.csproj'
         nobuild: true
         arguments: '--framework net461 --verbosity normal'
-    - task: DotNetCoreCLI@2
-      displayName: 'Test .NET Core 2.1'
-      inputs:
-        command: 'test'
-        projects: '**/*Tests/*.csproj'
-        nobuild: true
-        arguments: '--framework netcoreapp2.1 --verbosity normal'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 3.1'
       inputs:

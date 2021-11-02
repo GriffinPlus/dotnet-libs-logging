@@ -150,13 +150,6 @@ stages:
         nobuild: true
         arguments: '--framework net461 --verbosity normal'
     - task: DotNetCoreCLI@2
-      displayName: 'Test .NET Core 2.1'
-      inputs:
-        command: 'test'
-        projects: '**/*Tests/*.csproj'
-        nobuild: true
-        arguments: '--framework netcoreapp2.1 --verbosity normal'
-    - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 3.1'
       inputs:
         command: 'test'
