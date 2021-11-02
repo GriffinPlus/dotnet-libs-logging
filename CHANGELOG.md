@@ -1,6 +1,20 @@
 # Changelog
 ---
 
+## Release v4.0.6
+
+### Bugfixes
+
+#### Fix patching assembly info
+
+Azure pipelines did not patch the correct assembly information files, so all assemblies had version `0.0.0.0`.
+
+#### Fix `ProcessIntegration` creating zombie processes
+
+The `ProcessIntegration` class implements IDisposable now. Disposing an `ProcessIntegration` object waits for the process to exit and cleans up the associated `Process` object. This should avoid generating zombie processes on linux.
+
+---
+
 ## Release v4.0.5
 
 ### Bugfixes
