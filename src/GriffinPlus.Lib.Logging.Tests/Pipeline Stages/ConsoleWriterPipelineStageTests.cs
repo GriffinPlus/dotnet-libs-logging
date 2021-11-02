@@ -143,6 +143,7 @@ namespace GriffinPlus.Lib.Logging
 			var stage = CreateStage("Console");
 			((IProcessingPipelineStage)stage).Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.MapLogLevelToStream(LogLevel.Notice, ConsoleOutputStream.Stdout));
+			((IProcessingPipelineStage)stage).Shutdown();
 		}
 
 		/// <summary>
@@ -185,6 +186,7 @@ namespace GriffinPlus.Lib.Logging
 			var stage = CreateStage("Console");
 			((IProcessingPipelineStage)stage).Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.StreamByLevelOverrides = new Dictionary<LogLevel, ConsoleOutputStream>());
+			((IProcessingPipelineStage)stage).Shutdown();
 		}
 
 		/// <summary>
