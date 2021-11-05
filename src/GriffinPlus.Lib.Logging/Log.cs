@@ -7,7 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -361,6 +363,8 @@ namespace GriffinPlus.Lib.Logging
 			return writer;
 		}
 
+		private static readonly Regex sExtractGenericArgumentTypeRegex = new Regex("^([^`]+)`\\d+$", RegexOptions.Compiled);
+
 		/// <summary>
 		/// Gets a log writer for the specified type that can be used to write to the log
 		/// (the full name of the type becomes the name of the log writer).
@@ -369,7 +373,42 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested log writer.</returns>
 		public static LogWriter GetWriter(Type type)
 		{
-			return GetWriter(type.FullName);
+			void AppendName(StringBuilder sb, DecomposedType dt)
+			{
+				var typeInfo = dt.Type.GetTypeInfo();
+				if (typeInfo.IsGenericTypeDefinition)
+				{
+					Debug.Assert(typeInfo.FullName != null, "typeInfo.FullName != null");
+					var match = sExtractGenericArgumentTypeRegex.Match(typeInfo.FullName);
+					sb.Append(match.Groups[1].Value);
+					sb.Append('<');
+					if (dt.GenericTypeArguments.Count > 0)
+					{
+						// a generic type
+						for (int i = 0; i < dt.GenericTypeArguments.Count; i++)
+						{
+							if (i > 0) sb.Append(',');
+							AppendName(sb, dt.GenericTypeArguments[i]);
+						}
+					}
+					else
+					{
+						// a generic type definition
+						sb.Append(new string(',', typeInfo.GenericTypeParameters.Length - 1));
+					}
+
+					sb.Append('>');
+				}
+				else
+				{
+					sb.Append(typeInfo.FullName);
+				}
+			}
+
+			var types = type.Decompose();
+			var builder = new StringBuilder();
+			AppendName(builder, types);
+			return GetWriter(builder.ToString());
 		}
 
 		/// <summary>
@@ -380,7 +419,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested log writer.</returns>
 		public static LogWriter GetWriter<T>()
 		{
-			return GetWriter(typeof(T).FullName);
+			return GetWriter(typeof(T));
 		}
 
 		/// <summary>

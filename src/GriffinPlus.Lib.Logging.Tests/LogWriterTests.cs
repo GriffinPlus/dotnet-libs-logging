@@ -4,6 +4,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using Xunit;
 
@@ -15,6 +17,9 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogWriterTests
 	{
+		/// <summary>
+		/// Tests creating a <see cref="LogWriter"/> via the <see cref="Log.GetWriter(string)"/> method.
+		/// </summary>
 		[Fact]
 		public void Creating_New_LogWriter_By_Name()
 		{
@@ -23,20 +28,61 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(name, writer.Name);
 		}
 
-		[Fact]
-		public void Creating_New_LogWriter_By_Type_Parameter()
+		public static IEnumerable<object[]> LogWriterCreationTestData1
 		{
-			var writer = Log.GetWriter(typeof(LogWriterTests));
-			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
+			get
+			{
+				// NOTE: The generic GetWriter<>() method does not support generic type definitions
+				yield return new object[] { typeof(LogWriterTests), "GriffinPlus.Lib.Logging.LogWriterTests" };
+				yield return new object[] { typeof(List<int>), "System.Collections.Generic.List<System.Int32>" };
+				yield return new object[] { typeof(Dictionary<int, string>), "System.Collections.Generic.Dictionary<System.Int32,System.String>" };
+			}
 		}
 
-		[Fact]
-		public void Creating_New_LogWriter_By_Generic_Type_Parameter()
+		/// <summary>
+		/// Tests creating a <see cref="LogWriter"/> via the <see cref="Log.GetWriter{Type}"/> method.
+		/// </summary>
+		/// <param name="type">Type to derive the name of the log writer from.</param>
+		/// <param name="expectedName">The expected name of the created log writer.</param>
+		[Theory]
+		[MemberData(nameof(LogWriterCreationTestData1))]
+		public void Creating_New_LogWriter_By_Generic_Type_Parameter(Type type, string expectedName)
 		{
-			var writer = Log.GetWriter<LogWriterTests>();
-			Assert.Equal(typeof(LogWriterTests).FullName, writer.Name);
+			var method = typeof(Log)
+				.GetMethods()
+				.Single(x => x.Name == nameof(Log.GetWriter) && x.IsGenericMethod && x.GetGenericArguments().Length == 1)
+				.MakeGenericMethod(type);
+
+			var writer = (LogWriter)method.Invoke(null, null);
+			Assert.Equal(expectedName, writer.Name);
 		}
 
+		public static IEnumerable<object[]> LogWriterCreationTestData2
+		{
+			get
+			{
+				foreach (var item in LogWriterCreationTestData1) yield return item;
+				yield return new object[] { typeof(List<>), "System.Collections.Generic.List<>" };
+				yield return new object[] { typeof(Dictionary<,>), "System.Collections.Generic.Dictionary<,>" };
+			}
+		}
+
+		/// <summary>
+		/// Tests creating a <see cref="LogWriter"/> via the <see cref="Log.GetWriter(Type)"/> method.
+		/// </summary>
+		/// <param name="type">Type to derive the name of the log writer from.</param>
+		/// <param name="expectedName">The expected name of the created log writer.</param>
+		[Theory]
+		[MemberData(nameof(LogWriterCreationTestData2))]
+		public void Creating_New_LogWriter_By_Type_Parameter(Type type, string expectedName)
+		{
+			var writer = Log.GetWriter(type);
+			Assert.Equal(expectedName, writer.Name);
+		}
+
+		/// <summary>
+		/// Tests whether calling <see cref="Log.GetWriter(string)"/> twice returns the same <see cref="LogWriter"/> instance.
+		/// </summary>
 		[Fact]
 		public void LogWriters_Should_be_Singleton_Instances()
 		{
@@ -46,6 +92,10 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Same(writer1, writer2);
 		}
 
+		/// <summary>
+		/// Tests creating a tagging <see cref="LogWriter"/> via <see cref="LogWriter.WithTag"/> and checks its integrity.
+		/// The tag was not assigned before.
+		/// </summary>
 		[Fact]
 		public void WithTag_TagWasNotAssignedBefore()
 		{
@@ -58,6 +108,10 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(new TagSet(tag), writer2.Tags);
 		}
 
+		/// <summary>
+		/// Tests creating a tagging <see cref="LogWriter"/> via <see cref="LogWriter.WithTag"/> and checks its integrity.
+		/// The tag was assigned before.
+		/// </summary>
 		[Fact]
 		public void WithTag_TagWasAssignedBefore()
 		{
@@ -70,6 +124,9 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(new TagSet(tag), writer2.Tags);
 		}
 
+		/// <summary>
+		/// Tests whether <see cref="LogWriter.WithTag"/> returns the same <see cref="LogWriter"/> instance, if no tags are specified.
+		/// </summary>
 		[Fact]
 		public void WithTag_TagIsNull()
 		{
@@ -82,6 +139,10 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Empty(writer2.Tags);
 		}
 
+		/// <summary>
+		/// Tests creating a tagging <see cref="LogWriter"/> via <see cref="LogWriter.WithTags"/> and checks its integrity.
+		/// The tags were not assigned before.
+		/// </summary>
 		[Fact]
 		public void WithTags_TagsWereNotAssignedBefore()
 		{
@@ -95,6 +156,10 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(new TagSet(tag1, tag2), writer2.Tags);
 		}
 
+		/// <summary>
+		/// Tests creating a tagging <see cref="LogWriter"/> via <see cref="LogWriter.WithTags"/> and checks its integrity.
+		/// The tags were assigned before.
+		/// </summary>
 		[Fact]
 		public void WithTags_TagsWereAssignedBefore()
 		{
@@ -108,6 +173,9 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(new TagSet(tag1, tag2), writer2.Tags);
 		}
 
+		/// <summary>
+		/// Tests whether <see cref="LogWriter.WithTags"/> returns the same <see cref="LogWriter"/> instance, if no tags (<c>null</c>) are specified.
+		/// </summary>
 		[Fact]
 		public void WithTags_TagsIsNull()
 		{
