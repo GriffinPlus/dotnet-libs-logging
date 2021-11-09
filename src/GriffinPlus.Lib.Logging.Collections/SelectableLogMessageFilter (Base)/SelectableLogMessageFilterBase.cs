@@ -25,6 +25,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		where TMessage : class, ILogMessage
 		where TUnfilteredCollection : LogMessageCollectionBase<TMessage>
 	{
+		private bool mStaticItemsWereAdded;
+
 		/// <summary>
 		/// The filtered collection.
 		/// </summary>
@@ -43,9 +45,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 			ProcessNameFilter = new ItemFilter<string>(this, "", StringComparer.OrdinalIgnoreCase);
 			ProcessIdFilter = new ItemFilter<int>(this, "", Comparer<int>.Default);
 			TextFilter = new FulltextFilter(this);
-
-			// populate the log level filter with predefined log levels that always remain in the filter (static items)
-			LogLevelFilter.AddStaticItems(LogLevel.PredefinedLogLevels.Select(x => x.Name), PredefinedLogLevelGroup);
 		}
 
 		/// <summary>
@@ -240,6 +239,12 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		ISelectableLogMessageFilter_ItemFilter<string> ISelectableLogMessageFilter<TMessage>.LogLevelFilter => LogLevelFilter;
 
+		/// <summary>
+		/// Gets the predefined log levels that should be added as static items to <see cref="LogLevelFilter"/>.
+		/// The log levels are added to the item filter when the filter is attached to a collection the first time.
+		/// </summary>
+		protected virtual IEnumerable<string> PredefinedLogLevels => LogLevel.PredefinedLogLevels.Select(x => x.Name);
+
 		#endregion
 
 		#region TagFilter
@@ -336,6 +341,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// reset all filters to defaults
 			Reset();
+
+			// populate the log level filter with predefined log levels that always remain in the filter (static items)
+			if (!mStaticItemsWereAdded)
+			{
+				LogLevelFilter.AddStaticItems(PredefinedLogLevels, PredefinedLogLevelGroup);
+				mStaticItemsWereAdded = true;
+			}
 
 			// set new collection
 			Collection = collectionToAttach;
