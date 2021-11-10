@@ -24,15 +24,15 @@ namespace GriffinPlus.Lib.Logging.Collections
 		public partial class ItemFilter<T> : FilterBase, ISelectableLogMessageFilter_ItemFilter<T>
 			where T : IEquatable<T>
 		{
-			private readonly List<ISelectableLogMessageFilter_Item<T>>                 mStaticItems;
-			private readonly List<ISelectableLogMessageFilter_Item<T>>                 mSortedItems;
-			private readonly ObservableCollection<ISelectableLogMessageFilter_Item<T>> mCombinedItems;
-			private readonly HashSet<T>                                                mAllValues;
-			private readonly HashSet<T>                                                mEnabledValues;
-			private readonly string                                                    mDefaultGroup;
-			private readonly ItemValueComparer                                         mComparer;
-			private          ReadOnlyObservableCollection<T>                           mOverviewCollection;
-			private          bool                                                      mAccumulateItems;
+			private readonly List<ISelectableLogMessageFilter_ItemInternal<T>>          mStaticItems;
+			private readonly List<ISelectableLogMessageFilter_ItemInternal<T>>          mSortedItems;
+			private readonly ObservableCollection<ISelectableLogMessageFilter_Item<T>>  mCombinedItems;
+			private readonly Dictionary<T, ISelectableLogMessageFilter_ItemInternal<T>> mAllItemsByValue;
+			private readonly HashSet<T>                                                 mEnabledValues;
+			private readonly string                                                     mDefaultGroup;
+			private readonly ItemValueComparer                                          mComparer;
+			private          ReadOnlyObservableCollection<T>                            mOverviewCollection;
+			private          bool                                                       mAccumulateItems;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ItemFilter{T}"/> class.
@@ -42,11 +42,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// <param name="comparer">Comparer to use for sorting items.</param>
 			internal ItemFilter(SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection> parent, string defaultGroup, IComparer<T> comparer) : base(parent)
 			{
-				mStaticItems = new List<ISelectableLogMessageFilter_Item<T>>();
-				mSortedItems = new List<ISelectableLogMessageFilter_Item<T>>();
+				mStaticItems = new List<ISelectableLogMessageFilter_ItemInternal<T>>();
+				mSortedItems = new List<ISelectableLogMessageFilter_ItemInternal<T>>();
 				mCombinedItems = new ObservableCollection<ISelectableLogMessageFilter_Item<T>>();
+				mAllItemsByValue = new Dictionary<T, ISelectableLogMessageFilter_ItemInternal<T>>();
 				Items = new ReadOnlyObservableCollection<ISelectableLogMessageFilter_Item<T>>(mCombinedItems);
-				mAllValues = new HashSet<T>();
 				mEnabledValues = new HashSet<T>();
 				mDefaultGroup = defaultGroup;
 				mComparer = new ItemValueComparer(comparer);
@@ -105,17 +105,19 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// <param name="group">Name of the group, the item belongs to.</param>
 			internal void AddItem(T value, string group)
 			{
-				if (!mAllValues.Contains(value))
+				if (!mAllItemsByValue.TryGetValue(value, out var item))
 				{
-					var item = new Item(group, value, false);
+					item = new Item(group, value, false);
 					int index = mSortedItems.BinarySearch(item, mComparer);
 					Debug.Assert(index < 0);
 					item.PropertyChanged += ItemPropertyChanged;
 					mSortedItems.Insert(~index, item);
 					mCombinedItems.Insert(mStaticItems.Count + ~index, item);
-					mAllValues.Add(value);
+					mAllItemsByValue.Add(value, item);
 					// if (item.Selected) mEnabledValues.Add(item.Value); // new items are always disabled
 				}
+
+				item.ValueUsed = true;
 			}
 
 			/// <summary>
@@ -128,17 +130,19 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				foreach (var value in values)
 				{
-					if (!mAllValues.Contains(value))
+					if (!mAllItemsByValue.TryGetValue(value, out var item))
 					{
-						var item = new Item(group, value, false);
+						item = new Item(group, value, false);
 						int index = mSortedItems.BinarySearch(item, mComparer);
 						Debug.Assert(index < 0);
 						item.PropertyChanged += ItemPropertyChanged;
 						mSortedItems.Insert(~index, item);
 						mCombinedItems.Insert(mStaticItems.Count + ~index, item);
-						mAllValues.Add(value);
+						mAllItemsByValue.Add(value, item);
 						// if (item.Selected) mEnabledValues.Add(item.Value); // new items are always disabled
 					}
+
+					item.ValueUsed = true;
 				}
 			}
 
@@ -158,7 +162,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					item.PropertyChanged += ItemPropertyChanged;
 					mStaticItems.Add(item);
 					mCombinedItems.Add(item);
-					mAllValues.Add(value);
+					mAllItemsByValue.Add(value, item);
 					// if (item.Selected) mEnabledValues.Add(item.Value); // new items are always disabled
 				}
 			}
@@ -170,18 +174,23 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// <param name="value">Item to remove.</param>
 			internal void RemoveItem(T value)
 			{
-				if (!mAccumulateItems)
+				if (mAllItemsByValue.TryGetValue(value, out var item))
 				{
-					var item = new Item(null, value, false);
-					int index = mSortedItems.BinarySearch(item, mComparer);
-					if (index >= 0)
+					if (!mAccumulateItems)
 					{
-						item = (Item)mSortedItems[index];
-						mSortedItems[index].PropertyChanged -= ItemPropertyChanged;
-						mSortedItems.RemoveAt(index);
-						mCombinedItems.RemoveAt(mStaticItems.Count + index);
-						mAllValues.Remove(item.Value);
-						mEnabledValues.Remove(item.Value);
+						item.ValueUsed = false;
+						item = new Item(null, value, false);
+						int index = mSortedItems.BinarySearch(item, mComparer);
+						if (index >= 0)
+						{
+							item = (Item)mSortedItems[index];
+							mSortedItems[index].PropertyChanged -= ItemPropertyChanged;
+							mSortedItems.RemoveAt(index);
+							mCombinedItems.RemoveAt(mStaticItems.Count + index);
+							Debug.Assert(!item.IsStatic);
+							mAllItemsByValue.Remove(item.Value);
+							mEnabledValues.Remove(item.Value);
+						}
 					}
 				}
 			}
@@ -213,9 +222,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 					{
 						// filter should accumulate items
 						// => unselect all items, but do not remove anything
-						foreach (var item in mCombinedItems)
+						foreach (var item in mAllItemsByValue.Values)
 						{
 							item.Selected = false;
+							item.ValueUsed = false;
 						}
 					}
 					else
@@ -225,6 +235,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 						foreach (var item in mStaticItems)
 						{
 							item.Selected = false;
+							item.ValueUsed = false;
 						}
 
 						// ... and remove other items
@@ -234,7 +245,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 							item.PropertyChanged -= ItemPropertyChanged;
 							mCombinedItems.RemoveAt(mStaticItems.Count + i);
 							mSortedItems.RemoveAt(i);
-							mAllValues.Remove(item.Value);
+							mAllItemsByValue.Remove(item.Value);
 						}
 					}
 
@@ -303,22 +314,23 @@ namespace GriffinPlus.Lib.Logging.Collections
 			private void RebuildItems()
 			{
 				// capture current filter item set
-				var itemByValue = new Dictionary<T, ISelectableLogMessageFilter_Item<T>>();
-				foreach (var item in mCombinedItems) itemByValue[item.Value] = item;
+				var itemByValue = new Dictionary<T, ISelectableLogMessageFilter_ItemInternal<T>>();
+				foreach (var item in mCombinedItems) itemByValue[item.Value] = (ISelectableLogMessageFilter_ItemInternal<T>)item;
 
 				// clear item set
 				mSortedItems.ForEach(x => x.PropertyChanged -= ItemPropertyChanged);
 				mCombinedItems.Clear();
 				mSortedItems.Clear();
 				mEnabledValues.Clear();
-				mAllValues.Clear();
+				mAllItemsByValue.Clear();
 
 				// add static items
 				foreach (var item in mStaticItems)
 				{
 					mCombinedItems.Add(item);
 					if (item.Selected) mEnabledValues.Add(item.Value);
-					mAllValues.Add(item.Value);
+					item.ValueUsed = false;
+					mAllItemsByValue.Add(item.Value, item);
 				}
 
 				// add sorted items
@@ -326,21 +338,19 @@ namespace GriffinPlus.Lib.Logging.Collections
 				{
 					foreach (var value in mOverviewCollection)
 					{
-						if (!mAllValues.Contains(value))
+						if (!mAllItemsByValue.TryGetValue(value, out var item))
 						{
-							if (!itemByValue.TryGetValue(value, out var item))
-							{
-								item = new Item(mDefaultGroup, value, false);
-							}
-
+							item = itemByValue.TryGetValue(value, out var oldItem) ? oldItem : new Item(mDefaultGroup, value, false);
 							int index = mSortedItems.BinarySearch(item, mComparer);
 							Debug.Assert(index < 0);
 							item.PropertyChanged += ItemPropertyChanged;
 							mSortedItems.Insert(~index, item);
 							mCombinedItems.Insert(mStaticItems.Count + ~index, item);
 							if (item.Selected) mEnabledValues.Add(item.Value);
-							mAllValues.Add(item.Value);
+							mAllItemsByValue.Add(item.Value, item);
 						}
+
+						item.ValueUsed = true;
 					}
 				}
 			}

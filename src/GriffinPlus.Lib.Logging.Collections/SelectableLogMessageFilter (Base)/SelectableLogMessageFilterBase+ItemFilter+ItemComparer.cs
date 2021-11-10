@@ -21,11 +21,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// </summary>
 			internal class ItemValueComparer : IComparer<ISelectableLogMessageFilter_Item<T>>, IComparer
 			{
-				private readonly IComparer<T> mComparer;
+				public readonly IComparer<T> ValueComparer;
 
-				public ItemValueComparer(IComparer<T> comparer)
+				public ItemValueComparer(IComparer<T> valueComparer)
 				{
-					mComparer = comparer;
+					ValueComparer = valueComparer;
 				}
 
 				public int Compare(ISelectableLogMessageFilter_Item<T> x, ISelectableLogMessageFilter_Item<T> y)
@@ -33,7 +33,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					if (x == y) return 0;
 					if (x == null) return -1;
 					if (y == null) return 1;
-					return mComparer.Compare(x.Value, y.Value);
+					return ValueComparer.Compare(x.Value, y.Value);
 				}
 
 				public int Compare(object x, object y)

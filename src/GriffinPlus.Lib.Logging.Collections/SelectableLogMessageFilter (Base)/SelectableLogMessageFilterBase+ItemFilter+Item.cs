@@ -19,9 +19,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// <summary>
 			/// An item in the <see cref="SelectableLogMessageFilter{TMessage}"/> with support for data-binding.
 			/// </summary>
-			public class Item : ISelectableLogMessageFilter_Item<T>
+			public class Item : ISelectableLogMessageFilter_ItemInternal<T>
 			{
 				private bool mSelected;
+				private bool mValueUsed;
 
 				/// <summary>
 				/// Initializes a new instance of the <see cref="Item"/> class.
@@ -55,6 +56,22 @@ namespace GriffinPlus.Lib.Logging.Collections
 					var handler = PropertyChanged;
 					handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 				}
+
+				#endregion
+
+				#region IsStatic
+
+				/// <summary>
+				/// Gets a value indicating whether the item stays in the collection of selectable items (<c>true</c>)
+				/// or whether the item can be removed (<c>false</c>).
+				/// </summary>
+				internal bool IsStatic { get; }
+
+				/// <summary>
+				/// Gets a value indicating whether the item stays in the collection of selectable items (<c>true</c>)
+				/// or whether the item can be removed (<c>false</c>).
+				/// </summary>
+				bool ISelectableLogMessageFilter_ItemInternal<T>.IsStatic => IsStatic;
 
 				#endregion
 
@@ -96,13 +113,30 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				#endregion
 
-				#region IsStatic
+				#region ValueUsed
 
 				/// <summary>
-				/// Gets a value indicating whether the item stays in the collection of selectable items (<c>true</c>)
-				/// or whether the item can be removed (<c>false</c>).
+				/// Gets a value indicating whether the item value is used in at least one message in the unfiltered message set.
+				/// If <see cref="ISelectableLogMessageFilter_ItemFilter{T}.AccumulateItems"/> is <c>true</c>, this property remains
+				/// <c>true</c> once it is <c>true</c> for static items.
 				/// </summary>
-				internal bool IsStatic { get; }
+				public bool ValueUsed => mValueUsed;
+
+				/// <summary>
+				/// Gets or sets a value indicating whether the item value is used in at least one message in the unfiltered message set.
+				/// </summary>
+				bool ISelectableLogMessageFilter_ItemInternal<T>.ValueUsed
+				{
+					get => mValueUsed;
+					set
+					{
+						if (mValueUsed != value)
+						{
+							mValueUsed = value;
+							OnPropertyChanged();
+						}
+					}
+				}
 
 				#endregion
 			}

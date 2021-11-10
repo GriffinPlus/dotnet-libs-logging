@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		public void Create_Unbound()
 		{
 			var filter = new TSelectableLogMessageFilter();
-			TestInitialFilterSettings(filter, new LogMessage[0]);
+			TestInitialFilterSettings(filter, Array.Empty<LogMessage>(), false);
 		}
 
 		#endregion
@@ -1313,9 +1313,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="filter">Filter to test.</param>
 		/// <param name="messages">The message set injected into the collection the filter works on.</param>
+		/// <param name="filterIsAttached">
+		/// <c>true</c> if the filter has been attached to a collection;
+		/// <c>false</c> if the filter was created, but not attached to a collection.
+		/// </param>
 		protected static void TestInitialFilterSettings(
 			ISelectableLogMessageFilter<LogMessage> filter,
-			LogMessage[]                            messages)
+			LogMessage[]                            messages,
+			bool                                    filterIsAttached = true)
 		{
 			// determine the oldest/newest message
 			var oldestMessage = messages.Length > 0 ? messages[0] : null;
@@ -1360,7 +1365,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// Log Level Filter
 			var logLevelsInFile = messages.Select(x => x.LogLevelName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
-			var expectedLogLevels = new List<string>(LogLevel.PredefinedLogLevels.Select(x => x.Name));
+			var expectedLogLevels = new List<string>();
+			if (filterIsAttached) expectedLogLevels.AddRange(LogLevel.PredefinedLogLevels.Select(x => x.Name));
 			expectedLogLevels.AddRange(logLevelsInFile);
 			Assert.False(filter.LogLevelFilter.Enabled);
 			Assert.False(filter.LogLevelFilter.AccumulateItems);
@@ -1370,6 +1376,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				x =>
 				{
 					Assert.False(x.Selected);
+					Assert.Equal(messages.Any(y => y.LogLevelName == x.Value), x.ValueUsed);
 					Assert.Equal(LogLevel.PredefinedLogLevels.Select(y => y.Name).Contains(x.Value) ? "Predefined" : "Aspects", x.Group);
 				});
 
