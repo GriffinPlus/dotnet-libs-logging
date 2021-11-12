@@ -24,6 +24,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// messages are removed from the collection (<c>true</c>). Default is <c>false</c>.
 		/// </summary>
 		bool AccumulateItems { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the filter is disabled when it is reset.
+		/// Default is <c>false</c>.
+		/// </summary>
+		bool DisableFilterOnReset { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether items are unselected when the filter is reset.
+		/// Default is <c>false</c>.
+		/// </summary>
+		bool UnselectItemsOnReset { get; set; }
 	}
 
 }

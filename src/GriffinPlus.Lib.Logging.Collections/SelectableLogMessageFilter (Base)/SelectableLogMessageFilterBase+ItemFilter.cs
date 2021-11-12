@@ -33,6 +33,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			private readonly ItemValueComparer                                          mComparer;
 			private          ReadOnlyObservableCollection<T>                            mOverviewCollection;
 			private          bool                                                       mAccumulateItems;
+			private          bool                                                       mDisableFilterOnReset;
+			private          bool                                                       mUnselectItemsOnReset;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ItemFilter{T}"/> class.
@@ -75,6 +77,40 @@ namespace GriffinPlus.Lib.Logging.Collections
 						// if accumulating was disabled, rebuild filter item collection to remove orphaned entries
 						if (!mAccumulateItems)
 							RebuildItems();
+					}
+				}
+			}
+
+			/// <summary>
+			/// Gets or sets a value indicating whether the filter is disabled when it is reset.
+			/// Default is <c>false</c>.
+			/// </summary>
+			public bool DisableFilterOnReset
+			{
+				get => mDisableFilterOnReset;
+				set
+				{
+					if (mDisableFilterOnReset != value)
+					{
+						mDisableFilterOnReset = value;
+						OnPropertyChanged();
+					}
+				}
+			}
+
+			/// <summary>
+			/// Gets or sets a value indicating whether items are unselected when the filter is reset.
+			/// Default is <c>false</c>.
+			/// </summary>
+			public bool UnselectItemsOnReset
+			{
+				get => mUnselectItemsOnReset;
+				set
+				{
+					if (mUnselectItemsOnReset != value)
+					{
+						mUnselectItemsOnReset = value;
+						OnPropertyChanged();
 					}
 				}
 			}
@@ -216,15 +252,16 @@ namespace GriffinPlus.Lib.Logging.Collections
 				SuspendPropertyChanged();
 				try
 				{
-					base.Reset();
+					if (mDisableFilterOnReset)
+						Enabled = false;
 
 					if (mAccumulateItems)
 					{
 						// filter should accumulate items
-						// => unselect all items, but do not remove anything
+						// => unselect all items, if requested, but do not remove anything
 						foreach (var item in mAllItemsByValue.Values)
 						{
-							item.Selected = false;
+							if (mUnselectItemsOnReset) item.Selected = false;
 						}
 					}
 					else
@@ -233,7 +270,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 						// => unselect static items only...
 						foreach (var item in mStaticItems)
 						{
-							item.Selected = false;
+							if (mUnselectItemsOnReset) item.Selected = false;
 							item.ValueUsed = false;
 						}
 
@@ -248,7 +285,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 						}
 					}
 
+					// update enabled state
 					mEnabledValues.Clear();
+					foreach (var item in mAllItemsByValue.Values)
+					{
+						if (item.Selected)
+							mEnabledValues.Add(item.Value);
+					}
 				}
 				finally
 				{
