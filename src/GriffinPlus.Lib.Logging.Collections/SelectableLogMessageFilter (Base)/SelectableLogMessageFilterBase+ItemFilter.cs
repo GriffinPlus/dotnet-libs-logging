@@ -225,7 +225,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 						foreach (var item in mAllItemsByValue.Values)
 						{
 							item.Selected = false;
-							item.ValueUsed = false;
 						}
 					}
 					else
