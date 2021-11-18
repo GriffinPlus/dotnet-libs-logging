@@ -24,12 +24,12 @@ is also supported.
 			<group targetFramework="netstandard2.0">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Collections" version="[$version$]" include="all" />
-				<dependency id="System.Data.SQLite.Core" version="1.0.115" include="all" />
+				<dependency id="System.Data.SQLite.Core" version="1.0.115.5" include="all" />
 			</group>
 			<group targetFramework="net461">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Collections" version="[$version$]" include="all" />
-				<dependency id="System.Data.SQLite.Core" version="1.0.115" include="all" />
+				<dependency id="System.Data.SQLite.Core" version="1.0.115.5" include="all" />
 			</group>
 		</dependencies>
 	</metadata>
