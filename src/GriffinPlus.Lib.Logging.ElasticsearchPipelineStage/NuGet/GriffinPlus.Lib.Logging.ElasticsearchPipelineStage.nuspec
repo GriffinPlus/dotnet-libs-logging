@@ -15,11 +15,11 @@
 		<dependencies>
 			<group targetFramework="netstandard2.0">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
-				<dependency id="System.Text.Json" version="5.0.2" include="all" />
+				<dependency id="System.Text.Json" version="6.0.0" include="all" />
 			</group>
 			<group targetFramework="net461">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
-				<dependency id="System.Text.Json" version="5.0.2" include="all" />
+				<dependency id="System.Text.Json" version="6.0.0" include="all" />
 			</group>
 		</dependencies>
 	</metadata>
