@@ -700,9 +700,11 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Protects the log message, so it cannot be modified any further.
 		/// </summary>
-		public void Protect()
+		/// <returns>The log message itself.</returns>
+		public LogMessage Protect()
 		{
 			IsReadOnly = true;
+			return this;
 		}
 
 		#endregion
