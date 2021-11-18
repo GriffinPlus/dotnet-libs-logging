@@ -34,7 +34,7 @@ Therefore it should work on the following platforms (or higher):
 The library is tested automatically on the following frameworks and operating systems:
 - .NET Framework 4.6.1 (Windows Server 2019)
 - .NET Core 3.1 (Windows Server 2019 and Ubuntu 20.04)
-- .NET 5.0  (Windows Server 2019 and Ubuntu 20.04)
+- .NET 5.0 (Windows Server 2019 and Ubuntu 20.04)
 
 ## Coarse Overview and Terminology
 

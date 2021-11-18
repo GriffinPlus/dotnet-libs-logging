@@ -19,12 +19,6 @@ stages:
   - job: 'Build'
     steps:
     - task: UseDotNet@2
-      displayName: 'Use .NET Core 2.1 SDK'
-      inputs:
-        packageType: 'sdk'
-        version: '2.1.x'
-        installationPath: '$(Agent.ToolsDirectory)/dotnet'
-    - task: UseDotNet@2
       displayName: 'Use .NET Core 3.1 SDK'
       inputs:
         packageType: 'sdk'
@@ -100,7 +94,7 @@ stages:
   ######################################################################################################################
   # Job:
   # Tests for .NET 4.6.1 on Windows
-  # Tests for .NET Core 2.1/3.1 and .NET 5.0 on Windows and Linux
+  # Tests for .NET Core 3.1 and .NET 5.0 on Windows and Linux
   ######################################################################################################################
   - job:
     displayName: ''
@@ -114,12 +108,6 @@ stages:
     pool:
       vmImage: '$(VmImage)'
     steps:
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core 2.1 SDK'
-      inputs:
-        packageType: 'sdk'
-        version: '2.1.x'
-        installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: UseDotNet@2
       displayName: 'Use .NET Core 3.1 SDK'
       inputs:
