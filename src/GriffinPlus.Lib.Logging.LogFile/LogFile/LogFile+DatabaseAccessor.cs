@@ -684,8 +684,36 @@ namespace GriffinPlus.Lib.Logging
 			/// Point in time (UTC) to keep messages after (includes the exact point in time);
 			/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
 			/// </param>
+			/// <returns>
+			/// Number of removed messages.
+			/// If <see cref="int.MaxValue"/> is returned <see cref="Prune(long, DateTime)"/> should be called once again
+			/// to ensure all messages matching the criteria are removed.
+			/// </returns>
 			/// <exception cref="NotSupportedException">The file is read-only.</exception>
-			public abstract void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp);
+			public abstract int Prune(long maximumMessageCount, DateTime minimumMessageTimestamp);
+
+			/// <summary>
+			/// Removes log messages that are above the specified message limit -or- have a timestamp before the specified point in time.
+			/// </summary>
+			/// <param name="maximumMessageCount">
+			/// Maximum number of messages to keep;
+			/// -1 to disable removing messages by maximum message count.
+			/// </param>
+			/// <param name="minimumMessageTimestamp">
+			/// Point in time (UTC) to keep messages after (includes the exact point in time);
+			/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
+			/// </param>
+			/// <param name="removedMessages">Receives the log messages that have been removed.</param>
+			/// <returns>
+			/// Number of removed messages.
+			/// If <see cref="int.MaxValue"/> is returned <see cref="Prune(long, DateTime, out LogFileMessage[])"/> should
+			/// be called once again to ensure all messages matching the criteria are removed.
+			/// </returns>
+			/// <exception cref="NotSupportedException">The file is read-only.</exception>
+			public abstract int Prune(
+				long                 maximumMessageCount,
+				DateTime             minimumMessageTimestamp,
+				out LogFileMessage[] removedMessages);
 
 			#endregion
 

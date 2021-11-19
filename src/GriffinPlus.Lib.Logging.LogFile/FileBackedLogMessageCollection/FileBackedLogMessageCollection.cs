@@ -8,8 +8,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Data.SQLite;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
+using GriffinPlus.Lib.Collections;
 
 // ReSharper disable ExplicitCallerInfoArgument
 
@@ -38,6 +41,24 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// The number of log messages to copy at once when copying them from one collection to another.
 		/// </summary>
 		internal const int CopySliceSize = 1000;
+
+		/// <summary>
+		/// A dummy message that is used as a placeholder for real messages, if <see cref="ReturnDummyMessagesWhenPruning"/>
+		/// is set to <c>true</c> when pruning old log messages.
+		/// </summary>
+		private static readonly LogFileMessage sDummyMessage = (LogFileMessage)new LogFileMessage().InitWith(
+				-1,
+				DateTimeOffset.Parse("2000-01-01T00:00:00Z"),
+				-1,
+				0,
+				"Dummy",
+				"Dummy",
+				TagSet.Empty,
+				"Dummy",
+				"Dummy",
+				0,
+				"Dummy")
+			.Protect();
 
 		#endregion
 
@@ -305,6 +326,17 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 		#endregion
 
+		#region ReturnDummyMessagesWhenPruning
+
+		/// <summary>
+		/// Gets or sets a value determining whether the collection returns dummy messages when pruning the backing log file.
+		/// This is <c>false</c> by default to provide the behavior expected by users of the <see cref="INotifyCollectionChanged"/> interface.
+		/// It can be set to <c>true</c> to avoid reading messages that are about to be removed anyway.
+		/// </summary>
+		public bool ReturnDummyMessagesWhenPruning { get; set; } = false;
+
+		#endregion
+
 		#region Indexer
 
 		/// <summary>
@@ -477,7 +509,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		public override void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp)
 		{
 			if (IsReadOnly) throw new NotSupportedException("The collection is read-only.");
-			LogFile.Prune(maximumMessageCount, minimumMessageTimestamp); // invokes callback that raises the appropriate events
+			LogFile.Prune(maximumMessageCount, minimumMessageTimestamp, false); // invokes callback that raises the appropriate events
 		}
 
 		#endregion
@@ -561,10 +593,19 @@ namespace GriffinPlus.Lib.Logging.Collections
 		#region Interaction with the LogFile Class
 
 		/// <summary>
+		/// Gets a value indicating whether the collection needs the removed messages when pruning the old log messages from the backing log file.
+		/// </summary>
+		internal bool NeedsRemovedMessagesWhenPruning => IsCollectionChangedRegistered && !ReturnDummyMessagesWhenPruning;
+
+		/// <summary>
 		/// Is called when the underlying file removes messages.
 		/// </summary>
-		internal void ProcessMessagesRemoved()
+		/// <param name="count">Number of messages that has been removed.</param>
+		/// <param name="removedMessages">The messages that have been removed (may be <c>null</c>).</param>
+		internal void ProcessMessagesRemoved(long count, LogFileMessage[] removedMessages)
 		{
+			Debug.Assert(removedMessages == null || removedMessages.Length == count);
+
 			mChangeCounter++;
 
 			if (LogFile.MessageCount == 0)
@@ -573,6 +614,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// => flush the cache to discard buffered messages
 				mCachePages.Clear();
 				mCacheStartMessageId = 0; // inserting the next message will start at message id 0
+
+				// notify clients about the change
+				if (IsCollectionChangedRegistered)
+					OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 			}
 			else
 			{
@@ -599,11 +644,28 @@ namespace GriffinPlus.Lib.Logging.Collections
 						node = next;
 					}
 				}
-			}
 
-			// notify clients about the change
-			if (IsCollectionChangedRegistered)
-				OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+				// notify clients about the change
+				if (IsCollectionChangedRegistered)
+				{
+					if (removedMessages != null)
+					{
+						OnCollectionChanged(
+							new NotifyCollectionChangedEventArgs(
+								NotifyCollectionChangedAction.Remove,
+								removedMessages,
+								0));
+					}
+					else
+					{
+						OnCollectionChanged(
+							new NotifyCollectionChangedEventArgs(
+								NotifyCollectionChangedAction.Remove,
+								new FixedItemReadOnlyList<LogFileMessage>(sDummyMessage, (int)count),
+								0));
+					}
+				}
+			}
 
 			OnPropertyChanged("Count");
 			OnPropertyChanged("Item[]");

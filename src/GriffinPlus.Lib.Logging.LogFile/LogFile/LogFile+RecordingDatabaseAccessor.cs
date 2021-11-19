@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Diagnostics;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -309,6 +310,30 @@ namespace GriffinPlus.Lib.Logging
 				if (fromId < OldestMessageId || fromId > NewestMessageId) throw new ArgumentOutOfRangeException(nameof(fromId), fromId, $"The log message id must be in the interval [{OldestMessageId},{NewestMessageId}].");
 				if (count < 0) throw new ArgumentOutOfRangeException(nameof(count), count, "The number of log messages must be positive.");
 
+				mSelectContinuousMessagesCommand.Reset();
+				mSelectContinuousMessagesCommand_FromIdParameter.Value = fromId;
+				mSelectContinuousMessagesCommand_CountParameter.Value = count;
+				using (var reader = mSelectContinuousMessagesCommand.ExecuteReader())
+				{
+					while (reader.Read())
+					{
+						// read message and invoke processing callback
+						var message = ReadLogMessage(reader);
+						if (!callback(message))
+							return false;
+					}
+				}
+
+				return true;
+			}
+
+			/// <summary>
+			/// Reads a log message from the specified sqlite reader.
+			/// </summary>
+			/// <param name="reader">Sqlite reader to read from.</param>
+			/// <returns>The read log message (is protected).</returns>
+			private LogFileMessage ReadLogMessage(SQLiteDataReader reader)
+			{
 				// columns in result:
 				// 0 = message id
 				// 1 = timestamp
@@ -322,52 +347,39 @@ namespace GriffinPlus.Lib.Logging
 				// 9 = log level name
 				// 10 = has tags
 				// 11 = text name
-				mSelectContinuousMessagesCommand.Reset();
-				mSelectContinuousMessagesCommand_FromIdParameter.Value = fromId;
-				mSelectContinuousMessagesCommand_CountParameter.Value = count;
-				using (var reader = mSelectContinuousMessagesCommand.ExecuteReader())
-				{
-					while (reader.Read())
-					{
-						long messageId = reader.GetInt64(0);
-						var timezoneOffset = TimeSpan.FromTicks(reader.GetInt64(2));
-						var timestamp = new DateTimeOffset(reader.GetInt64(1) + timezoneOffset.Ticks, timezoneOffset);
-						long highPrecisionTimestamp = reader.GetInt64(3);
-						int lostMessageCount = reader.GetInt32(4);
-						int processId = reader.GetInt32(5);
-						string processName = reader.GetString(6);
-						string applicationName = reader.GetString(7);
-						string logWriterName = reader.GetString(8);
-						string logLevelName = reader.GetString(9);
-						bool hasTags = reader.GetBoolean(10);
-						string text = reader.GetString(11);
 
-						var message = new LogFileMessage().InitWith(
-							messageId,
-							timestamp,
-							highPrecisionTimestamp,
-							lostMessageCount,
-							StringPool.Intern(logWriterName),
-							StringPool.Intern(logLevelName),
-							TagSet.Empty,
-							StringPool.Intern(applicationName),
-							StringPool.Intern(processName),
-							processId,
-							text);
+				long messageId = reader.GetInt64(0);
+				var timezoneOffset = TimeSpan.FromTicks(reader.GetInt64(2));
+				var timestamp = new DateTimeOffset(reader.GetInt64(1) + timezoneOffset.Ticks, timezoneOffset);
+				long highPrecisionTimestamp = reader.GetInt64(3);
+				int lostMessageCount = reader.GetInt32(4);
+				int processId = reader.GetInt32(5);
+				string processName = reader.GetString(6);
+				string applicationName = reader.GetString(7);
+				string logWriterName = reader.GetString(8);
+				string logLevelName = reader.GetString(9);
+				bool hasTags = reader.GetBoolean(10);
+				string text = reader.GetString(11);
 
-						// initialize tags, if there are tags associated with the message
-						if (hasTags) message.Tags = GetTagsOfMessage(messageId);
+				var message = new LogFileMessage().InitWith(
+					messageId,
+					timestamp,
+					highPrecisionTimestamp,
+					lostMessageCount,
+					StringPool.Intern(logWriterName),
+					StringPool.Intern(logLevelName),
+					TagSet.Empty,
+					StringPool.Intern(applicationName),
+					StringPool.Intern(processName),
+					processId,
+					text);
 
-						// protect message from changes
-						message.Protect();
+				// initialize tags, if there are tags associated with the message
+				if (hasTags) message.Tags = GetTagsOfMessage(messageId);
 
-						// invoke processing callback
-						if (!callback(message))
-							return false;
-					}
-				}
-
-				return true;
+				// protect message from changes
+				message.Protect();
+				return message;
 			}
 
 			/// <summary>
@@ -422,14 +434,21 @@ namespace GriffinPlus.Lib.Logging
 			/// Point in time (UTC) to keep messages after (includes the exact point in time);
 			/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
 			/// </param>
+			/// <returns>
+			/// Number of removed messages.
+			/// If <see cref="int.MaxValue"/> is returned <see cref="Prune(long, DateTime)"/> should be called once again
+			/// to ensure all messages matching the criteria are removed.
+			/// </returns>
 			/// <exception cref="NotSupportedException">The file is read-only.</exception>
-			public override void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp)
+			public override int Prune(long maximumMessageCount, DateTime minimumMessageTimestamp)
 			{
 				CheckReadOnly();
 
 				// abort, if the database is empty
 				if (OldestMessageId < 0)
-					return;
+					return 0;
+
+				int removeCount = 0;
 
 				void Operation()
 				{
@@ -461,6 +480,15 @@ namespace GriffinPlus.Lib.Logging
 					// (including the message with the determined id)
 					if (messageId >= 0)
 					{
+						// limit the number of messages to int.MaxValue to ensure that clients have a chance to put the messages into an array
+						messageId = messageId - OldestMessageId + 1 > int.MaxValue
+							            ? OldestMessageId + int.MaxValue - 1
+							            : messageId;
+
+						// calculate the number of messages to remove
+						Debug.Assert(messageId - OldestMessageId + 1 <= int.MaxValue);
+						removeCount = (int)(messageId - OldestMessageId + 1);
+
 						// delete old messages
 						mDeleteMessagesUpToIdCommand_IdParameter.Value = messageId;
 						ExecuteNonQueryCommand(mDeleteMessagesUpToIdCommand);
@@ -476,6 +504,120 @@ namespace GriffinPlus.Lib.Logging
 				// update the id of the oldest and the newest log message
 				OldestMessageId = GetOldestMessageId();
 				NewestMessageId = GetNewestMessageId();
+
+				// return the number of removed messages
+				return removeCount;
+			}
+
+			/// <summary>
+			/// Removes log messages that are above the specified message limit -or- have a timestamp before the specified point in time.
+			/// </summary>
+			/// <param name="maximumMessageCount">
+			/// Maximum number of messages to keep;
+			/// -1 to disable removing messages by maximum message count.
+			/// </param>
+			/// <param name="minimumMessageTimestamp">
+			/// Point in time (UTC) to keep messages after (includes the exact point in time);
+			/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
+			/// </param>
+			/// <param name="removedMessages">Receives the log messages that have been removed.</param>
+			/// <returns>
+			/// Number of removed messages.
+			/// If <see cref="int.MaxValue"/> is returned <see cref="Prune(long, DateTime, out LogFileMessage[])"/> should
+			/// be called once again to ensure all messages matching the criteria are removed.
+			/// </returns>
+			/// <exception cref="NotSupportedException">The file is read-only.</exception>
+			public override int Prune(
+				long                 maximumMessageCount,
+				DateTime             minimumMessageTimestamp,
+				out LogFileMessage[] removedMessages)
+			{
+				CheckReadOnly();
+
+				// abort, if the database is empty
+				if (OldestMessageId < 0)
+				{
+					removedMessages = Array.Empty<LogFileMessage>();
+					return 0;
+				}
+
+				List<LogFileMessage> messages = null;
+				int removeCount = 0;
+
+				void Operation()
+				{
+					// determine the id of the first message older than the specified timestamp
+					long deleteByTimestampMessageId = -1;
+					if (minimumMessageTimestamp > DateTime.MinValue)
+					{
+						mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter.Value = minimumMessageTimestamp.Ticks;
+						object result = ExecuteScalarCommand(mSelectMessageIdByTimestampForDeleteMessagesCommand);
+						deleteByTimestampMessageId = result != null ? Convert.ToInt64(result) : -1;
+					}
+
+					// determine the id of the first message to delete due to the maximum message count limit
+					// (determined row is included)
+					long totalMessageCount = NewestMessageId - OldestMessageId + 1;
+					long deleteByMaxMessageCountMessageId = -1;
+					if (maximumMessageCount >= 0)
+					{
+						long messagesToDeleteCount = Math.Max(totalMessageCount - maximumMessageCount, 0);
+						deleteByMaxMessageCountMessageId = messagesToDeleteCount > 0 ? OldestMessageId + messagesToDeleteCount - 1 : -1;
+					}
+
+					// combine selection conditions
+					long messageId = -1;
+					if (deleteByTimestampMessageId >= 0) messageId = deleteByTimestampMessageId;
+					if (deleteByMaxMessageCountMessageId >= 0) messageId = Math.Max(messageId, deleteByMaxMessageCountMessageId);
+
+					if (messageId >= 0)
+					{
+						// limit the number of messages to int.MaxValue to ensure that clients have a chance to put the messages into an array
+						messageId = messageId - OldestMessageId + 1 > int.MaxValue
+							            ? OldestMessageId + int.MaxValue - 1
+							            : messageId;
+
+						// calculate the number of messages to remove
+						Debug.Assert(messageId - OldestMessageId + 1 <= int.MaxValue);
+						removeCount = (int)(messageId - OldestMessageId + 1);
+
+						// read messages that are about to be removed
+						messages = new List<LogFileMessage>(removeCount);
+						mSelectContinuousMessagesCommand.Reset();
+						mSelectContinuousMessagesCommand_FromIdParameter.Value = OldestMessageId;
+						mSelectContinuousMessagesCommand_CountParameter.Value = removeCount;
+						using (var reader = mSelectContinuousMessagesCommand.ExecuteReader())
+						{
+							while (reader.Read())
+							{
+								messages.Add(ReadLogMessage(reader));
+							}
+						}
+
+						// delete old messages and associated tags up to the determined message id
+						// (including the message with the determined id)
+
+						// delete old messages
+						mDeleteMessagesUpToIdCommand_IdParameter.Value = messageId;
+						ExecuteNonQueryCommand(mDeleteMessagesUpToIdCommand);
+
+						// remove tags associated with the messages
+						RemoveTagAssociations(messageId);
+					}
+				}
+
+				// execute the operation in a transaction
+				ExecuteInTransaction(Operation);
+
+				// update the id of the oldest and the newest log message
+				OldestMessageId = GetOldestMessageId();
+				NewestMessageId = GetNewestMessageId();
+
+				// assign list of removed messages
+				removedMessages = messages?.ToArray() ?? Array.Empty<LogFileMessage>();
+
+				// return the number of removed messages
+				return removeCount;
 			}
 		}
 	}

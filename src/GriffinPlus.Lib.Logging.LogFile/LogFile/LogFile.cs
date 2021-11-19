@@ -562,6 +562,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			CheckDisposed();
 
+			// determine the number of messages in the database
+			long count = mDatabaseAccessor.MessageCount;
+
 			try
 			{
 				// clear and shrink the log file
@@ -576,7 +579,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// tell the log message collection about the change
-			Messages.ProcessMessagesRemoved();
+			mMessageCollection.ProcessMessagesRemoved(count, null);
 		}
 
 		/// <summary>
@@ -703,13 +706,21 @@ namespace GriffinPlus.Lib.Logging
 		/// true to compact the log file after removing log messages;
 		/// otherwise false.
 		/// </param>
+		/// <returns>
+		/// Number of removed messages.
+		/// If <see cref="int.MaxValue"/> is returned <see cref="Prune(long, DateTime, bool)"/> should be called once again
+		/// to ensure all messages matching the criteria are removed.
+		/// </returns>
 		/// <exception cref="ArgumentOutOfRangeException">
 		/// The message limit must be > 0 to limit the number of message or -1 to disable the limit.
 		/// </exception>
 		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 		/// <exception cref="NotSupportedException">The file is read-only.</exception>
 		/// <exception cref="LogFileException">Cleaning up failed (see inner exception for details).</exception>
-		public void Prune(long maximumMessageCount, DateTime minimumMessageTimestamp, bool compact = false)
+		public int Prune(
+			long     maximumMessageCount,
+			DateTime minimumMessageTimestamp,
+			bool     compact)
 		{
 			if (maximumMessageCount < -1)
 			{
@@ -721,10 +732,14 @@ namespace GriffinPlus.Lib.Logging
 			CheckDisposed();
 
 			bool pruned;
+			LogFileMessage[] removedMessages = null;
+			int removedMessageCount;
 			try
 			{
 				long oldestMessageId = mDatabaseAccessor.OldestMessageId;
-				mDatabaseAccessor.Prune(maximumMessageCount, minimumMessageTimestamp);
+				removedMessageCount = mMessageCollection.NeedsRemovedMessagesWhenPruning
+					                      ? mDatabaseAccessor.Prune(maximumMessageCount, minimumMessageTimestamp, out removedMessages)
+					                      : mDatabaseAccessor.Prune(maximumMessageCount, minimumMessageTimestamp);
 				pruned = oldestMessageId != mDatabaseAccessor.OldestMessageId;
 				if (compact && pruned) mDatabaseAccessor.Vacuum();
 			}
@@ -735,7 +750,74 @@ namespace GriffinPlus.Lib.Logging
 					ex);
 			}
 
-			if (pruned) mMessageCollection.ProcessMessagesRemoved();
+			if (pruned)
+				mMessageCollection.ProcessMessagesRemoved(removedMessageCount, removedMessages);
+
+			return removedMessageCount;
+		}
+
+		/// <summary>
+		/// Removes log messages that are above the specified message limit -or- older than the specified age.
+		/// </summary>
+		/// <param name="maximumMessageCount">
+		/// Maximum number of messages to keep;
+		/// -1 to disable removing messages by maximum message count.
+		/// </param>
+		/// <param name="minimumMessageTimestamp">
+		/// Point in time (UTC) to keep messages after (includes the exact point in time);
+		/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
+		/// </param>
+		/// <param name="compact">
+		/// <c>true</c> to compact the log file after removing log messages;
+		/// otherwise <c>false</c>.
+		/// </param>
+		/// <param name="removedMessages">Receives the log messages that have been removed.</param>
+		/// <returns>
+		/// Number of removed messages.
+		/// If <see cref="int.MaxValue"/> is returned <see cref="Prune(long, DateTime, bool, out LogFileMessage[])"/>
+		/// should be called once again to ensure all messages matching the criteria are removed.
+		/// </returns>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// The message limit must be > 0 to limit the number of message or -1 to disable the limit.
+		/// </exception>
+		/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
+		/// <exception cref="NotSupportedException">The file is read-only.</exception>
+		/// <exception cref="LogFileException">Cleaning up failed (see inner exception for details).</exception>
+		public int Prune(
+			long                 maximumMessageCount,
+			DateTime             minimumMessageTimestamp,
+			bool                 compact,
+			out LogFileMessage[] removedMessages)
+		{
+			if (maximumMessageCount < -1)
+			{
+				throw new ArgumentOutOfRangeException(
+					nameof(maximumMessageCount),
+					"The maximum message count must be > 0 to limit the number of messages or -1 to disable the limit.");
+			}
+
+			CheckDisposed();
+
+			bool pruned;
+			int removedMessageCount;
+			try
+			{
+				long oldestMessageId = mDatabaseAccessor.OldestMessageId;
+				removedMessageCount = mDatabaseAccessor.Prune(maximumMessageCount, minimumMessageTimestamp, out removedMessages);
+				pruned = oldestMessageId != mDatabaseAccessor.OldestMessageId;
+				if (compact && pruned) mDatabaseAccessor.Vacuum();
+			}
+			catch (SQLiteException ex)
+			{
+				throw new LogFileException(
+					$"Cleaning up failed: {ex.Message}",
+					ex);
+			}
+
+			if (pruned)
+				mMessageCollection.ProcessMessagesRemoved(removedMessageCount, removedMessages);
+
+			return removedMessageCount;
 		}
 
 		/// <summary>
