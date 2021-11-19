@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging", "src\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj", "{DF54D759-C5FD-431F-A3C2-BD84FC6BA93C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.Tests", "src\GriffinPlus.Lib.Logging.Tests\GriffinPlus.Lib.Logging.Tests.csproj", "{AFFB8406-5D09-4D94-A234-464BE8120FB4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{17D6FDE0-987A-4C78-BE7F-97757B0E8A64} = {17D6FDE0-987A-4C78-BE7F-97757B0E8A64}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GriffinPlus.Lib.Logging.Demo", "src\GriffinPlus.Lib.Logging.Demo\GriffinPlus.Lib.Logging.Demo.csproj", "{6A4C097C-7533-4E74-955A-3E745CB12D84}"
 EndProject
