@@ -26,8 +26,8 @@ namespace GriffinPlus.Lib.Logging
 				// empty tag set
 				yield return new object[]
 				{
-					new string[0],
-					new string[0]
+					Array.Empty<string>(),
+					Array.Empty<string>()
 				};
 
 				// single element in the tag set
@@ -198,7 +198,7 @@ namespace GriffinPlus.Lib.Logging
 				// add tag to empty tag set
 				yield return new object[]
 				{
-					new string[0],
+					Array.Empty<string>(),
 					"Tag",
 					new[] { "Tag" }
 				};
@@ -243,15 +243,15 @@ namespace GriffinPlus.Lib.Logging
 				// add no tags to empty tag set
 				yield return new object[]
 				{
-					new string[0],
-					new string[0],
-					new string[0]
+					Array.Empty<string>(),
+					Array.Empty<string>(),
+					Array.Empty<string>()
 				};
 
 				// add tag to empty tag set
 				yield return new object[]
 				{
-					new string[0],
+					Array.Empty<string>(),
 					new[] { "Tag" },
 					new[] { "Tag" }
 				};
@@ -308,9 +308,9 @@ namespace GriffinPlus.Lib.Logging
 				// remove tag from empty tag set
 				yield return new object[]
 				{
-					new string[0],
+					Array.Empty<string>(),
 					"Tag",
-					new string[0]
+					Array.Empty<string>()
 				};
 
 				// remove tag from non-empty tag set
@@ -353,17 +353,17 @@ namespace GriffinPlus.Lib.Logging
 				// remove no tags from empty tag set
 				yield return new object[]
 				{
-					new string[0],
-					new string[0],
-					new string[0]
+					Array.Empty<string>(),
+					Array.Empty<string>(),
+					Array.Empty<string>()
 				};
 
 				// remove tag from empty tag set
 				yield return new object[]
 				{
-					new string[0],
+					Array.Empty<string>(),
 					new[] { "Tag" },
-					new string[0]
+					Array.Empty<string>()
 				};
 
 				// remove tag from non-empty tag set

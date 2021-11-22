@@ -36,7 +36,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Processing pipeline stages that are called after the current stage has completed processing.
 		/// </summary>
-		protected IProcessingPipelineStage[] mNextStages = new IProcessingPipelineStage[0];
+		protected IProcessingPipelineStage[] mNextStages = Array.Empty<IProcessingPipelineStage>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.

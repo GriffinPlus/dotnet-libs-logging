@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	public sealed partial class LogWriterConfiguration
 	{
 		internal static readonly WildcardNamePattern DefaultPattern = new WildcardNamePattern("*");
-		internal static readonly INamePattern[]      NoPatterns     = new INamePattern[0];
+		internal static readonly INamePattern[]      NoPatterns     = Array.Empty<INamePattern>();
 		internal                 string              mBaseLevel     = LogLevel.Notice.Name;
 		internal readonly        List<INamePattern>  mNamePatterns  = new List<INamePattern>();
 		internal readonly        List<INamePattern>  mTagPatterns   = new List<INamePattern>();

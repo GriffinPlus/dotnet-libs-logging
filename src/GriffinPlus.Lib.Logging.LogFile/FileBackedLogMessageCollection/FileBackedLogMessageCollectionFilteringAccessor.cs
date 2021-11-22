@@ -188,8 +188,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// abort, if no messages were requested or the filtered set is empty
 			if (count == 0 || mFirstMatchingMessageId < 0)
 			{
-				matchIndices = new long[0];
-				return new LogMessage[0];
+				matchIndices = Array.Empty<long>();
+				return Array.Empty<LogMessage>();
 			}
 
 			// determine the offset of the collection index to message ids in the log file
@@ -331,8 +331,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// abort, if no messages were requested or the filtered set is empty
 			if (count == 0 || mFirstMatchingMessageId < 0)
 			{
-				matchIndices = new long[0];
-				return new LogMessage[0];
+				matchIndices = Array.Empty<long>();
+				return Array.Empty<LogMessage>();
 			}
 
 			// determine the offset of the collection index to message ids in the log file
@@ -424,8 +424,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// abort, if the filtered set is empty
 			if (mFirstMatchingMessageId < 0)
 			{
-				matchIndices = new long[0];
-				return new LogMessage[0];
+				matchIndices = Array.Empty<long>();
+				return Array.Empty<LogMessage>();
 			}
 
 			// determine the offset of the collection index to message ids in the log file
@@ -451,8 +451,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 					// abort, if the the first matching message is behind the end of the requested range
 					if (message.Id > lastMessage.Id)
 					{
-						matchIndices = new long[0];
-						return new LogMessage[0];
+						matchIndices = Array.Empty<long>();
+						return Array.Empty<LogMessage>();
 					}
 
 					// found first in the range message 

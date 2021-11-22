@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogLevelBitMask
 	{
-		private static readonly uint[] sEmptyBitField = new uint[0];
+		private static readonly uint[] sEmptyBitField = Array.Empty<uint>();
 		private                 uint[] mBitField;
 
 		/// <summary>
