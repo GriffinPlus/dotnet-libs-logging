@@ -1154,6 +1154,24 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				writer.WriteEndArray();
 			}
 
+			// Path: ecs
+			// Type: object
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteStartObject("ecs");
+
+			// Path: ecs.version
+			// Type: keyword
+			// ------------------------------------------------------------------------------------------------------------------
+			// ECS version this event conforms to. ecs.version is a required field and must exist in all events.
+			// When querying across multiple indices — which may conform to slightly different ECS versions — this field lets
+			// integrations adjust to the schema version of the events.
+			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-ecs.html
+			// ------------------------------------------------------------------------------------------------------------------
+			writer.WriteString("version", "1.10.0");
+
+			// end of the 'ecs' field
+			writer.WriteEndObject();
+
 			// close the top-level object
 			writer.WriteEndObject();
 
