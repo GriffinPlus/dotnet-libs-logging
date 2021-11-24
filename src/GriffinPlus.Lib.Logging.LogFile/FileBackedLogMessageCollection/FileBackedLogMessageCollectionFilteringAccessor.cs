@@ -74,7 +74,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		ILogMessageCollectionFilterBase<LogMessage> ILogMessageCollectionFilteringAccessor<LogMessage>.Filter => mFilter;
 
 		/// <summary>
-		/// Gets or sets a the maximum number of message to cache before least recently used messages are removed (must be at least 1).
+		/// Gets or sets a the maximum number of messages to cache before least recently used messages are removed (must be at least 1).
 		/// </summary>
 		public int CacheCapacity
 		{
@@ -650,6 +650,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				mCacheLruList.Remove(cacheItem.LruNode);
 				mCacheLruList.AddLast(cacheItem.LruNode);
 				message = cacheItem.Message;
+				Debug.Assert(message != null);
 				return index;
 			}
 
@@ -667,6 +668,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					mCacheLruList.Remove(cacheItem.LruNode);
 					mCacheLruList.AddLast(cacheItem.LruNode);
 					message = cacheItem.Message;
+					Debug.Assert(message != null);
 					return index;
 				}
 			}
@@ -696,12 +698,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 				mCacheLruList.Remove(cacheItem.LruNode);
 				mCacheLruList.AddLast(cacheItem.LruNode);
 				message = cacheItem.Message;
+				Debug.Assert(message != null);
 				return index;
 			}
 
 			// ~index is the index of the next cached message (if not at the end)
 			index = ~index;
-			if (index > 0 && index < mCachedMessagesSortedById.Count)
+			if (index < mCachedMessagesSortedById.Count)
 			{
 				var cacheItem = mCachedMessagesSortedById[index];
 				if (cacheItem.PreviousMessageId >= 0 && cacheItem.PreviousMessageId < fromMessageId)
@@ -712,6 +715,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					mCacheLruList.Remove(cacheItem.LruNode);
 					mCacheLruList.AddLast(cacheItem.LruNode);
 					message = cacheItem.Message;
+					Debug.Assert(message != null);
 					return index;
 				}
 			}
@@ -1023,11 +1027,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// remove message from the list of cached messages and the LRU list
 			mCacheLruList.Remove(lruNode);
 			mCachedMessagesSortedById.RemoveAt(cacheItemToRemove.MessageCacheIndex);
-			mEmptyCacheItems.Enqueue(cacheItemToRemove);
 			for (int i = cacheItemToRemove.MessageCacheIndex; i < mCachedMessagesSortedById.Count; i++)
-			{
 				mCachedMessagesSortedById[i].MessageCacheIndex--;
-			}
+			ReturnCacheItem(cacheItemToRemove);
 		}
 
 		/// <summary>
@@ -1056,25 +1058,25 @@ namespace GriffinPlus.Lib.Logging.Collections
 				searchItem.MessageId = mLastMatchingMessageId;
 				int index = mCachedMessagesSortedById.BinarySearch(searchItem, mSearchByMessageIdComparer);
 				ReturnCacheItem(searchItem);
-				int indexOfFirstCacheItemBeforeLastMatchingMessage = -1;
+				int indexOfFirstCacheItemAfterLastMatchingMessage = -1;
 				if (index >= 0)
 				{
 					// found cache item of the last matching message
 					// => everything behind it should be removed
 					if (index + 1 < mCachedMessagesSortedById.Count)
-						indexOfFirstCacheItemBeforeLastMatchingMessage = index + 1;
+						indexOfFirstCacheItemAfterLastMatchingMessage = index + 1;
 				}
 				else
 				{
 					// the last matching message is not in the cache
 					if (~index < mCachedMessagesSortedById.Count)
-						indexOfFirstCacheItemBeforeLastMatchingMessage = ~index;
+						indexOfFirstCacheItemAfterLastMatchingMessage = ~index;
 				}
 
 				// remove these messages from the cache
-				if (indexOfFirstCacheItemBeforeLastMatchingMessage >= 0)
+				if (indexOfFirstCacheItemAfterLastMatchingMessage >= 0)
 				{
-					for (int i = indexOfFirstCacheItemBeforeLastMatchingMessage; i < mCachedMessagesSortedById.Count; i++)
+					for (int i = indexOfFirstCacheItemAfterLastMatchingMessage; i < mCachedMessagesSortedById.Count; i++)
 					{
 						var cacheItem = mCachedMessagesSortedById[i];
 						mCacheLruList.Remove(cacheItem.LruNode);
@@ -1082,8 +1084,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 					}
 
 					mCachedMessagesSortedById.RemoveRange(
-						indexOfFirstCacheItemBeforeLastMatchingMessage,
-						mCachedMessagesSortedById.Count - indexOfFirstCacheItemBeforeLastMatchingMessage);
+						indexOfFirstCacheItemAfterLastMatchingMessage,
+						mCachedMessagesSortedById.Count - indexOfFirstCacheItemAfterLastMatchingMessage);
 				}
 
 				// find index of the last cached message before the first matching message
@@ -1108,14 +1110,20 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// remove these messages from the cache
 				if (indexOfLastCacheItemBeforeFirstMatchingMessage >= 0)
 				{
-					for (int i = 0; i <= indexOfLastCacheItemBeforeFirstMatchingMessage; i++)
+					int messagesToRemoveCount = indexOfLastCacheItemBeforeFirstMatchingMessage + 1;
+					for (int i = 0; i < messagesToRemoveCount; i++)
 					{
 						var cacheItem = mCachedMessagesSortedById[i];
 						mCacheLruList.Remove(cacheItem.LruNode);
 						ReturnCacheItem(cacheItem);
 					}
 
-					mCachedMessagesSortedById.RemoveRange(0, indexOfLastCacheItemBeforeFirstMatchingMessage + 1);
+					mCachedMessagesSortedById.RemoveRange(0, messagesToRemoveCount);
+
+					// adjust message index in cache items to reflect the change
+					// ReSharper disable once ForCanBeConvertedToForeach
+					for (int i = 0; i < mCachedMessagesSortedById.Count; i++)
+						mCachedMessagesSortedById[i].MessageCacheIndex -= messagesToRemoveCount;
 				}
 			}
 		}
@@ -1154,8 +1162,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 					break;
 
 				case NotifyCollectionChangedAction.Remove: // for pruning
-				case NotifyCollectionChangedAction.Reset:  // for clearing
 					Consolidate();
+					break;
+
+				case NotifyCollectionChangedAction.Reset: // for clearing
+					InvalidateCache();
 					break;
 			}
 		}
