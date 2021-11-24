@@ -791,6 +791,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// Debug.WriteLine("Fetching message: {0}", id);
 
 			long firstMessageId;
+			LogFileMessage[] messages;
 			var node = mCachePages.First;
 			while (node != null)
 			{
@@ -810,7 +811,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					{
 						// message should be in the page, but page is not loaded entirely
 						// => update page and return message
-						var messages = LogFile.Read(firstMessageId + node.Value.Messages.Count, mCachePageCapacity - node.Value.Messages.Count);
+						messages = LogFile.Read(firstMessageId + node.Value.Messages.Count, mCachePageCapacity - node.Value.Messages.Count);
 						node.Value.Messages.AddRange(messages);
 						mCachePages.Remove(node);
 						mCachePages.AddFirst(node);
@@ -823,15 +824,17 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// cache does not contain the page with the requested message
 			// => insert page into the cache
-			firstMessageId = LogFile.OldestMessageId + mCachePageCapacity * ((id - LogFile.OldestMessageId) / mCachePageCapacity);
+			firstMessageId = mCacheStartMessageId + mCachePageCapacity * ((id - mCacheStartMessageId) / mCachePageCapacity);
 			if (mCachePages.Count >= mMaxCachePageCount)
 			{
 				// cache is full
 				// => remove least requested page, keep specified page instead.
+				messages = LogFile.Read(firstMessageId >= LogFile.OldestMessageId ? firstMessageId : LogFile.OldestMessageId, mCachePageCapacity);
 				node = mCachePages.Last;
 				node.Value.FirstMessageId = firstMessageId;
 				node.Value.Messages.Clear();
-				node.Value.Messages.AddRange(LogFile.Read(firstMessageId, mCachePageCapacity));
+				for (int i = 0; i < messages[0].Id - firstMessageId; i++) node.Value.Messages.Add(null);
+				node.Value.Messages.AddRange(messages);
 				mCachePages.RemoveLast();
 				mCachePages.AddFirst(node);
 				return node.Value.Messages[(int)(id - firstMessageId)];
@@ -840,7 +843,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// cache is not full, yet
 			// => add page...
 			var page = new CachePage(firstMessageId, mCachePageCapacity);
-			page.Messages.AddRange(LogFile.Read(firstMessageId, mCachePageCapacity));
+			messages = LogFile.Read(firstMessageId >= LogFile.OldestMessageId ? firstMessageId : LogFile.OldestMessageId, mCachePageCapacity);
+			for (int i = 0; i < messages[0].Id - firstMessageId; i++) page.Messages.Add(null);
+			page.Messages.AddRange(messages);
 			mCachePages.AddFirst(page);
 			return page.Messages[(int)(id - firstMessageId)];
 		}
