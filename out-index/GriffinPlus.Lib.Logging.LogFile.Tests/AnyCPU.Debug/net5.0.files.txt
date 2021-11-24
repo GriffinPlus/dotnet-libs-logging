@@ -28,6 +28,7 @@
 .\Newtonsoft.Json.dll
 .\NuGet.Frameworks.dll
 .\System.Data.SQLite.dll
+.\System.Diagnostics.EventLog.dll
 .\testhost.dll
 .\testhost.exe
 .\xunit.abstractions.dll
@@ -90,6 +91,8 @@
 .\ru\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
 .\runtimes\linux-x64\native\SQLite.Interop.dll
 .\runtimes\osx-x64\native\SQLite.Interop.dll
+.\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.dll
+.\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.Messages.dll
 .\runtimes\win-x64\native\SQLite.Interop.dll
 .\runtimes\win-x86\native\SQLite.Interop.dll
 .\tr\Microsoft.TestPlatform.CommunicationUtilities.resources.dll

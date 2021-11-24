@@ -25,10 +25,13 @@
 .\Microsoft.VisualStudio.CodeCoverage.Shim.dll
 .\Microsoft.VisualStudio.TestPlatform.Common.dll
 .\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
+.\Microsoft.Win32.Registry.dll
 .\Newtonsoft.Json.dll
 .\NuGet.Frameworks.dll
-.\System.Collections.Immutable.dll
 .\System.Data.SQLite.dll
+.\System.Diagnostics.EventLog.dll
+.\System.Security.AccessControl.dll
+.\System.Security.Principal.Windows.dll
 .\testhost.dll
 .\testhost.exe
 .\xunit.abstractions.dll
@@ -90,6 +93,12 @@
 .\ru\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
 .\runtimes\linux-x64\native\SQLite.Interop.dll
 .\runtimes\osx-x64\native\SQLite.Interop.dll
+.\runtimes\unix\lib\netcoreapp2.1\System.Security.Principal.Windows.dll
+.\runtimes\win\lib\netcoreapp2.0\System.Security.AccessControl.dll
+.\runtimes\win\lib\netcoreapp2.1\System.Security.Principal.Windows.dll
+.\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.dll
+.\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.Messages.dll
+.\runtimes\win\lib\netstandard2.0\Microsoft.Win32.Registry.dll
 .\runtimes\win-x64\native\SQLite.Interop.dll
 .\runtimes\win-x86\native\SQLite.Interop.dll
 .\tr\Microsoft.TestPlatform.CommunicationUtilities.resources.dll
