@@ -144,6 +144,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				if (!mAllItemsByValue.TryGetValue(value, out var item))
 				{
 					item = new Item(group, value, false);
+					item.ValueUsed = true;
 					int index = mSortedItems.BinarySearch(item, mComparer);
 					Debug.Assert(index < 0);
 					item.PropertyChanged += ItemPropertyChanged;
@@ -152,8 +153,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 					mAllItemsByValue.Add(value, item);
 					// if (item.Selected) mEnabledValues.Add(item.Value); // new items are always disabled
 				}
-
-				item.ValueUsed = true;
+				else
+				{
+					item.ValueUsed = true;
+				}
 			}
 
 			/// <summary>
@@ -169,6 +172,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					if (!mAllItemsByValue.TryGetValue(value, out var item))
 					{
 						item = new Item(group, value, false);
+						item.ValueUsed = true;
 						int index = mSortedItems.BinarySearch(item, mComparer);
 						Debug.Assert(index < 0);
 						item.PropertyChanged += ItemPropertyChanged;
@@ -177,8 +181,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 						mAllItemsByValue.Add(value, item);
 						// if (item.Selected) mEnabledValues.Add(item.Value); // new items are always disabled
 					}
-
-					item.ValueUsed = true;
+					else
+					{
+						item.ValueUsed = true;
+					}
 				}
 			}
 
