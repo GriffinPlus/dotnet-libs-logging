@@ -752,8 +752,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				if (!itemSet.Contains(item))
 				{
-					collection.Add(item);
 					itemSet.Add(item);
+					collection.Add(item);
 				}
 			}
 		}
@@ -772,8 +772,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				if (!itemSet.Contains(item))
 				{
-					collection.Add(item);
 					itemSet.Add(item);
+					collection.Add(item);
 				}
 			}
 		}
