@@ -11,10 +11,10 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Pipeline stage that only provides functionality of the <see cref="AsyncProcessingPipelineStage{STAGE}"/> class.
+	/// Pipeline stage that only provides functionality of the <see cref="AsyncProcessingPipelineStage"/> class.
 	/// It is used for testing purposes only.
 	/// </summary>
-	public class AsyncProcessingPipelineTestStage : AsyncProcessingPipelineStage<AsyncProcessingPipelineTestStage>
+	public class AsyncProcessingPipelineTestStage : AsyncProcessingPipelineStage
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineTestStage"/> class.
@@ -40,13 +40,13 @@ namespace GriffinPlus.Lib.Logging
 		public bool ProcessSyncWasCalled { get; private set; }
 
 		/// <summary>
-		/// Gets the message that was passed to <see cref="AsyncProcessingPipelineStage{STAGE}.ProcessSync(LocalLogMessage, out bool)"/>
+		/// Gets the message that was passed to <see cref="AsyncProcessingPipelineStage.ProcessSync(LocalLogMessage, out bool)"/>
 		/// with the last call.
 		/// </summary>
 		public LocalLogMessage MessagePassedToProcessSync { get; private set; }
 
 		/// <summary>
-		/// Gets the messages that were passed to <see cref="AsyncProcessingPipelineStage{STAGE}.ProcessAsync(LocalLogMessage[], CancellationToken)"/>
+		/// Gets the messages that were passed to <see cref="AsyncProcessingPipelineStage.ProcessAsync(LocalLogMessage[], CancellationToken)"/>
 		/// with the last call.
 		/// </summary>
 		public List<LocalLogMessage> MessagesPassedToProcessAsync { get; } = new List<LocalLogMessage>();

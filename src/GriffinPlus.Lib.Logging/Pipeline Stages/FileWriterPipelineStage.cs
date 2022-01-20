@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log message processing pipeline stage that logs messages to a file (thread-safe).
 	/// </summary>
-	public class FileWriterPipelineStage : TextWriterPipelineStage<FileWriterPipelineStage>
+	public class FileWriterPipelineStage : TextWriterPipelineStage
 	{
 		private readonly StringBuilder mOutputBuilder = new StringBuilder();
 		private readonly string        mPath;

@@ -13,9 +13,9 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="AsyncProcessingPipelineStage{STAGE}"/> class as a base class for derived pipeline stages.
+	/// Unit tests targeting the <see cref="AsyncProcessingPipelineStage"/> class as a base class for derived pipeline stages.
 	/// </summary>
-	public abstract class AsyncProcessingPipelineStageBaseTests<TStage> where TStage : AsyncProcessingPipelineStage<TStage>
+	public abstract class AsyncProcessingPipelineStageBaseTests<TStage> where TStage : AsyncProcessingPipelineStage
 	{
 		// ReSharper disable once StaticMemberInGenericType
 		internal static LocalLogMessagePool MessagePool = new LocalLogMessagePool();
@@ -51,9 +51,9 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests adding and getting following stages using
-		/// - <see cref="AsyncProcessingPipelineStage{STAGE}.AddNextStage(IProcessingPipelineStage)"/>
-		/// - <see cref="AsyncProcessingPipelineStage{STAGE}.NextStages"/>
-		/// - <see cref="AsyncProcessingPipelineStage{STAGE}.GetAllStages(System.Collections.Generic.HashSet{GriffinPlus.Lib.Logging.IProcessingPipelineStage})"/>
+		/// - <see cref="AsyncProcessingPipelineStage.AddNextStage(IProcessingPipelineStage)"/>
+		/// - <see cref="AsyncProcessingPipelineStage.NextStages"/>
+		/// - <see cref="AsyncProcessingPipelineStage.GetAllStages(System.Collections.Generic.HashSet{GriffinPlus.Lib.Logging.IProcessingPipelineStage})"/>
 		/// </summary>
 		[Fact]
 		public void Adding_And_Getting_Next_Stages()

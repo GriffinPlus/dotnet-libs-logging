@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Unit tests targeting the <see cref="TextWriterPipelineStage{STAGE}"/> class as a base class for derived pipeline stages.
 	/// </summary>
 	public abstract class TextWriterPipelineStageBaseTests<TStage> : AsyncProcessingPipelineStageBaseTests<TStage>
-		where TStage : TextWriterPipelineStage<TStage>
+		where TStage : TextWriterPipelineStage
 	{
 		/// <summary>
 		/// Tests whether creating a new stage succeeds and the stage is in the expected state

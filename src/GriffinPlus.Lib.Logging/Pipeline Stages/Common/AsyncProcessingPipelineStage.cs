@@ -21,8 +21,7 @@ namespace GriffinPlus.Lib.Logging
 	/// that might block should be done asynchronously only to ensure that the thread writing a message is
 	/// not blocked.
 	/// </summary>
-	public abstract class AsyncProcessingPipelineStage<TStage> : ProcessingPipelineBaseStage
-		where TStage : AsyncProcessingPipelineStage<TStage>
+	public abstract class AsyncProcessingPipelineStage : ProcessingPipelineBaseStage
 	{
 		private AsyncContextThread             mAsyncContextThread;
 		private Task                           mAsyncProcessingTask;
@@ -35,7 +34,7 @@ namespace GriffinPlus.Lib.Logging
 		private bool                           mTerminateProcessingTask;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage{T}"/> class.
+		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		protected AsyncProcessingPipelineStage(string name) : base(name)

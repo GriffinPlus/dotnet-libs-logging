@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A pipeline stage that writes log messages to a <see cref="LogFile"/>.
 	/// </summary>
-	public class LogFilePipelineStage : AsyncProcessingPipelineStage<LogFilePipelineStage>
+	public class LogFilePipelineStage : AsyncProcessingPipelineStage
 	{
 		private          LogFile          mLogFile;
 		private readonly string           mFilePath;

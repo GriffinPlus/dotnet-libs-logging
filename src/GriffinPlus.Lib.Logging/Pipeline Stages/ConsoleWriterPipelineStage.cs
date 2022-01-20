@@ -33,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 	/// A log message processing pipeline stage that writes log messages to stdout/stderr (thread-safe).
 	/// By default all log messages are written to stdout.
 	/// </summary>
-	public class ConsoleWriterPipelineStage : TextWriterPipelineStage<ConsoleWriterPipelineStage>
+	public class ConsoleWriterPipelineStage : TextWriterPipelineStage
 	{
 		private readonly Dictionary<LogLevel, ConsoleOutputStream>            mStreamByLevel            = new Dictionary<LogLevel, ConsoleOutputStream>();
 		private readonly StringBuilder                                        mStdoutBuilder            = new StringBuilder();

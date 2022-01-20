@@ -12,7 +12,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <remarks>
 	/// This is basically the core functionality of the base class.
 	/// </remarks>
-	public class SplitterPipelineStage : ProcessingPipelineStage<SplitterPipelineStage>
+	public class SplitterPipelineStage : ProcessingPipelineStage
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SplitterPipelineStage"/> class.

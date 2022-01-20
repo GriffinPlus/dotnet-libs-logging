@@ -25,7 +25,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 	/// <summary>
 	/// A log message processing pipeline stage that forwards log messages to an Elasticsearch cluster.
 	/// </summary>
-	public sealed partial class ElasticsearchPipelineStage : ProcessingPipelineStage<ElasticsearchPipelineStage>
+	public sealed partial class ElasticsearchPipelineStage : ProcessingPipelineStage
 	{
 		/// <summary>
 		/// Maximum time the processing thread is allowed to run after the stage has started to shut down (in ms).

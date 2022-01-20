@@ -39,7 +39,7 @@ namespace GriffinPlus.Lib.Logging
 		protected IProcessingPipelineStage[] mNextStages = Array.Empty<IProcessingPipelineStage>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.
+		/// Initializes a new instance of the <see cref="ProcessingPipelineStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		protected ProcessingPipelineBaseStage(string name)

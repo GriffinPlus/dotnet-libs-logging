@@ -13,7 +13,7 @@ namespace GriffinPlus.Lib.Logging
 	/// A processing pipeline stage that invokes a callback to process a log message (thread-safe).
 	/// This is a lightweight alternative to implementing an entire custom processing pipeline stage.
 	/// </summary>
-	public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage<AsyncCallbackPipelineStage>
+	public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage
 	{
 		/// <summary>
 		/// A delegate that processes the specified log message (synchronous processing).

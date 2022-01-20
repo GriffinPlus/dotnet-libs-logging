@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Unit tests targeting the <see cref="ProcessingPipelineStage{STAGE}"/> class as a base class for derived pipeline stages.
 	/// </summary>
-	public abstract class ProcessingPipelineStageBaseTests<TStage> where TStage : ProcessingPipelineStage<TStage>
+	public abstract class ProcessingPipelineStageBaseTests<TStage> where TStage : ProcessingPipelineStage
 	{
 		// ReSharper disable once StaticMemberInGenericType
 		internal static LocalLogMessagePool MessagePool = new LocalLogMessagePool();

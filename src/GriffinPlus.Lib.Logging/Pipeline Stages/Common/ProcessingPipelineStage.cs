@@ -16,11 +16,10 @@ namespace GriffinPlus.Lib.Logging
 	/// Messages are always processed in the context of the thread writing the message.
 	/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
 	/// </summary>
-	public abstract class ProcessingPipelineStage<TStage> : ProcessingPipelineBaseStage
-		where TStage : ProcessingPipelineStage<TStage>
+	public abstract class ProcessingPipelineStage : ProcessingPipelineBaseStage
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineStage{T}"/> class.
+		/// Initializes a new instance of the <see cref="ProcessingPipelineStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		protected ProcessingPipelineStage(string name) : base(name)
