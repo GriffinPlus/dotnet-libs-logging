@@ -3,6 +3,7 @@
 .\GriffinPlus.Lib.Logging.Collections.dll
 .\GriffinPlus.Lib.Logging.Collections.pdb
 .\GriffinPlus.Lib.Logging.Collections.TestCommon.dll
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.dll.config
 .\GriffinPlus.Lib.Logging.Collections.TestCommon.pdb
 .\GriffinPlus.Lib.Logging.Collections.TestCommon.xml
 .\GriffinPlus.Lib.Logging.Collections.xml
@@ -10,6 +11,7 @@
 .\GriffinPlus.Lib.Logging.LogFile.dll
 .\GriffinPlus.Lib.Logging.LogFile.pdb
 .\GriffinPlus.Lib.Logging.LogFile.Tests.dll
+.\GriffinPlus.Lib.Logging.LogFile.Tests.dll.config
 .\GriffinPlus.Lib.Logging.LogFile.Tests.pdb
 .\GriffinPlus.Lib.Logging.LogFile.xml
 .\GriffinPlus.Lib.Logging.pdb
