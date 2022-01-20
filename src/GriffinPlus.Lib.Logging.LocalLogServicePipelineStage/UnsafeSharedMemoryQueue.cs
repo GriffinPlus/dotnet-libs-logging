@@ -3,14 +3,16 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// ReSharper disable RedundantUsingDirective
+
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.Threading;
-// ReSharper disable RedundantUsingDirective
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Threading;
+
 // ReSharper restore RedundantUsingDirective
 
 namespace GriffinPlus.Lib.Logging

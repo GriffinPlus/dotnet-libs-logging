@@ -300,7 +300,7 @@ namespace GriffinPlus.Lib.Logging
 		#region RegisterSetting() followed by setting the value
 
 		/// <summary>
-		/// Tests registering a setting with a specific default value using <see cref="ProcessingPipelineStageConfigurationBase.RegisterSetting{T}"/>
+		/// Tests registering a setting with a specific default value using <see cref="ProcessingPipelineStageConfigurationBase.RegisterSetting{T}(string,T)"/>
 		/// followed by setting the value to some other value using <see cref="IUntypedProcessingPipelineStageSetting.Value"/>
 		/// and <see cref="IProcessingPipelineStageSetting{T}.Value"/>.
 		/// </summary>
@@ -389,8 +389,8 @@ namespace GriffinPlus.Lib.Logging
 		#region RegisterSetting() followed by GetSetting()
 
 		/// <summary>
-		/// Tests registering a setting with a specific default value using <see cref="ProcessingPipelineStageConfigurationBase.RegisterSetting{T}"/>
-		/// followed by getting the setting with <see cref="ProcessingPipelineStageConfigurationBase.GetSetting{T}"/>.
+		/// Tests registering a setting with a specific default value using <see cref="ProcessingPipelineStageConfigurationBase.RegisterSetting{T}(string,T)"/>
+		/// followed by getting the setting with <see cref="ProcessingPipelineStageConfigurationBase.GetSetting{T}(string)"/>.
 		/// The same setting should be returned.
 		/// </summary>
 		/// <param name="type">Type of setting value.</param>

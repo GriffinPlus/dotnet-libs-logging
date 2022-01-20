@@ -1027,8 +1027,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// remove message from the list of cached messages and the LRU list
 			mCacheLruList.Remove(lruNode);
 			mCachedMessagesSortedById.RemoveAt(cacheItemToRemove.MessageCacheIndex);
-			for (int i = cacheItemToRemove.MessageCacheIndex; i < mCachedMessagesSortedById.Count; i++)
-				mCachedMessagesSortedById[i].MessageCacheIndex--;
+			for (int i = cacheItemToRemove.MessageCacheIndex; i < mCachedMessagesSortedById.Count; i++) mCachedMessagesSortedById[i].MessageCacheIndex--;
 			ReturnCacheItem(cacheItemToRemove);
 		}
 
@@ -1123,7 +1122,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 					// adjust message index in cache items to reflect the change
 					// ReSharper disable once ForCanBeConvertedToForeach
 					for (int i = 0; i < mCachedMessagesSortedById.Count; i++)
+					{
 						mCachedMessagesSortedById[i].MessageCacheIndex -= messagesToRemoveCount;
+					}
 				}
 			}
 		}

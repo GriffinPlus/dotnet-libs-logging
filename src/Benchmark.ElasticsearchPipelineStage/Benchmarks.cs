@@ -88,7 +88,6 @@ namespace Benchmark.Elasticsearch
 		[GlobalCleanup]
 		public void GlobalCleanup()
 		{
-
 		}
 
 		/// <summary>
