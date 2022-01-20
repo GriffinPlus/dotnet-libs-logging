@@ -30,12 +30,15 @@ namespace GriffinPlus.Lib.Logging.Collections
 		private readonly string                   mProcessIdFilterTableName;
 		private          LogFile.DatabaseAccessor mAccessor;
 		private          SQLiteCommand            mSelectContinuousMessagesCommand_Forward;
+		private          SQLiteParameter          mSelectContinuousMessagesCommand_Forward_TextLikeParameter;
 		private          SQLiteParameter          mSelectContinuousMessagesCommand_Forward_FromIdParameter;
 		private          SQLiteParameter          mSelectContinuousMessagesCommand_Forward_CountParameter;
 		private          SQLiteCommand            mSelectContinuousMessagesCommand_Backwards;
+		private          SQLiteParameter          mSelectContinuousMessagesCommand_Backwards_TextLikeParameter;
 		private          SQLiteParameter          mSelectContinuousMessagesCommand_Backwards_FromIdParameter;
 		private          SQLiteParameter          mSelectContinuousMessagesCommand_Backwards_CountParameter;
 		private          SQLiteCommand            mSelectContinuousMessagesCommand_Range;
+		private          SQLiteParameter          mSelectContinuousMessagesCommand_Range_TextLikeParameter;
 		private          SQLiteParameter          mSelectContinuousMessagesCommand_Range_FromIdParameter;
 		private          SQLiteParameter          mSelectContinuousMessagesCommand_Range_ToIdParameter;
 		private          SQLiteCommand            mAddProcessIdToFilterCommand;
@@ -157,7 +160,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			long toTimestamp = TimestampFilter.To.UtcTicks;
 
 			string likeCollate = TextFilter.IsCaseSensitive ? "" : "COLLATE NOCASE";
-			string likeExpression = $"LIKE '%{TextFilter.SearchText.Replace("%", "\\%")}%' ESCAPE '\\' {likeCollate}";
+			string likeExpression = $"LIKE @text_like ESCAPE '\\' {likeCollate}";
 
 			if (mAccessor.Purpose == LogFilePurpose.Recording)
 			{
@@ -221,12 +224,25 @@ namespace GriffinPlus.Lib.Logging.Collections
 				throw new NotSupportedException($"The database schema for log file purpose ({mAccessor.Purpose}) is not supported.");
 			}
 
+			string textLikeArgument = "%" + TextFilter.SearchText
+				.Replace("\\", "\\\\")
+				.Replace("%", "\\%")
+				.Replace("_", "\\_") + "%";
+
+			mSelectContinuousMessagesCommand_Forward.Parameters.Add(mSelectContinuousMessagesCommand_Forward_TextLikeParameter = new SQLiteParameter("@text_like", DbType.String));
 			mSelectContinuousMessagesCommand_Forward.Parameters.Add(mSelectContinuousMessagesCommand_Forward_FromIdParameter = new SQLiteParameter("@from_id", DbType.Int64));
 			mSelectContinuousMessagesCommand_Forward.Parameters.Add(mSelectContinuousMessagesCommand_Forward_CountParameter = new SQLiteParameter("@count", DbType.Int64));
+			mSelectContinuousMessagesCommand_Forward_TextLikeParameter.Value = textLikeArgument;
+
+			mSelectContinuousMessagesCommand_Backwards.Parameters.Add(mSelectContinuousMessagesCommand_Backwards_TextLikeParameter = new SQLiteParameter("@text_like", DbType.String));
 			mSelectContinuousMessagesCommand_Backwards.Parameters.Add(mSelectContinuousMessagesCommand_Backwards_FromIdParameter = new SQLiteParameter("@from_id", DbType.Int64));
 			mSelectContinuousMessagesCommand_Backwards.Parameters.Add(mSelectContinuousMessagesCommand_Backwards_CountParameter = new SQLiteParameter("@count", DbType.Int64));
+			mSelectContinuousMessagesCommand_Backwards_TextLikeParameter.Value = textLikeArgument;
+
+			mSelectContinuousMessagesCommand_Range.Parameters.Add(mSelectContinuousMessagesCommand_Range_TextLikeParameter = new SQLiteParameter("@text_like", DbType.String));
 			mSelectContinuousMessagesCommand_Range.Parameters.Add(mSelectContinuousMessagesCommand_Range_FromIdParameter = new SQLiteParameter("@from_id", DbType.Int64));
 			mSelectContinuousMessagesCommand_Range.Parameters.Add(mSelectContinuousMessagesCommand_Range_ToIdParameter = new SQLiteParameter("@to_id", DbType.Int64));
+			mSelectContinuousMessagesCommand_Range_TextLikeParameter.Value = textLikeArgument;
 		}
 
 		#endregion
