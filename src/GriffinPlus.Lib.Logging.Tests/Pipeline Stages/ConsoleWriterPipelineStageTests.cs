@@ -141,9 +141,9 @@ namespace GriffinPlus.Lib.Logging
 		public void MapLogLevelToStream_FailsIfInitialized()
 		{
 			var stage = CreateStage("Console");
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.MapLogLevelToStream(LogLevel.Notice, ConsoleOutputStream.Stdout));
-			((IProcessingPipelineStage)stage).Shutdown();
+			stage.Shutdown();
 		}
 
 		/// <summary>
@@ -184,9 +184,9 @@ namespace GriffinPlus.Lib.Logging
 		public void StreamByLevelOverrides_FailsIfInitialized()
 		{
 			var stage = CreateStage("Console");
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.StreamByLevelOverrides = new Dictionary<LogLevel, ConsoleOutputStream>());
-			((IProcessingPipelineStage)stage).Shutdown();
+			stage.Shutdown();
 		}
 
 		/// <summary>
@@ -248,14 +248,14 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// initialize the pipeline stage
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 
 			// process the message and determine the expected output in stdout/stderr
 			var expectedStdout = new StringBuilder();
 			var expectedStderr = new StringBuilder();
 			foreach (var message in messages)
 			{
-				((IProcessingPipelineStage)stage).ProcessMessage(message);
+				stage.ProcessMessage(message);
 
 				if (!levelToStreamMap.TryGetValue(message.LogLevel, out var stream))
 					stream = defaultStream;
@@ -296,7 +296,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(expectedStderr.ToString(), stderrOutput);
 
 			// shut the pipeline stage down
-			((IProcessingPipelineStage)stage).Shutdown();
+			stage.Shutdown();
 			Assert.False(stage.IsInitialized);
 		}
 	}

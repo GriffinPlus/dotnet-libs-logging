@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Base class for the <see cref="SyncProcessingPipelineStage"/> and the <see cref="AsyncProcessingPipelineStage"/> class
 	/// that should be used for concrete pipeline stage implementations.
 	/// </summary>
-	public abstract partial class ProcessingPipelineStage : IProcessingPipelineStage
+	public abstract partial class ProcessingPipelineStage
 	{
 		/// <summary>
 		/// Indicates whether the pipeline stage is initialized, i.e. attached to the logging subsystem.
@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Processing pipeline stages that are called after the current stage has completed processing.
 		/// </summary>
-		protected IProcessingPipelineStage[] mNextStages = Array.Empty<IProcessingPipelineStage>();
+		protected ProcessingPipelineStage[] mNextStages = Array.Empty<ProcessingPipelineStage>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SyncProcessingPipelineStage"/> class.
@@ -91,7 +91,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes the processing pipeline stage.
 		/// This method is called by the logging subsystem and should not be called explicitly.
 		/// </summary>
-		void IProcessingPipelineStage.Initialize()
+		public void Initialize()
 		{
 			lock (Sync)
 			{
@@ -131,7 +131,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Is called on behalf of <see cref="IProcessingPipelineStage.Initialize"/> (for internal use only).
+		/// Is called on behalf of <see cref="ProcessingPipelineStage.Initialize"/> (for internal use only).
 		/// </summary>
 		internal abstract void OnInitializeBase();
 
@@ -149,7 +149,7 @@ namespace GriffinPlus.Lib.Logging
 		/// This method is called by the logging subsystem and should not be called explicitly.
 		/// This method must not throw exceptions.
 		/// </summary>
-		void IProcessingPipelineStage.Shutdown()
+		public void Shutdown()
 		{
 			lock (Sync)
 			{
@@ -165,7 +165,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Is called on behalf of <see cref="IProcessingPipelineStage.Shutdown"/> (for internal use only).
+		/// Is called on behalf of <see cref="ProcessingPipelineStage.Shutdown"/> (for internal use only).
 		/// This method must not throw exceptions.
 		/// </summary>
 		internal abstract void OnShutdownBase();
@@ -186,13 +186,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets processing pipeline stages that are called after the current stage has completed processing.
 		/// </summary>
-		public IProcessingPipelineStage[] NextStages
+		public ProcessingPipelineStage[] NextStages
 		{
 			get
 			{
 				lock (Sync)
 				{
-					var copy = new IProcessingPipelineStage[mNextStages.Length];
+					var copy = new ProcessingPipelineStage[mNextStages.Length];
 					Array.Copy(mNextStages, copy, mNextStages.Length);
 					return copy;
 				}
@@ -215,7 +215,7 @@ namespace GriffinPlus.Lib.Logging
 
 					// set new following stages
 					var oldNextStages = mNextStages;
-					var copy = new IProcessingPipelineStage[value.Length];
+					var copy = new ProcessingPipelineStage[value.Length];
 					Array.Copy(value, copy, value.Length);
 					mNextStages = copy;
 
@@ -243,7 +243,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets all pipeline stages following the current stage recursively (including the current one).
 		/// </summary>
 		/// <param name="stages">Set to add the pipeline stages to.</param>
-		public void GetAllStages(HashSet<IProcessingPipelineStage> stages)
+		public void GetAllStages(HashSet<ProcessingPipelineStage> stages)
 		{
 			lock (Sync)
 			{
@@ -257,10 +257,10 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
-		/// its <see cref="IProcessingPipelineStage.ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
+		/// its <see cref="ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
 		/// </summary>
 		/// <param name="stage">The pipeline stage that should follow the current stage.</param>
-		public void AddNextStage(IProcessingPipelineStage stage)
+		public void AddNextStage(ProcessingPipelineStage stage)
 		{
 			if (stage == null) throw new ArgumentNullException(nameof(stage));
 			if (stage.IsInitialized) throw new ArgumentException("The stage to add must not be initialized.", nameof(stage));
@@ -268,7 +268,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync)
 			{
 				var oldNextStages = mNextStages;
-				var copy = new IProcessingPipelineStage[mNextStages.Length + 1];
+				var copy = new ProcessingPipelineStage[mNextStages.Length + 1];
 				Array.Copy(mNextStages, copy, mNextStages.Length);
 				copy[copy.Length - 1] = stage;
 				mNextStages = copy;
@@ -307,7 +307,7 @@ namespace GriffinPlus.Lib.Logging
 		/// true, if the specified pipeline stage was removed successfully;
 		/// false, if the specified pipeline stage is not one of the following pipeline stages of the current stage.
 		/// </returns>
-		public bool RemoveNextStage(IProcessingPipelineStage stage)
+		public bool RemoveNextStage(ProcessingPipelineStage stage)
 		{
 			if (stage == null) throw new ArgumentNullException(nameof(stage));
 
@@ -334,7 +334,7 @@ namespace GriffinPlus.Lib.Logging
 						}
 
 						// remove the stage
-						var copy = new IProcessingPipelineStage[mNextStages.Length - 1];
+						var copy = new ProcessingPipelineStage[mNextStages.Length - 1];
 						for (int j = 0, k = 0; j < mNextStages.Length; j++, k++)
 						{
 							if (mNextStages[j] == stage)
@@ -475,7 +475,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Processes that a new log level was added to the logging subsystem.
 		/// </summary>
 		/// <param name="level">The new log level.</param>
-		void IProcessingPipelineStage.ProcessLogLevelAdded(LogLevel level)
+		internal void ProcessLogLevelAdded(LogLevel level)
 		{
 			Debug.Assert(Monitor.IsEntered(Log.Sync));
 
@@ -522,7 +522,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Processes that a new log writer was added to the logging subsystem.
 		/// </summary>
 		/// <param name="writer">the new log writer.</param>
-		void IProcessingPipelineStage.ProcessLogWriterAdded(LogWriter writer)
+		internal void ProcessLogWriterAdded(LogWriter writer)
 		{
 			Debug.Assert(Monitor.IsEntered(Log.Sync));
 
@@ -569,7 +569,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Processes that a new log writer tag was added to the logging subsystem.
 		/// </summary>
 		/// <param name="tag">the new log writer tag.</param>
-		void IProcessingPipelineStage.ProcessLogWriterTagAdded(LogWriterTag tag)
+		internal void ProcessLogWriterTagAdded(LogWriterTag tag)
 		{
 			Debug.Assert(Monitor.IsEntered(Log.Sync));
 
@@ -617,7 +617,7 @@ namespace GriffinPlus.Lib.Logging
 		/// if appropriate. This method must not throw exceptions.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
-		void IProcessingPipelineStage.ProcessMessage(LocalLogMessage message)
+		public void ProcessMessage(LocalLogMessage message)
 		{
 			if (message == null) throw new ArgumentNullException(nameof(message));
 
@@ -648,7 +648,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Is called on behalf of <see cref="IProcessingPipelineStage.ProcessMessage"/> (for internal use only).
+		/// Is called on behalf of <see cref="ProcessMessage"/> (for internal use only).
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="message">Message to process.</param>

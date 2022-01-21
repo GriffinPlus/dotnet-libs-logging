@@ -40,7 +40,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 			catch (Exception)
 			{
-				(this as IProcessingPipelineStage).Shutdown();
+				Shutdown();
 				throw;
 			}
 		}
@@ -66,7 +66,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Processing Messages
 
 		/// <summary>
-		/// Is called on behalf of <see cref="IProcessingPipelineStage.ProcessMessage"/> (for internal use only).
+		/// Is called on behalf of <see cref="ProcessingPipelineStage.ProcessMessage"/> (for internal use only).
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="message">Message to process.</param>

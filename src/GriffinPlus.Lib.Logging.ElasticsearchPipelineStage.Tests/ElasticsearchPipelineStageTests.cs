@@ -209,7 +209,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			stage.Settings = configuration.ProcessingPipeline.Stages.First(x => x.Name == "Elasticsearch");
 
 			// initialize the stage
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 			Assert.True(stage.IsInitialized);
 			Assert.False(stage.IsOperational);
 			Assert.Equal(Setting_Server_ApiBaseUrls, stage.ApiBaseUrls);
@@ -229,7 +229,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			Thread.Sleep(1000);
 
 			// shut the stage down
-			((IProcessingPipelineStage)stage).Shutdown();
+			stage.Shutdown();
 			Assert.False(stage.IsInitialized);
 		}
 

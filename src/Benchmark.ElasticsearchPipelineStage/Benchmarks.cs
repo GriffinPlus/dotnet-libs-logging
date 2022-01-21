@@ -99,15 +99,15 @@ namespace Benchmark.Elasticsearch
 		public void Process(int messageCount)
 		{
 			// initialize the pipeline stage
-			((IProcessingPipelineStage)mStage).Initialize();
+			mStage.Initialize();
 
 			for (int i = 0; i < messageCount; i++)
 			{
-				((IProcessingPipelineStage)mStage).ProcessMessage(sMessages[i]);
+				mStage.ProcessMessage(sMessages[i]);
 			}
 
 			// shut the pipeline stage down
-			((IProcessingPipelineStage)mStage).Shutdown();
+			mStage.Shutdown();
 		}
 	}
 

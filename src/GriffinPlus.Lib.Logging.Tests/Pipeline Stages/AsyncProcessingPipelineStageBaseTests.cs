@@ -43,7 +43,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Empty(stage.NextStages);
 
 			// the stage should be the one and only stage (no following stages)
-			var stages = new HashSet<IProcessingPipelineStage>();
+			var stages = new HashSet<ProcessingPipelineStage>();
 			stage.GetAllStages(stages);
 			Assert.Single(stages);
 			Assert.Same(stage, stages.First());
@@ -51,9 +51,9 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests adding and getting following stages using
-		/// - <see cref="AsyncProcessingPipelineStage.AddNextStage(IProcessingPipelineStage)"/>
+		/// - <see cref="AsyncProcessingPipelineStage.AddNextStage(ProcessingPipelineStage)"/>
 		/// - <see cref="AsyncProcessingPipelineStage.NextStages"/>
-		/// - <see cref="AsyncProcessingPipelineStage.GetAllStages(System.Collections.Generic.HashSet{GriffinPlus.Lib.Logging.IProcessingPipelineStage})"/>
+		/// - <see cref="AsyncProcessingPipelineStage.GetAllStages(System.Collections.Generic.HashSet{GriffinPlus.Lib.Logging.ProcessingPipelineStage})"/>
 		/// </summary>
 		[Fact]
 		public void Adding_And_Getting_Next_Stages()
@@ -73,21 +73,21 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Empty(stage2.NextStages);
 
 			// stage 1 and 2 should be returned by GetAllStages() of stage 1
-			var stages1 = new HashSet<IProcessingPipelineStage>();
+			var stages1 = new HashSet<ProcessingPipelineStage>();
 			stage1.GetAllStages(stages1);
 			Assert.Equal(2, stages1.Count);
 			Assert.Equal(stages12, stages1);
 
 			// stage 2 should have no following stages
 			Assert.Empty(stage2.NextStages);
-			var stages2 = new HashSet<IProcessingPipelineStage>();
+			var stages2 = new HashSet<ProcessingPipelineStage>();
 			stage2.GetAllStages(stages2);
 			Assert.Single(stages2);
 			Assert.Same(stage2, stages2.First());
 		}
 
 		/// <summary>
-		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> succeeds,
+		/// Tests whether initializing the pipeline stage using <see cref="ProcessingPipelineStage.Initialize"/> succeeds,
 		/// if the stage does not have following stages. The stage should be initialized after this.
 		/// </summary>
 		[Fact]
@@ -95,12 +95,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var stage = CreateStage("Stage");
 			Assert.False(stage.IsInitialized);
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 			Assert.True(stage.IsInitialized);
 		}
 
 		/// <summary>
-		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> succeeds,
+		/// Tests whether initializing the pipeline stage using <see cref="ProcessingPipelineStage.Initialize"/> succeeds,
 		/// if the stage has a following stage. Both stages should be initialized after this.
 		/// </summary>
 		[Fact]
@@ -111,13 +111,13 @@ namespace GriffinPlus.Lib.Logging
 			stage1.AddNextStage(stage2);
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			((IProcessingPipelineStage)stage1).Initialize();
+			stage1.Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 		}
 
 		/// <summary>
-		/// Test whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> throws an exception,
+		/// Test whether initializing the pipeline stage using <see cref="ProcessingPipelineStage.Initialize"/> throws an exception,
 		/// if the stage is already initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]
@@ -127,15 +127,15 @@ namespace GriffinPlus.Lib.Logging
 
 			// initialize the first time
 			Assert.False(stage.IsInitialized);
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 			Assert.True(stage.IsInitialized);
 
 			// initialize once again
-			Assert.Throws<InvalidOperationException>(() => ((IProcessingPipelineStage)stage).Initialize());
+			Assert.Throws<InvalidOperationException>(() => stage.Initialize());
 		}
 
 		/// <summary>
-		/// Tests whether shutting down the pipeline stage using <see cref="IProcessingPipelineStage.Shutdown"/> succeeds,
+		/// Tests whether shutting down the pipeline stage using <see cref="ProcessingPipelineStage.Shutdown"/> succeeds,
 		/// if the stage does not have following stages. The stage should not be initialized after this.
 		/// </summary>
 		[Fact]
@@ -145,16 +145,16 @@ namespace GriffinPlus.Lib.Logging
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 			Assert.True(stage.IsInitialized);
 
 			// shut the stage down
-			((IProcessingPipelineStage)stage).Shutdown();
+			stage.Shutdown();
 			Assert.False(stage.IsInitialized);
 		}
 
 		/// <summary>
-		/// Tests whether shutting down the pipeline stage using <see cref="IProcessingPipelineStage.Shutdown"/> succeeds,
+		/// Tests whether shutting down the pipeline stage using <see cref="ProcessingPipelineStage.Shutdown"/> succeeds,
 		/// if the stage has a following stage. Both stages should not be initialized after this.
 		/// </summary>
 		[Fact]
@@ -167,29 +167,29 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			((IProcessingPipelineStage)stage1).Initialize();
+			stage1.Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 
 			// shut the stages down
-			((IProcessingPipelineStage)stage1).Shutdown();
+			stage1.Shutdown();
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
 		}
 
 		/// <summary>
-		/// Test whether <see cref="IProcessingPipelineStage.ProcessMessage"/> throws an exception,
+		/// Test whether <see cref="ProcessingPipelineStage.ProcessMessage"/> throws an exception,
 		/// if the message to process is a null reference.
 		/// </summary>
 		[Fact]
 		public void Process_FailsIfMessageIsNull()
 		{
 			var stage = CreateStage("Stage");
-			Assert.Throws<ArgumentNullException>(() => (stage as IProcessingPipelineStage).ProcessMessage(null));
+			Assert.Throws<ArgumentNullException>(() => stage.ProcessMessage(null));
 		}
 
 		/// <summary>
-		/// Test whether <see cref="IProcessingPipelineStage.ProcessMessage"/> throws an exception,
+		/// Test whether <see cref="ProcessingPipelineStage.ProcessMessage"/> throws an exception,
 		/// if the stage is not initialized (attached to the logging subsystem).
 		/// </summary>
 		[Fact]
@@ -197,7 +197,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var stage = CreateStage("Stage");
 			var message = MessagePool.GetUninitializedMessage();
-			Assert.Throws<InvalidOperationException>(() => (stage as IProcessingPipelineStage).ProcessMessage(message));
+			Assert.Throws<InvalidOperationException>(() => stage.ProcessMessage(message));
 		}
 	}
 

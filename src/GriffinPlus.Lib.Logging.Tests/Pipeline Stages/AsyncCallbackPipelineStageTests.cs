@@ -139,13 +139,13 @@ namespace GriffinPlus.Lib.Logging
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 			Assert.True(stage.IsInitialized);
 
 			// process a log message
 			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback.ProcessSyncCallbackWasCalled);
-			((IProcessingPipelineStage)stage).ProcessMessage(message);
+			stage.ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
 			Thread.Sleep(500);
@@ -168,7 +168,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// shut the stage down
-			((IProcessingPipelineStage)stage).Shutdown();
+			stage.Shutdown();
 			Assert.False(stage.IsInitialized);
 		}
 
@@ -199,7 +199,7 @@ namespace GriffinPlus.Lib.Logging
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
-			((IProcessingPipelineStage)stage1).Initialize();
+			stage1.Initialize();
 			Assert.True(stage1.IsInitialized);
 			Assert.True(stage2.IsInitialized);
 
@@ -207,7 +207,7 @@ namespace GriffinPlus.Lib.Logging
 			var message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback1.ProcessSyncCallbackWasCalled);
 			Assert.False(callback2.ProcessSyncCallbackWasCalled);
-			((IProcessingPipelineStage)stage1).ProcessMessage(message);
+			stage1.ProcessMessage(message);
 
 			// wait for the message to travel through asynchronous processing
 			Thread.Sleep(500);
@@ -268,7 +268,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// shut the pipeline stages down
-			((IProcessingPipelineStage)stage1).Shutdown();
+			stage1.Shutdown();
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
 		}

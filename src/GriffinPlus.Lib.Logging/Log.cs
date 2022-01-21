@@ -33,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 		private static          List<LogWriterTag>               sLogWriterTagsById                    = new List<LogWriterTag>();
 		private static          Dictionary<string, LogWriterTag> sLogWriterTagsByName                  = new Dictionary<string, LogWriterTag>();
 		private static          ILogConfiguration                sLogConfiguration                     = null;
-		private static volatile IProcessingPipelineStage         sProcessingPipeline                   = null;
+		private static volatile ProcessingPipelineStage          sProcessingPipeline                   = null;
 		private static volatile bool                             sTerminateProcessOnUnhandledException = true;
 		private static readonly AsyncLocal<uint>                 sAsyncId                              = new AsyncLocal<uint>();
 		private static          int                              sAsyncIdCounter                       = 0;
@@ -157,7 +157,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the log message processing pipeline that receives any log messages written to the logging subsystem.
 		/// </summary>
-		public static IProcessingPipelineStage ProcessingPipeline
+		public static ProcessingPipelineStage ProcessingPipeline
 		{
 			get => sProcessingPipeline;
 
@@ -499,8 +499,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="firstStage">First stage of the processing pipeline.</param>
 		/// <param name="configuration">The configuration to set.</param>
 		private static void LinkPipelineStagesToConfiguration(
-			IProcessingPipelineStage firstStage,
-			ILogConfiguration        configuration)
+			ProcessingPipelineStage firstStage,
+			ILogConfiguration       configuration)
 		{
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
@@ -509,7 +509,7 @@ namespace GriffinPlus.Lib.Logging
 			if (firstStage == null) return;
 
 			// get all stages of the processing pipeline recursively
-			var allStages = new HashSet<IProcessingPipelineStage>();
+			var allStages = new HashSet<ProcessingPipelineStage>();
 			firstStage.GetAllStages(allStages);
 
 			// link configuration to all stages
@@ -525,7 +525,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Unlinks the specified processing pipeline stage and its following stages from the specified configuration.
 		/// </summary>
 		/// <param name="firstStage">First stage of the processing pipeline.</param>
-		private static void UnlinkPipelineStagesFromConfiguration(IProcessingPipelineStage firstStage)
+		private static void UnlinkPipelineStagesFromConfiguration(ProcessingPipelineStage firstStage)
 		{
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
@@ -534,7 +534,7 @@ namespace GriffinPlus.Lib.Logging
 			if (firstStage == null) return;
 
 			// get all stages of the processing pipeline recursively
-			var allStages = new HashSet<IProcessingPipelineStage>();
+			var allStages = new HashSet<ProcessingPipelineStage>();
 			firstStage.GetAllStages(allStages);
 
 			// unlink configuration from all stages

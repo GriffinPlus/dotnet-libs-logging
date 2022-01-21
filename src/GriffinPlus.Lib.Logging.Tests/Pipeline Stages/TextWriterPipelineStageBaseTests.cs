@@ -62,9 +62,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var stage = CreateStage("Stage");
 			var formatter = new TestFormatter();
-			((IProcessingPipelineStage)stage).Initialize();
+			stage.Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.Formatter = formatter);
-			((IProcessingPipelineStage)stage).Shutdown();
+			stage.Shutdown();
 		}
 	}
 
