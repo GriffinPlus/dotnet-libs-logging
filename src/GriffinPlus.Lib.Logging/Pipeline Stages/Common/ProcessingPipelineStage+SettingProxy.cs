@@ -9,18 +9,18 @@ using System.Text;
 namespace GriffinPlus.Lib.Logging
 {
 
-	partial class ProcessingPipelineBaseStage
+	partial class ProcessingPipelineStage
 	{
 		/// <summary>
 		/// A proxy for a pipeline stage specific setting.
-		/// Used by derived classes from <see cref="ProcessingPipelineBaseStage"/> to bind a setting to a pipeline stage
-		/// configuration that could be exchanged afterwards. The proxy is adjusted by <see cref="ProcessingPipelineBaseStage"/>
+		/// Used by derived classes from <see cref="ProcessingPipelineStage"/> to bind a setting to a pipeline stage
+		/// configuration that could be exchanged afterwards. The proxy is adjusted by <see cref="ProcessingPipelineStage"/>
 		/// when a pipeline stage configuration is set. This avoids breaking the link between a pipeline stage and its
 		/// configuration.
 		/// </summary>
 		internal class SettingProxy<T> : ISettingProxy<T>
 		{
-			private readonly ProcessingPipelineBaseStage           mStage;
+			private readonly ProcessingPipelineStage               mStage;
 			private readonly string                                mSettingName;
 			private readonly T                                     mDefaultSettingValue;
 			private readonly Func<T, string>                       mValueToStringConverter;
@@ -37,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="name">Name of the setting.</param>
 			/// <param name="defaultValue">Default value of the setting.</param>
 			internal SettingProxy(
-				ProcessingPipelineBaseStage           stage,
+				ProcessingPipelineStage               stage,
 				IProcessingPipelineStageConfiguration configuration,
 				string                                name,
 				T                                     defaultValue) : this(stage, configuration, name, defaultValue, null, null)
@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
 			/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
 			internal SettingProxy(
-				ProcessingPipelineBaseStage           stage,
+				ProcessingPipelineStage               stage,
 				IProcessingPipelineStageConfiguration configuration,
 				string                                name,
 				T                                     defaultValue,

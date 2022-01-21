@@ -6,7 +6,7 @@
 namespace GriffinPlus.Lib.Logging
 {
 
-	partial class ProcessingPipelineBaseStage
+	partial class ProcessingPipelineStage
 	{
 		/// <summary>
 		/// Untyped interface for a setting proxy (must be implemented thread-safe).

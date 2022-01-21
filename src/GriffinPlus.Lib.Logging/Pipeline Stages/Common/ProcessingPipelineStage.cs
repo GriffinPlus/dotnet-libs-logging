@@ -17,11 +17,10 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Base class for stages in the log message processing pipeline.
-	/// Messages are always processed in the context of the thread writing the message.
-	/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
+	/// Base class for the <see cref="SyncProcessingPipelineStage"/> and the <see cref="AsyncProcessingPipelineStage"/> class
+	/// that should be used for concrete pipeline stage implementations.
 	/// </summary>
-	public abstract partial class ProcessingPipelineBaseStage : IProcessingPipelineStage
+	public abstract partial class ProcessingPipelineStage : IProcessingPipelineStage
 	{
 		/// <summary>
 		/// Indicates whether the pipeline stage is initialized, i.e. attached to the logging subsystem.
@@ -42,7 +41,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="SyncProcessingPipelineStage"/> class.
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		protected ProcessingPipelineBaseStage(string name)
+		protected ProcessingPipelineStage(string name)
 		{
 			Name = name ?? throw new ArgumentNullException(nameof(name));
 			Settings = new VolatileProcessingPipelineStageConfiguration(name);

@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Messages are always processed in the context of the thread writing the message.
 	/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
 	/// </summary>
-	public abstract class SyncProcessingPipelineStage : ProcessingPipelineBaseStage
+	public abstract class SyncProcessingPipelineStage : ProcessingPipelineStage
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SyncProcessingPipelineStage"/> class.
@@ -93,7 +93,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// When overridden in a derived class, processes the specified log message synchronously.
-		/// This method is called by the thread writing the message and from within the pipeline stage lock (<see cref="ProcessingPipelineBaseStage.Sync"/>).
+		/// This method is called by the thread writing the message and from within the pipeline stage lock (<see cref="ProcessingPipelineStage.Sync"/>).
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="message">Message to process.</param>
