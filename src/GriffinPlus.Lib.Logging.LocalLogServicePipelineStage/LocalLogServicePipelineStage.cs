@@ -11,7 +11,7 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// A log message processing pipeline stage that forwards log message to the local log service (proprietary, windows only).
 	/// </summary>
-	public class LocalLogServicePipelineStage : ProcessingPipelineStage
+	public class LocalLogServicePipelineStage : SyncProcessingPipelineStage
 	{
 		private readonly LocalLogServiceConnection mSource;
 

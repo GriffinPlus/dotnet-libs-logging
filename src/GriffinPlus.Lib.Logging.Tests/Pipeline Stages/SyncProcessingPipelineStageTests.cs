@@ -9,9 +9,9 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="ProcessingPipelineStage{STAGE}"/> class (not derived pipeline stages).
+	/// Unit tests targeting the <see cref="SyncProcessingPipelineStage"/> class (not derived pipeline stages).
 	/// </summary>
-	public class ProcessingPipelineStageTests : ProcessingPipelineStageBaseTests<ProcessingPipelineTestStage>
+	public class SyncProcessingPipelineStageTests : ProcessingPipelineStageBaseTests<ProcessingPipelineTestStage>
 	{
 		/// <summary>
 		/// Creates a new instance of the pipeline stage.
@@ -42,7 +42,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> succeeds,
-		/// if the stage does not have following stages. The stage should have called <see cref="ProcessingPipelineStage{STAGE}.OnInitialize"/>
+		/// if the stage does not have following stages. The stage should have called <see cref="SyncProcessingPipelineStage.OnInitialize"/>
 		/// after this.
 		/// </summary>
 		[Fact]
@@ -58,7 +58,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether initializing the pipeline stage using <see cref="IProcessingPipelineStage.Initialize"/> succeeds,
-		/// if the stage has a following stage. Both stages should have called <see cref="ProcessingPipelineStage{STAGE}.OnInitialize"/>
+		/// if the stage has a following stage. Both stages should have called <see cref="SyncProcessingPipelineStage.OnInitialize"/>
 		/// after this.
 		/// </summary>
 		[Fact]
@@ -80,7 +80,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether shutting the pipeline stage down using <see cref="IProcessingPipelineStage.Shutdown"/> succeeds,
-		/// if the stage does not have following stages. The stage should have called <see cref="ProcessingPipelineStage{STAGE}.OnShutdown"/>
+		/// if the stage does not have following stages. The stage should have called <see cref="SyncProcessingPipelineStage.OnShutdown"/>
 		/// after this.
 		/// </summary>
 		[Fact]
@@ -104,7 +104,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether shutting the pipeline stage using <see cref="IProcessingPipelineStage.Shutdown"/> succeeds,
-		/// if the stage has a following stage. Both stages should have called <see cref="ProcessingPipelineStage{STAGE}.OnShutdown"/>
+		/// if the stage has a following stage. Both stages should have called <see cref="SyncProcessingPipelineStage.OnShutdown"/>
 		/// after this.
 		/// </summary>
 		[Fact]
@@ -133,7 +133,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether processing a log message using <see cref="IProcessingPipelineStage.ProcessMessage"/> succeeds,
-		/// if the stage does not have following stages. The stage should have called <see cref="ProcessingPipelineStage{STAGE}.ProcessSync"/>
+		/// if the stage does not have following stages. The stage should have called <see cref="SyncProcessingPipelineStage.ProcessSync"/>
 		/// after this.
 		/// </summary>
 		[Fact]
@@ -162,8 +162,8 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests whether calling <see cref="IProcessingPipelineStage.ProcessMessage"/> invokes
-		/// <see cref="ProcessingPipelineStage{STAGE}.ProcessSync(LocalLogMessage)"/>, if the stage has a following stage.
-		/// Both stages should have called <see cref="ProcessingPipelineStage{STAGE}.ProcessSync"/> after this.
+		/// <see cref="SyncProcessingPipelineStage.ProcessSync(LocalLogMessage)"/>, if the stage has a following stage.
+		/// Both stages should have called <see cref="SyncProcessingPipelineStage.ProcessSync"/> after this.
 		/// </summary>
 		[Fact]
 		public void Process_WithFollowingStage()

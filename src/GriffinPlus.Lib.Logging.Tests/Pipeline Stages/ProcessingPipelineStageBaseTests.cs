@@ -13,9 +13,9 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Unit tests targeting the <see cref="ProcessingPipelineStage{STAGE}"/> class as a base class for derived pipeline stages.
+	/// Unit tests targeting the <see cref="ProcessingPipelineBaseStage"/> class as a base class for derived pipeline stages.
 	/// </summary>
-	public abstract class ProcessingPipelineStageBaseTests<TStage> where TStage : ProcessingPipelineStage
+	public abstract class ProcessingPipelineStageBaseTests<TStage> where TStage : ProcessingPipelineBaseStage
 	{
 		// ReSharper disable once StaticMemberInGenericType
 		internal static LocalLogMessagePool MessagePool = new LocalLogMessagePool();
@@ -51,9 +51,9 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Tests adding and getting following stages using
-		/// - <see cref="ProcessingPipelineStage{STAGE}.AddNextStage(IProcessingPipelineStage)"/>
-		/// - <see cref="ProcessingPipelineStage{STAGE}.NextStages"/>
-		/// - <see cref="ProcessingPipelineStage{STAGE}.GetAllStages(System.Collections.Generic.HashSet{GriffinPlus.Lib.Logging.IProcessingPipelineStage})"/>
+		/// - <see cref="ProcessingPipelineBaseStage.AddNextStage(IProcessingPipelineStage)"/>
+		/// - <see cref="ProcessingPipelineBaseStage.NextStages"/>
+		/// - <see cref="ProcessingPipelineBaseStage.GetAllStages(System.Collections.Generic.HashSet{GriffinPlus.Lib.Logging.IProcessingPipelineStage})"/>
 		/// </summary>
 		[Fact]
 		public void Adding_And_Getting_Next_Stages()

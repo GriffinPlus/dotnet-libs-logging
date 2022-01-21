@@ -7,10 +7,10 @@ namespace GriffinPlus.Lib.Logging
 {
 
 	/// <summary>
-	/// Pipeline stage that only provides functionality of the <see cref="ProcessingPipelineStage{STAGE}"/> class.
+	/// Pipeline stage that only provides functionality of the <see cref="SyncProcessingPipelineStage"/> class.
 	/// It is used for testing purposes only.
 	/// </summary>
-	public class ProcessingPipelineTestStage : ProcessingPipelineStage
+	public class ProcessingPipelineTestStage : SyncProcessingPipelineStage
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineTestStage"/> class.
