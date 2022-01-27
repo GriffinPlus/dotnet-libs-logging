@@ -224,10 +224,12 @@ namespace GriffinPlus.Lib.Logging.Collections
 				throw new NotSupportedException($"The database schema for log file purpose ({mAccessor.Purpose}) is not supported.");
 			}
 
-			string textLikeArgument = "%" + TextFilter.SearchText
-				.Replace("\\", "\\\\")
-				.Replace("%", "\\%")
-				.Replace("_", "\\_") + "%";
+			string textLikeArgument = "%" +
+			                          TextFilter.SearchText
+				                          .Replace("\\", "\\\\")
+				                          .Replace("%", "\\%")
+				                          .Replace("_", "\\_") +
+			                          "%";
 
 			mSelectContinuousMessagesCommand_Forward.Parameters.Add(mSelectContinuousMessagesCommand_Forward_TextLikeParameter = new SQLiteParameter("@text_like", DbType.String));
 			mSelectContinuousMessagesCommand_Forward.Parameters.Add(mSelectContinuousMessagesCommand_Forward_FromIdParameter = new SQLiteParameter("@from_id", DbType.Int64));
