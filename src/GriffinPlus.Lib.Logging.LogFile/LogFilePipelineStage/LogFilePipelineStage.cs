@@ -4,9 +4,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+
+using GriffinPlus.Lib.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -16,32 +17,90 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LogFilePipelineStage : AsyncProcessingPipelineStage
 	{
-		private          LogFile          mLogFile;
-		private readonly string           mFilePath;
-		private readonly LogFilePurpose   mPurpose;
-		private readonly LogFileWriteMode mWriteMode;
-		private          long             mMaximumMessageCount = -1;
-		private          TimeSpan         mMaximumMessageAge   = TimeSpan.Zero;
+		private readonly AsyncLock mAsyncWriterLock = new AsyncLock();
+		private          LogFile   mLogFile;
+
+		// defaults of settings determining the behavior of the stage
+		private static readonly string           sDefault_Path                = "Unnamed.log";
+		private static readonly LogFilePurpose   sDefault_Purpose             = LogFilePurpose.Recording;
+		private static readonly LogFileWriteMode sDefault_WriteMode           = LogFileWriteMode.Robust;
+		private static readonly long             sDefault_MaximumMessageCount = -1;
+		private static readonly TimeSpan         sDefault_MaximumMessageAge   = TimeSpan.Zero;
+
+		// the settings determining the behavior of the stage
+		private readonly IProcessingPipelineStageSetting<string>           mSetting_Path;
+		private readonly IProcessingPipelineStageSetting<LogFilePurpose>   mSetting_Purpose;
+		private readonly IProcessingPipelineStageSetting<LogFileWriteMode> mSetting_WriteMode;
+		private readonly IProcessingPipelineStageSetting<long>             mSetting_MaximumMessageCount;
+		private readonly IProcessingPipelineStageSetting<TimeSpan>         mSetting_MaximumMessageAge;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogFilePipelineStage"/> class.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <param name="path">Log file to open/create.</param>
-		/// <param name="purpose">
-		/// Purpose of the log file determining whether the log file is primarily used for recording or for analysis
-		/// (does not have any effect, if the log file exists already).
-		/// </param>
-		/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
-		public LogFilePipelineStage(
-			string           name,
-			string           path,
-			LogFilePurpose   purpose,
-			LogFileWriteMode writeMode) : base(name)
+		public LogFilePipelineStage()
 		{
-			mFilePath = path;
-			mPurpose = purpose;
-			mWriteMode = writeMode;
+			mSetting_Path = RegisterSetting("Path", sDefault_Path);
+			mSetting_Path.RegisterSettingChangedEventHandler(OnSettingChanged, false);
+
+			mSetting_Purpose = RegisterSetting("Purpose", sDefault_Purpose);
+			mSetting_Purpose.RegisterSettingChangedEventHandler(OnSettingChanged, false);
+
+			mSetting_WriteMode = RegisterSetting("WriteMode", sDefault_WriteMode);
+			mSetting_WriteMode.RegisterSettingChangedEventHandler(OnSettingChanged, false);
+
+			mSetting_MaximumMessageCount = RegisterSetting("MaximumMessageCount", sDefault_MaximumMessageCount);
+			mSetting_MaximumMessageCount.RegisterSettingChangedEventHandler(OnSettingChanged, false);
+
+			mSetting_MaximumMessageAge = RegisterSetting("MaximumMessageAge", sDefault_MaximumMessageAge);
+			mSetting_MaximumMessageAge.RegisterSettingChangedEventHandler(OnSettingChanged, false);
+		}
+
+		/// <summary>
+		/// Gets or sets the path of the log file to open/create.
+		/// </summary>
+		public string Path
+		{
+			get => mSetting_Path.Value;
+			set => mSetting_Path.Value = value;
+		}
+
+		/// <summary>
+		/// Gets or sets the purpose of the log file determining whether the log file is primarily used for recording (default) or for analysis
+		/// (does not have any effect, if the log file exists already).
+		/// </summary>
+		public LogFilePurpose Purpose
+		{
+			get => mSetting_Purpose.Value;
+			set => mSetting_Purpose.Value = value;
+		}
+
+		/// <summary>
+		/// Gets or sets the write mode determining whether to open the log file in 'robust' (default) or 'fast' mode.
+		/// </summary>
+		public LogFileWriteMode WriteMode
+		{
+			get => mSetting_WriteMode.Value;
+			set => mSetting_WriteMode.Value = value;
+		}
+
+		/// <summary>
+		/// Gets or sets the maximum number of messages to keep
+		/// (negative to disable removing messages by maximum message count).
+		/// </summary>
+		public long MaximumMessageCount
+		{
+			get => mSetting_MaximumMessageCount.Value;
+			set => mSetting_MaximumMessageCount.Value = value;
+		}
+
+		/// <summary>
+		/// Gets or sets the maximum age of messages to keep before removing them from the log file
+		/// (use <see cref="TimeSpan.Zero"/> or negative time span to disable removing by age).
+		/// </summary>
+		public TimeSpan MaximumMessageAge
+		{
+			get => mSetting_MaximumMessageAge.Value;
+			set => mSetting_MaximumMessageAge.Value = value;
 		}
 
 		/// <summary>
@@ -50,8 +109,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		protected override void OnInitialize()
 		{
-			Debug.Assert(mLogFile == null);
-			mLogFile = LogFile.OpenOrCreate(mFilePath, mPurpose, mWriteMode);
+			base.OnInitialize();
+			TryOpenLogFile();
 		}
 
 		/// <summary>
@@ -61,64 +120,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		protected override void OnShutdown()
 		{
-			if (mLogFile != null)
-			{
-				mLogFile.Dispose();
-				mLogFile = null;
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the maximum number of messages to keep
-		/// (negative to disable removing messages by maximum message count).
-		/// </summary>
-		public long MaximumMessageCount
-		{
-			get
-			{
-				lock (Sync)
-				{
-					return mMaximumMessageCount;
-				}
-			}
-
-			set
-			{
-				if (value < -1)
-				{
-					throw new ArgumentOutOfRangeException(
-						nameof(value),
-						"The maximum message count must be > 0 to limit the number of messages or -1 to disable the limit.");
-				}
-
-				lock (Sync)
-				{
-					mMaximumMessageCount = value;
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the maximum age of messages to keep before removing them from the log file
-		/// (use <see cref="TimeSpan.Zero"/> or negative time span to disable removing by age).
-		/// </summary>
-		public TimeSpan MaximumMessageAge
-		{
-			get
-			{
-				lock (Sync)
-				{
-					return mMaximumMessageAge;
-				}
-			}
-
-			set
-			{
-				lock (Sync)
-				{
-					mMaximumMessageAge = value;
-				}
-			}
+			base.OnShutdown();
+			CloseLogFile();
 		}
 
 		/// <summary>
@@ -128,45 +131,112 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="messages">Messages to process.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
-		protected override Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)
+		protected override async Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)
 		{
-			// write messages to the file
-			try
+			using (await mAsyncWriterLock.LockAsync(cancellationToken))
 			{
-				mLogFile.Write(messages);
-			}
-			catch (Exception ex)
-			{
-				WritePipelineError($"Writing log file ({mLogFile.FilePath}) failed.", ex);
-			}
+				// abort, if the log file is not opened
+				if (mLogFile == null)
+					return;
 
-			// prune log file, if necessary
-			try
-			{
-				// get pruning parameters
-				long maximumMessageCount;
-				TimeSpan maximumMessageAge;
-				lock (Sync)
+				// write messages to the file
+				try
 				{
-					maximumMessageCount = mMaximumMessageCount;
-					maximumMessageAge = mMaximumMessageAge;
+					mLogFile.Write(messages);
+				}
+				catch (Exception ex)
+				{
+					WritePipelineError($"Writing log file ({mLogFile.FilePath}) failed.", ex);
 				}
 
-				// prune messages exceeding the limits
-				if (maximumMessageCount > 0 || maximumMessageAge > TimeSpan.Zero)
+				// prune log file, if necessary
+				try
 				{
-					mLogFile.Prune(
-						maximumMessageCount,
-						DateTime.UtcNow - maximumMessageAge,
-						false);
+					// prune messages exceeding the limits
+					long maximumMessageCount = MaximumMessageCount;
+					TimeSpan maximumMessageAge = MaximumMessageAge;
+					if (maximumMessageCount > 0 || maximumMessageAge > TimeSpan.Zero)
+					{
+						mLogFile.Prune(
+							maximumMessageCount,
+							DateTime.UtcNow - maximumMessageAge,
+							false);
+					}
+				}
+				catch (Exception ex)
+				{
+					WritePipelineError($"Pruning log file ({mLogFile.FilePath}) failed.", ex);
 				}
 			}
-			catch (Exception ex)
+		}
+
+		/// <summary>
+		/// Opens the log file as specified by the <see cref="Path"/> property.
+		/// </summary>
+		/// <returns>
+		/// <c>true</c> if the file was opened successfully; otherwise <c>false</c>.
+		/// </returns>
+		private bool TryOpenLogFile()
+		{
+			using (mAsyncWriterLock.Lock())
 			{
-				WritePipelineError($"Pruning log file ({mLogFile.FilePath}) failed.", ex);
+				// close the currently opened log file
+				try
+				{
+					mLogFile?.Dispose();
+				}
+				catch (Exception ex)
+				{
+					WritePipelineError("Closing log file failed.", ex);
+				}
+				finally
+				{
+					mLogFile = null;
+				}
+
+				// open/create new log file
+				// (always interpret relative paths relative to the application base directory, not the working directory)
+				try
+				{
+					string path = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path));
+					mLogFile = LogFile.OpenOrCreate(path, Purpose, WriteMode);
+					return true;
+				}
+				catch (Exception ex)
+				{
+					WritePipelineError($"Opening log file ({Path}) failed.", ex);
+				}
 			}
 
-			return Task.CompletedTask;
+			return false;
+		}
+
+		/// <summary>
+		/// Closes the opened log file.
+		/// </summary>
+		private void CloseLogFile()
+		{
+			using (mAsyncWriterLock.Lock())
+			{
+				try
+				{
+					mLogFile?.Dispose();
+				}
+				catch (Exception ex)
+				{
+					WritePipelineError("Closing log file failed.", ex);
+				}
+
+				mLogFile = null;
+			}
+		}
+
+		/// <summary>
+		/// Is called by a worker thread when the configuration changes.
+		/// </summary>
+		private void OnSettingChanged(object sender, SettingChangedEventArgs e)
+		{
+			TryOpenLogFile();
 		}
 	}
 

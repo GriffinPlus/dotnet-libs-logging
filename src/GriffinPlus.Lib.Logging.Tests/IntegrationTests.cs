@@ -31,26 +31,42 @@ namespace GriffinPlus.Lib.Logging
 			// convert log level name to LogLevel object
 			var threshold = LogLevel.GetAspect(baseLevel);
 
-			// set configuration to let all log levels below the specified log level pass
-			var configuration = new VolatileLogConfiguration();
-			var settings = new LogWriterConfiguration[1];
-			settings[0] = LogWriterConfigurationBuilder
-				.New
-				.MatchingWildcardPattern("*")
-				.WithBaseLevel(baseLevel)
-				.Build();
-			configuration.SetLogWriterSettings(settings);
-			Log.Configuration = configuration;
-
-			// set the processing stage test callback
+			// initialize the logging subsystem
 			int callbackInvokedCount = 0;
-			Log.ProcessingPipeline = new CallbackPipelineStage(
-				"Callback",
-				msg =>
+			Log.Initialize<VolatileLogConfiguration>(
+				config =>
 				{
-					Assert.True(msg.LogLevel.Id <= threshold.Id);
-					callbackInvokedCount++;
-					return true;
+					//
+					// configuration
+					//
+
+					// set configuration to block the excluded log level only
+					var settings = new LogWriterConfiguration[1];
+					settings[0] = LogWriterConfigurationBuilder
+						.New
+						.MatchingWildcardPattern("*")
+						.WithBaseLevel(baseLevel)
+						.Build();
+					config.SetLogWriterSettings(settings);
+				},
+				builder =>
+				{
+					//
+					// processing pipeline stage
+					//
+
+					builder.Add<CallbackPipelineStage>(
+						"Callback",
+						stage =>
+						{
+							// set the processing stage test callback
+							stage.ProcessingCallback = msg =>
+							{
+								Assert.True(msg.LogLevel.Id <= threshold.Id);
+								callbackInvokedCount++;
+								return true;
+							};
+						});
 				});
 
 			// write a message using all predefined log levels
@@ -76,29 +92,45 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Trace")]
 		public void Log_Configuration_Should_Let_Messages_Of_Included_Levels_Pass(string levelToInclude)
 		{
-			// set configuration to let only the included log level pass
-			var configuration = new VolatileLogConfiguration();
-			var settings = new LogWriterConfiguration[1];
-			settings[0] = LogWriterConfigurationBuilder
-				.New
-				.MatchingWildcardPattern("*")
-				.WithBaseLevel(LogLevel.None)
-				.WithLevel(levelToInclude)
-				.Build();
-			configuration.SetLogWriterSettings(settings);
-			Log.Configuration = configuration;
-
-			// set the processing stage test callback
+			// initialize the logging subsystem
 			int callbackInvokedCount = 0;
-			Log.ProcessingPipeline = new CallbackPipelineStage(
-				"Callback",
-				msg =>
+			Log.Initialize<VolatileLogConfiguration>(
+				config =>
 				{
-					Assert.Equal(TestMessage, msg.Text);
-					Assert.Equal(levelToInclude, msg.LogLevel.Name);
-					Assert.Equal(levelToInclude, msg.LogLevelName);
-					callbackInvokedCount++;
-					return true;
+					//
+					// configuration
+					//
+
+					// set configuration to block the excluded log level only
+					var settings = new LogWriterConfiguration[1];
+					settings[0] = LogWriterConfigurationBuilder
+						.New
+						.MatchingWildcardPattern("*")
+						.WithBaseLevel(LogLevel.None)
+						.WithLevel(levelToInclude)
+						.Build();
+					config.SetLogWriterSettings(settings);
+				},
+				builder =>
+				{
+					//
+					// processing pipeline stage
+					//
+
+					builder.Add<CallbackPipelineStage>(
+						"Callback",
+						stage =>
+						{
+							// set the processing stage test callback
+							stage.ProcessingCallback = msg =>
+							{
+								Assert.Equal(TestMessage, msg.Text);
+								Assert.Equal(levelToInclude, msg.LogLevel.Name);
+								Assert.Equal(levelToInclude, msg.LogLevelName);
+								callbackInvokedCount++;
+								return true;
+							};
+						});
 				});
 
 			// write a message using all log messages
@@ -124,28 +156,44 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Trace")]
 		public void Log_Configuration_Should_Filter_Messages_Of_Excluded_Levels(string levelToExclude)
 		{
-			// set configuration to block the excluded log level only
-			var configuration = new VolatileLogConfiguration();
-			var settings = new LogWriterConfiguration[1];
-			settings[0] = LogWriterConfigurationBuilder
-				.New
-				.MatchingWildcardPattern("*")
-				.WithBaseLevel(LogLevel.All)
-				.WithoutLevel(levelToExclude)
-				.Build();
-			configuration.SetLogWriterSettings(settings);
-			Log.Configuration = configuration;
-
-			// set the processing stage test callback
+			// initialize the logging subsystem
 			int callbackInvokedCount = 0;
-			Log.ProcessingPipeline = new CallbackPipelineStage(
-				"Callback",
-				msg =>
+			Log.Initialize<VolatileLogConfiguration>(
+				config =>
 				{
-					Assert.NotEqual(levelToExclude, msg.LogLevel.Name);
-					Assert.NotEqual(levelToExclude, msg.LogLevelName);
-					callbackInvokedCount++;
-					return true;
+					//
+					// configuration
+					//
+
+					// set configuration to block the excluded log level only
+					var settings = new LogWriterConfiguration[1];
+					settings[0] = LogWriterConfigurationBuilder
+						.New
+						.MatchingWildcardPattern("*")
+						.WithBaseLevel(LogLevel.All)
+						.WithoutLevel(levelToExclude)
+						.Build();
+					config.SetLogWriterSettings(settings);
+				},
+				builder =>
+				{
+					//
+					// processing pipeline stage
+					//
+
+					builder.Add<CallbackPipelineStage>(
+						"Callback",
+						stage =>
+						{
+							// set the processing stage test callback
+							stage.ProcessingCallback = msg =>
+							{
+								Assert.NotEqual(levelToExclude, msg.LogLevel.Name);
+								Assert.NotEqual(levelToExclude, msg.LogLevelName);
+								callbackInvokedCount++;
+								return true;
+							};
+						});
 				});
 
 			// write a message using all log messages

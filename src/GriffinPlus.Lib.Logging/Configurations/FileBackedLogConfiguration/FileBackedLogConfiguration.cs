@@ -28,7 +28,9 @@ namespace GriffinPlus.Lib.Logging
 		private readonly FileBackedProcessingPipelineConfiguration mProcessingPipelineConfiguration;
 		private          FileSystemWatcher                         mFileSystemWatcher;
 		private          Timer                                     mReloadingTimer;
-		private readonly string                                    mFileName;
+		private          string                                    mPath;
+		private          string                                    mFullPath;
+		private          string                                    mFileName;
 
 		/// <summary>
 		/// Initializes the <see cref="FileBackedLogConfiguration"/> class.
@@ -41,124 +43,79 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// regular case
 				// => use name of the entry assembly (application)
-				string fileName = Path.GetFileNameWithoutExtension(assembly.Location) + ".gplogconf";
-				sDefaultConfigFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+				string fileName = System.IO.Path.GetFileNameWithoutExtension(assembly.Location) + ".gplogconf";
+				sDefaultConfigFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
 			}
 			else
 			{
 				// no entry assembly (most probably a unit test runner)
 				// => use friendly name of the application domain
 				string fileName = AppDomain.CurrentDomain.FriendlyName + ".gplogconf";
-				sDefaultConfigFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+				sDefaultConfigFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
 			}
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class (the configuration file is
 		/// located in the application's base directory and named as the entry assembly plus extension '.gplogconf').
+		/// The path of the file can be changed via <see cref="Path"/>.
 		/// </summary>
-		public FileBackedLogConfiguration() : this(sDefaultConfigFilePath)
+		public FileBackedLogConfiguration()
 		{
-		}
+			// initialize the pipeline configuration part
+			mProcessingPipelineConfiguration = new FileBackedProcessingPipelineConfiguration(this);
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FileBackedLogConfiguration"/> class.
-		/// </summary>
-		/// <param name="path">Path of the configuration file to use.</param>
-		public FileBackedLogConfiguration(string path)
-		{
-			lock (Sync)
-			{
-				FullPath = Path.GetFullPath(path);
-				mFileName = Path.GetFileName(path);
-
-				// load configuration file
-				const int maxRetryCount = 5;
-				for (int retry = 0; retry < maxRetryCount; retry++)
-				{
-					try
-					{
-						File = LogConfigurationFile.LoadFrom(FullPath);
-						break;
-					}
-					catch (FileNotFoundException)
-					{
-						// file does not exist
-						// => that's ok, use a default configuration file...
-						File = new LogConfigurationFile();
-						break;
-					}
-					catch (IOException)
-					{
-						// there is something wrong at a lower level, most probably a sharing violation
-						// => just try again...
-						if (retry + 1 >= maxRetryCount) throw;
-						Thread.Sleep(10);
-					}
-					catch (Exception ex)
-					{
-						// a severe error that cannot be fixed here
-						// => abort
-						sLog.ForceWrite(
-							LogLevel.Error,
-							"Loading log configuration file ({0}) failed. Exception: {1}",
-							FullPath,
-							ex);
-
-						throw;
-					}
-				}
-
-				// set up the file system watcher to get notified of changes to the file
-				// (notifications about the creation of files with zero-length do not contain
-				// valuable information, so renaming/deleting is sufficient)
-				mFileSystemWatcher = new FileSystemWatcher
-				{
-					Path = Path.GetDirectoryName(FullPath),
-					Filter = "*" + Path.GetExtension(mFileName)
-				};
-				mFileSystemWatcher.Changed += EH_FileSystemWatcher_Changed;
-				mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Removed;
-				mFileSystemWatcher.Renamed += EH_FileSystemWatcher_Renamed;
-				mFileSystemWatcher.EnableRaisingEvents = true;
-
-				// set up timer that will handle reloading the configuration file
-				mReloadingTimer = new Timer(TimerProc, null, -1, -1); // do not start immediately
-
-				// initialize the pipeline configuration part
-				mProcessingPipelineConfiguration = new FileBackedProcessingPipelineConfiguration(this);
-			}
+			// try to open the configuration file with the default name
+			Path = sDefaultConfigFilePath;
 		}
 
 		/// <summary>
 		/// Disposes the object cleaning up unmanaged resources
 		/// </summary>
 		/// <param name="disposing">
-		/// true, if called explicitly;
-		/// false, if called due to finalization.
+		/// <c>true</c> if called explicitly;
+		/// <c>false</c> if called due to finalization.
 		/// </param>
 		protected override void Dispose(bool disposing)
 		{
-			lock (Sync)
-			{
-				if (mReloadingTimer != null)
-				{
-					mReloadingTimer.Dispose();
-					mReloadingTimer = null;
-				}
+			CloseConfigurationFile();
+		}
 
-				if (mFileSystemWatcher != null)
+		/// <summary>
+		/// Gets or sets the path of the configuration file.
+		/// </summary>
+		public string Path
+		{
+			get
+			{
+				lock (Sync) return mPath;
+			}
+
+			set
+			{
+				lock (Sync)
 				{
-					mFileSystemWatcher.Dispose();
-					mFileSystemWatcher = null;
+					if (mPath != value)
+					{
+						mPath = value;
+						mFullPath = System.IO.Path.GetFullPath(mPath);
+						mFileName = System.IO.Path.GetFileName(mFullPath);
+						OpenConfigurationFile();
+					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// Gets the full path of the configuration file.
+		/// Gets the full path of the configuration file (please use <see cref="Path"/> to set the path).
 		/// </summary>
-		public string FullPath { get; }
+		public string FullPath
+		{
+			get
+			{
+				lock (Sync) return mFullPath;
+			}
+		}
 
 		/// <summary>
 		/// Gets the wrapped log configuration file.
@@ -287,8 +244,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Saves the configuration.
 		/// </summary>
 		/// <param name="includeDefaults">
-		/// true to include the default value of settings that have not been explicitly set;
-		/// false to save only settings that have not been explicitly set.
+		/// <c>true</c> to include the default value of settings that have not been explicitly set;
+		/// <c>false</c> to save only settings that have not been explicitly set.
 		/// </param>
 		public override void Save(bool includeDefaults = false)
 		{
@@ -358,12 +315,94 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="fileName">File name to check.</param>
 		/// <returns>
-		/// true, if the file name is the name of the configuration file;
-		/// otherwise false.
+		/// <c>true</c> if the file name is the name of the configuration file;
+		/// otherwise <c>false</c>.
 		/// </returns>
 		private bool IsConfigurationFile(string fileName)
 		{
 			return StringComparer.InvariantCultureIgnoreCase.Compare(fileName, mFileName) == 0;
+		}
+
+		/// <summary>
+		/// Tries to open the configured configuration file.
+		/// </summary>
+		private void OpenConfigurationFile()
+		{
+			lock (Sync)
+			{
+				// dispose resources associated with the loaded configuration file
+				CloseConfigurationFile();
+
+				// load configuration file
+				const int maxRetryCount = 5;
+				for (int retry = 0; retry < maxRetryCount; retry++)
+				{
+					try
+					{
+						File = LogConfigurationFile.LoadFrom(FullPath);
+						break;
+					}
+					catch (FileNotFoundException)
+					{
+						// file does not exist
+						// => that's ok, use a default configuration file...
+						File = new LogConfigurationFile();
+						break;
+					}
+					catch (IOException)
+					{
+						// there is something wrong at a lower level, most probably a sharing violation
+						// => just try again...
+						if (retry + 1 >= maxRetryCount) throw;
+						Thread.Sleep(10);
+					}
+					catch (Exception ex)
+					{
+						// a severe error that cannot be fixed here
+						// => abort
+						sLog.ForceWrite(
+							LogLevel.Error,
+							"Loading log configuration file ({0}) failed. Exception: {1}",
+							FullPath,
+							ex);
+
+						throw;
+					}
+				}
+
+				// set up the file system watcher to get notified of changes to the file
+				// (notifications about the creation of files with zero-length do not contain
+				// valuable information, so renaming/deleting is sufficient)
+				mFileSystemWatcher = new FileSystemWatcher
+				{
+					Path = System.IO.Path.GetDirectoryName(FullPath),
+					Filter = "*" + System.IO.Path.GetExtension(mFileName)
+				};
+				mFileSystemWatcher.Changed += EH_FileSystemWatcher_Changed;
+				mFileSystemWatcher.Deleted += EH_FileSystemWatcher_Removed;
+				mFileSystemWatcher.Renamed += EH_FileSystemWatcher_Renamed;
+				mFileSystemWatcher.EnableRaisingEvents = true;
+
+				// set up timer that will handle reloading the configuration file
+				mReloadingTimer = new Timer(TimerProc, null, -1, -1); // do not start immediately
+			}
+		}
+
+		/// <summary>
+		/// Closes the loaded configuration file.
+		/// </summary>
+		private void CloseConfigurationFile()
+		{
+			lock (Sync)
+			{
+				// stop reloading timer
+				mReloadingTimer?.Dispose();
+				mReloadingTimer = null;
+
+				// stop watcher monitoring changes to the loaded configuration file
+				mFileSystemWatcher?.Dispose();
+				mFileSystemWatcher = null;
+			}
 		}
 
 		/// <summary>
@@ -403,8 +442,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// configuration file was removed
 					// => create a default configuration...
-					var file = new LogConfigurationFile();
-					File = file;
+					File = new LogConfigurationFile();
 				}
 			}
 		}
@@ -433,8 +471,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// configuration file was removed
 					// => create a default configuration...
-					var file = new LogConfigurationFile();
-					File = file;
+					File = new LogConfigurationFile();
 				}
 			}
 		}

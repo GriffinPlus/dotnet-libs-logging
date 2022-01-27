@@ -3,10 +3,13 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using GriffinPlus.Lib.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -16,58 +19,49 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class FileWriterPipelineStage : TextWriterPipelineStage
 	{
-		private readonly StringBuilder mOutputBuilder = new StringBuilder();
-		private readonly string        mPath;
-		private readonly bool          mAppend;
+		private readonly StringBuilder mOutputBuilder   = new StringBuilder();
+		private readonly AsyncLock     mAsyncWriterLock = new AsyncLock();
 		private          FileStream    mFile;
 		private          StreamWriter  mWriter;
-		private          bool          mAutoFlush;
 
+		// defaults of settings determining the behavior of the stage
+		private const bool   Default_Append = false;
+		private const string Default_Path   = "Unnamed.log";
+
+		// the settings determining the behavior of the stage
+		private readonly IProcessingPipelineStageSetting<bool>   mSetting_Append;
+		private readonly IProcessingPipelineStageSetting<string> mSetting_Path;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileWriterPipelineStage"/> class.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <param name="path">Path of the file to write to.</param>
-		/// <param name="append">
-		/// true to append new messages to the specified file, if it exists already;
-		/// false to truncate the file and start from scratch.
-		/// </param>
-		public FileWriterPipelineStage(string name, string path, bool append) : base(name)
+		public FileWriterPipelineStage()
 		{
-			mPath = path;
-			mAppend = append;
+			mSetting_Append = RegisterSetting("Append", Default_Append);
+			mSetting_Append.RegisterSettingChangedEventHandler(OnSettingChanged, false);
+
+			mSetting_Path = RegisterSetting("Path", Default_Path);
+			mSetting_Path.RegisterSettingChangedEventHandler(OnSettingChanged, false);
 		}
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the file is flushed every time after a message is written.
+		/// Gets or sets a value determining whether log messages are appended to an existing log file.
+		/// (<c>true</c> to append new log messages to an existing log file (default),
+		/// <c>false</c> to truncate the log file before writing the first message).
 		/// </summary>
-		public bool AutoFlush
+		public bool Append
 		{
-			get
-			{
-				lock (Sync) return mAutoFlush;
-			}
-
-			set
-			{
-				lock (Sync)
-				{
-					EnsureNotAttachedToLoggingSubsystem();
-					mAutoFlush = value;
-				}
-			}
+			get => mSetting_Append.Value;
+			set => mSetting_Append.Value = value;
 		}
 
 		/// <summary>
-		/// Gets the path of the log file.
+		/// Gets or sets the path of the log file (default: 'Unnamed.log').
 		/// </summary>
 		public string Path
 		{
-			get
-			{
-				lock (Sync) return mPath;
-			}
+			get => mSetting_Path.Value;
+			set => mSetting_Path.Value = value;
 		}
 
 		/// <summary>
@@ -77,9 +71,7 @@ namespace GriffinPlus.Lib.Logging
 		protected override void OnInitialize()
 		{
 			base.OnInitialize();
-
-			mFile = new FileStream(mPath, mAppend ? FileMode.OpenOrCreate : FileMode.Create, FileAccess.Write, FileShare.Read);
-			mWriter = new StreamWriter(mFile, Encoding.UTF8);
+			TryOpenLogFile();
 		}
 
 		/// <summary>
@@ -89,10 +81,7 @@ namespace GriffinPlus.Lib.Logging
 		protected internal override void OnShutdown()
 		{
 			base.OnShutdown();
-
-			mWriter?.Dispose();
-			mWriter = null;
-			mFile = null;
+			CloseLogFile();
 		}
 
 		/// <summary>
@@ -103,51 +92,133 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>Number of successfully written log messages.</returns>
 		protected override async Task<int> EmitOutputAsync(FormattedMessage[] messages, CancellationToken cancellationToken)
 		{
-			mOutputBuilder.Clear();
-			for (int i = 0; i < messages.Length; i++)
+			using (await mAsyncWriterLock.LockAsync(cancellationToken))
 			{
-				mOutputBuilder.Append(messages[i].Output);
-				mOutputBuilder.AppendLine();
-			}
+				// abort, if the log file has not been opened
+				if (mWriter == null)
+					return 0;
 
-			// get the current stream position
-			long position;
-			try
-			{
-				position = mFile.Position;
-			}
-			catch
-			{
-				// swallow exceptions
-				// (i/o errors should not impact the application)
-				return 0;
-			}
+				// put all formatted messages into a single string to speed up writing them in the next step
+				mOutputBuilder.Clear();
+				for (int i = 0; i < messages.Length; i++)
+				{
+					mOutputBuilder.Append(messages[i].Output);
+					mOutputBuilder.AppendLine();
+				}
 
-			// write to the file and flush it to ensure that all data is passed to the operating system
-			try
-			{
-				await mWriter.WriteAsync(mOutputBuilder.ToString());
-				await mWriter.FlushAsync();
-			}
-			catch
-			{
-				// writing failed
-				// => try remove partially written messages to avoid generating duplicates when trying again
+				// get the current stream position
+				long position;
 				try
 				{
-					mFile.SetLength(position);
+					position = mFile.Position;
 				}
 				catch
 				{
 					// swallow exceptions
 					// (i/o errors should not impact the application)
+					return 0;
 				}
 
-				// return that no messages have been written at all
-				return 0;
+				// write to the file and flush it to ensure that all data is passed to the operating system
+				try
+				{
+					await mWriter.WriteAsync(mOutputBuilder.ToString());
+					await mWriter.FlushAsync();
+				}
+				catch
+				{
+					// writing failed
+					// => try remove partially written messages to avoid generating duplicates when trying again
+					try
+					{
+						mFile.SetLength(position);
+					}
+					catch
+					{
+						// swallow exceptions
+						// (i/o errors should not impact the application)
+					}
+
+					// return that no messages have been written at all
+					return 0;
+				}
 			}
 
 			return messages.Length;
+		}
+
+		/// <summary>
+		/// Opens the log file as specified by the <see cref="Path"/> property.
+		/// </summary>
+		/// <returns>
+		/// <c>true</c> if the file was opened successfully; otherwise <c>false</c>.
+		/// </returns>
+		private bool TryOpenLogFile()
+		{
+			using (mAsyncWriterLock.Lock())
+			{
+				// close the currently opened log file
+				try
+				{
+					mWriter?.Dispose();
+				}
+				catch (Exception ex)
+				{
+					WritePipelineError("Closing log file failed.", ex);
+				}
+				finally
+				{
+					mWriter = null;
+					mFile = null;
+				}
+
+				// open/create new log file
+				// (always interpret relative paths relative to the application base directory, not the working directory)
+				try
+				{
+					string path = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path));
+					mFile = new FileStream(path, Append ? FileMode.OpenOrCreate : FileMode.Create, FileAccess.Write, FileShare.Read);
+					mWriter = new StreamWriter(mFile, Encoding.UTF8);
+					return true;
+				}
+				catch (Exception ex)
+				{
+					WritePipelineError($"Opening log file ({Path}) failed.", ex);
+				}
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Closes the opened log file.
+		/// </summary>
+		private void CloseLogFile()
+		{
+			using (mAsyncWriterLock.Lock())
+			{
+				try
+				{
+					mWriter?.Dispose();
+				}
+				catch (Exception ex)
+				{
+					WritePipelineError("Closing log file failed.", ex);
+				}
+				finally
+				{
+					mWriter = null;
+					mFile = null;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Is called by a worker thread when the configuration changes.
+		/// </summary>
+		private void OnSettingChanged(object sender, SettingChangedEventArgs e)
+		{
+			TryOpenLogFile();
 		}
 	}
 

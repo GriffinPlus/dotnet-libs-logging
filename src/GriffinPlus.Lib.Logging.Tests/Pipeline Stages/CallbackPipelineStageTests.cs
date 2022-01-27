@@ -45,35 +45,14 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Creates a new instance of the pipeline stage.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <returns>The created stage.</returns>
-		protected override CallbackPipelineStage CreateStage(string name)
-		{
-			var callback = new Callback();
-			return new CallbackPipelineStage(name, callback.ProcessSyncCallback);
-		}
-
-		/// <summary>
-		/// Tests whether creating a new instance of the pipeline stage succeeds and the stage is in the expected state
-		/// (only non-default stuff is checked, the rest is done by the base test class).
+		/// Tests whether creating a new instance of the pipeline stage succeeds.
 		/// </summary>
 		[Fact]
-		private void Create_WithCallback()
+		private void Create()
 		{
-			var callback = new Callback();
-			var stage = new CallbackPipelineStage("Callback", callback.ProcessSyncCallback);
-			Assert.Empty(stage.Settings);
-		}
-
-		/// <summary>
-		/// Tests whether creating a new instance of the pipeline stage succeeds, if no callback is specified.
-		/// </summary>
-		[Fact]
-		private void Create_WithoutCallback()
-		{
-			var stage = new CallbackPipelineStage("Callback", null);
+			var stage = ProcessingPipelineStage.Create<CallbackPipelineStage>("Callback", null);
+			Assert.Null(stage.ProcessingCallback);
+			Assert.Empty(stage.NextStages);
 			Assert.Empty(stage.Settings);
 		}
 
@@ -86,7 +65,8 @@ namespace GriffinPlus.Lib.Logging
 		public void Process_Standalone(bool processSyncReturnValue)
 		{
 			var callback = new Callback { ProcessSyncCallbackReturnValue = processSyncReturnValue };
-			var stage = new CallbackPipelineStage("Callback", callback.ProcessSyncCallback);
+			var stage = ProcessingPipelineStage.Create<CallbackPipelineStage>("Callback", null);
+			stage.ProcessingCallback = callback.ProcessSyncCallback;
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
@@ -116,9 +96,10 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var callback1 = new Callback { ProcessSyncCallbackReturnValue = processSyncReturnValue };
 			var callback2 = new Callback { ProcessSyncCallbackReturnValue = processSyncReturnValue };
-			var stage1 = new CallbackPipelineStage("Callback1", callback1.ProcessSyncCallback);
-			var stage2 = new CallbackPipelineStage("Callback2", callback2.ProcessSyncCallback);
-			stage1.AddNextStage(stage2);
+			var stage1 = ProcessingPipelineStage.Create<CallbackPipelineStage>("Callback1", null);
+			var stage2 = stage1.AddNextStage<CallbackPipelineStage>("Callback2");
+			stage1.ProcessingCallback = callback1.ProcessSyncCallback;
+			stage2.ProcessingCallback = callback2.ProcessSyncCallback;
 
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);

@@ -39,8 +39,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TextWriterPipelineStage"/> class.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		protected TextWriterPipelineStage(string name) : base(name)
+		protected TextWriterPipelineStage()
 		{
 		}
 

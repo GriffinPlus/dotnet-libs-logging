@@ -36,8 +36,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage"/> class.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		protected AsyncProcessingPipelineStage(string name) : base(name)
+		protected AsyncProcessingPipelineStage()
 		{
 		}
 
@@ -283,21 +282,23 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private async Task ProcessingTask()
 		{
+			var cancellationToken = mAsyncProcessingCancellationTokenSource.Token;
+
 			while (true)
 			{
 				// wait for messages to process
-				await mTriggerAsyncProcessingEvent.WaitAsync(mAsyncProcessingCancellationTokenSource.Token);
+				await mTriggerAsyncProcessingEvent.WaitAsync(cancellationToken);
 
 				// process the messages
-				await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token);
+				await ProcessQueuedMessages(cancellationToken);
 
 				// abort, if requested
 				if (mTerminateProcessingTask)
 				{
 					// process the last messages, if there is time left...
-					if (!mAsyncProcessingCancellationTokenSource.IsCancellationRequested)
+					if (!cancellationToken.IsCancellationRequested)
 					{
-						await ProcessQueuedMessages(mAsyncProcessingCancellationTokenSource.Token);
+						await ProcessQueuedMessages(cancellationToken);
 					}
 
 					break;

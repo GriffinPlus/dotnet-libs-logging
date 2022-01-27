@@ -76,47 +76,16 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Creates a new instance of the pipeline stage.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <returns>The created stage.</returns>
-		protected override AsyncCallbackPipelineStage CreateStage(string name)
-		{
-			var callback = new Callback();
-			return new AsyncCallbackPipelineStage(name, callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
-		}
-
-		/// <summary>
-		/// Tests whether creating a new instance of the pipeline stage succeeds and the stage is in the expected state
-		/// (only non-default stuff is checked, the rest is done by the base test class).
+		/// Tests whether creating a new instance of the pipeline stage succeeds.
 		/// </summary>
 		[Fact]
-		private void Create_WithBothCallbacks()
+		private void Create()
 		{
 			var callback = new Callback();
-			var stage = new AsyncCallbackPipelineStage("Callback", callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
-			Assert.Empty(stage.Settings);
-		}
-
-		/// <summary>
-		/// Tests whether creating a new instance of the pipeline stage succeeds, if only the synchronous processing callback is specified.
-		/// </summary>
-		[Fact]
-		private void Create_WithSyncCallbackOnly()
-		{
-			var callback = new Callback();
-			var stage = new AsyncCallbackPipelineStage("Callback", callback.ProcessSyncCallback, null);
-			Assert.Empty(stage.Settings);
-		}
-
-		/// <summary>
-		/// Tests whether creating a new instance of the pipeline stage succeeds, if only the asynchronous processing callback is specified.
-		/// </summary>
-		[Fact]
-		private void Create_WithAsyncCallbackOnly()
-		{
-			var callback = new Callback();
-			var stage = new AsyncCallbackPipelineStage("Callback", null, callback.ProcessAsyncCallback);
+			var stage = ProcessingPipelineStage.Create<AsyncCallbackPipelineStage>("Callback", null);
+			Assert.Null(stage.SynchronousProcessingCallback);
+			Assert.Null(stage.AsynchronousProcessingCallback);
+			Assert.Empty(stage.NextStages);
 			Assert.Empty(stage.Settings);
 		}
 
@@ -135,7 +104,10 @@ namespace GriffinPlus.Lib.Logging
 				ProcessSyncCallbackReturnValue = processSyncReturnValue,
 				ProcessSyncCallbackQueueForAsyncProcessing = queueForAsyncProcessing
 			};
-			var stage = new AsyncCallbackPipelineStage("Callback", callback.ProcessSyncCallback, callback.ProcessAsyncCallback);
+
+			var stage = ProcessingPipelineStage.Create<AsyncCallbackPipelineStage>("Callback", null);
+			stage.SynchronousProcessingCallback = callback.ProcessSyncCallback;
+			stage.AsynchronousProcessingCallback = callback.ProcessAsyncCallback;
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
@@ -192,9 +164,13 @@ namespace GriffinPlus.Lib.Logging
 				ProcessSyncCallbackReturnValue = processSyncReturnValue,
 				ProcessSyncCallbackQueueForAsyncProcessing = queueForAsyncProcessing
 			};
-			var stage1 = new AsyncCallbackPipelineStage("Callback1", callback1.ProcessSyncCallback, callback1.ProcessAsyncCallback);
-			var stage2 = new AsyncCallbackPipelineStage("Callback2", callback2.ProcessSyncCallback, callback2.ProcessAsyncCallback);
-			stage1.AddNextStage(stage2);
+
+			var stage1 = ProcessingPipelineStage.Create<AsyncCallbackPipelineStage>("Callback1", null);
+			stage1.SynchronousProcessingCallback = callback1.ProcessSyncCallback;
+			stage1.AsynchronousProcessingCallback = callback1.ProcessAsyncCallback;
+			var stage2 = stage1.AddNextStage<AsyncCallbackPipelineStage>("Callback2");
+			stage2.SynchronousProcessingCallback = callback2.ProcessSyncCallback;
+			stage2.AsynchronousProcessingCallback = callback2.ProcessAsyncCallback;
 
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);

@@ -23,7 +23,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// the file-backed pipeline stage configuration can exist only within the file-backed log configuration
 			// (use specific file name to avoid sharing violation when running other tests that use the default constructor of the configuration as well)
-			var logConfiguration = new FileBackedLogConfiguration("FileBackedProcessingPipelineStageConfigurationTests.gplogconf");
+			var logConfiguration = new FileBackedLogConfiguration();
+			logConfiguration.Path = "FileBackedProcessingPipelineStageConfigurationTests.gplogconf";
 			stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, name);
 			return logConfiguration;
 		}
@@ -35,8 +36,9 @@ namespace GriffinPlus.Lib.Logging
 		public void Create()
 		{
 			// use specific file name to avoid sharing violation when running other tests that use the default constructor of the configuration as well
-			using (var logConfiguration = new FileBackedLogConfiguration("FileBackedProcessingPipelineStageConfigurationTests.gplogconf"))
+			using (var logConfiguration = new FileBackedLogConfiguration())
 			{
+				logConfiguration.Path = "FileBackedProcessingPipelineStageConfigurationTests.gplogconf";
 				var stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, "Stage");
 				Assert.NotNull(stageConfiguration.Sync);
 			}

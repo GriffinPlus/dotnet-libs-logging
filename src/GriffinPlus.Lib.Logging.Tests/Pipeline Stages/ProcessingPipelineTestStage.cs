@@ -15,8 +15,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineTestStage"/> class.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		public ProcessingPipelineTestStage(string name) : base(name)
+		public ProcessingPipelineTestStage()
 		{
 		}
 

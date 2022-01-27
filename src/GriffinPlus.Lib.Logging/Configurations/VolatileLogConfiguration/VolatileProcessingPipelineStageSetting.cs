@@ -4,8 +4,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Globalization;
 using System.Threading;
 
+using GriffinPlus.Lib.Conversion;
 using GriffinPlus.Lib.Events;
 
 namespace GriffinPlus.Lib.Logging
@@ -21,8 +23,8 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly bool sUseDefensiveCopying;
 
 		private readonly VolatileProcessingPipelineStageConfiguration mConfiguration;
-		private readonly Func<T, string>                              mValueToStringConverter;
-		private readonly Func<string, T>                              mStringToValueConverter;
+		private readonly ObjectToStringConversionDelegate<T>          mValueToStringConverter;
+		private readonly StringToObjectConversionDelegate<T>          mStringToValueConverter;
 		private          bool                                         mHasValue;
 		private          T                                            mValue;
 		private          string                                       mValueAsString;
@@ -55,15 +57,15 @@ namespace GriffinPlus.Lib.Logging
 			VolatileProcessingPipelineStageConfiguration configuration,
 			string                                       name,
 			T                                            defaultValue,
-			Func<T, string>                              valueToStringConverter,
-			Func<string, T>                              stringToValueConverter)
+			ObjectToStringConversionDelegate<T>          valueToStringConverter,
+			StringToObjectConversionDelegate<T>          stringToValueConverter)
 		{
 			mConfiguration = configuration;
 			mValueToStringConverter = valueToStringConverter;
 			mStringToValueConverter = stringToValueConverter;
 			Name = name;
 			mDefaultValue = mValue = defaultValue;
-			mDefaultValueAsString = mValueAsString = mValueToStringConverter(defaultValue);
+			mDefaultValueAsString = mValueAsString = mValueToStringConverter(defaultValue, CultureInfo.InvariantCulture);
 			mHasValue = false;
 			mHasDefaultValue = true;
 		}
@@ -79,8 +81,8 @@ namespace GriffinPlus.Lib.Logging
 		internal VolatileProcessingPipelineStageSetting(
 			VolatileProcessingPipelineStageConfiguration configuration,
 			string                                       name,
-			Func<T, string>                              valueToStringConverter,
-			Func<string, T>                              stringToValueConverter)
+			ObjectToStringConversionDelegate<T>          valueToStringConverter,
+			StringToObjectConversionDelegate<T>          stringToValueConverter)
 		{
 			mConfiguration = configuration;
 			mValueToStringConverter = valueToStringConverter;
@@ -196,8 +198,8 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (sUseDefensiveCopying)
 					{
-						if (mHasValue) return mStringToValueConverter(mValueToStringConverter(mValue));
-						return mStringToValueConverter(mValueToStringConverter(mDefaultValue));
+						if (mHasValue) return mStringToValueConverter(mValueToStringConverter(mValue, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+						return mStringToValueConverter(mValueToStringConverter(mDefaultValue, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
 					}
 
 					if (mHasValue) return mValue;
@@ -210,9 +212,9 @@ namespace GriffinPlus.Lib.Logging
 				lock (mConfiguration.Sync)
 				{
 					string oldValueAsString = mHasValue ? mValueAsString : mHasDefaultValue ? mDefaultValueAsString : null;
-					string newValueAsString = mValueToStringConverter(value);
+					string newValueAsString = mValueToStringConverter(value, CultureInfo.InvariantCulture);
 					if (mHasValue && oldValueAsString == newValueAsString) return;
-					mValue = sUseDefensiveCopying ? mStringToValueConverter(newValueAsString) : value;
+					mValue = sUseDefensiveCopying ? mStringToValueConverter(newValueAsString, CultureInfo.InvariantCulture) : value;
 					mValueAsString = newValueAsString;
 					mHasValue = true;
 					OnSettingChanged();
@@ -248,7 +250,7 @@ namespace GriffinPlus.Lib.Logging
 				lock (mConfiguration.Sync)
 				{
 					if (mHasValue && mValueAsString == value) return;
-					Value = mStringToValueConverter(value); // ensures that mValueAsString is set properly
+					Value = mStringToValueConverter(value, CultureInfo.InvariantCulture); // ensures that mValueAsString is set properly
 				}
 			}
 		}
@@ -278,7 +280,7 @@ namespace GriffinPlus.Lib.Logging
 				lock (mConfiguration.Sync)
 				{
 					if (!mHasDefaultValue) throw new InvalidOperationException("The item does not have a default value.");
-					if (sUseDefensiveCopying) return mStringToValueConverter(mDefaultValueAsString);
+					if (sUseDefensiveCopying) return mStringToValueConverter(mDefaultValueAsString, CultureInfo.InvariantCulture);
 					return mDefaultValue;
 				}
 			}
@@ -287,8 +289,8 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mConfiguration.Sync)
 				{
-					string valueAsString = mValueToStringConverter(value);
-					mDefaultValue = sUseDefensiveCopying ? mStringToValueConverter(valueAsString) : value;
+					string valueAsString = mValueToStringConverter(value, CultureInfo.InvariantCulture);
+					mDefaultValue = sUseDefensiveCopying ? mStringToValueConverter(valueAsString, CultureInfo.InvariantCulture) : value;
 					mDefaultValueAsString = valueAsString;
 					mHasDefaultValue = true;
 				}

@@ -45,11 +45,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
 		/// <returns>The created stage.</returns>
-		protected override FileWriterPipelineStage CreateStage(string name)
+		private FileWriterPipelineStage CreateStage(string name)
 		{
 			string path = Path.GetFullPath($"TestLog_{Guid.NewGuid():N}.log");
 			mTemporaryFiles.Add(path);
-			return new FileWriterPipelineStage(name, path, false);
+			var stage = ProcessingPipelineStage.Create<FileWriterPipelineStage>(name, null);
+			stage.Path = path;
+			stage.Append = false;
+			return stage;
 		}
 
 		/// <summary>
@@ -60,7 +63,21 @@ namespace GriffinPlus.Lib.Logging
 		private void Create()
 		{
 			var stage = CreateStage("File");
-			Assert.Empty(stage.Settings);
+			Assert.Equal(2, stage.Settings.Count);
+
+			// check 'Append' setting
+			var appendSetting = stage.Settings.First(x => x.Key == "Append");
+			Assert.Equal("Append", appendSetting.Value.Name);
+			Assert.Equal(typeof(bool), appendSetting.Value.ValueType);
+			Assert.IsType<bool>(appendSetting.Value.Value);
+			Assert.False((bool)appendSetting.Value.Value);
+
+			// check 'Path' setting
+			var pathSetting = stage.Settings.First(x => x.Key == "Path");
+			Assert.Equal("Path", pathSetting.Value.Name);
+			Assert.Equal(typeof(string), pathSetting.Value.ValueType);
+			Assert.IsType<string>(pathSetting.Value.Value);
+			Assert.StartsWith(AppDomain.CurrentDomain.BaseDirectory, (string)pathSetting.Value.Value);
 		}
 
 		public static IEnumerable<object[]> Process_TestData

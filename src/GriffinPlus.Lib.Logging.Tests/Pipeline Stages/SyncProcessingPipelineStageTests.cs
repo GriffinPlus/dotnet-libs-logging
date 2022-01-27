@@ -14,23 +14,13 @@ namespace GriffinPlus.Lib.Logging
 	public class SyncProcessingPipelineStageTests : ProcessingPipelineStageBaseTests<ProcessingPipelineTestStage>
 	{
 		/// <summary>
-		/// Creates a new instance of the pipeline stage.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <returns>The created stage.</returns>
-		protected override ProcessingPipelineTestStage CreateStage(string name)
-		{
-			return new ProcessingPipelineTestStage(name);
-		}
-
-		/// <summary>
 		/// Tests whether creating a new instance of the pipeline stage succeeds and the stage is in the expected state
 		/// (only non-default stuff is checked, the rest is done by the base test class).
 		/// </summary>
 		[Fact]
 		public void Create()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<ProcessingPipelineTestStage>("Stage", null);
 
 			// check properties of the base pipeline stage
 			Assert.Empty(stage.Settings);
@@ -48,7 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Initialize_Specific_Standalone()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<ProcessingPipelineTestStage>("Stage", null);
 			Assert.False(stage.IsInitialized);
 			Assert.False(stage.OnInitializeWasCalled);
 			stage.Initialize();
@@ -64,9 +54,9 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Initialize_Specific_WithFollowingStage()
 		{
-			var stage1 = CreateStage("Stage1");
-			var stage2 = CreateStage("Stage2");
-			stage1.AddNextStage(stage2);
+			var stage1 = ProcessingPipelineStage.Create<ProcessingPipelineTestStage>("Stage1", null);
+			var stage2 = stage1.AddNextStage<ProcessingPipelineTestStage>("Stage2");
+
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
 			Assert.False(stage1.OnInitializeWasCalled);
@@ -86,7 +76,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Shutdown_Specific_Standalone()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<ProcessingPipelineTestStage>("Stage", null);
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
@@ -110,9 +100,8 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Shutdown_Specific_WithFollowingStage()
 		{
-			var stage1 = CreateStage("Stage1");
-			var stage2 = CreateStage("Stage2");
-			stage1.AddNextStage(stage2);
+			var stage1 = ProcessingPipelineStage.Create<ProcessingPipelineTestStage>("Stage1", null);
+			var stage2 = stage1.AddNextStage<ProcessingPipelineTestStage>("Stage2");
 
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
@@ -139,7 +128,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Process_Standalone()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<ProcessingPipelineTestStage>("Stage", null);
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
@@ -168,9 +157,8 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Process_WithFollowingStage()
 		{
-			var stage1 = CreateStage("Stage1");
-			var stage2 = CreateStage("Stage2");
-			stage1.AddNextStage(stage2);
+			var stage1 = ProcessingPipelineStage.Create<ProcessingPipelineTestStage>("Stage1", null);
+			var stage2 = stage1.AddNextStage<ProcessingPipelineTestStage>("Stage2");
 
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);

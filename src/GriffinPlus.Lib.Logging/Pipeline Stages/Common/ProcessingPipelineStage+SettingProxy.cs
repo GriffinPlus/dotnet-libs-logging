@@ -6,6 +6,8 @@
 using System;
 using System.Text;
 
+using GriffinPlus.Lib.Conversion;
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -23,8 +25,8 @@ namespace GriffinPlus.Lib.Logging
 			private readonly ProcessingPipelineStage               mStage;
 			private readonly string                                mSettingName;
 			private readonly T                                     mDefaultSettingValue;
-			private readonly Func<T, string>                       mValueToStringConverter;
-			private readonly Func<string, T>                       mStringToValueConverter;
+			private readonly ObjectToStringConversionDelegate<T>   mValueToStringConverter;
+			private readonly StringToObjectConversionDelegate<T>   mStringToValueConverter;
 			private readonly object                                mSync = new object();
 			private          IProcessingPipelineStageConfiguration mConfiguration;
 			private          IProcessingPipelineStageSetting<T>    mSetting;
@@ -58,8 +60,8 @@ namespace GriffinPlus.Lib.Logging
 				IProcessingPipelineStageConfiguration configuration,
 				string                                name,
 				T                                     defaultValue,
-				Func<T, string>                       valueToStringConverter,
-				Func<string, T>                       stringToValueConverter)
+				ObjectToStringConversionDelegate<T>   valueToStringConverter,
+				StringToObjectConversionDelegate<T>   stringToValueConverter)
 			{
 				mStage = stage;
 				mSettingName = name;

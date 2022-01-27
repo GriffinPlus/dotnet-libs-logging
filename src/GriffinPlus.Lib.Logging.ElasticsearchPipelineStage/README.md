@@ -30,23 +30,32 @@ Create an instance of the pipeline stage, configure it to your needs and let the
 - using no authentication or NTLM, Kerberos or Negotiate with login user credentials
 
 ```csharp
-// initialize the pipeline stage (with default values, for illustration purposes only)
-var stage = new ElasticsearchPipelineStage("Elasticsearch");
-stage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server
-stage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes
-stage.Username = "";                                              // username to use when authenticating (empty to use login user)
-stage.Password = "";                                              // password to use when authenticating (empty to use login user)
-stage.Domain = "";                                                // domain to use when authenticating (for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
-stage.BulkRequestMaxConcurrencyLevel = 5;                         // maximum number of requests on the line
-stage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request
-stage.BulkRequestMaxMessageCount = 0;                             // maximum number of messages in a bulk request (0 = unlimited)
-stage.IndexName = "logs";                                         // elasticsearch index to write log messages into
-stage.OrganizationId = "";                                        // value of the 'organization.id' field
-stage.OrganizationName = "";                                      // value of the 'organization.name' field
-stage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages
-
-// let the logging subsystem use the pipeline stage
-Log.ProcessingPipeline = stage;
+Log.Initialize<VolatileLogConfiguration>(
+    config =>
+    {
+        // modify configuration...
+    },
+    builder =>
+    {
+        // add pipeline stage with default values (for illustration purposes only)
+        builder.Add<ElasticsearchPipelineStage>(
+            "Elasticsearch",
+            stage =>
+            {
+                stage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server
+                stage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes
+                stage.Username = "";                                              // username to use when authenticating (empty to use login user)
+                stage.Password = "";                                              // password to use when authenticating (empty to use login user)
+                stage.Domain = "";                                                // domain to use when authenticating (for schemes 'Digest', 'NTLM', 'Kerberos' and 'Negotiate')
+                stage.BulkRequestMaxConcurrencyLevel = 5;                         // maximum number of requests on the line
+                stage.BulkRequestMaxSize = 5 * 1024 * 1024;                       // maximum size of a bulk request
+                stage.BulkRequestMaxMessageCount = 0;                             // maximum number of messages in a bulk request (0 = unlimited)
+                stage.IndexName = "logs";                                         // elasticsearch index to write log messages into
+                stage.OrganizationId = "";                                        // value of the 'organization.id' field
+                stage.OrganizationName = "";                                      // value of the 'organization.name' field
+                stage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages
+            });
+    });
 ```
 
 The pipeline stage allows to configure multiple *Elasticsearch* endpoints for redundancy. The stage will try the first configured endpoint and use it until it fails. Then it tries to use the next endpoint in the list until it fails and so on. An endpoint that failed is not used for 30 seconds.

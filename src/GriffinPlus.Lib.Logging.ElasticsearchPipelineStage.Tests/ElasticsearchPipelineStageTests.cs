@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 
@@ -44,7 +45,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		[Fact]
 		public void Create_Default()
 		{
-			var stage = new ElasticsearchPipelineStage("Elasticsearch");
+			var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
 
 			// check common stage properties
 			// ------------------------------------------------------------------------------------
@@ -189,11 +190,11 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		[Fact]
 		public void InitializeAndShutdown()
 		{
-			var stage = new ElasticsearchPipelineStage("Elasticsearch");
+			var configuration = new VolatileLogConfiguration();
+			var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", configuration);
 
 			// let the configuration provide the appropriate Elasticsearch endpoints
-			var configuration = new VolatileLogConfiguration();
-			var stageSettings = configuration.ProcessingPipeline.Stages.AddNew("Elasticsearch");
+			var stageSettings = configuration.ProcessingPipeline.Stages.First(x => x.Name == "Elasticsearch");
 			stageSettings.SetSetting("Server.ApiBaseUrls", Setting_Server_ApiBaseUrls, UriArrayToString, StringToUriArray);
 			stageSettings.SetSetting("Server.Authentication.Schemes", Setting_Server_Authentication_Schemes);
 			stageSettings.SetSetting("Server.Authentication.Username", Setting_Server_Authentication_Username);
@@ -206,7 +207,6 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			stageSettings.SetSetting("Data.Organization.Id", Setting_Data_Organization_Id);
 			stageSettings.SetSetting("Data.Organization.Name", Setting_Data_Organization_Name);
 			stageSettings.SetSetting("Stage.SendQueueSize", Setting_Stage_SendQueueSize);
-			stage.Settings = configuration.ProcessingPipeline.Stages.First(x => x.Name == "Elasticsearch");
 
 			// initialize the stage
 			stage.Initialize();
@@ -241,8 +241,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// Converts an array of <see cref="Uri"/> to a string as used in the configuration.
 		/// </summary>
 		/// <param name="uris">Array of <see cref="Uri"/> to convert to a string.</param>
+		/// <param name="provider">Format provider to use (may be <c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 		/// <returns>The formatted array of <see cref="Uri"/>.</returns>
-		private static string UriArrayToString(Uri[] uris)
+		private static string UriArrayToString(Uri[] uris, IFormatProvider provider = null)
 		{
 			if (uris == null) return "";
 			return string.Join("; ", uris.Select(x => x.ToString()));
@@ -253,8 +254,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// The string is expected to contain the uris separated by semicolons.
 		/// </summary>
 		/// <param name="s">String to convert to an array of <see cref="Uri"/>.</param>
+		/// <param name="provider">Format provider to use (may be <c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 		/// <returns>An array of <see cref="Uri"/> corresponding to the specified string.</returns>
-		private static Uri[] StringToUriArray(string s)
+		private static Uri[] StringToUriArray(string s, IFormatProvider provider = null)
 		{
 			var apiEndpoints = new List<Uri>();
 			foreach (string endpointToken in s.Trim().Split(';'))

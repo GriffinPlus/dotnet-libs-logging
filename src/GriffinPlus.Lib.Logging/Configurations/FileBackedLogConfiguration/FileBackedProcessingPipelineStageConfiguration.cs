@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
+using GriffinPlus.Lib.Conversion;
 using GriffinPlus.Lib.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -64,10 +66,10 @@ namespace GriffinPlus.Lib.Logging
 		/// The <paramref name="name"/> is not a valid setting name.
 		/// </exception>
 		public override IProcessingPipelineStageSetting<T> RegisterSetting<T>(
-			string          name,
-			T               defaultValue,
-			Func<T, string> valueToStringConverter,
-			Func<string, T> stringToValueConverter)
+			string                              name,
+			T                                   defaultValue,
+			ObjectToStringConversionDelegate<T> valueToStringConverter,
+			StringToObjectConversionDelegate<T> stringToValueConverter)
 		{
 			// check arguments
 			if (valueToStringConverter == null) throw new ArgumentNullException(nameof(valueToStringConverter));
@@ -81,7 +83,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					// the setting was not requested before
 					// => create a setting
-					rawSetting = new FileBackedProcessingPipelineStageRawSetting(this, name, valueToStringConverter(defaultValue));
+					rawSetting = new FileBackedProcessingPipelineStageRawSetting(this, name, valueToStringConverter(defaultValue, CultureInfo.InvariantCulture));
 					setting = new FileBackedProcessingPipelineStageSetting<T>(rawSetting, valueToStringConverter, stringToValueConverter);
 					mSettings.Add(name, setting);
 				}
@@ -98,11 +100,11 @@ namespace GriffinPlus.Lib.Logging
 				// set the default value of the raw item, if it is not already set
 				// (this can happen, if a setting has been created without a default value before)
 				rawSetting = ((FileBackedProcessingPipelineStageSetting<T>)setting).Raw;
-				if (!rawSetting.HasDefaultValue) rawSetting.DefaultValue = valueToStringConverter(defaultValue);
+				if (!rawSetting.HasDefaultValue) rawSetting.DefaultValue = valueToStringConverter(defaultValue, CultureInfo.InvariantCulture);
 
 				// ensure that the setting default values are the same
-				string settingDefaultValueAsString = valueToStringConverter(((FileBackedProcessingPipelineStageSetting<T>)setting).DefaultValue);
-				string defaultValueAsString = valueToStringConverter(defaultValue);
+				string settingDefaultValueAsString = valueToStringConverter(((FileBackedProcessingPipelineStageSetting<T>)setting).DefaultValue, CultureInfo.InvariantCulture);
+				string defaultValueAsString = valueToStringConverter(defaultValue, CultureInfo.InvariantCulture);
 				if (settingDefaultValueAsString != defaultValueAsString)
 				{
 					string message = $"The setting exists already, but the specified default value ({defaultValueAsString}) does not match the default value of the existing setting ({settingDefaultValueAsString}).";
@@ -136,9 +138,9 @@ namespace GriffinPlus.Lib.Logging
 		/// The <paramref name="name"/> is not a valid setting name.
 		/// </exception>
 		public override IProcessingPipelineStageSetting<T> GetSetting<T>(
-			string          name,
-			Func<T, string> valueToStringConverter,
-			Func<string, T> stringToValueConverter)
+			string                              name,
+			ObjectToStringConversionDelegate<T> valueToStringConverter,
+			StringToObjectConversionDelegate<T> stringToValueConverter)
 		{
 			// check arguments
 			if (valueToStringConverter == null) throw new ArgumentNullException(nameof(valueToStringConverter));
@@ -195,10 +197,10 @@ namespace GriffinPlus.Lib.Logging
 		/// The <paramref name="name"/> is not a valid setting name.
 		/// </exception>
 		public override IProcessingPipelineStageSetting<T> SetSetting<T>(
-			string          name,
-			T               value,
-			Func<T, string> valueToStringConverter,
-			Func<string, T> stringToValueConverter)
+			string                              name,
+			T                                   value,
+			ObjectToStringConversionDelegate<T> valueToStringConverter,
+			StringToObjectConversionDelegate<T> stringToValueConverter)
 		{
 			// check arguments
 			if (valueToStringConverter == null) throw new ArgumentNullException(nameof(valueToStringConverter));

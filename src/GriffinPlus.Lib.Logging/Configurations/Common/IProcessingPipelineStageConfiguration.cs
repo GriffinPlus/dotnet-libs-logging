@@ -6,6 +6,8 @@
 using System;
 using System.Collections.Generic;
 
+using GriffinPlus.Lib.Conversion;
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -72,10 +74,10 @@ namespace GriffinPlus.Lib.Logging
 		/// The <paramref name="name"/> is not a valid setting name.
 		/// </exception>
 		IProcessingPipelineStageSetting<T> RegisterSetting<T>(
-			string          name,
-			T               defaultValue,
-			Func<T, string> valueToStringConverter,
-			Func<string, T> stringToValueConverter);
+			string                              name,
+			T                                   defaultValue,
+			ObjectToStringConversionDelegate<T> valueToStringConverter,
+			StringToObjectConversionDelegate<T> stringToValueConverter);
 
 		/// <summary>
 		/// Gets the setting with the specified name (supports primitive types, enums and string).
@@ -125,9 +127,9 @@ namespace GriffinPlus.Lib.Logging
 		/// The <paramref name="name"/> is not a valid setting name.
 		/// </exception>
 		IProcessingPipelineStageSetting<T> GetSetting<T>(
-			string          name,
-			Func<T, string> valueToStringConverter,
-			Func<string, T> stringToValueConverter);
+			string                              name,
+			ObjectToStringConversionDelegate<T> valueToStringConverter,
+			StringToObjectConversionDelegate<T> stringToValueConverter);
 
 		/// <summary>
 		/// Sets the setting with the specified name (supports primitive types, enums and string).
@@ -181,10 +183,10 @@ namespace GriffinPlus.Lib.Logging
 		/// The <paramref name="name"/> is not a valid setting name.
 		/// </exception>
 		IProcessingPipelineStageSetting<T> SetSetting<T>(
-			string          name,
-			T               value,
-			Func<T, string> valueToStringConverter,
-			Func<string, T> stringToValueConverter);
+			string                              name,
+			T                                   value,
+			ObjectToStringConversionDelegate<T> valueToStringConverter,
+			StringToObjectConversionDelegate<T> stringToValueConverter);
 	}
 
 }

@@ -13,19 +13,43 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LocalLogServicePipelineStage : SyncProcessingPipelineStage
 	{
-		private readonly LocalLogServiceConnection mSource;
+		private LocalLogServiceConnection mSource;
+		private string                    mKernelObjectPrefix = "Griffin+";
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogServicePipelineStage"/> class.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <param name="prefix">
-		/// Prefix for kernel objects created along with the connection
-		/// (helps to create a kind of namespace to differentiate instances of the local log service)
-		/// </param>
-		public LocalLogServicePipelineStage(string name, string prefix = "Griffin+") : base(name)
+		public LocalLogServicePipelineStage()
 		{
-			mSource = new LocalLogServiceConnection(prefix);
+			mSource = new LocalLogServiceConnection(KernelObjectPrefix);
+		}
+
+		/// <summary>
+		/// Gets or sets the prefix for kernel objects created along with the connection
+		/// (helps to create a kind of namespace to differentiate instances of the local log service)
+		/// </summary>
+		public string KernelObjectPrefix
+		{
+			get => mKernelObjectPrefix;
+			set
+			{
+				if (value == null) throw new ArgumentNullException(nameof(value));
+
+				lock (Sync)
+				{
+					EnsureNotAttachedToLoggingSubsystem();
+
+					if (mKernelObjectPrefix != value)
+					{
+						mKernelObjectPrefix = value;
+
+						// create a new log service connection
+						mSource?.Shutdown();
+						mSource = null;
+						mSource = new LocalLogServiceConnection(mKernelObjectPrefix);
+					}
+				}
+			}
 		}
 
 		/// <summary>

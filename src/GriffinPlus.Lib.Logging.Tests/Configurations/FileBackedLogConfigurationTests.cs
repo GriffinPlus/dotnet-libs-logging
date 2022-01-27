@@ -21,8 +21,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// create a new configuration file containing default settings
 			string fileName = $"{Guid.NewGuid():N}.gplogconf";
-			using (var configuration = new FileBackedLogConfiguration(fileName))
+			using (var configuration = new FileBackedLogConfiguration())
 			{
+				configuration.Path = fileName;
 				Assert.Equal(AppDomain.CurrentDomain.FriendlyName, configuration.ApplicationName);
 				configuration.Save();
 				Assert.True(File.Exists(configuration.FullPath));

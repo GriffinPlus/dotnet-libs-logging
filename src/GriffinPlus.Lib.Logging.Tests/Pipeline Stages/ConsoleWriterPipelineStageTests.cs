@@ -28,26 +28,13 @@ namespace GriffinPlus.Lib.Logging
 		};
 
 		/// <summary>
-		/// Creates a new instance of the pipeline stage.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <returns>The created stage.</returns>
-		protected override ConsoleWriterPipelineStage CreateStage(string name)
-		{
-			var stage = new ConsoleWriterPipelineStage(name);
-			stage.OutputStream = new StringWriter();
-			stage.ErrorStream = new StringWriter();
-			return stage;
-		}
-
-		/// <summary>
 		/// Tests whether creating a new instance of the pipeline stage succeeds and the stage is in the expected state
 		/// (only non-default stuff is checked, the rest is done by the base test class).
 		/// </summary>
 		[Fact]
 		public void Create()
 		{
-			var stage = new ConsoleWriterPipelineStage("Console");
+			var stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>("Console", null);
 			Assert.Equal(sDefaultSettings, stage.Settings.ToDictionary(x => x.Key, x => x.Value.Value));
 			Assert.Equal(ConsoleOutputStream.Stdout, stage.DefaultStream);
 			Assert.Same(Console.Out, stage.OutputStream);
@@ -108,7 +95,7 @@ namespace GriffinPlus.Lib.Logging
 		[MemberData(nameof(LogLevelToStreamMapping_TestData))]
 		public void MapLogLevelToStream(List<Tuple<LogLevel, ConsoleOutputStream>> mappings)
 		{
-			var stage = CreateStage("Console");
+			var stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>("Console", null);
 
 			// add the mappings and calculate the expected result
 			var expectedMapping = new Dictionary<LogLevel, ConsoleOutputStream>();
@@ -129,7 +116,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void MapLogLevelToStream_FailsIfLogLevelNull()
 		{
-			var stage = CreateStage("Console");
+			var stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>("Console", null);
 			Assert.Throws<ArgumentNullException>(() => stage.MapLogLevelToStream(null, ConsoleOutputStream.Stdout));
 		}
 
@@ -140,7 +127,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void MapLogLevelToStream_FailsIfInitialized()
 		{
-			var stage = CreateStage("Console");
+			var stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>("Console", null);
 			stage.Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.MapLogLevelToStream(LogLevel.Notice, ConsoleOutputStream.Stdout));
 			stage.Shutdown();
@@ -154,7 +141,7 @@ namespace GriffinPlus.Lib.Logging
 		[MemberData(nameof(LogLevelToStreamMapping_TestData))]
 		public void StreamByLevelOverrides(List<Tuple<LogLevel, ConsoleOutputStream>> mappings)
 		{
-			var stage = CreateStage("Console");
+			var stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>("Console", null);
 
 			// add the mappings and calculate the expected result
 			var expectedMapping = new Dictionary<LogLevel, ConsoleOutputStream>();
@@ -172,7 +159,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void StreamByLevelOverrides_FailsIfNull()
 		{
-			var stage = CreateStage("Console");
+			var stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>("Console", null);
 			Assert.Throws<ArgumentNullException>(() => stage.StreamByLevelOverrides = null);
 		}
 
@@ -183,7 +170,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void StreamByLevelOverrides_FailsIfInitialized()
 		{
-			var stage = CreateStage("Console");
+			var stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>("Console", null);
 			stage.Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.StreamByLevelOverrides = new Dictionary<LogLevel, ConsoleOutputStream>());
 			stage.Shutdown();
@@ -226,7 +213,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// create a new pipeline stage
 			var formatter = new TestFormatter();
-			var stage = CreateStage("Console");
+			var stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>("Console", null);
 			stage.DefaultStream = defaultStream;
 			stage.Formatter = formatter;
 
@@ -286,8 +273,10 @@ namespace GriffinPlus.Lib.Logging
 			stderrStream.Position = 0;
 			byte[] stdoutData = new byte[stdoutStream.Length];
 			byte[] stderrData = new byte[stderrStream.Length];
-			stdoutStream.Read(stdoutData, 0, stdoutData.Length);
-			stderrStream.Read(stderrData, 0, stderrData.Length);
+			int stdoutBytesReadCount = stdoutStream.Read(stdoutData, 0, stdoutData.Length);
+			int stderrBytesReadCount = stderrStream.Read(stderrData, 0, stderrData.Length);
+			Assert.Equal(stdoutData.Length, stdoutBytesReadCount);
+			Assert.Equal(stderrData.Length, stderrBytesReadCount);
 			var stdoutReader = new StreamReader(new MemoryStream(stdoutData));
 			var stderrReader = new StreamReader(new MemoryStream(stderrData));
 			string stdoutOutput = stdoutReader.ReadToEnd();

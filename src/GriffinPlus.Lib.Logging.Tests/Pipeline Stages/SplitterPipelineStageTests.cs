@@ -15,24 +15,16 @@ namespace GriffinPlus.Lib.Logging
 	public class SplitterPipelineStageTests : ProcessingPipelineStageBaseTests<SplitterPipelineStage>
 	{
 		/// <summary>
-		/// Creates a new instance of the pipeline stage.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <returns>The created stage.</returns>
-		protected override SplitterPipelineStage CreateStage(string name)
-		{
-			return new SplitterPipelineStage(name);
-		}
-
-		/// <summary>
 		/// Tests whether creating a new instance of the pipeline stage succeeds and the stage is in the expected state
 		/// (only non-default stuff is checked, the rest is done by the base test class).
 		/// </summary>
 		[Fact]
 		private void Create()
 		{
-			var stage = new SplitterPipelineStage("Splitter"); // do not use CreateStage() to emphasize that the constructor is tested
+			// do not use CreateStage() to emphasize that the constructor is tested
+			var stage = ProcessingPipelineStage.Create<SplitterPipelineStage>("Splitter", null);
 			Assert.Empty(stage.Settings);
+			Assert.Empty(stage.NextStages);
 		}
 	}
 

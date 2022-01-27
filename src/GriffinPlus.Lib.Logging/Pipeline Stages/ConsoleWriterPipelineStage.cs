@@ -46,8 +46,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConsoleWriterPipelineStage"/> class.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		public ConsoleWriterPipelineStage(string name) : base(name)
+		public ConsoleWriterPipelineStage()
 		{
 			mDefaultStreamSetting = RegisterSetting(SettingName_DefaultStream, ConsoleOutputStream.Stdout);
 		}

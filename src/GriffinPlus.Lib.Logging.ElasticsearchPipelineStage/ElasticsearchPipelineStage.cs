@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -157,8 +158,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// Initializes a new instance of the <see cref="ElasticsearchPipelineStage"/> class.
 		/// Connection settings are loaded from the log configuration.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		public ElasticsearchPipelineStage(string name) : base(name)
+		public ElasticsearchPipelineStage()
 		{
 			mSetting_Server_ApiBaseUrls = RegisterSetting("Server.ApiBaseUrls", sDefault_ApiBaseUrls, UriArrayToString, StringToUriArray);
 			mSetting_Server_ApiBaseUrls.RegisterSettingChangedEventHandler(OnSettingChanged, false);
@@ -216,8 +216,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// Converts an array of <see cref="Uri"/> to a string as used in the configuration.
 		/// </summary>
 		/// <param name="uris">Array of <see cref="Uri"/> to convert to a string.</param>
+		/// <param name="provider">Format provider to use (may be <c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 		/// <returns>The formatted array of <see cref="Uri"/>.</returns>
-		private static string UriArrayToString(Uri[] uris)
+		private static string UriArrayToString(Uri[] uris, IFormatProvider provider = null)
 		{
 			if (uris == null) return "";
 			return string.Join("; ", uris.Select(x => x.ToString()));
@@ -228,8 +229,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// The string is expected to contain the uris separated by semicolons.
 		/// </summary>
 		/// <param name="s">String to convert to an array of <see cref="Uri"/>.</param>
+		/// <param name="provider">Format provider to use (may be <c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 		/// <returns>An array of <see cref="Uri"/> corresponding to the specified string.</returns>
-		private static Uri[] StringToUriArray(string s)
+		private static Uri[] StringToUriArray(string s, IFormatProvider provider = null)
 		{
 			var apiEndpoints = new List<Uri>();
 			foreach (string endpointToken in s.Trim().Split(';'))

@@ -4,8 +4,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Globalization;
 using System.Threading;
 
+using GriffinPlus.Lib.Conversion;
 using GriffinPlus.Lib.Events;
 
 namespace GriffinPlus.Lib.Logging
@@ -18,8 +20,8 @@ namespace GriffinPlus.Lib.Logging
 	public class FileBackedProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>
 	{
 		private readonly FileBackedProcessingPipelineStageRawSetting mRawSetting;
-		private readonly Func<T, string>                             mValueToStringConverter;
-		private readonly Func<string, T>                             mStringToValueConverter;
+		private readonly ObjectToStringConversionDelegate<T>         mValueToStringConverter;
+		private readonly StringToObjectConversionDelegate<T>         mStringToValueConverter;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageSetting{T}"/> class.
@@ -29,8 +31,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="stringToValueConverter">Delegate that converts the setting value to a string.</param>
 		internal FileBackedProcessingPipelineStageSetting(
 			FileBackedProcessingPipelineStageRawSetting rawSetting,
-			Func<T, string>                             valueToStringConverter,
-			Func<string, T>                             stringToValueConverter)
+			ObjectToStringConversionDelegate<T>         valueToStringConverter,
+			StringToObjectConversionDelegate<T>         stringToValueConverter)
 		{
 			mRawSetting = rawSetting;
 			mValueToStringConverter = valueToStringConverter;
@@ -135,14 +137,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public T Value
 		{
-			get => mStringToValueConverter(mRawSetting.Value);
+			get => mStringToValueConverter(mRawSetting.Value, CultureInfo.InvariantCulture);
 
 			set
 			{
 				lock (mRawSetting.StageConfiguration.Sync)
 				{
 					string oldRawValue = mRawSetting.HasValue | mRawSetting.HasDefaultValue ? mRawSetting.Value : null;
-					string newRawValue = mValueToStringConverter(value);
+					string newRawValue = mValueToStringConverter(value, CultureInfo.InvariantCulture);
 					if (mRawSetting.HasValue && oldRawValue == newRawValue) return;
 					mRawSetting.Value = newRawValue;
 					OnSettingChanged();
@@ -181,7 +183,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
-		public T DefaultValue => mStringToValueConverter(mRawSetting.DefaultValue);
+		public T DefaultValue => mStringToValueConverter(mRawSetting.DefaultValue, CultureInfo.InvariantCulture);
 
 		/// <summary>
 		/// Gets the default value of the setting.

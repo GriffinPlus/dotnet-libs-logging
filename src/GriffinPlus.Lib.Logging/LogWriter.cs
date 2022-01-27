@@ -120,11 +120,8 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// active log level mask is empty
 				// => the log configuration is not initialized, yet
-				// => create default configuration...
-				lock (Log.Sync)
-				{
-					Log.InitDefaultConfiguration();
-				}
+				// => let the static constructor of the Log class create a default configuration...
+				lock (Log.Sync) { } // the property accessor triggers the static constructor, if necessary
 			}
 
 			return ActiveLogLevelMask.IsBitSet(level.Id);

@@ -73,13 +73,11 @@ namespace Benchmark.Elasticsearch
 		public void GlobalSetup()
 		{
 			// create a new pipeline stage
-			mStage = new ElasticsearchPipelineStage("Elasticsearch")
-			{
-				ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") },
-				IndexName = "pipeline-stage-benchmark",
-				BulkRequestMaxMessageCount = int.MaxValue,
-				DiscardMessagesIfQueueFull = false
-			};
+			mStage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+			mStage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };
+			mStage.IndexName = "pipeline-stage-benchmark";
+			mStage.BulkRequestMaxMessageCount = int.MaxValue;
+			mStage.DiscardMessagesIfQueueFull = false;
 		}
 
 		/// <summary>

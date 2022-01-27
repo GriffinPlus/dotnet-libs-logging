@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -44,11 +43,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		static Log()
 		{
-			lock (Sync) // just to prevent assertions from firing...
-			{
-				InitDefaultConfiguration();
-				ProcessingPipeline = new ConsoleWriterPipelineStage("Console") { IsDefaultStage = true };
-			}
+			// initialize default settings and pipeline stage
+			Initialize();
 
 			// register handler for unhandled exceptions and process exit
 			AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -118,84 +114,102 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets or sets the log configuration that determines the behavior of the log
-		/// (if set to <c>null</c> a volatile log configuration is used).
+		/// Gets the log configuration that determines the behavior of the log.
 		/// </summary>
-		public static ILogConfiguration Configuration
+		public static ILogConfiguration Configuration => sLogConfiguration;
+
+		/// <summary>
+		/// Gets the processing pipeline that processes any log messages written to the logging subsystem.
+		/// </summary>
+		public static ProcessingPipelineStage ProcessingPipeline => sProcessingPipeline;
+
+		/// <summary>
+		/// Initializes the logging subsystem with default settings.
+		/// All messages with <see cref="LogLevel.Notice"/> or more severe are written to the console
+		/// using a <see cref="ConsoleWriterPipelineStage"/> with default settings.
+		/// </summary>
+		public static void Initialize()
 		{
-			get => sLogConfiguration;
-
-			set
-			{
-				lock (Sync)
+			Initialize<VolatileLogConfiguration>(
+				configuration =>
 				{
-					// abort, if the configuration has not changed
-					if (value == sLogConfiguration) return;
-
-					// unlink pipeline stages and the configuration
-					UnlinkPipelineStagesFromConfiguration(ProcessingPipeline);
-
-					if (value != null)
-					{
-						sLogConfiguration = value;
-					}
-					else
-					{
-						InitDefaultConfiguration();
-					}
-
-					// update log writers to comply with the new configuration
-					UpdateLogWriters();
-
-					// link pipeline stages to the configuration, so configuration changes effect the pipeline stages
-					// and programmatic changes to pipeline stages effect the configuration
-					LinkPipelineStagesToConfiguration(ProcessingPipeline, sLogConfiguration);
-				}
-			}
+					configuration.IsDefaultConfiguration = true;
+				},
+				null);
 		}
 
 		/// <summary>
-		/// Gets or sets the log message processing pipeline that receives any log messages written to the logging subsystem.
+		/// Initializes the logging subsystem.
 		/// </summary>
-		public static ProcessingPipelineStage ProcessingPipeline
+		/// <typeparam name="TConfiguration">The type of the configuration to use.</typeparam>
+		/// <param name="configurationInitializer">
+		/// Initializer for the configuration (may be <c>null</c>).
+		/// </param>
+		/// <param name="processingPipelineInitializer">
+		/// Initializer for the processing pipeline
+		/// (may be <c>null</c> to set up a <see cref="ConsoleWriterPipelineStage"/> with default settings).
+		/// </param>
+		public static void Initialize<TConfiguration>(
+			LogConfigurationInitializer<TConfiguration> configurationInitializer,
+			ProcessingPipelineInitializer               processingPipelineInitializer)
+			where TConfiguration : ILogConfiguration, new()
 		{
-			get => sProcessingPipeline;
-
-			set
+			lock (Sync)
 			{
-				lock (Sync)
+				// create and initialize the new configuration
+				var configuration = new TConfiguration();
+				configurationInitializer?.Invoke(configuration);
+
+				// build and configure the processing pipeline pipeline using a builder (if specified)
+				ProcessingPipelineStage stage = null;
+				if (processingPipelineInitializer != null)
 				{
-					// abort, if the processing pipeline has not changed
-					if (sProcessingPipeline == value) return;
+					// pipeline builder was specified
+					// => use it to set up the processing pipeline
+					var stageBuilder = new ProcessingPipelineBuilder(sLogConfiguration);
+					processingPipelineInitializer(stageBuilder);
+					stage = stageBuilder.PipelineStage;
+				}
 
-					if (value != null)
+				// fall back to using a console writer pipeline stage,
+				// if the pipeline builder was not specified or the builder returned an empty processing pipeline
+				if (stage == null)
+				{
+					const string stageName = "Console";
+					stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>(stageName, configuration);
+					stage.IsDefaultStage = true;
+				}
+
+				try
+				{
+					// initialize the new processing pipeline
+					stage.Initialize(); // can throw...
+				}
+				catch (Exception ex)
+				{
+					SystemLogger.WriteError($"Initializing log message processing pipeline failed. Exception:\n{LogWriter.UnwrapException(ex)}");
+					configuration.Dispose();
+					throw;
+				}
+
+				// make new configuration and processing pipeline the current one
+				sLogConfiguration = configuration;
+				var oldPipeline = sProcessingPipeline;
+				sProcessingPipeline = stage;
+
+				// update log writers to comply with the new configuration
+				UpdateLogWriters();
+
+				// shutdown old processing pipeline, if any
+				if (oldPipeline != null)
+				{
+					try
 					{
-						// link pipeline stages to the configuration, so configuration changes effect the pipeline stages
-						// and programmatic changes to pipeline stages effect the configuration
-						LinkPipelineStagesToConfiguration(value, sLogConfiguration);
-
-						// initialize the new processing pipeline
-						value.Initialize(); // can throw...
+						oldPipeline.Shutdown();
 					}
-
-					// make new processing pipeline the current one
-					var oldPipeline = sProcessingPipeline;
-					sProcessingPipeline = value;
-
-					// shutdown old processing pipeline, if any
-					if (oldPipeline != null)
+					catch (Exception ex)
 					{
-						try
-						{
-							oldPipeline.Shutdown();
-						}
-						catch (Exception ex)
-						{
-							Debug.Fail("Shutting down the old processing pipeline failed unexpectedly.", ex.ToString());
-						}
-
-						// unlink old pipeline stages and the configuration
-						UnlinkPipelineStagesFromConfiguration(oldPipeline);
+						SystemLogger.WriteError($"Shutting down old processing pipeline failed unexpectedly. Exception:\n{LogWriter.UnwrapException(ex)}");
 					}
 				}
 			}
@@ -463,26 +477,6 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes the default log configuration.
-		/// </summary>
-		internal static void InitDefaultConfiguration()
-		{
-			// global logging lock is hold here...
-			Debug.Assert(Monitor.IsEntered(Sync));
-
-			if (sLogConfiguration == null)
-			{
-				// create and init default configuration
-				var configuration = new VolatileLogConfiguration { IsDefaultConfiguration = true };
-				Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
-				sLogConfiguration = configuration;
-
-				// update log writers appropriately
-				UpdateLogWriters();
-			}
-		}
-
-		/// <summary>
 		/// Updates the active log level mask of all log writers.
 		/// </summary>
 		private static void UpdateLogWriters()
@@ -490,58 +484,6 @@ namespace GriffinPlus.Lib.Logging
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
 			foreach (var writer in sLogWritersById) writer.Update(sLogConfiguration);
-		}
-
-		/// <summary>
-		/// Links the specified processing pipeline stage and its following stages with to the specified configuration.
-		/// This enables the stages to persist their settings.
-		/// </summary>
-		/// <param name="firstStage">First stage of the processing pipeline.</param>
-		/// <param name="configuration">The configuration to set.</param>
-		private static void LinkPipelineStagesToConfiguration(
-			ProcessingPipelineStage firstStage,
-			ILogConfiguration       configuration)
-		{
-			// global logging lock is hold here...
-			Debug.Assert(Monitor.IsEntered(Sync));
-
-			// abort, if the first stage is not defined...
-			if (firstStage == null) return;
-
-			// get all stages of the processing pipeline recursively
-			var allStages = new HashSet<ProcessingPipelineStage>();
-			firstStage.GetAllStages(allStages);
-
-			// link configuration to all stages
-			foreach (var stage in allStages)
-			{
-				var stageConfiguration = configuration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == stage.Name) ??
-				                         configuration.ProcessingPipeline.Stages.AddNew(stage.Name);
-				stage.Settings = stageConfiguration;
-			}
-		}
-
-		/// <summary>
-		/// Unlinks the specified processing pipeline stage and its following stages from the specified configuration.
-		/// </summary>
-		/// <param name="firstStage">First stage of the processing pipeline.</param>
-		private static void UnlinkPipelineStagesFromConfiguration(ProcessingPipelineStage firstStage)
-		{
-			// global logging lock is hold here...
-			Debug.Assert(Monitor.IsEntered(Sync));
-
-			// abort, if the first stage is not defined...
-			if (firstStage == null) return;
-
-			// get all stages of the processing pipeline recursively
-			var allStages = new HashSet<ProcessingPipelineStage>();
-			firstStage.GetAllStages(allStages);
-
-			// unlink configuration from all stages
-			foreach (var stage in allStages)
-			{
-				stage.Settings = null;
-			}
 		}
 
 		/// <summary>

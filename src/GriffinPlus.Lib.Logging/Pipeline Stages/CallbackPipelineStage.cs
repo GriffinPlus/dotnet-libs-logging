@@ -12,37 +12,33 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class CallbackPipelineStage : SyncProcessingPipelineStage
 	{
-		/// <summary>
-		/// A delegate that processes the specified log message.
-		/// </summary>
-		/// <param name="message">Log message to process.</param>
-		/// <returns>
-		/// true to call the following pipeline stages;
-		/// false to stop processing.
-		/// </returns>
-		public delegate bool ProcessingCallback(LocalLogMessage message);
+		private ProcessingCallback mProcessingCallback;
 
 		/// <summary>
-		/// The message processing callback.
+		/// Initializes a new instance of the <see cref="CallbackPipelineStage"/> class.
+		/// Please set <see cref="ProcessingCallback"/> to a callback of your choice.
 		/// </summary>
-		private readonly ProcessingCallback mProcessingCallback;
+		public CallbackPipelineStage()
+		{
+		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage"/> class.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <param name="processCallback">
-		/// Callback processing a log message traveling through the pipeline (may be null).
+		/// Gets or sets the message processing callback (may be null).
 		/// The callback is executed in the context of the thread writing the message.
-		/// </param>
+		/// </summary>
 		/// <remarks>
 		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 		/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
 		/// need the message any more.
 		/// </remarks>
-		public CallbackPipelineStage(string name, ProcessingCallback processCallback) : base(name)
+		public ProcessingCallback ProcessingCallback
 		{
-			mProcessingCallback = processCallback;
+			get => mProcessingCallback;
+			set
+			{
+				EnsureNotAttachedToLoggingSubsystem();
+				mProcessingCallback = value;
+			}
 		}
 
 		/// <summary>
@@ -60,5 +56,15 @@ namespace GriffinPlus.Lib.Logging
 			return base.ProcessSync(message);
 		}
 	}
+
+	/// <summary>
+	/// A delegate that processes the specified log message.
+	/// </summary>
+	/// <param name="message">Log message to process.</param>
+	/// <returns>
+	/// <c>true</c> to call the following pipeline stages;
+	/// <c>false</c> to stop processing.
+	/// </returns>
+	public delegate bool ProcessingCallback(LocalLogMessage message);
 
 }

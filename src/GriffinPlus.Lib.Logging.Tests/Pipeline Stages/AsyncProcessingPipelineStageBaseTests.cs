@@ -15,17 +15,10 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// Unit tests targeting the <see cref="AsyncProcessingPipelineStage"/> class as a base class for derived pipeline stages.
 	/// </summary>
-	public abstract class AsyncProcessingPipelineStageBaseTests<TStage> where TStage : AsyncProcessingPipelineStage
+	public abstract class AsyncProcessingPipelineStageBaseTests<TStage> where TStage : AsyncProcessingPipelineStage, new()
 	{
 		// ReSharper disable once StaticMemberInGenericType
 		internal static LocalLogMessagePool MessagePool = new LocalLogMessagePool();
-
-		/// <summary>
-		/// Creates a new instance of the pipeline stage.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		/// <returns>The created stage.</returns>
-		protected abstract TStage CreateStage(string name);
 
 		/// <summary>
 		/// Tests whether creating a new stage succeeds and the stage is in the expected state
@@ -34,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public virtual void Create_And_Check_BaseClass_State()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 
 			// a new stage should not be initialized (attached to the logging subsystem)
 			Assert.False(stage.IsInitialized);
@@ -58,12 +51,10 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Adding_And_Getting_Next_Stages()
 		{
-			var stage1 = CreateStage("Stage1");
-			var stage2 = CreateStage("Stage2");
+			// create stage 1 and add stage 2 following stage 1
+			var stage1 = ProcessingPipelineStage.Create<TStage>("Stage1", null);
+			var stage2 = stage1.AddNextStage<TStage>("Stage2");
 			var stages12 = new HashSet<TStage> { stage1, stage2 };
-
-			// add stage 2 as follower of stage 1
-			stage1.AddNextStage(stage2);
 
 			// stage 1 should have stage 2 as following stage
 			Assert.Single(stage1.NextStages);
@@ -93,7 +84,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Initialize_Standalone()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 			Assert.False(stage.IsInitialized);
 			stage.Initialize();
 			Assert.True(stage.IsInitialized);
@@ -106,9 +97,8 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Initialize_WithFollowingStage()
 		{
-			var stage1 = CreateStage("Stage1");
-			var stage2 = new AsyncProcessingPipelineTestStage("Stage2");
-			stage1.AddNextStage(stage2);
+			var stage1 = ProcessingPipelineStage.Create<TStage>("Stage1", null);
+			var stage2 = stage1.AddNextStage<AsyncProcessingPipelineTestStage>("Stage2", null);
 			Assert.False(stage1.IsInitialized);
 			Assert.False(stage2.IsInitialized);
 			stage1.Initialize();
@@ -123,7 +113,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Initialize_FailsIfAlreadyInitialized()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 
 			// initialize the first time
 			Assert.False(stage.IsInitialized);
@@ -141,7 +131,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Shutdown_Standalone()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 
 			// initialize the stage
 			Assert.False(stage.IsInitialized);
@@ -160,9 +150,8 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Shutdown_WithFollowingStage()
 		{
-			var stage1 = CreateStage("Stage1");
-			var stage2 = new AsyncProcessingPipelineTestStage("Stage2");
-			stage1.AddNextStage(stage2);
+			var stage1 = ProcessingPipelineStage.Create<TStage>("Stage1", null);
+			var stage2 = stage1.AddNextStage<AsyncProcessingPipelineTestStage>("Stage2");
 
 			// initialize the stages
 			Assert.False(stage1.IsInitialized);
@@ -184,7 +173,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Process_FailsIfMessageIsNull()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 			Assert.Throws<ArgumentNullException>(() => stage.ProcessMessage(null));
 		}
 
@@ -195,7 +184,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Process_FailsIfNotInitialized()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 			var message = MessagePool.GetUninitializedMessage();
 			Assert.Throws<InvalidOperationException>(() => stage.ProcessMessage(message));
 		}

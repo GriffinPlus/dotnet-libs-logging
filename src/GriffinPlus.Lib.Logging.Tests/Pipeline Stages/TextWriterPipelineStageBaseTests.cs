@@ -14,7 +14,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Unit tests targeting the <see cref="TextWriterPipelineStage"/> class as a base class for derived pipeline stages.
 	/// </summary>
 	public abstract class TextWriterPipelineStageBaseTests<TStage> : AsyncProcessingPipelineStageBaseTests<TStage>
-		where TStage : TextWriterPipelineStage
+		where TStage : TextWriterPipelineStage, new()
 	{
 		/// <summary>
 		/// Tests whether creating a new stage succeeds and the stage is in the expected state
@@ -26,7 +26,7 @@ namespace GriffinPlus.Lib.Logging
 			base.Create_And_Check_BaseClass_State();
 
 			// check state introduced with the TextWriterPipelineStage class
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 			Assert.NotNull(stage.Formatter);
 		}
 
@@ -36,7 +36,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Formatter_SetSuccessfully()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 			var formatter = new TestFormatter();
 			stage.Formatter = formatter;
 			Assert.Same(formatter, stage.Formatter);
@@ -49,7 +49,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Formatter_FailsIfNull()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 			Assert.Throws<ArgumentNullException>(() => stage.Formatter = null);
 		}
 
@@ -60,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Formatter_FailsIfInitialized()
 		{
-			var stage = CreateStage("Stage");
+			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
 			var formatter = new TestFormatter();
 			stage.Initialize();
 			Assert.Throws<InvalidOperationException>(() => stage.Formatter = formatter);

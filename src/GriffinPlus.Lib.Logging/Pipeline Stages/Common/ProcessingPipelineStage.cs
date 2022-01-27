@@ -10,6 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
+using GriffinPlus.Lib.Conversion;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable ForCanBeConvertedToForeach
 
@@ -40,11 +42,22 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SyncProcessingPipelineStage"/> class.
 		/// </summary>
-		/// <param name="name">Name of the pipeline stage (must be unique throughout the entire processing pipeline).</param>
-		protected ProcessingPipelineStage(string name)
+		protected ProcessingPipelineStage()
 		{
-			Name = name ?? throw new ArgumentNullException(nameof(name));
-			Settings = new VolatileProcessingPipelineStageConfiguration(name);
+			ILogConfiguration configuration = null;
+
+			if (sNameOfPipelineStageToCreate.Value.Count > 0)
+			{
+				var constructionData = sNameOfPipelineStageToCreate.Value.Peek();
+				Name = constructionData.Name;
+				configuration = constructionData.Configuration;
+			}
+			else
+			{
+				Name = $"Unnamed ({Guid.NewGuid():D})";
+			}
+
+			Configuration = configuration ?? new VolatileLogConfiguration();
 		}
 
 		/// <summary>
@@ -62,6 +75,43 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the object to use for synchronization of changes to the pipeline stage using a monitor.
 		/// </summary>
 		protected object Sync { get; } = new object();
+
+		#region Creating Named Pipeline Stages
+
+		private struct ConstructionData
+		{
+			public string            Name;
+			public ILogConfiguration Configuration;
+		}
+
+		private static readonly ThreadLocal<Stack<ConstructionData>> sNameOfPipelineStageToCreate =
+			new ThreadLocal<Stack<ConstructionData>>(() => new Stack<ConstructionData>());
+
+		/// <summary>
+		/// Creates a new pipeline stage with the specified name and settings.
+		/// </summary>
+		/// <typeparam name="TPipelineStage">Type of the pipeline stage to create.</typeparam>
+		/// <param name="name">Name of the pipeline stage to create.</param>
+		/// <param name="configuration">The logging configuration (<c>null</c> to set up a volatile configuration with defaults).</param>
+		/// <returns>The created pipeline stage.</returns>
+		public static TPipelineStage Create<TPipelineStage>(
+			string            name,
+			ILogConfiguration configuration)
+			where TPipelineStage : ProcessingPipelineStage, new()
+		{
+			try
+			{
+				var constructionData = new ConstructionData { Name = name, Configuration = configuration };
+				sNameOfPipelineStageToCreate.Value.Push(constructionData);
+				return new TPipelineStage();
+			}
+			finally
+			{
+				sNameOfPipelineStageToCreate.Value.Pop();
+			}
+		}
+
+		#endregion
 
 		#region Initialization / Shutdown
 
@@ -256,14 +306,43 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Creates, configures and adds a pipeline stage of the specified type to receive log messages, when the current stage has
+		/// completed running its <see cref="ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
+		/// The configuration associated with the current pipeline stage is also associated with the new pipeline stage.
+		/// </summary>
+		/// <typeparam name="TProcessingPipelineStage">The pipeline stage that should follow the current stage.</typeparam>
+		/// <param name="name">Name of the pipeline stage to add.</param>
+		/// <param name="initializer">Callback that configures the pipeline stage (may be <c>null</c>).</param>
+		/// <returns>The added pipeline stage.</returns>
+		public TProcessingPipelineStage AddNextStage<TProcessingPipelineStage>(
+			string                                                       name,
+			ProcessingPipelineStageInitializer<TProcessingPipelineStage> initializer = null)
+			where TProcessingPipelineStage : ProcessingPipelineStage, new()
+		{
+			var stage = Create<TProcessingPipelineStage>(name, Configuration);
+			initializer?.Invoke(stage);
+			AddNextStage(stage);
+			return stage;
+		}
+
+		/// <summary>
 		/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
 		/// its <see cref="ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
+		/// The pipeline stage must use the same log configuration as the current stage and it must not be initialized, yet.
 		/// </summary>
 		/// <param name="stage">The pipeline stage that should follow the current stage.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <paramref name="stage"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentException">
+		/// <paramref name="stage"/> is already initialized or its configuration is not the same as the configuration of the current state.
+		/// </exception>
 		public void AddNextStage(ProcessingPipelineStage stage)
 		{
 			if (stage == null) throw new ArgumentNullException(nameof(stage));
 			if (stage.IsInitialized) throw new ArgumentException("The stage to add must not be initialized.", nameof(stage));
+			if (!ReferenceEquals(stage.Configuration, Configuration))
+				throw new ArgumentException("The stage must use the same configuration as the current stage.", nameof(stage));
 
 			lock (Sync)
 			{
@@ -361,12 +440,50 @@ namespace GriffinPlus.Lib.Logging
 		#region Settings Backed by the Log Configuration
 
 		// all members below are synchronized using mSettingsSync
+		private          ILogConfiguration                     mConfiguration;
 		private          IProcessingPipelineStageConfiguration mSettings;
 		private readonly List<IUntypedSettingProxy>            mSettingProxies = new List<IUntypedSettingProxy>();
 		private readonly object                                mSettingsSync   = new object();
 
 		/// <summary>
-		/// Gets or sets the configuration the pipeline stage operates with.
+		/// Gets the logging configuration.
+		/// </summary>
+		/// <exception cref="ArgumentNullException">The specified configuration is <c>null</c>.</exception>
+		public ILogConfiguration Configuration
+		{
+			get
+			{
+				lock (mSettingsSync)
+				{
+					return mConfiguration;
+				}
+			}
+
+			private set
+			{
+				if (value == null) throw new ArgumentNullException(nameof(value));
+
+				lock (mSettingsSync)
+				{
+					if (mConfiguration != value)
+					{
+						// set the log configuration
+						mConfiguration = value;
+
+						// get the settings associated with the pipeline stage to create
+						var settings =
+							mConfiguration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == Name) ??
+							mConfiguration.ProcessingPipeline.Stages.AddNew(Name);
+
+						mSettings = settings;
+						RebindSettingProxies();
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets the configuration the pipeline stage operates with.
 		/// </summary>
 		/// <returns>Configuration of the pipeline stage.</returns>
 		public IProcessingPipelineStageConfiguration Settings
@@ -376,19 +493,6 @@ namespace GriffinPlus.Lib.Logging
 				lock (mSettingsSync)
 				{
 					return mSettings;
-				}
-			}
-
-			set
-			{
-				lock (mSettingsSync)
-				{
-					if (mSettings != value)
-					{
-						var newConfiguration = value ?? new VolatileProcessingPipelineStageConfiguration(Name);
-						mSettings = newConfiguration;
-						RebindSettingProxies();
-					}
 				}
 			}
 		}
@@ -430,10 +534,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>A setting proxy that allows to access the underlying exchangeable pipeline stage configuration.</returns>
 		/// <exception cref="InvalidOperationException">The setting has already been registered.</exception>
 		protected IProcessingPipelineStageSetting<T> RegisterSetting<T>(
-			string          name,
-			T               defaultValue,
-			Func<T, string> valueToStringConverter,
-			Func<string, T> stringToValueConverter)
+			string                              name,
+			T                                   defaultValue,
+			ObjectToStringConversionDelegate<T> valueToStringConverter,
+			StringToObjectConversionDelegate<T> stringToValueConverter)
 		{
 			lock (mSettingsSync)
 			{
