@@ -177,6 +177,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					string path = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path));
 					mFile = new FileStream(path, Append ? FileMode.OpenOrCreate : FileMode.Create, FileAccess.Write, FileShare.Read);
+					if (Append) mFile.Position = mFile.Length;
 					mWriter = new StreamWriter(mFile, Encoding.UTF8);
 					return true;
 				}
