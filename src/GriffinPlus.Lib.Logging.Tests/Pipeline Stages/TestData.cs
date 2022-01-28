@@ -87,12 +87,50 @@ namespace GriffinPlus.Lib.Logging
 						66,
 						"MyText6");
 
-					yield return new[] { message1 };
-					yield return new[] { message1, message2 };
-					yield return new[] { message1, message2, message3 };
-					yield return new[] { message1, message2, message3, message4 };
-					yield return new[] { message1, message2, message3, message4, message5 };
-					yield return new[] { message1, message2, message3, message4, message5, message6 };
+					yield return new[]
+					{
+						new LocalLogMessage(message1)
+					};
+
+					yield return new[]
+					{
+						new LocalLogMessage(message1),
+						new LocalLogMessage(message2)
+					};
+
+					yield return new[]
+					{
+						new LocalLogMessage(message1),
+						new LocalLogMessage(message2),
+						new LocalLogMessage(message3)
+					};
+
+					yield return new[]
+					{
+						new LocalLogMessage(message1),
+						new LocalLogMessage(message2),
+						new LocalLogMessage(message3),
+						new LocalLogMessage(message4)
+					};
+
+					yield return new[]
+					{
+						new LocalLogMessage(message1),
+						new LocalLogMessage(message2),
+						new LocalLogMessage(message3),
+						new LocalLogMessage(message4),
+						new LocalLogMessage(message5)
+					};
+
+					yield return new[]
+					{
+						new LocalLogMessage(message1),
+						new LocalLogMessage(message2),
+						new LocalLogMessage(message3),
+						new LocalLogMessage(message4),
+						new LocalLogMessage(message5),
+						new LocalLogMessage(message6)
+					};
 				}
 			}
 		}
