@@ -256,6 +256,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (value[i] == null) throw new ArgumentException("The collection of following stages must not contain a null reference");
 					if (value[i].IsInitialized) throw new ArgumentException("The new stages must not be initialized, yet.");
+					if (!ReferenceEquals(value[i].Configuration, Configuration)) throw new ArgumentException("The new stages must use the same configuration as the current stage.");
 				}
 
 				lock (Sync)
