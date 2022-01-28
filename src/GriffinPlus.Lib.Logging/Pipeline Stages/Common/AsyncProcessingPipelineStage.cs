@@ -23,15 +23,15 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public abstract class AsyncProcessingPipelineStage : ProcessingPipelineStage
 	{
-		private AsyncContextThread             mAsyncContextThread;
-		private Task                           mAsyncProcessingTask;
-		private AsyncAutoResetEvent            mTriggerAsyncProcessingEvent;
-		private LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
-		private bool                           mDiscardMessagesIfQueueFull;
-		private int                            mMessageQueueSize = 500;
-		private TimeSpan                       mShutdownTimeout  = TimeSpan.FromMilliseconds(5000);
-		private CancellationTokenSource        mAsyncProcessingCancellationTokenSource;
-		private bool                           mTerminateProcessingTask;
+		private          AsyncContextThread             mAsyncContextThread;
+		private          Task                           mAsyncProcessingTask;
+		private          AsyncAutoResetEvent            mTriggerAsyncProcessingEvent;
+		private          LocklessStack<LocalLogMessage> mAsyncProcessingMessageStack;
+		private          bool                           mDiscardMessagesIfQueueFull;
+		private          int                            mMessageQueueSize = 500;
+		private          TimeSpan                       mShutdownTimeout  = TimeSpan.FromMilliseconds(5000);
+		private          CancellationTokenSource        mAsyncProcessingCancellationTokenSource;
+		private volatile bool                           mTerminateProcessingTask;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage"/> class.
