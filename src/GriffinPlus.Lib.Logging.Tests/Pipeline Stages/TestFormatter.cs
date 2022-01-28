@@ -3,8 +3,6 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System.Text;
-
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -20,10 +18,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The formatted log message.</returns>
 		public string Format(ILogMessage message)
 		{
-			var builder = new StringBuilder();
-
-			builder.AppendFormat(
-				"{0} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7} ### {8}",
+			// specify format of the timestamp explicitly to work around an issue with duplicating the timezone offset
+			// (see https://github.com/microsoft/dotnet/issues/1144)
+			return string.Format(
+				"{0:O} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7} ### {8}",
 				message.Timestamp,
 				message.HighPrecisionTimestamp,
 				message.LogWriterName,
@@ -33,8 +31,6 @@ namespace GriffinPlus.Lib.Logging
 				message.ProcessName,
 				message.ProcessId,
 				message.Text);
-
-			return builder.ToString();
 		}
 	}
 
