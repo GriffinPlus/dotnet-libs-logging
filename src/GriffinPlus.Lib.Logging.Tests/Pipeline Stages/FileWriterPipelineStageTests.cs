@@ -102,19 +102,19 @@ namespace GriffinPlus.Lib.Logging
 			stage.Initialize();
 
 			// process the message and determine the expected output in stdout/stderr
+			// (the stage automatically adds a newline after each message)
 			var expected = new StringBuilder();
 			foreach (var message in messages)
 			{
 				stage.ProcessMessage(message);
-				expected.Append(formatter.Format(message));
-				expected.AppendLine(); // a newline is automatically added after a message
+				expected.AppendLine(formatter.Format(message));
 			}
 
 			// shut the pipeline stage down to release the file
 			stage.Shutdown();
 
-			// the file should contain the expected output now
-			using (var fs = new FileStream(stage.Path, FileMode.Open, FileAccess.Read, FileShare.Read))
+			// the file should be closed and contain the expected output now
+			using (var fs = new FileStream(stage.Path, FileMode.Open, FileAccess.Read, FileShare.None))
 			using (var reader = new StreamReader(fs))
 			{
 				string content = reader.ReadToEnd();

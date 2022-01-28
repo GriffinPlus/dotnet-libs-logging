@@ -326,10 +326,7 @@ namespace GriffinPlus.Lib.Logging
 			finally
 			{
 				// release message to let them return to the pool
-				for (int i = 0; i < messages.Length; i++)
-				{
-					messages[i].Release();
-				}
+				foreach (var message in messages) message.Release();
 			}
 		}
 

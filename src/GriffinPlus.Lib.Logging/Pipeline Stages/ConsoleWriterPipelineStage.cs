@@ -176,20 +176,10 @@ namespace GriffinPlus.Lib.Logging
 
 				// NOTE: After attaching the pipeline stage to the logging subsystem, mStreamByLevel will not change.
 				if (!mStreamByLevel.TryGetValue(message.Message.LogLevel, out var stream))
-				{
 					stream = mDefaultStreamSetting.Value;
-				}
 
-				if (stream == ConsoleOutputStream.Stdout)
-				{
-					mStdoutBuilder.Append(message.Output);
-					mStdoutBuilder.AppendLine();
-				}
-				else
-				{
-					mStderrBuilder.Append(message.Output);
-					mStderrBuilder.AppendLine();
-				}
+				if (stream == ConsoleOutputStream.Stdout) mStdoutBuilder.AppendLine(message.Output);
+				else mStderrBuilder.AppendLine(message.Output);
 			}
 
 			// try to write to the console

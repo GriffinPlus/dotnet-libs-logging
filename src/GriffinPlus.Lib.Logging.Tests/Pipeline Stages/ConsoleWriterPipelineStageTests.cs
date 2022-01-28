@@ -247,17 +247,11 @@ namespace GriffinPlus.Lib.Logging
 				if (!levelToStreamMap.TryGetValue(message.LogLevel, out var stream))
 					stream = defaultStream;
 
+				// add formatted message to the expected output
+				// (the stage automatically adds a newline after each message)
 				string formattedOutput = formatter.Format(message);
-				if (stream == ConsoleOutputStream.Stdout)
-				{
-					expectedStdout.Append(formattedOutput);
-					expectedStdout.AppendLine(); // the console writer adds a newline
-				}
-				else
-				{
-					expectedStderr.Append(formattedOutput);
-					expectedStderr.AppendLine(); // the console writer adds a newline
-				}
+				if (stream == ConsoleOutputStream.Stdout) expectedStdout.AppendLine(formattedOutput);
+				else expectedStderr.AppendLine(formattedOutput);
 			}
 
 			// give the messages some time (500ms) to travel through the pipeline

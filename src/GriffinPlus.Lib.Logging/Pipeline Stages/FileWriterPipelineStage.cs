@@ -100,10 +100,9 @@ namespace GriffinPlus.Lib.Logging
 
 				// put all formatted messages into a single string to speed up writing them in the next step
 				mOutputBuilder.Clear();
-				for (int i = 0; i < messages.Length; i++)
+				foreach (var message in messages)
 				{
-					mOutputBuilder.Append(messages[i].Output);
-					mOutputBuilder.AppendLine();
+					mOutputBuilder.AppendLine(message.Output);
 				}
 
 				// get the current stream position

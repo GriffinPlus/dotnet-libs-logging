@@ -81,18 +81,16 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// enqueue messages to process
 			// (helps to defer messages that could not be processed successfully)
-			// ReSharper disable once ForCanBeConvertedToForeach
-			for (int i = 0; i < messages.Length; i++)
+			foreach (var message in messages)
 			{
-				var message = messages[i];
 				message.AddRef();
 
 				var formattedMessage = new FormattedMessage
 				{
-					Message = messages[i],
+					Message = message,
 
 					// ReSharper disable once InconsistentlySynchronizedField
-					Output = mFormatter.Format(messages[i])
+					Output = mFormatter.Format(message)
 				};
 
 				mFormattedMessageQueue.Enqueue(formattedMessage);
