@@ -23,6 +23,7 @@ namespace GriffinPlus.Lib.Logging
 		private readonly AsyncLock     mAsyncWriterLock = new AsyncLock();
 		private          FileStream    mFile;
 		private          StreamWriter  mWriter;
+		private          string        mOpenedFilePath;
 
 		// defaults of settings determining the behavior of the stage
 		private const bool   Default_Append = false;
@@ -148,6 +149,7 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Opens the log file as specified by the <see cref="Path"/> property.
+		/// If the opened file has not changed, it is not re-opened.
 		/// </summary>
 		/// <returns>
 		/// <c>true</c> if the file was opened successfully; otherwise <c>false</c>.
@@ -156,10 +158,20 @@ namespace GriffinPlus.Lib.Logging
 		{
 			using (mAsyncWriterLock.Lock())
 			{
+				// determine the full path of the file to open
+				// (always interpret relative paths relative to the application base directory, not the working directory)
+				string path = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path));
+
+				// abort, if the opened file has not changed
+				if (mOpenedFilePath == path)
+					return false;
+
+				// the opened file has changed
+
 				// close the currently opened log file
 				try
 				{
-					mWriter?.Dispose();
+					mWriter?.Close();
 				}
 				catch (Exception ex)
 				{
@@ -172,13 +184,12 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				// open/create new log file
-				// (always interpret relative paths relative to the application base directory, not the working directory)
 				try
 				{
-					string path = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path));
 					mFile = new FileStream(path, Append ? FileMode.OpenOrCreate : FileMode.Create, FileAccess.Write, FileShare.Read);
 					if (Append) mFile.Position = mFile.Length;
 					mWriter = new StreamWriter(mFile, Encoding.UTF8);
+					mOpenedFilePath = path;
 					return true;
 				}
 				catch (Exception ex)
@@ -199,7 +210,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				try
 				{
-					mWriter?.Dispose();
+					mWriter?.Close();
 				}
 				catch (Exception ex)
 				{
@@ -207,6 +218,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 				finally
 				{
+					mOpenedFilePath = null;
 					mWriter = null;
 					mFile = null;
 				}
@@ -218,7 +230,13 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private void OnSettingChanged(object sender, SettingChangedEventArgs e)
 		{
-			TryOpenLogFile();
+			lock (Sync)
+			{
+				if (!IsInitialized)
+					return;
+
+				TryOpenLogFile();
+			}
 		}
 	}
 
