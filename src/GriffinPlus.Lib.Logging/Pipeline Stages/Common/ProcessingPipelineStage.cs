@@ -848,7 +848,7 @@ namespace GriffinPlus.Lib.Logging
 				catch (Exception)
 				{
 					// an error occurred initializing the following stages
-					// => shut the already initialized stages down and restore the old stages
+					// => shut the already initialized stages down
 					for (int j = 0; j < i; j++)
 					{
 						try
