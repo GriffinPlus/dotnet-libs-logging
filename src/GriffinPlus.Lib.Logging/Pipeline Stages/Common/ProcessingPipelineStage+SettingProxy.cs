@@ -69,7 +69,7 @@ namespace GriffinPlus.Lib.Logging
 				mValueToStringConverter = valueToStringConverter;
 				mStringToValueConverter = stringToValueConverter;
 
-				SetProxyTarget(configuration);
+				(this as IUntypedSettingProxy).SetProxyTarget(configuration, false);
 			}
 
 			/// <summary>
@@ -110,22 +110,25 @@ namespace GriffinPlus.Lib.Logging
 			/// Binds the setting proxy to another pipeline stage configuration.
 			/// </summary>
 			/// <param name="configuration">The configuration the proxy should bind to.</param>
-			public void SetProxyTarget(IProcessingPipelineStageConfiguration configuration)
+			/// <param name="raiseChangedEvent">
+			/// <c>true</c> to notify clients that the setting has changed;
+			/// otherwise <c>false</c>.
+			/// </param>
+			void IUntypedSettingProxy.SetProxyTarget(IProcessingPipelineStageConfiguration configuration, bool raiseChangedEvent)
 			{
 				lock (mSync)
 				{
 					if (mConfiguration != configuration)
 					{
 						// Exchange the configuration, rebind the PropertyChanged handler and fire the PropertyChanged event
-						// to notify clients to re-evaluate the setting. It's necessary to let the executing thread invoke event
-						// handlers synchronously to ensure the stage is set up properly at the end.
+						// to notify clients to re-evaluate the setting.
 						mConfiguration = configuration;
 						mSetting?.UnregisterSettingChangedEventHandler(OnSettingPropertyChanged);
 						mSetting = mValueToStringConverter != null && mStringToValueConverter != null
 							           ? mConfiguration.RegisterSetting(mSettingName, mDefaultSettingValue, mValueToStringConverter, mStringToValueConverter)
 							           : mConfiguration.RegisterSetting(mSettingName, mDefaultSettingValue);
 						mSetting?.RegisterSettingChangedEventHandler(OnSettingPropertyChanged, false);
-						OnSettingPropertyChanged(this, SettingChangedEventArgs.Default);
+						if (raiseChangedEvent) mStage.ProcessSettingChanged(this);
 					}
 				}
 			}
@@ -325,6 +328,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="e">Event arguments.</param>
 			private void OnSettingPropertyChanged(object sender, SettingChangedEventArgs e)
 			{
+				mStage.ProcessSettingChanged(this);
+
 				var handler = SettingChanged;
 				handler?.Invoke(this, e);
 			}

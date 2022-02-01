@@ -39,10 +39,7 @@ namespace GriffinPlus.Lib.Logging
 		public FileWriterPipelineStage()
 		{
 			mSetting_Append = RegisterSetting("Append", Default_Append);
-			mSetting_Append.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Path = RegisterSetting("Path", Default_Path);
-			mSetting_Path.RegisterSettingChangedEventHandler(OnSettingChanged, false);
 		}
 
 		/// <summary>
@@ -86,7 +83,22 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
+		/// Processes pending changes to registered setting proxies
+		/// (the method is executed by the stage's processing thread, do not use <c>ConfigureAwait(false)</c> to resume
+		/// execution in the processing thread when awaiting a task).
+		/// </summary>
+		/// <param name="settings">Settings that have changed.</param>
+		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
+		protected override Task OnSettingsChangedAsync(IUntypedProcessingPipelineStageSetting[] settings, CancellationToken cancellationToken)
+		{
+			TryOpenLogFile();
+			return Task.CompletedTask;
+		}
+
+		/// <summary>
 		/// Emits the formatted log messages (should not throw any exceptions).
+		/// The method is executed by the stage's processing thread, do not use <c>ConfigureAwait(false)</c> to resume
+		/// execution in the processing thread when awaiting a task.
 		/// </summary>
 		/// <param name="messages">The formatted log messages.</param>
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
@@ -222,20 +234,6 @@ namespace GriffinPlus.Lib.Logging
 					mWriter = null;
 					mFile = null;
 				}
-			}
-		}
-
-		/// <summary>
-		/// Is called by a worker thread when the configuration changes.
-		/// </summary>
-		private void OnSettingChanged(object sender, SettingChangedEventArgs e)
-		{
-			lock (Sync)
-			{
-				if (!IsInitialized)
-					return;
-
-				TryOpenLogFile();
 			}
 		}
 	}

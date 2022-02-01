@@ -4,7 +4,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 
 // ReSharper disable ForCanBeConvertedToForeach
 
@@ -58,6 +61,58 @@ namespace GriffinPlus.Lib.Logging
 			{
 				Debug.Fail("OnShutdown() failed.", ex.ToString());
 			}
+		}
+
+		#endregion
+
+		#region Processing Setting Changes
+
+		private readonly HashSet<IUntypedSettingProxy> mChangedSettings         = new HashSet<IUntypedSettingProxy>();
+		private volatile bool                          mSettingChangedScheduled = false;
+
+		/// <summary>
+		/// Notifies that the specified setting has changed (for internal use only).
+		/// </summary>
+		/// <param name="setting">The setting that has changed.</param>
+		internal override void ProcessSettingChanged(IUntypedSettingProxy setting)
+		{
+			// enqueue changed setting
+			lock (mChangedSettings)
+			{
+				mChangedSettings.Add(setting);
+			}
+
+			// schedule calling OnSettingsChanged()
+			if (!mSettingChangedScheduled)
+			{
+				mSettingChangedScheduled = true;
+				ThreadPool.QueueUserWorkItem(
+					obj =>
+					{
+						mSettingChangedScheduled = false;
+						IUntypedProcessingPipelineStageSetting[] settings = null;
+						lock (mChangedSettings)
+						{
+							if (mChangedSettings.Count > 0)
+							{
+								settings = mChangedSettings.Cast<IUntypedProcessingPipelineStageSetting>().ToArray();
+								mChangedSettings.Clear();
+							}
+						}
+
+						if (settings != null)
+							OnSettingsChanged(settings);
+					});
+			}
+		}
+
+		/// <summary>
+		/// When overridden in a derived class, processes pending changes to registered setting proxies
+		/// (the method is executed by a worker thread).
+		/// </summary>
+		/// <param name="settings">Settings that have changed.</param>
+		protected virtual void OnSettingsChanged(IUntypedProcessingPipelineStageSetting[] settings)
+		{
 		}
 
 		#endregion

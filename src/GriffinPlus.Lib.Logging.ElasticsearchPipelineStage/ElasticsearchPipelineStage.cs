@@ -161,40 +161,17 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		public ElasticsearchPipelineStage()
 		{
 			mSetting_Server_ApiBaseUrls = RegisterSetting("Server.ApiBaseUrls", sDefault_ApiBaseUrls, UriArrayToString, StringToUriArray);
-			mSetting_Server_ApiBaseUrls.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Server_Authentication_Schemes = RegisterSetting("Server.Authentication.Schemes", sDefault_Server_Authentication_Schemes);
-			mSetting_Server_Authentication_Schemes.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Server_Authentication_Username = RegisterSetting("Server.Authentication.Username", sDefault_Server_Authentication_Username);
-			mSetting_Server_Authentication_Username.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Server_Authentication_Password = RegisterSetting("Server.Authentication.Password", sDefault_Server_Authentication_Password);
-			mSetting_Server_Authentication_Password.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Server_Authentication_Domain = RegisterSetting("Server.Authentication.Domain", sDefault_Server_Authentication_Domain);
-			mSetting_Server_Authentication_Domain.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Server_BulkRequest_MaxConcurrencyLevel = RegisterSetting("Server.BulkRequest.MaxConcurrencyLevel", sDefault_Server_BulkRequest_MaxConcurrencyLevel);
-			mSetting_Server_BulkRequest_MaxConcurrencyLevel.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Server_BulkRequest_MaxMessageCount = RegisterSetting("Server.BulkRequest.MaxMessageCount", sDefault_Server_BulkRequest_MaxMessageCount);
-			mSetting_Server_BulkRequest_MaxMessageCount.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Server_BulkRequest_MaxSize = RegisterSetting("Server.BulkRequest.MaxSize", sDefault_Server_BulkRequest_MaxSize);
-			mSetting_Server_BulkRequest_MaxSize.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Server_IndexName = RegisterSetting("Server.IndexName", sDefault_Server_IndexName);
-			mSetting_Server_IndexName.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Data_Organization_Id = RegisterSetting("Data.Organization.Id", sDefault_Data_Organization_Id);
-			mSetting_Data_Organization_Id.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Organization_Name = RegisterSetting("Data.Organization.Name", sDefault_Data_Organization_Name);
-			mSetting_Organization_Name.RegisterSettingChangedEventHandler(OnSettingChanged, false);
-
 			mSetting_Stage_SendQueueSize = RegisterSetting("Stage.SendQueueSize", sDefault_Stage_SendQueueSize);
-			mSetting_Stage_SendQueueSize.RegisterSettingChangedEventHandler(OnSettingChanged, false);
 			mProcessingQueueSize = mSetting_Stage_SendQueueSize.Value;
 		}
 
@@ -399,26 +376,6 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 		#endregion
 
-		#region Handling Setting Changes
-
-		/// <summary>
-		/// Is called by a worker thread when the configuration changes.
-		/// </summary>
-		private void OnSettingChanged(object sender, SettingChangedEventArgs e)
-		{
-			// reload the maximum number of messages in the processing queue
-			lock (mProcessingQueue)
-			{
-				mProcessingQueueSize = mSetting_Stage_SendQueueSize.Value;
-				if (mProcessingQueueSize < 1) mProcessingQueueSize = 1;
-			}
-
-			// tell the process thread to reload its configuration
-			mReloadConfiguration = true;
-		}
-
-		#endregion
-
 		#endregion
 
 		#region Stage Settings (Not Backed by Configuration)
@@ -511,6 +468,23 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					mProcessingQueue.RemoveFromFront().Release();
 				}
 			}
+		}
+
+		/// <summary>
+		/// Processes pending changes to registered setting proxies (the method is executed by a worker thread).
+		/// </summary>
+		/// <param name="settings">Settings that have changed.</param>
+		protected override void OnSettingsChanged(IUntypedProcessingPipelineStageSetting[] settings)
+		{
+			// reload the maximum number of messages in the processing queue
+			lock (mProcessingQueue)
+			{
+				mProcessingQueueSize = mSetting_Stage_SendQueueSize.Value;
+				if (mProcessingQueueSize < 1) mProcessingQueueSize = 1;
+			}
+
+			// tell the process thread to reload its configuration
+			mReloadConfiguration = true;
 		}
 
 		#endregion

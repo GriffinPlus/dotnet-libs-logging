@@ -4,7 +4,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -187,6 +189,36 @@ namespace GriffinPlus.Lib.Logging
 
 		#endregion
 
+		#region Processing Setting Changes
+
+		private readonly HashSet<IUntypedSettingProxy> mChangedSettings = new HashSet<IUntypedSettingProxy>();
+
+		/// <summary>
+		/// Notifies that the specified setting has changed (for internal use only).
+		/// </summary>
+		/// <param name="setting">The setting that has changed.</param>
+		internal override void ProcessSettingChanged(IUntypedSettingProxy setting)
+		{
+			lock (mChangedSettings)
+			{
+				mChangedSettings.Add(setting);
+			}
+		}
+
+		/// <summary>
+		/// When overridden in a derived class, processes pending changes to registered setting proxies
+		/// (the method is executed by the stage's processing thread, do not use <c>ConfigureAwait(false)</c> to resume
+		/// execution in the processing thread when awaiting a task).
+		/// </summary>
+		/// <param name="settings">Settings that have changed.</param>
+		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
+		protected virtual Task OnSettingsChangedAsync(IUntypedProcessingPipelineStageSetting[] settings, CancellationToken cancellationToken)
+		{
+			return Task.CompletedTask;
+		}
+
+		#endregion
+
 		#region Processing Messages and Notifications
 
 		/// <summary>
@@ -288,6 +320,21 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// wait for messages to process
 				await mTriggerAsyncProcessingEvent.WaitAsync(cancellationToken);
+
+				// pull setting changes, if available
+				IUntypedProcessingPipelineStageSetting[] settings = null;
+				lock (mChangedSettings)
+				{
+					if (mChangedSettings.Count > 0)
+					{
+						settings = mChangedSettings.Cast<IUntypedProcessingPipelineStageSetting>().ToArray();
+						mChangedSettings.Clear();
+					}
+				}
+
+				// process setting changes
+				if (settings != null)
+					await OnSettingsChangedAsync(settings, cancellationToken);
 
 				// process the messages
 				await ProcessQueuedMessages(cancellationToken);

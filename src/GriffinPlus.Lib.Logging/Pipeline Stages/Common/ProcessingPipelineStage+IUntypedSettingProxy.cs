@@ -3,6 +3,8 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System.ComponentModel;
+
 namespace GriffinPlus.Lib.Logging
 {
 
@@ -17,7 +19,11 @@ namespace GriffinPlus.Lib.Logging
 			/// Binds the setting proxy to another pipeline stage configuration.
 			/// </summary>
 			/// <param name="configuration">The configuration the proxy should bind to.</param>
-			void SetProxyTarget(IProcessingPipelineStageConfiguration configuration);
+			/// <param name="raiseChangedEvent">
+			/// <c>true</c> to notify clients that the associated setting has changed;
+			/// otherwise <c>false</c>.
+			/// </param>
+			void SetProxyTarget(IProcessingPipelineStageConfiguration configuration, bool raiseChangedEvent);
 		}
 	}
 

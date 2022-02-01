@@ -57,7 +57,13 @@ namespace GriffinPlus.Lib.Logging
 				Name = $"Unnamed ({Guid.NewGuid():D})";
 			}
 
-			Configuration = configuration ?? new VolatileLogConfiguration();
+			// set the log configuration
+			mConfiguration = configuration ?? new VolatileLogConfiguration();
+
+			// get the settings associated with the pipeline stage to create
+			mSettings =
+				mConfiguration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == Name) ??
+				mConfiguration.ProcessingPipeline.Stages.AddNew(Name);
 		}
 
 		/// <summary>
@@ -459,28 +465,6 @@ namespace GriffinPlus.Lib.Logging
 					return mConfiguration;
 				}
 			}
-
-			private set
-			{
-				if (value == null) throw new ArgumentNullException(nameof(value));
-
-				lock (mSettingsSync)
-				{
-					if (mConfiguration != value)
-					{
-						// set the log configuration
-						mConfiguration = value;
-
-						// get the settings associated with the pipeline stage to create
-						var settings =
-							mConfiguration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == Name) ??
-							mConfiguration.ProcessingPipeline.Stages.AddNew(Name);
-
-						mSettings = settings;
-						RebindSettingProxies();
-					}
-				}
-			}
 		}
 
 		/// <summary>
@@ -567,10 +551,16 @@ namespace GriffinPlus.Lib.Logging
 			{
 				foreach (var proxy in mSettingProxies)
 				{
-					proxy.SetProxyTarget(mSettings);
+					proxy.SetProxyTarget(mSettings, true);
 				}
 			}
 		}
+
+		/// <summary>
+		/// When overridden in a derived class, notifies that the specified setting has changed (for internal use only).
+		/// </summary>
+		/// <param name="setting">The setting that has changed.</param>
+		internal abstract void ProcessSettingChanged(IUntypedSettingProxy setting);
 
 		#endregion
 
