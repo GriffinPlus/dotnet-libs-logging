@@ -57,13 +57,20 @@ namespace GriffinPlus.Lib.Logging
 				Name = $"Unnamed ({Guid.NewGuid():D})";
 			}
 
-			// set the log configuration
-			mConfiguration = configuration ?? new VolatileLogConfiguration();
+			lock (mSettingProxies) // ensures that a configuration change does not disturb the setup
+			{
+				// set the log configuration
+				mConfiguration = configuration ?? new VolatileLogConfiguration();
+				mConfiguration.RegisterChangedEventHandler(OnLogConfigurationChanged, false);
 
-			// get the settings associated with the pipeline stage to create
-			mSettings =
-				mConfiguration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == Name) ??
-				mConfiguration.ProcessingPipeline.Stages.AddNew(Name);
+				// get the settings associated with the pipeline stage to create
+				mSettings =
+					mConfiguration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == Name) ??
+					mConfiguration.ProcessingPipeline.Stages.AddNew(Name);
+
+				// setting proxies do not need to be rebound as there are no proxies, yet
+				Debug.Assert(mSettingProxies.Count == 0);
+			}
 		}
 
 		/// <summary>
@@ -447,7 +454,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Settings Backed by the Log Configuration
 
 		// all members below are synchronized using mSettingsSync
-		private          ILogConfiguration                     mConfiguration;
+		private readonly ILogConfiguration                     mConfiguration;
 		private          IProcessingPipelineStageConfiguration mSettings;
 		private readonly List<IUntypedSettingProxy>            mSettingProxies = new List<IUntypedSettingProxy>();
 		private readonly object                                mSettingsSync   = new object();
@@ -549,11 +556,34 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSettingProxies)
 			{
+				// get the settings associated with the pipeline stage to create
+				var settings =
+					mConfiguration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == Name) ??
+					mConfiguration.ProcessingPipeline.Stages.AddNew(Name);
+
+				// abort, if the pipeline stage configuration is still the same
+				// (there are other mechanisms that handle changes to settings in a pipeline stage configuration)
+				if (ReferenceEquals(mSettings, settings))
+					return;
+
+				// the pipeline stage configuration has changed
+				// => update setting proxies to use the new settings
+				mSettings = settings;
 				foreach (var proxy in mSettingProxies)
 				{
 					proxy.SetProxyTarget(mSettings, true);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Is called when the log configuration changes (always invoked by a worker thread).
+		/// </summary>
+		/// <param name="sender">The log configuration that has changed.</param>
+		/// <param name="e">Event arguments (not used).</param>
+		private void OnLogConfigurationChanged(object sender, EventArgs e)
+		{
+			RebindSettingProxies();
 		}
 
 		/// <summary>

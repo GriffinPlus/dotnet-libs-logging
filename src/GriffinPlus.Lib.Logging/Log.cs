@@ -156,46 +156,58 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (Sync)
 			{
-				// create and initialize the new configuration
-				var configuration = new TConfiguration();
-				configurationInitializer?.Invoke(configuration);
-
-				// build and configure the processing pipeline pipeline using a builder (if specified)
-				ProcessingPipelineStage stage = null;
-				if (processingPipelineInitializer != null)
-				{
-					// pipeline builder was specified
-					// => use it to set up the processing pipeline
-					var stageBuilder = new ProcessingPipelineBuilder(sLogConfiguration);
-					processingPipelineInitializer(stageBuilder);
-					stage = stageBuilder.PipelineStage;
-				}
-
-				// fall back to using a console writer pipeline stage,
-				// if the pipeline builder was not specified or the builder returned an empty processing pipeline
-				if (stage == null)
-				{
-					const string stageName = "Console";
-					stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>(stageName, configuration);
-					stage.IsDefaultStage = true;
-				}
-
-				try
-				{
-					// initialize the new processing pipeline
-					stage.Initialize(); // can throw...
-				}
-				catch (Exception ex)
-				{
-					SystemLogger.WriteError($"Initializing log message processing pipeline failed. Exception:\n{LogWriter.UnwrapException(ex)}");
-					configuration.Dispose();
-					throw;
-				}
-
-				// make new configuration and processing pipeline the current one
-				sLogConfiguration = configuration;
+				var oldConfiguration = sLogConfiguration;
 				var oldPipeline = sProcessingPipeline;
-				sProcessingPipeline = stage;
+
+				// create the new configuration
+				var configuration = new TConfiguration();
+
+				// suspend raising the Changed event of the configuration to avoid firing the event when setting up
+				// the configuration and binding stages to it
+				using (configuration.SuspendChangedEvent())
+				{
+					// initialize the configuration
+					configurationInitializer?.Invoke(configuration);
+
+					// build and configure the processing pipeline pipeline using a builder (if specified)
+					ProcessingPipelineStage stage = null;
+					if (processingPipelineInitializer != null)
+					{
+						// pipeline builder was specified
+						// => use it to set up the processing pipeline
+						var stageBuilder = new ProcessingPipelineBuilder(configuration);
+						processingPipelineInitializer(stageBuilder);
+						stage = stageBuilder.PipelineStage;
+					}
+
+					// fall back to using a console writer pipeline stage,
+					// if the pipeline builder was not specified or the builder returned an empty processing pipeline
+					if (stage == null)
+					{
+						const string stageName = "Console";
+						stage = ProcessingPipelineStage.Create<ConsoleWriterPipelineStage>(stageName, configuration);
+						stage.IsDefaultStage = true;
+					}
+
+					try
+					{
+						// initialize the new processing pipeline
+						stage.Initialize(); // can throw...
+					}
+					catch (Exception ex)
+					{
+						SystemLogger.WriteError($"Initializing log message processing pipeline failed. Exception:\n{LogWriter.UnwrapException(ex)}");
+						configuration.Dispose();
+						throw;
+					}
+
+					// make new configuration and processing pipeline the current one
+					sLogConfiguration = configuration;
+					sProcessingPipeline = stage;
+				}
+
+				// register for configuration changes
+				sLogConfiguration.RegisterChangedEventHandler(OnLogConfigurationChanged, false);
 
 				// update log writers to comply with the new configuration
 				UpdateLogWriters();
@@ -212,6 +224,13 @@ namespace GriffinPlus.Lib.Logging
 						SystemLogger.WriteError($"Shutting down old processing pipeline failed unexpectedly. Exception:\n{LogWriter.UnwrapException(ex)}");
 					}
 				}
+
+				// shut the old configuration down
+				if (oldConfiguration != null)
+				{
+					oldConfiguration.UnregisterChangedEventHandler(OnLogConfigurationChanged);
+					oldConfiguration.Dispose();
+				}
 			}
 		}
 
@@ -225,6 +244,15 @@ namespace GriffinPlus.Lib.Logging
 				// pipeline stages might have buffered messages
 				// => shut them down gracefully to allow them to complete processing before exiting
 				sProcessingPipeline?.Shutdown();
+				sProcessingPipeline = null;
+
+				// shut the configuration down
+				if (sLogConfiguration != null)
+				{
+					sLogConfiguration.UnregisterChangedEventHandler(OnLogConfigurationChanged);
+					sLogConfiguration.Dispose();
+					sLogConfiguration = null;
+				}
 			}
 		}
 
@@ -484,6 +512,22 @@ namespace GriffinPlus.Lib.Logging
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
 			foreach (var writer in sLogWritersById) writer.Update(sLogConfiguration);
+		}
+
+		/// <summary>
+		/// Is called when the log configuration changes.
+		/// </summary>
+		/// <param name="sender">The log configuration that has changed.</param>
+		/// <param name="e">Event arguments (not used).</param>
+		private static void OnLogConfigurationChanged(object sender, EventArgs e)
+		{
+			lock (Sync)
+			{
+				// update active log level mask in log writers
+				UpdateLogWriters();
+
+				// updating setting proxies in stages is not necessary, the stages will do this on their own
+			}
 		}
 
 		/// <summary>

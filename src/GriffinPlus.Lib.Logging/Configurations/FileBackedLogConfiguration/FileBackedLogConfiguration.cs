@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -26,6 +27,7 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly LogWriter sLog = Log.GetWriter("Logging");
 
 		private readonly FileBackedProcessingPipelineConfiguration mProcessingPipelineConfiguration;
+		private          LogConfigurationFile                      mFile;
 		private          FileSystemWatcher                         mFileSystemWatcher;
 		private          Timer                                     mReloadingTimer;
 		private          string                                    mPath;
@@ -120,7 +122,24 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the wrapped log configuration file.
 		/// </summary>
-		internal LogConfigurationFile File { get; private set; }
+		internal LogConfigurationFile File
+		{
+			get
+			{
+				Debug.Assert(Monitor.IsEntered(Sync));
+				return mFile;
+			}
+
+			private set
+			{
+				Debug.Assert(Monitor.IsEntered(Sync));
+				if (mFile != value)
+				{
+					mFile = value;
+					OnChanged();
+				}
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the name of the application.
@@ -139,7 +158,11 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (Sync)
 				{
-					File.ApplicationName = value;
+					if (File.ApplicationName != value)
+					{
+						File.ApplicationName = value;
+						OnChanged();
+					}
 				}
 			}
 		}
@@ -171,6 +194,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				File.LogWriterSettings.Clear();
 				File.LogWriterSettings.AddRange(settings);
+				OnChanged();
 			}
 		}
 

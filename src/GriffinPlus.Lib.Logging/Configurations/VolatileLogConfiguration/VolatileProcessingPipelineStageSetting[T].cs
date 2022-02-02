@@ -148,6 +148,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private void OnSettingChanged()
 		{
+			// notify that the configuration the setting belongs to has changed
+			mConfiguration.LogConfiguration.OnChanged();
+
+			// raise the SettingChanged event
 			if (EventManager<SettingChangedEventArgs>.IsHandlerRegistered(this, nameof(SettingChanged)))
 			{
 				EventManager<SettingChangedEventArgs>.FireEvent(
@@ -301,7 +305,6 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the default value of the setting.
 		/// </summary>
 		object IUntypedProcessingPipelineStageSetting.DefaultValue => DefaultValue;
-
 
 		/// <summary>
 		/// Gets or sets the default value of the setting as a string (for serialization purposes).

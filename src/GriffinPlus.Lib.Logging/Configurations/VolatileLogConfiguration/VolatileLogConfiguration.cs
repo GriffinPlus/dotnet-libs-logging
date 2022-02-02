@@ -54,7 +54,11 @@ namespace GriffinPlus.Lib.Logging
 				lock (Sync)
 				{
 					if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Invalid application name.");
-					mApplicationName = value;
+					if (mApplicationName != value)
+					{
+						mApplicationName = value;
+						OnChanged();
+					}
 				}
 			}
 		}
@@ -154,6 +158,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// log writer settings are immutable after creation, so copying the collection is sufficient
 				mLogWriterSettings = new List<LogWriterConfiguration>(settings);
+				OnChanged();
 			}
 		}
 

@@ -21,31 +21,25 @@ namespace GriffinPlus.Lib.Logging
 		private readonly Dictionary<string, IUntypedProcessingPipelineStageSetting> mSettings = new Dictionary<string, IUntypedProcessingPipelineStageSetting>();
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class.
-		/// </summary>
-		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
-		public VolatileProcessingPipelineStageConfiguration(string name) : base(null)
-		{
-			Name = name;
-		}
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class (for internal use only).
 		/// </summary>
 		/// <param name="name">Name of the pipeline stage the configuration belongs to.</param>
-		/// <param name="sync">
-		/// The configuration lock used to synchronize access to the configuration.
-		/// Specify <c>null</c> to create a new lock.
-		/// </param>
-		internal VolatileProcessingPipelineStageConfiguration(string name, object sync) : base(sync)
+		/// <param name="configuration">The configuration the stage configuration belongs to.</param>
+		internal VolatileProcessingPipelineStageConfiguration(string name, VolatileLogConfiguration configuration) : base(configuration?.Sync)
 		{
-			Name = name;
+			Name = name ?? throw new ArgumentNullException(nameof(name));
+			LogConfiguration = configuration ?? throw new ArgumentNullException(nameof(configuration));
 		}
 
 		/// <summary>
 		/// Gets the name of the processing pipeline stage the configuration belongs to.
 		/// </summary>
 		public override string Name { get; }
+
+		/// <summary>
+		/// Gets the log configuration the stage configuration belongs to.
+		/// </summary>
+		public VolatileLogConfiguration LogConfiguration { get; }
 
 		/// <summary>
 		/// Registers the setting with the specified name (supports custom types using the specified converters).
@@ -84,15 +78,15 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (Sync)
 			{
+				bool isNewSetting = false;
 				if (!mSettings.TryGetValue(name, out var setting))
 				{
 					// the setting with the specified name was not requested before
 					// => create a new setting 
+					isNewSetting = true;
 					setting = new VolatileProcessingPipelineStageSetting<T>(this, name, valueToStringConverter, stringToValueConverter);
 					mSettings.Add(name, setting);
 				}
-
-				// setting with the same name exists
 
 				// ensure that the setting value types are the same
 				if (setting.ValueType != typeof(T))
@@ -114,6 +108,10 @@ namespace GriffinPlus.Lib.Logging
 					string message = $"The setting exists already, but the specified default value ({defaultValueAsString}) does not match the default value of the existing setting ({settingDefaultValueAsString}).";
 					throw new ArgumentException(message);
 				}
+
+				// the setting with the specified name has been registered successfully
+				// => notify, if a new setting was added (changes are handled differently)
+				if (isNewSetting) LogConfiguration.OnChanged();
 
 				return (IProcessingPipelineStageSetting<T>)setting;
 			}

@@ -79,10 +79,12 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync)
 			{
 				FileBackedProcessingPipelineStageRawSetting rawSetting;
+				bool isNewSetting = false;
 				if (!mSettings.TryGetValue(name, out var setting))
 				{
 					// the setting was not requested before
 					// => create a setting
+					isNewSetting = true;
 					rawSetting = new FileBackedProcessingPipelineStageRawSetting(this, name, valueToStringConverter(defaultValue, CultureInfo.InvariantCulture));
 					setting = new FileBackedProcessingPipelineStageSetting<T>(rawSetting, valueToStringConverter, stringToValueConverter);
 					mSettings.Add(name, setting);
@@ -110,6 +112,10 @@ namespace GriffinPlus.Lib.Logging
 					string message = $"The setting exists already, but the specified default value ({defaultValueAsString}) does not match the default value of the existing setting ({settingDefaultValueAsString}).";
 					throw new ArgumentException(message);
 				}
+
+				// the setting with the specified name has been registered successfully
+				// => notify, if a new setting was added (changes are handled differently)
+				if (isNewSetting) LogConfiguration.OnChanged();
 
 				return (IProcessingPipelineStageSetting<T>)setting;
 			}

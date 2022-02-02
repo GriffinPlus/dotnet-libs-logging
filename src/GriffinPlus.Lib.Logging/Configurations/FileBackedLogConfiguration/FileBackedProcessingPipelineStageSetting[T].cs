@@ -93,6 +93,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private void OnSettingChanged()
 		{
+			// notify that the configuration the setting belongs to has changed
+			mRawSetting.StageConfiguration.LogConfiguration.OnChanged();
+
+			// raise the SettingChanged event
 			if (EventManager<SettingChangedEventArgs>.IsHandlerRegistered(this, nameof(SettingChanged)))
 			{
 				EventManager<SettingChangedEventArgs>.FireEvent(

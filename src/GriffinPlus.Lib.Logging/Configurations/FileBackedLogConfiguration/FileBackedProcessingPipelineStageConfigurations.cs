@@ -98,6 +98,7 @@ namespace GriffinPlus.Lib.Logging
 				if (stage != null) throw new ArgumentException($"The collection already contains a configuration for the pipeline stage with the specified name ({name}).", nameof(name));
 				stage = new FileBackedProcessingPipelineStageConfiguration(mLogConfiguration, name);
 				mStageConfigurations.Add(stage);
+				mLogConfiguration.OnChanged();
 				return stage;
 			}
 		}

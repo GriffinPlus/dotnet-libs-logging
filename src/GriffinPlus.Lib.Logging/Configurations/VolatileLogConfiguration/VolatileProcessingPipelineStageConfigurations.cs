@@ -96,8 +96,9 @@ namespace GriffinPlus.Lib.Logging
 			{
 				var stage = mStageConfigurations.FirstOrDefault(x => x.Name == name);
 				if (stage != null) throw new ArgumentException($"The collection already contains a configuration for the pipeline stage with the specified name ({name}).", nameof(name));
-				stage = new VolatileProcessingPipelineStageConfiguration(name, mLogConfiguration.Sync);
+				stage = new VolatileProcessingPipelineStageConfiguration(name, mLogConfiguration);
 				mStageConfigurations.Add(stage);
+				mLogConfiguration.OnChanged();
 				return stage;
 			}
 		}

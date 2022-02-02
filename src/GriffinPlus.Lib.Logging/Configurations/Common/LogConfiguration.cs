@@ -5,7 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+
+using GriffinPlus.Lib.Disposables;
+using GriffinPlus.Lib.Events;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -22,6 +27,116 @@ namespace GriffinPlus.Lib.Logging
 	public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 		where TConfiguration : LogConfiguration<TConfiguration>
 	{
+		#region Changed Event
+
+		private readonly object mChangedEventSync          = new object();
+		private          int    mSuspendChangeEventCounter = 0;
+		private          bool   mChangedEventPending       = false;
+
+		/// <summary>
+		/// Occurs when the log configuration changes.
+		/// The event handler is invoked in the synchronization context of the registering thread, if the thread
+		/// has a synchronization context. Otherwise the event handler is invoked by a worker thread. The execution
+		/// of the event handler is always scheduled to avoid deadlocks that might be caused by lock inversion.
+		/// </summary>
+		public event EventHandler<EventArgs> Changed
+		{
+			add => RegisterChangedEventHandler(value, true);
+			remove => UnregisterChangedEventHandler(value);
+		}
+
+		/// <summary>
+		/// Registers the specified handler for the <see cref="Changed"/> event.
+		/// Depending on <paramref name="invokeInCurrentSynchronizationContext"/> the event handler is invoked in the
+		/// synchronization context of the current thread (if any) or in a worker thread. The execution of the event
+		/// handler is always scheduled to avoid deadlocks that might be caused by lock inversion.
+		/// </summary>
+		/// <param name="handler">Event handler to register.</param>
+		/// <param name="invokeInCurrentSynchronizationContext">
+		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
+		/// <c>false</c> to invoke the event handler in a worker thread.
+		/// </param>
+		public void RegisterChangedEventHandler(
+			EventHandler<EventArgs> handler,
+			bool                    invokeInCurrentSynchronizationContext)
+		{
+			EventManager<EventArgs>.RegisterEventHandler(
+				this,
+				nameof(Changed),
+				handler,
+				invokeInCurrentSynchronizationContext ? SynchronizationContext.Current : null,
+				true);
+		}
+
+		/// <summary>
+		/// Unregisters the specified handler from the <see cref="Changed"/> event.
+		/// </summary>
+		/// <param name="handler">Event handler to unregister.</param>
+		public void UnregisterChangedEventHandler(EventHandler<EventArgs> handler)
+		{
+			EventManager<EventArgs>.UnregisterEventHandler(
+				this,
+				nameof(Changed),
+				handler);
+		}
+
+		/// <summary>
+		/// Suspends raising the <see cref="Changed"/> event.
+		/// </summary>
+		/// <returns>
+		/// An <see cref="IDisposable"/> that needs to be disposed to resume raiding the event.
+		/// </returns>
+		public IDisposable SuspendChangedEvent()
+		{
+			lock (mChangedEventSync) mSuspendChangeEventCounter++;
+			return new AnonymousDisposable(
+				() =>
+				{
+					lock (mChangedEventSync)
+					{
+						Debug.Assert(mSuspendChangeEventCounter > 0);
+						if (--mSuspendChangeEventCounter == 0 && mChangedEventPending)
+							OnChanged();
+					}
+				});
+		}
+
+		/// <summary>
+		/// Schedules raising the <see cref="Changed"/> event.
+		/// Multiple calls to this method are bundled up to keep the amount of event invocations as low as possible
+		/// and reduce the load caused by handling the changes.
+		/// </summary>
+		protected internal void OnChanged()
+		{
+			lock (mChangedEventSync)
+			{
+				if (mSuspendChangeEventCounter == 0)
+				{
+					// reset pending indicator to avoid raising the event twice
+					mChangedEventPending = false;
+
+					// abort, if no handler is registered or raising the event has already been scheduled
+					if (!EventManager<EventArgs>.IsHandlerRegistered(this, nameof(Changed)))
+						return;
+
+					// fire the event
+					EventManager<EventArgs>.FireEvent(
+						this,
+						nameof(Changed),
+						this,
+						EventArgs.Empty);
+				}
+				else
+				{
+					// raising the event has been suspended
+					// => remember that it should be raised when raising the event is resumed
+					mChangedEventPending = true;
+				}
+			}
+		}
+
+		#endregion
+
 		/// <summary>
 		/// Disposes the object cleaning up unmanaged resources.
 		/// </summary>
@@ -178,6 +293,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var settings = new List<LogWriterConfiguration>(GetLogWriterSettings().Where(x => !x.IsDefault)) { writer };
 			SetLogWriterSettings(settings);
+			OnChanged();
 		}
 	}
 
