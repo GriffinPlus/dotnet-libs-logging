@@ -1,17 +1,92 @@
 # Changelog
 ---
 
-## Release v4.0.6
+## Release v5.0.0
+
+**This release contains breaking changes!**
+
+### New Features
 
 ### Bugfixes
+
+#### Fix broken link between log configurations and log writers and pipeline stages
+
+All configurations now provide a `Changed` event that is raised when something in the configuration changes. Event handlers are fired using the synchronization context of the thread registering the event, so it is suitable for use in conjunction with GUIs. Raising the `Changed` event can be suspended temporarily.
+
+The `FileBackedLogConfiguration` effectively supports reloading its *.gplogconf file on changes now.
+
+#### Fix synchronization issue when shutting down pipeline stages deriving from the `AsyncProcessingPipelineStage` class
+
+The boolean member variable indicating that the stage is shutting down was not volatile, so it was not evaluated properly in the processing loop of the stage. This behavior deferred the shutdown of the stage.
+
+#### Fix generating log writer name from type
+
+The name generation now supports generic types and generic type definitions. Information about the assembly (name, version, hash) containing the type is properly pruned to create a clean name.
+
+#### Fix `ProcessIntegration` creating zombie processes
+
+The `ProcessIntegration` class implements `IDisposable` now. Disposing a `ProcessIntegration` object waits for the process to exit and cleans up the associated `Process` object. This should avoid generating zombie processes on Linux.
+
+#### Fix retrying to send messages via the `ElasticsearchPipelineStage` after connection issues
+
+#### Fix consolidating cache after pruning a `FileBackedLogMessageCollection`
+
+#### Fix cache alignment issue after pruning in `FileBackedLogMessageCollection`
+
+#### Fix raising overview collection changed events in `FileBackedLogMessageCollection`
+
+#### Fix search text handling in `SelectableFileBackedLogMessageFilter` (SQL injection issue)
+
+#### Fix 'append' mode in `FileWriterPipelineStage`
+
+The file position was not moved to end of the file when opening in 'append' mode, so new messages have overwritten messages in an existing file.
+
+#### Fix loosing messages in `FileWriterPipelineStage`
+
+The stage re-opened the log file when a setting has changed. Re-opening truncated the log file, so messages were lost.
 
 #### Fix patching assembly info
 
 Azure pipelines did not patch the correct assembly information files, so all assemblies had version `0.0.0.0`.
 
-#### Fix `ProcessIntegration` creating zombie processes
+### Other Changes
 
-The `ProcessIntegration` class implements IDisposable now. Disposing an `ProcessIntegration` object waits for the process to exit and cleans up the associated `Process` object. This should avoid generating zombie processes on linux.
+#### Remove support for .NET Core 2.1
+
+Although direct support for .NET Core 2.1 has been removed, the .NET Standard 2.0 Version is still usable on .NET Core 2.1.
+
+#### Revise base classes for pipeline stages
+
+The `IProcessingPipelineStage` interface has been removed in favor of a common base class (`ProcessingPipelineStage`). This was necessary to better integrate pipeline stages into the logging subsystem. There is a derivation for synchronous pipeline stages (`SyncProcessingPipelineStage`) and asynchronous pipeline stages (`AsyncProcessingPipelineStage`) now.
+
+#### Redesign initialization of logging subsystem due to configuration issues
+
+The configuration and the processing pipeline was set up independently from each other, so pipeline stages created a temporary set of default settings to get into an operable state. As soon as pipeline stages were dropped into the logging subsystem, the configuration of the logging subsystem became active replacing the temporary stage settings. This lead to discarding settings that were changed by a stage's property.
+
+The `Log` class now provides an `Initialize<TConfiguration>(...)` method that creates a configuration and the pipeline stages in a single step. Stages are directly bound to this configuration. Furthermore stages now need to provide a parameterless constructor to work with the logging subsystem. The name of a pipeline stage and its settings are passed to the parameterless constructor on a side channel using the `ProcessingPipelineStage.Create<TStage>()` method. A pipeline builder mechanism assists with setting up pipeline stages during initialization and hides this magic from the user.
+
+#### Revise pruning messages in `LogFile` / `FileBackedLogMessageCollection`
+
+When pruning old log messages the `FileBackedLogMessageCollection` class raised the `CollectionChanged` event, but notified about a collection reset instead of a limited number of items being removed from the collection. This behavior was rather unexpected and different from the behavior of the `LogMessageCollection` class working purely in memory. The `FileBackedLogMessageCollection` behaves as the LogMessageCollection now, but the change induced reading log messages from the log file before actually removing the messages. If the user of the `FileBackedLogMessageCollection` class knows that event recipients do not need the removed messages, he can set the `ReturnDummyMessagesWhenPruning` property to `true` to pass a special collection with dummy messages to event recipients. The number of dummy messages is the same as the number of messages that has actually been removed. This way reading unneeded log messages can be avoided to improve performance.
+
+#### Make predefined log levels customizable when deriving from the `SelectableLogMessageFilter` class
+
+Derived filter classes can now influence which log levels are considered predefined log levels. This is especially important when interoperating with logging systems that use other predefined log levels than *Griffin+ Logging*.
+
+#### Add option to customize resetting `SelectableLogMessageFilter` class
+
+The `DisableFilterOnReset` property determines whether the filter is disabled when it is reset (default is false). The `UnselectItemsOnReset` property determines whether filter items are unselected when the filter is reset (default is false).
+
+#### Let `ElasticsearchPipelineStage` add field 'ecs.version' to written events
+
+The ECS requires writing the version field to determine the ECS version the writer complies to.
+
+#### Add overrides for handling stage setting changes collectively
+
+The base classes for processing pipeline stages now provide the following overridable methods that are invoked when a registered pipeline stage setting changes:
+
+- `AsyncProcessingPipelineStage.OnSettingsChangedAsync()`
+- `SyncProcessingPipelineStage.OnSettingsChanged()`
 
 ---
 
@@ -87,6 +162,8 @@ The pipeline stage used thread pool threads to do any processing. This is usuall
 - Fix `ElasticsearchPipelineStage` shutting down too early
 
 ---
+
+## Release v4.0.0
 
 **This release contains some breaking changes!**
 
