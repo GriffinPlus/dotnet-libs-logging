@@ -374,6 +374,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 					// the bulk request failed entirely which is a severe condition
 					// => the endpoint is not operational...
+					// => rebuild the content stream for the next attempt (the HttpClient has disposed the stream)
+					RebuildContentStream();
 					return false;
 				}
 				catch (HttpRequestException ex)
@@ -382,6 +384,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					// a timeout occurred (only .NET Framework)
 					// => log and keep messages
 					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) failed.", ex);
+					RebuildContentStream();
 					return false;
 				}
 				catch (OperationCanceledException ex)
@@ -390,12 +393,14 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					// a timeout occurred (only .NET Core, .NET 5.0 or higher)
 					if (ex.CancellationToken == mCancellationToken) throw;
 					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) failed.", ex);
+					RebuildContentStream();
 					return false;
 				}
 				catch (Exception ex)
 				{
 					// an unexpected exception occurred
 					mStage.WritePipelineError($"Sending HTTP request to Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) failed.", ex);
+					RebuildContentStream();
 					return false;
 				}
 				finally
