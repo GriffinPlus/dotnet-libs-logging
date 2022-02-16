@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release v5.0.1
+
+### Bugfixes
+
+#### Fix determining the application name
+
+The application name was set to the name of the current application domain. It should be the name of the process by default.
+
+---
+
 ## Release v5.0.0
 
 **This release contains breaking changes!**
