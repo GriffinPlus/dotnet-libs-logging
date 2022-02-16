@@ -40,21 +40,8 @@ namespace GriffinPlus.Lib.Logging
 		static FileBackedLogConfiguration()
 		{
 			// initialize the path of the configuration file
-			var assembly = Assembly.GetEntryAssembly();
-			if (assembly != null)
-			{
-				// regular case
-				// => use name of the entry assembly (application)
-				string fileName = System.IO.Path.GetFileNameWithoutExtension(assembly.Location) + ".gplogconf";
-				sDefaultConfigFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-			}
-			else
-			{
-				// no entry assembly (most probably a unit test runner)
-				// => use friendly name of the application domain
-				string fileName = AppDomain.CurrentDomain.FriendlyName + ".gplogconf";
-				sDefaultConfigFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
-			}
+			string fileName = Process.GetCurrentProcess().ProcessName + ".gplogconf";
+			sDefaultConfigFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
 		}
 
 		/// <summary>

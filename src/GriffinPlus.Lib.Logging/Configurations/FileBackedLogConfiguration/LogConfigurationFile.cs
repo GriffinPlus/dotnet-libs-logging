@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -142,7 +143,7 @@ namespace GriffinPlus.Lib.Logging
 		public LogConfigurationFile()
 		{
 			mGlobalSettings = new Dictionary<string, string>();
-			ApplicationName = AppDomain.CurrentDomain.FriendlyName;
+			ApplicationName = Process.GetCurrentProcess().ProcessName;
 			var writer = LogWriterConfiguration.Default;
 			writer.IsDefault = true; // ensures that the log writer configuration is removed, if some other is added
 			LogWriterSettings.Add(writer);

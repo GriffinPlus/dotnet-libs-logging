@@ -4,6 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Diagnostics;
 using System.IO;
 
 using Xunit;
@@ -24,7 +25,7 @@ namespace GriffinPlus.Lib.Logging
 			using (var configuration = new FileBackedLogConfiguration())
 			{
 				configuration.Path = fileName;
-				Assert.Equal(AppDomain.CurrentDomain.FriendlyName, configuration.ApplicationName);
+				Assert.Equal(Process.GetCurrentProcess().ProcessName, configuration.ApplicationName);
 				configuration.Save();
 				Assert.True(File.Exists(configuration.FullPath));
 			}

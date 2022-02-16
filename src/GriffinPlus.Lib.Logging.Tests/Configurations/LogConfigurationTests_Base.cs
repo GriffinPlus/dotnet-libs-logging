@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using Xunit;
@@ -45,7 +46,7 @@ namespace GriffinPlus.Lib.Logging
 			using (var configuration = new TConfiguration())
 			{
 				// global settings
-				Assert.Equal(AppDomain.CurrentDomain.FriendlyName, configuration.ApplicationName);
+				Assert.Equal(Process.GetCurrentProcess().ProcessName, configuration.ApplicationName);
 
 				// pipeline stage settings
 				var stageSettings = configuration.ProcessingPipeline.Stages;

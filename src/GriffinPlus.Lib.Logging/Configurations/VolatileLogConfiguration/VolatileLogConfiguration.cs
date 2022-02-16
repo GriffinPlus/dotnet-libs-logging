@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
@@ -29,7 +30,7 @@ namespace GriffinPlus.Lib.Logging
 			var writer = LogWriterConfiguration.Default;
 			writer.IsDefault = true;
 			mLogWriterSettings.Add(writer);
-			mApplicationName = AppDomain.CurrentDomain.FriendlyName;
+			mApplicationName = Process.GetCurrentProcess().ProcessName;
 		}
 
 		/// <summary>

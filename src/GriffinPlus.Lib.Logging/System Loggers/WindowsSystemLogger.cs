@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 			if (Environment.OSVersion.Platform != PlatformID.Win32NT)
 				throw new PlatformNotSupportedException("The event log is available on windows systems only.");
 
-			string desiredSource = AppDomain.CurrentDomain.FriendlyName;
+			string desiredSource = Process.GetCurrentProcess().ProcessName; // name of the executable without the extension
 			string source = desiredSource;
 			bool usingFallback = false;
 
