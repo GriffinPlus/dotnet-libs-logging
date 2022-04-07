@@ -8,6 +8,7 @@
 .\GriffinPlus.Lib.Logging.Collections.TestCommon.xml
 .\GriffinPlus.Lib.Logging.Collections.xml
 .\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.Interface.dll
 .\GriffinPlus.Lib.Logging.LogFile.dll
 .\GriffinPlus.Lib.Logging.LogFile.pdb
 .\GriffinPlus.Lib.Logging.LogFile.Tests.dll

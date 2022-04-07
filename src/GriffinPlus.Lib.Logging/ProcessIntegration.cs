@@ -137,7 +137,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				string filename = process.StartInfo.FileName;
 				string name = Path.GetFileName(filename);
-				LogWriter = Log.GetWriter($"External Process ({name})");
+				LogWriter = LogWriter.Get($"External Process ({name})");
 			}
 		}
 

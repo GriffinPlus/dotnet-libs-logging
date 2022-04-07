@@ -47,15 +47,15 @@ namespace GriffinPlus.Lib.Logging.Demo
 	class Program
 	{
 		// Register log writers using types.
-		private static readonly LogWriter sLog1 = Log.GetWriter<MyClass1>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass1
-		private static readonly LogWriter sLog2 = Log.GetWriter<MyClass2>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass2
-		private static readonly LogWriter sLog3 = Log.GetWriter<MyClass3>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass3
-		private static readonly LogWriter sLog4 = Log.GetWriter(typeof(MyClass4)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass4
-		private static readonly LogWriter sLog5 = Log.GetWriter(typeof(MyClassA)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassA
-		private static readonly LogWriter sLog6 = Log.GetWriter(typeof(MyClassB)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassB
+		private static readonly LogWriter sLog1 = LogWriter.Get<MyClass1>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass1
+		private static readonly LogWriter sLog2 = LogWriter.Get<MyClass2>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass2
+		private static readonly LogWriter sLog3 = LogWriter.Get<MyClass3>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass3
+		private static readonly LogWriter sLog4 = LogWriter.Get(typeof(MyClass4)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass4
+		private static readonly LogWriter sLog5 = LogWriter.Get(typeof(MyClassA)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassA
+		private static readonly LogWriter sLog6 = LogWriter.Get(typeof(MyClassB)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassB
 
 		// Register a log writer using a custom name.
-		private static readonly LogWriter sLog7 = Log.GetWriter("My Fancy Writer");
+		private static readonly LogWriter sLog7 = LogWriter.Get("My Fancy Writer");
 
 		// Create tagging log writers
 		private static readonly LogWriter sLog_TagA  = sLog7.WithTag("TagA");          // same as sLog7, but tags messages with 'TagA'

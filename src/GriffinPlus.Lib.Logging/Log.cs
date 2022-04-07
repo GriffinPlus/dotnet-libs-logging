@@ -6,9 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -22,21 +20,15 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Object that is used to synchronize access to shared resources in the logging subsystem.
 		/// </summary>
-		internal static readonly object Sync = new object();
+		internal static readonly object Sync = LogGlobals.Sync;
 
-		private static readonly int                              sProcessId                            = Process.GetCurrentProcess().Id;
-		private static readonly string                           sProcessName                          = Process.GetCurrentProcess().ProcessName;
-		private static readonly LocalLogMessagePool              sLogMessagePool                       = new LocalLogMessagePool();
-		private static          List<LogWriter>                  sLogWritersById                       = new List<LogWriter>();
-		private static          Dictionary<string, LogWriter>    sLogWritersByName                     = new Dictionary<string, LogWriter>();
-		private static          List<LogWriterTag>               sLogWriterTagsById                    = new List<LogWriterTag>();
-		private static          Dictionary<string, LogWriterTag> sLogWriterTagsByName                  = new Dictionary<string, LogWriterTag>();
-		private static          ILogConfiguration                sLogConfiguration                     = null;
-		private static volatile ProcessingPipelineStage          sProcessingPipeline                   = null;
-		private static volatile bool                             sTerminateProcessOnUnhandledException = true;
-		private static readonly AsyncLocal<uint>                 sAsyncId                              = new AsyncLocal<uint>();
-		private static          int                              sAsyncIdCounter                       = 0;
-		private static readonly LogWriter                        sLog                                  = GetWriter("Logging");
+		private static readonly int                     sProcessId                            = Process.GetCurrentProcess().Id;
+		private static readonly string                  sProcessName                          = Process.GetCurrentProcess().ProcessName;
+		private static readonly LocalLogMessagePool     sLogMessagePool                       = new LocalLogMessagePool();
+		private static          ILogConfiguration       sLogConfiguration                     = null;
+		private static volatile ProcessingPipelineStage sProcessingPipeline                   = null;
+		private static volatile bool                    sTerminateProcessOnUnhandledException = true;
+		private static readonly LogWriter               sLog                                  = LogWriter.Get("Logging");
 
 		/// <summary>
 		/// Initializes the <see cref="Log"/> class.
@@ -45,6 +37,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// initialize default settings and pipeline stage
 			Initialize();
+
+			// attach to events of the logging interface
+			LogLevel.NewLogLevelRegistered += ProcessLogLevelAdded;
+			LogWriter.NewLogWriterRegistered += ProcessLogWriterAdded;
+			LogWriter.NewLogWriterTagRegistered += ProcessLogWriterTagAdded;
+			LogWriter.LogMessageWritten += ProcessLogMessageWritten;
 
 			// register handler for unhandled exceptions and process exit
 			AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -78,40 +76,27 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets all log writers that have been registered using <see cref="GetWriter{T}"/> or <see cref="GetWriter(string)"/>.
+		/// Gets all log writers that have been registered using <see cref="GetWriter{T}"/>, <see cref="GetWriter(Type)"/>, <see cref="GetWriter(string)"/>
+		/// or one of their interface equivalents <see cref="LogWriter.Get{T}"/>, <see cref="LogWriter.Get(Type)"/> or <see cref="LogWriter.Get(string)"/>.
 		/// The index of the log writer in the list corresponds to <see cref="LogWriter.Id"/>.
 		/// </summary>
-		public static IReadOnlyList<LogWriter> KnownWriters => sLogWritersById;
+		[Obsolete("Deprecated, please use LogWriter.KnownWriters instead. Will be removed with the next major release.")]
+		public static IReadOnlyList<LogWriter> KnownWriters => LogWriter.KnownWriters;
 
 		/// <summary>
 		/// Gets all log writer tags that have been registered using <see cref="LogWriter.WithTag"/> or <see cref="LogWriter.WithTags"/>.
 		/// The index of the log writer tag in the list corresponds to <see cref="LogWriterTag.Id"/>.
 		/// </summary>
-		public static IReadOnlyList<LogWriterTag> KnownTags => sLogWriterTagsById;
+		[Obsolete("Deprecated, please use LogWriter.KnownTags instead. Will be removed with the next major release.")]
+		public static IReadOnlyList<LogWriterTag> KnownTags => LogWriter.KnownTags;
 
 		/// <summary>
 		/// Gets an id that is valid for the entire asynchronous control flow.
 		/// It should be queried the first time where the asynchronous path starts.
+		/// It starts with 1. When wrapping around it skips 0, so 0 can be safely used to indicate an invalid/unassigned id.
 		/// </summary>
-		public static uint AsyncId
-		{
-			get
-			{
-				unchecked
-				{
-					uint id = sAsyncId.Value;
-
-					if (id == 0)
-					{
-						id = (uint)Interlocked.Increment(ref sAsyncIdCounter);
-						if (id == 0) id = (uint)Interlocked.Increment(ref sAsyncIdCounter); // handles overflow
-						sAsyncId.Value = id;
-					}
-
-					return id;
-				}
-			}
-		}
+		[Obsolete("Deprecated, please use AsyncId.Current instead. Will be removed with the next major release.")]
+		public static uint AsyncId => GriffinPlus.Lib.Logging.AsyncId.Current;
 
 		/// <summary>
 		/// Gets the log configuration that determines the behavior of the log.
@@ -260,19 +245,15 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the current timestamp as used by the logging subsystem.
 		/// </summary>
 		/// <returns>The current timestamp.</returns>
-		public static DateTimeOffset GetTimestamp()
-		{
-			return DateTimeOffset.Now;
-		}
+		[Obsolete("Deprecated, please use LogWriter.GetTimestamp() instead. Will be removed with the next major release.")]
+		public static DateTimeOffset GetTimestamp() => LogWriter.GetTimestamp();
 
 		/// <summary>
 		/// Gets the current high precision timestamp as used by the logging subsystem (in ns).
 		/// </summary>
 		/// <returns>The current high precision timestamp.</returns>
-		public static long GetHighPrecisionTimestamp()
-		{
-			return (long)((decimal)Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency); // in ns
-		}
+		[Obsolete("Deprecated, please use LogWriter.GetHighPrecisionTimestamp() instead. Will be removed with the next major release.")]
+		public static long GetHighPrecisionTimestamp() => LogWriter.GetHighPrecisionTimestamp();
 
 		/// <summary>
 		/// Writes a message using an internal log writer bypassing configured source filters
@@ -286,126 +267,17 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Writes the specified log message using the specified log writer at the specified level.
-		/// </summary>
-		/// <param name="writer">Log writer to use.</param>
-		/// <param name="level">Log level to use.</param>
-		/// <param name="tags">Tags attached to the message.</param>
-		/// <param name="text">Text of the log message.</param>
-		internal static void WriteMessage(
-			LogWriter       writer,
-			LogLevel        level,
-			LogWriterTagSet tags,
-			string          text)
-		{
-			if (level.Id < 0 || level.Id == int.MaxValue)
-			{
-				level = LogLevel.Error;
-				text = "##### Message was written using log level 'None' or 'All'. Falling back to 'Error'. Don't do that!!!! #####" +
-				       Environment.NewLine +
-				       Environment.NewLine +
-				       text;
-			}
-
-			// remove preceding and trailing line breaks
-			text = text.Trim('\r', '\n');
-
-			var pipeline = ProcessingPipeline;
-			if (pipeline != null)
-			{
-				LocalLogMessage message = null;
-				try
-				{
-					message = sLogMessagePool.GetUninitializedMessage();
-
-					lock (Sync) // needed to avoid race conditions causing timestamps getting mixed up
-					{
-						long highPrecisionTimestamp = GetHighPrecisionTimestamp();
-
-						message.InitWith(
-							GetTimestamp(),
-							highPrecisionTimestamp,
-							writer,
-							level,
-							tags,
-							ApplicationName,
-							sProcessName,
-							sProcessId,
-							text);
-
-						pipeline.ProcessMessage(message);
-					}
-				}
-				catch (Exception ex)
-				{
-					// log to system log
-					var builder = new StringBuilder();
-					builder.AppendLine("Processing a log message failed unexpectedly.");
-					builder.AppendLine();
-					builder.AppendLine("Exception:");
-					builder.AppendLine(LogWriter.UnwrapException(ex));
-					SystemLogger.WriteError(builder.ToString());
-				}
-				finally
-				{
-					// let the message return to the pool
-					// (pipeline stages may have incremented the reference counter to delay this)
-					message?.Release();
-				}
-			}
-		}
-
-		/// <summary>
 		/// Gets a log writer with the specified name that can be used to write to the log.
 		/// </summary>
 		/// <param name="name">Name of the log writer to get.</param>
 		/// <returns>The requested log writer.</returns>
 		/// <exception cref="ArgumentNullException">The specified name is <c>null</c>.</exception>
 		/// <exception cref="ArgumentException">The specified name is invalid.</exception>
+		[Obsolete("Deprecated, please use LogWriter.Get(string) instead. Will be removed with the next major release.")]
 		public static LogWriter GetWriter(string name)
 		{
-			LogWriter.CheckName(name);
-
-			sLogWritersByName.TryGetValue(name, out var writer);
-			if (writer == null)
-			{
-				lock (Sync)
-				{
-					if (!sLogWritersByName.TryGetValue(name, out writer))
-					{
-						writer = new LogWriter(name);
-
-						// the id of the writer should correspond to the index in the list and the
-						// number of elements in the dictionary.
-						Debug.Assert(writer.Id == sLogWritersById.Count);
-						Debug.Assert(writer.Id == sLogWritersByName.Count);
-
-						// set active log level mask, if the configuration is already initialized
-						if (sLogConfiguration != null)
-						{
-							writer.ActiveLogLevelMask = sLogConfiguration.GetActiveLogLevelMask(writer);
-						}
-
-						// replace log writer list
-						var newLogWritersById = new List<LogWriter>(sLogWritersById) { writer };
-						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
-						sLogWritersById = newLogWritersById;
-
-						// replace log writer collection dictionary
-						var newLogWritersByName = new Dictionary<string, LogWriter>(sLogWritersByName) { { writer.Name, writer } };
-						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
-						sLogWritersByName = newLogWritersByName;
-
-						// notify about the new log writer
-						ProcessLogWriterAdded(writer);
-					}
-				}
-			}
-
-			return writer;
+			return LogWriter.Get(name);
 		}
-
-		private static readonly Regex sExtractGenericArgumentTypeRegex = new Regex("^([^`]+)`\\d+$", RegexOptions.Compiled);
 
 		/// <summary>
 		/// Gets a log writer for the specified type that can be used to write to the log
@@ -413,44 +285,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="type">The type whose full name is to use as the log writer name.</param>
 		/// <returns>The requested log writer.</returns>
+		[Obsolete("Deprecated, please use LogWriter.Get(Type) instead. Will be removed with the next major release.")]
 		public static LogWriter GetWriter(Type type)
 		{
-			void AppendName(StringBuilder sb, DecomposedType dt)
-			{
-				var typeInfo = dt.Type.GetTypeInfo();
-				if (typeInfo.IsGenericTypeDefinition)
-				{
-					Debug.Assert(typeInfo.FullName != null, "typeInfo.FullName != null");
-					var match = sExtractGenericArgumentTypeRegex.Match(typeInfo.FullName);
-					sb.Append(match.Groups[1].Value);
-					sb.Append('<');
-					if (dt.GenericTypeArguments.Count > 0)
-					{
-						// a generic type
-						for (int i = 0; i < dt.GenericTypeArguments.Count; i++)
-						{
-							if (i > 0) sb.Append(',');
-							AppendName(sb, dt.GenericTypeArguments[i]);
-						}
-					}
-					else
-					{
-						// a generic type definition
-						sb.Append(new string(',', typeInfo.GenericTypeParameters.Length - 1));
-					}
-
-					sb.Append('>');
-				}
-				else
-				{
-					sb.Append(typeInfo.FullName);
-				}
-			}
-
-			var types = type.Decompose();
-			var builder = new StringBuilder();
-			AppendName(builder, types);
-			return GetWriter(builder.ToString());
+			return LogWriter.Get(type);
 		}
 
 		/// <summary>
@@ -459,49 +297,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <typeparam name="T">The type whose full name is to use as the log writer name.</typeparam>
 		/// <returns>The requested log writer.</returns>
+		[Obsolete("Deprecated, please use LogWriter.Get<T>() instead. Will be removed with the next major release.")]
 		public static LogWriter GetWriter<T>()
 		{
-			return GetWriter(typeof(T));
-		}
-
-		/// <summary>
-		/// Gets a log writer tag with the specified name (for internal use only).
-		/// </summary>
-		/// <param name="name">Name of the log writer to get.</param>
-		/// <returns>The requested log writer.</returns>
-		internal static LogWriterTag GetWriterTag(string name)
-		{
-			sLogWriterTagsByName.TryGetValue(name, out var tag);
-			if (tag == null)
-			{
-				lock (Sync)
-				{
-					if (!sLogWriterTagsByName.TryGetValue(name, out tag))
-					{
-						tag = new LogWriterTag(name);
-
-						// the id of the writer tag should correspond to the index in the list and the
-						// number of elements in the dictionary.
-						Debug.Assert(tag.Id == sLogWriterTagsById.Count);
-						Debug.Assert(tag.Id == sLogWriterTagsByName.Count);
-
-						// replace log writer tag list
-						var newLogWriterTagsById = new List<LogWriterTag>(sLogWriterTagsById) { tag };
-						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
-						sLogWriterTagsById = newLogWriterTagsById;
-
-						// replace log writer tag collection dictionary
-						var newLogWriterTagsByName = new Dictionary<string, LogWriterTag>(sLogWriterTagsByName) { { tag.Name, tag } };
-						Thread.MemoryBarrier(); // ensures everything has been actually written to memory at this point
-						sLogWriterTagsByName = newLogWriterTagsByName;
-
-						// notify about the new log writer tag
-						ProcessLogWriterTagAdded(tag);
-					}
-				}
-			}
-
-			return tag;
+			return LogWriter.Get<T>();
 		}
 
 		/// <summary>
@@ -511,7 +310,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
-			foreach (var writer in sLogWritersById) writer.Update(sLogConfiguration);
+			LogWriter.UpdateLogWriters(sLogConfiguration);
 		}
 
 		/// <summary>
@@ -645,6 +444,74 @@ namespace GriffinPlus.Lib.Logging
 
 			// notify log message processing pipeline stages
 			ProcessingPipeline?.ProcessLogWriterTagAdded(tag);
+		}
+
+		/// <summary>
+		/// Writes the specified log message using the specified log writer at the specified level.
+		/// </summary>
+		/// <param name="writer">Log writer to use.</param>
+		/// <param name="level">Log level to use.</param>
+		/// <param name="text">Text of the log message.</param>
+		private static void ProcessLogMessageWritten(
+			LogWriter writer,
+			LogLevel  level,
+			string    text)
+		{
+			if (level.Id < 0 || level.Id == int.MaxValue)
+			{
+				level = LogLevel.Error;
+				text = "##### Message was written using log level 'None' or 'All'. Falling back to 'Error'. Don't do that!!!! #####" +
+				       Environment.NewLine +
+				       Environment.NewLine +
+				       text;
+			}
+
+			// remove preceding and trailing line breaks
+			text = text.Trim('\r', '\n');
+
+			var pipeline = ProcessingPipeline;
+			if (pipeline != null)
+			{
+				LocalLogMessage message = null;
+				try
+				{
+					message = sLogMessagePool.GetUninitializedMessage();
+
+					lock (Sync) // needed to avoid race conditions causing timestamps getting mixed up
+					{
+						long highPrecisionTimestamp = LogWriter.GetHighPrecisionTimestamp();
+
+						message.InitWith(
+							LogWriter.GetTimestamp(),
+							highPrecisionTimestamp,
+							writer,
+							level,
+							writer.Tags,
+							ApplicationName,
+							sProcessName,
+							sProcessId,
+							text);
+
+						pipeline.ProcessMessage(message);
+					}
+				}
+				catch (Exception ex)
+				{
+					// log to system log
+					var builder = new StringBuilder();
+					builder.AppendLine("Processing a log message failed unexpectedly.");
+					builder.AppendLine();
+					builder.AppendLine("Exception:");
+					builder.AppendLine(LogWriter.UnwrapException(ex));
+					SystemLogger.WriteError(builder.ToString());
+				}
+				finally
+				{
+					// let the message return to the pool
+					// (pipeline stages may have incremented the reference counter to delay this)
+					message?.Release();
+				}
+			}
 		}
 	}
 

@@ -24,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private static readonly string sDefaultConfigFilePath;
 
-		private static readonly LogWriter sLog = Log.GetWriter("Logging");
+		private static readonly LogWriter sLog = LogWriter.Get("Logging");
 
 		private readonly FileBackedProcessingPipelineConfiguration mProcessingPipelineConfiguration;
 		private          LogConfigurationFile                      mFile;

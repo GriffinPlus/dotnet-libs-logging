@@ -7,6 +7,7 @@
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml
+.\GriffinPlus.Lib.Logging.Interface.dll
 .\GriffinPlus.Lib.Logging.pdb
 .\GriffinPlus.Lib.Logging.xml
 .\Microsoft.Bcl.AsyncInterfaces.dll

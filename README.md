@@ -13,6 +13,10 @@
 | [GriffinPlus.Lib.Logging.LocalLogServicePipelineStage](README.md)                                                         | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LocalLogServicePipelineStage)
 | [GriffinPlus.Lib.Logging.LogFile](README.md)                                                                              | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.LogFile.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.LogFile.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.LogFile)
 
+| NuGet Package (External)                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|---------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [GriffinPlus.Lib.Logging.Interface](https://github.com/GriffinPlus/dotnet-libs-logging-interface)                 | [![NuGet Version](https://img.shields.io/nuget/v/GriffinPlus.Lib.Logging.Interface.svg?label=Version)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Interface) [![NuGet Downloads](https://img.shields.io/nuget/dt/GriffinPlus.Lib.Logging.Interface.svg?label=Downloads)](https://www.nuget.org/packages/GriffinPlus.Lib.Logging.Interface)
+
 ## Overview
 
 *Griffin+ Logging* is a simple, but modular extensible logging facility that focusses on applications built on the .NET framework. It addresses many issues that have arised during multiple years of developing .NET libraries and applications. *Griffin+ Logging* is part of the *Griffin+* library suite and used in other *Griffin+* projects to channelize and process log message streams.
@@ -46,7 +50,7 @@ The library is tested automatically on the following frameworks and operating sy
 
 The `Log` class is the crucial point of the logging subsystem. It provides access to the configuration of the logging subsystem that determines which messages get logged. If the code is heavily instrumented, the configuration is a good means of specifically reducing the number of messages that arise. Even if *Griffin+ Logging* is very lightweight, a large number of messages is always accompanied by a certain loss in performance. Log messages are filtered right at the beginning, even before the messages are formatted eliminating unnecessary overhead.
 
-Furthermore the `Log` class creates log writers. A log writer - represented by the `LogWriter` class - corresponds to a certain piece of code emitting log messages. Log writers are identified by their name. Usually this is the full name of a class, but it can be an arbitrary name as well. The `LogWriter` class offers a large set of overloads for writing simple and formatted messages. Generic overloads avoid boxing of value types when passing arguments to the `Write(...)` methods, thus reducing the load on the garbage collection.
+A log writer - represented by the `LogWriter` class - corresponds to a certain piece of code emitting log messages. Log writers are identified by their name. Usually this is the full name of a class, but it can be an arbitrary name as well. The `LogWriter` class offers a large set of overloads for writing simple and formatted messages. Generic overloads avoid boxing of value types when passing arguments to the `Write(...)` methods, thus reducing the load on the garbage collection.
 
 Each and every log message is associated with a log level represented by the `LogLevel` class. A log level indicates how severe the issue is the message is about. A log level has an integer id that expresses the severity: the lower the log level id the more severe the issue. The log level id is crucial when it comes to filtering by applying a log level threshold (see configuration section below). The log levels correspond to log levels known from *syslog*. Their log level id is the same as the corresponding severity level used by *syslog*, so it is easy to integrate *Griffin+ Logging* into an existing logging infrastructure. The `LogLevel` class contains a few commonly used predefined log levels and a recommendation when these log levels should be used:
 
@@ -263,14 +267,14 @@ A pipeline stage class must derive from the `ProcessingPipelineStage` class. For
 
 ### Requesting a Log Writer
 
-If you want to write a message to the log, you first have to request a `LogWriter` at the `Log` class. A log writer provides various ways of formatting log messages. It is perfectly fine to keep a single `LogWriter` instance in a static member variable as log writers are thread-safe, so you only need one instance for multiple threads. A log writer has a unique name usually identifying the piece of code that emits log messages. This is often the name of the class, although the name can be chosen freely. In this case you can simply pass the type of the corresponding class when requesting a log writer. The name will automatically be set to the full name of the specified type. A positive side effect of using a type is that the name of the log writer changes, if the name of the type changes or even the namespace the type is defined in. It is refactoring-safe.
+If you want to write a message to the log, you first have to request a `LogWriter`. A log writer provides various ways of formatting log messages. It is perfectly fine to keep a single `LogWriter` instance in a static member variable as log writers are thread-safe, so you only need one instance for multiple threads. A log writer has a unique name usually identifying the piece of code that emits log messages. This is often the name of the class, although the name can be chosen freely. In this case you can simply pass the type of the corresponding class when requesting a log writer. The name will automatically be set to the full name of the specified type. A positive side effect of using a type is that the name of the log writer changes, if the name of the type changes or even the namespace the type is defined in. It is refactoring-safe.
 
-You can obtain a `LogWriter` by calling one of the following `Log` methods:
+You can obtain a `LogWriter` by calling one of its static factory methods:
 
 ```csharp
-public static LogWriter GetWriter<T>();
-public static LogWriter GetWriter(Type type);
-public static LogWriter GetWriter(string name);
+public static LogWriter Get<T>();
+public static LogWriter Get(Type type);
+public static LogWriter Get(string name);
 ```
 
 Log writers can be configured to attach custom tags to written log messages. This enables writing applications that can configure logging on a per-subsystem basis without losing the original name of the log writer (which is almost always the name of the class the log writer belongs to). To let an existing log writer add tags to written messages a new log writer with tagging behavior can be derived from the log writer using one of the following `LogWriter` methods:
@@ -348,6 +352,20 @@ public void Write<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14>(IFormatProv
 public void Write(IFormatProvider provider, LogLevel level, string format, params object[] args);
 ```
 
+### Helpers
+
+#### AsyncId
+
+The `AsyncId` class comes in handy when tracking asynchronous control flows using .NET's Task Parallel Library (TPL). Its `Current` property provides an integer value that remains constant all along the entire control flow starting from the point of its first invocation.
+
+#### GetTimestamp()
+
+The `GetTimestamp()` method of the `LogWriter` class returns an absolute timestamp (with timezone offset) as used by Griffin+ logging.
+
+#### GetHighPrecisionTimestamp()
+
+The `GetHighPrecisionTimestamp()` method of the `LogWriter` class returns a timestamp with nanosecond precision. The actual resolution of the timestamp depends on the system's clock, but on most modern systems the resolution is finer than one nanosecond. This timestamp can be used to measure timespans very accurately.
+
 ### Complete Example
 
 The following example shows how *Griffin+ Logging* can be used. The source code is available in the demo project contained in the repository as well:
@@ -389,15 +407,15 @@ namespace GriffinPlus.Lib.Logging.Demo
     class Program
     {
         // Register log writers using types.
-        private static readonly LogWriter sLog1 = Log.GetWriter<MyClass1>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass1
-        private static readonly LogWriter sLog2 = Log.GetWriter<MyClass2>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass2
-        private static readonly LogWriter sLog3 = Log.GetWriter<MyClass3>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass3
-        private static readonly LogWriter sLog4 = Log.GetWriter(typeof(MyClass4)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass4
-        private static readonly LogWriter sLog5 = Log.GetWriter(typeof(MyClassA)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassA
-        private static readonly LogWriter sLog6 = Log.GetWriter(typeof(MyClassB)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassB
+        private static readonly LogWriter sLog1 = LogWriter.Get<MyClass1>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass1
+        private static readonly LogWriter sLog2 = LogWriter.Get<MyClass2>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass2
+        private static readonly LogWriter sLog3 = LogWriter.Get<MyClass3>();       // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass3
+        private static readonly LogWriter sLog4 = LogWriter.Get(typeof(MyClass4)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClass4
+        private static readonly LogWriter sLog5 = LogWriter.Get(typeof(MyClassA)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassA
+        private static readonly LogWriter sLog6 = LogWriter.Get(typeof(MyClassB)); // actual log writer name: GriffinPlus.Lib.Logging.Demo.MyClassB
 
         // Register a log writer using a custom name.
-        private static readonly LogWriter sLog7 = Log.GetWriter("My Fancy Writer");
+        private static readonly LogWriter sLog7 = LogWriter.Get("My Fancy Writer");
 
         // Create tagging log writers
         private static readonly LogWriter sLog_TagA  = sLog7.WithTag("TagA");          // same as sLog7, but tags messages with 'TagA'
@@ -409,7 +427,7 @@ namespace GriffinPlus.Lib.Logging.Demo
             // Initialize the logging subsystem
             bool initConfig = false;
             Log.Initialize<VolatileLogConfiguration>( // volatile configuration (programmatic configuration only, no persistence)
-            // Log.Initialize<FileBackedLogConfiguration>( // file-based configuration 
+                // Log.Initialize<FileBackedLogConfiguration>( // file-based configuration (default location, beside the executable with file extension '.gplogconf')
                 config =>
                 {
                     // VolatileLogConfiguration only:
@@ -605,7 +623,6 @@ namespace GriffinPlus.Lib.Logging.Demo
                             stage.OrganizationId = "";                                        // value of the 'organization.id' field
                             stage.OrganizationName = "";                                      // value of the 'organization.name' field
                             stage.SendQueueSize = 50000;                                      // maximum number of messages the stage buffers before discarding messages
-
                         });
                 });
 

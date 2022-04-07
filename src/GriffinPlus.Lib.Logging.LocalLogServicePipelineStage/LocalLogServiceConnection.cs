@@ -846,7 +846,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
-				var writers = Log.KnownWriters.ToArray();
+				var writers = LogWriter.KnownWriters.ToArray();
 				foreach (var writer in writers)
 				{
 					// try to get a free block from the queue
@@ -1351,8 +1351,8 @@ namespace GriffinPlus.Lib.Logging
 						// got a free block
 						// => put command into it
 						block->Type = LogEntryBlockType.ClearLogViewer;
-						block->ClearLogViewer.Timestamp = Log.GetTimestamp().ToUniversalTime().ToFileTime();
-						block->ClearLogViewer.HighPrecisionTimestamp = (Log.GetHighPrecisionTimestamp() + 500) / 1000; // ns => µs
+						block->ClearLogViewer.Timestamp = LogWriter.GetTimestamp().ToUniversalTime().ToFileTime();
+						block->ClearLogViewer.HighPrecisionTimestamp = (LogWriter.GetHighPrecisionTimestamp() + 500) / 1000; // ns => µs
 						block->ClearLogViewer.ProcessId = sCurrentProcessId;
 
 						// enqueue command
@@ -1436,8 +1436,8 @@ namespace GriffinPlus.Lib.Logging
 
 						// prepare command and send it
 						block->Type = LogEntryBlockType.SaveSnapshot;
-						block->SaveSnapshot.Timestamp = Log.GetTimestamp().ToUniversalTime().ToFileTime();
-						block->SaveSnapshot.HighPrecisionTimestamp = (Log.GetHighPrecisionTimestamp() + 500) / 1000; // ns => µs
+						block->SaveSnapshot.Timestamp = LogWriter.GetTimestamp().ToUniversalTime().ToFileTime();
+						block->SaveSnapshot.HighPrecisionTimestamp = (LogWriter.GetHighPrecisionTimestamp() + 500) / 1000; // ns => µs
 						block->SaveSnapshot.ProcessId = sCurrentProcessId;
 
 						// enqueue command

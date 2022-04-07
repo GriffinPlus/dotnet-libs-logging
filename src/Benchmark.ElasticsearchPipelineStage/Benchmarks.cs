@@ -24,7 +24,7 @@ namespace Benchmark.Elasticsearch
 	public class Benchmarks
 	{
 		private const           int                        MaxTestMessageCount = 1000000;
-		private static readonly LogWriter                  sTaggingLogWriter   = Log.GetWriter<Benchmarks>().WithTags("Tag-1", "Tag-2");
+		private static readonly LogWriter                  sTaggingLogWriter   = LogWriter.Get<Benchmarks>().WithTags("Tag-1", "Tag-2");
 		private static readonly List<LocalLogMessage>      sMessages           = new List<LocalLogMessage>();
 		private                 ElasticsearchPipelineStage mStage;
 
@@ -84,9 +84,7 @@ namespace Benchmark.Elasticsearch
 		/// Global teardown logic.
 		/// </summary>
 		[GlobalCleanup]
-		public void GlobalCleanup()
-		{
-		}
+		public void GlobalCleanup() { }
 
 		/// <summary>
 		/// Benchmarks processing messages in the pipeline stage.

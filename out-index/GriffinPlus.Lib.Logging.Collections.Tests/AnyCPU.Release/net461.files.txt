@@ -11,6 +11,7 @@
 .\GriffinPlus.Lib.Logging.Collections.Tests.pdb
 .\GriffinPlus.Lib.Logging.Collections.xml
 .\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.Interface.dll
 .\GriffinPlus.Lib.Logging.pdb
 .\GriffinPlus.Lib.Logging.xml
 .\Microsoft.VisualStudio.CodeCoverage.Shim.dll

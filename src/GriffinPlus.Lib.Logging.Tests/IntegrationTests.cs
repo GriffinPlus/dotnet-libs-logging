@@ -70,7 +70,7 @@ namespace GriffinPlus.Lib.Logging
 				});
 
 			// write a message using all predefined log levels
-			var writer = Log.GetWriter(sLogWriterName);
+			var writer = LogWriter.Get(sLogWriterName);
 			foreach (var level in LogLevel.PredefinedLogLevels)
 			{
 				writer.Write(level, TestMessage);
@@ -134,7 +134,7 @@ namespace GriffinPlus.Lib.Logging
 				});
 
 			// write a message using all log messages
-			var writer = Log.GetWriter(sLogWriterName);
+			var writer = LogWriter.Get(sLogWriterName);
 			foreach (var level in LogLevel.PredefinedLogLevels)
 			{
 				writer.Write(level, TestMessage);
@@ -197,7 +197,7 @@ namespace GriffinPlus.Lib.Logging
 				});
 
 			// write a message using all log messages
-			var writer = Log.GetWriter(sLogWriterName);
+			var writer = LogWriter.Get(sLogWriterName);
 			foreach (var level in LogLevel.PredefinedLogLevels)
 			{
 				writer.Write(level, TestMessage);

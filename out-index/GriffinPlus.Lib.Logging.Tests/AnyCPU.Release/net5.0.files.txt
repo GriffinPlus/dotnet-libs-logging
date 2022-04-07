@@ -9,6 +9,7 @@
 .\GriffinPlus.Lib.Common.dll
 .\GriffinPlus.Lib.Expressions.dll
 .\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.Interface.dll
 .\GriffinPlus.Lib.Logging.pdb
 .\GriffinPlus.Lib.Logging.Tests.deps.json
 .\GriffinPlus.Lib.Logging.Tests.dll
@@ -81,8 +82,6 @@
 .\pt-BR\Microsoft.TestPlatform.CrossPlatEngine.resources.dll
 .\pt-BR\Microsoft.VisualStudio.TestPlatform.Common.resources.dll
 .\pt-BR\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
-.\ref\ConsolePrinter.dll
-.\ref\GriffinPlus.Lib.Logging.Tests.dll
 .\ru\Microsoft.TestPlatform.CommunicationUtilities.resources.dll
 .\ru\Microsoft.TestPlatform.CoreUtilities.resources.dll
 .\ru\Microsoft.TestPlatform.CrossPlatEngine.resources.dll

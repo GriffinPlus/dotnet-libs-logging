@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release v5.1.0
+
+### New Features
+
+#### Logging Interface
+
+The logging interface (mainly the `LogWriter` class and `LogLevel` class) have been pulled out into a separate project available via NuGet package `GriffinPlus.Lib.Logging.Interface`. The interface is very stable. This allows libraries to use the interface package instead of the full-featured `GriffinPlus.Lib.Logging` package to write to the log without the need to update library packages with every release of the full-featured `GriffinPlus.Lib.Logging` package. The interface should stay stable even in case of major version releases of the logging package. Some functionality has moved, but for compatibility reasons forwards have been established. These forwards are marked as obsolete, so users can easily migrate their code to the new version without breaking anything. These forwards will be removed with the next major release.
+
+---
+
 ## Release v5.0.1
 
 ### Bugfixes

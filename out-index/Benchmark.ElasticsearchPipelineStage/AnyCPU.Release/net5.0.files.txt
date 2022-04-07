@@ -15,6 +15,7 @@
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml
+.\GriffinPlus.Lib.Logging.Interface.dll
 .\GriffinPlus.Lib.Logging.pdb
 .\GriffinPlus.Lib.Logging.xml
 .\Iced.dll
@@ -57,7 +58,6 @@
 .\pl\Microsoft.CodeAnalysis.resources.dll
 .\pt-BR\Microsoft.CodeAnalysis.CSharp.resources.dll
 .\pt-BR\Microsoft.CodeAnalysis.resources.dll
-.\ref\Benchmark.ElasticsearchPipelineStage.dll
 .\ru\Microsoft.CodeAnalysis.CSharp.resources.dll
 .\ru\Microsoft.CodeAnalysis.resources.dll
 .\runtimes\win\lib\netcoreapp2.0\System.Management.dll

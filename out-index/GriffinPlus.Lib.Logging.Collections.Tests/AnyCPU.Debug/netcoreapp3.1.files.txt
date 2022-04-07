@@ -12,6 +12,7 @@
 .\GriffinPlus.Lib.Logging.Collections.Tests.runtimeconfig.json
 .\GriffinPlus.Lib.Logging.Collections.xml
 .\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.Interface.dll
 .\GriffinPlus.Lib.Logging.pdb
 .\GriffinPlus.Lib.Logging.xml
 .\Microsoft.TestPlatform.CommunicationUtilities.dll

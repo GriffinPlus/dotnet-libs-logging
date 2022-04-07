@@ -12,7 +12,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Interface of a log configuration.
 	/// Must be implemented thread-safe.
 	/// </summary>
-	public interface ILogConfiguration : IDisposable
+	public interface ILogConfiguration : ILogWriterConfiguration, IDisposable
 	{
 		#region Changed Event
 
@@ -70,14 +70,6 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the configuration of the processing pipeline.
 		/// </summary>
 		IProcessingPipelineConfiguration ProcessingPipeline { get; }
-
-		/// <summary>
-		/// Gets a bit mask in which each bit is associated with a log level with the same id
-		/// and expresses whether the corresponding log level is active for the specified writer.
-		/// </summary>
-		/// <param name="writer">Log writer to get the active log level mask for.</param>
-		/// <returns>The requested active log level mask.</returns>
-		LogLevelBitMask GetActiveLogLevelMask(LogWriter writer);
 
 		/// <summary>
 		/// Saves the configuration.

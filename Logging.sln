@@ -35,6 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsolePrinter", "src\Conso
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build.vs", "build.vs", "{A60613DA-9A84-417D-B737-40CC37FC47E3}"
 	ProjectSection(SolutionItems) = preProject
+		build.vs\.gitignore = build.vs\.gitignore
 		build.vs\Build.psm1 = build.vs\Build.psm1
 		build.vs\Clean.psm1 = build.vs\Clean.psm1
 		build.vs\CombineOutputBinaries.psm1 = build.vs\CombineOutputBinaries.psm1

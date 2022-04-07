@@ -97,7 +97,7 @@ namespace GriffinPlus.Lib.Logging
 					.WithBaseLevel(level)
 					.Build();
 				configuration.SetLogWriterSettings(settings);
-				var writer = Log.GetWriter("UnitTest");
+				var writer = LogWriter.Get("UnitTest");
 				var mask = configuration.GetActiveLogLevelMask(writer);
 				uint[] bitArray = mask.AsArray();
 				Assert.Single(bitArray);
@@ -143,7 +143,7 @@ namespace GriffinPlus.Lib.Logging
 					.WithoutLevel(excludes)
 					.Build();
 				configuration.SetLogWriterSettings(settings);
-				var writer = Log.GetWriter("UnitTest");
+				var writer = LogWriter.Get("UnitTest");
 				var mask = configuration.GetActiveLogLevelMask(writer);
 				uint[] bitArray = mask.AsArray();
 				Assert.Single(bitArray);
