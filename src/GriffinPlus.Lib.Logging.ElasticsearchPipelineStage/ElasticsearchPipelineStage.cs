@@ -920,7 +920,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		{
 			// write the request action document
 			writer.WriteStartObject();
-			writer.WriteStartObject("index");
+			writer.WriteStartObject("create");
 			writer.WriteString("_index", mIndexName);
 			writer.WriteEndObject();
 			writer.WriteEndObject();

@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release v5.1.1
+
+### Bugfixes
+
+#### Fix sending messages to Elasticsearch data stream
+
+The `ElasticsearchPipelineStage` used operation action `index` when sending messages to Elasticsearch. This works for regular Elasticsearch indices, but fails for data streams that need operation action `create`.
+
+---
+
 ## Release v5.1.0
 
 ### New Features
