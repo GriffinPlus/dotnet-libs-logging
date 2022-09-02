@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// A container for a result in a bulk request.
 		/// </summary>
 		[DebuggerDisplay("failed = {" + nameof(Failed) + "}, successful = {" + nameof(Successful) + "}, total = {" + nameof(Total) + "}")]
-		public sealed class Item_Index_Shards
+		public sealed class Item_Create_Shards
 		{
 			private readonly BulkResponsePool   mPool;
 			private          Int32PropertyProxy mFailedProxy;
@@ -24,10 +24,10 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			private          Int32PropertyProxy mTotalProxy;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="BulkResponse.Item_Index_Shards"/> class.
+			/// Initializes a new instance of the <see cref="Item_Create_Shards"/> class.
 			/// </summary>
 			/// <param name="pool">The pool managing the response and its resources.</param>
-			internal Item_Index_Shards(BulkResponsePool pool)
+			internal Item_Create_Shards(BulkResponsePool pool)
 			{
 				mPool = pool;
 				Reset(); // init pool references in proxies

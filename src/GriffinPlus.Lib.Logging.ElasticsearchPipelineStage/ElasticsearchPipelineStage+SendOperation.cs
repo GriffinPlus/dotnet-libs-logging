@@ -321,7 +321,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							var bulkResponseItems = bulkResponse.Items;
 							for (int i = bulkResponseItems.Count - 1; i >= 0; i--)
 							{
-								int status = bulkResponseItems[i].Index.Status;
+								int status = bulkResponseItems[i].Create.Status;
 								if (status >= 200 && status <= 299) // usually 201 (created)
 								{
 									// message was indexed successfully
@@ -341,7 +341,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 									mStage.WritePipelineError(
 										$"Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) responded with {status}. Discarding message to index..." +
 										Environment.NewLine +
-										$"Error: {bulkResponseItems[i].Index.Error}",
+										$"Error: {bulkResponseItems[i].Create.Error}",
 										null);
 
 									mMessagesPreparedToSend[i].Release();

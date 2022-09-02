@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			"index_uuid = {" + nameof(IndexUuid) + "}, " +
 			"shard = {" + nameof(Shards) + "}, " +
 			"index = {" + nameof(Index) + "}")]
-		public sealed class Item_Index_Error
+		public sealed class Item_Create_Error
 		{
 			private readonly BulkResponsePool    mPool;
 			private          StringPropertyProxy mTypeProxy;
@@ -31,10 +31,10 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			private          StringPropertyProxy mIndexProxy;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="BulkResponse.Item_Index_Error"/> class.
+			/// Initializes a new instance of the <see cref="Item_Create_Error"/> class.
 			/// </summary>
 			/// <param name="pool">The pool managing the response and its resources.</param>
-			internal Item_Index_Error(BulkResponsePool pool)
+			internal Item_Create_Error(BulkResponsePool pool)
 			{
 				mPool = pool;
 				Reset(); // init pool references in proxies

@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 	{
 		#region BulkResponse
 
-		private readonly Stack<BulkResponse> mBulkResponses = new Stack<BulkResponse>();
+		private readonly Stack<BulkResponse> mBulkResponseInstances = new Stack<BulkResponse>();
 
 		/// <summary>
 		/// Gets a pooled instance of the <see cref="BulkResponse"/> class (creates a new instance, if the pool is empty).
@@ -29,8 +29,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested <see cref="BulkResponse"/> instance.</returns>
 		public BulkResponse GetBulkResponse()
 		{
-			if (mBulkResponses.Count > 0)
-				return mBulkResponses.Pop();
+			if (mBulkResponseInstances.Count > 0)
+				return mBulkResponseInstances.Pop();
 
 			return new BulkResponse(this);
 		}
@@ -43,14 +43,14 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		{
 			if (response == null) return;
 			response.Reset();
-			mBulkResponses.Push(response);
+			mBulkResponseInstances.Push(response);
 		}
 
 		#endregion
 
 		#region List<BulkResponse.Item>
 
-		private readonly Stack<List<BulkResponse.Item>> mBulkResponseItemLists = new Stack<List<BulkResponse.Item>>();
+		private readonly Stack<List<BulkResponse.Item>> mBulkResponseItemListInstances = new Stack<List<BulkResponse.Item>>();
 
 		/// <summary>
 		/// Gets a pooled list of <see cref="BulkResponse.Item"/> (creates a new instance, if the pool is empty).
@@ -58,8 +58,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested list.</returns>
 		public List<BulkResponse.Item> GetListOfBulkResponseItems()
 		{
-			if (mBulkResponseItemLists.Count > 0)
-				return mBulkResponseItemLists.Pop();
+			if (mBulkResponseItemListInstances.Count > 0)
+				return mBulkResponseItemListInstances.Pop();
 
 			return new List<BulkResponse.Item>();
 		}
@@ -73,14 +73,14 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			if (list == null) return;
 			for (int i = 0; i < list.Count; i++) Return(list[i]);
 			list.Clear();
-			mBulkResponseItemLists.Push(list);
+			mBulkResponseItemListInstances.Push(list);
 		}
 
 		#endregion
 
 		#region BulkResponse.Item
 
-		private readonly Stack<BulkResponse.Item> mBulkResponseItems = new Stack<BulkResponse.Item>();
+		private readonly Stack<BulkResponse.Item> mBulkResponseItemInstances = new Stack<BulkResponse.Item>();
 
 		/// <summary>
 		/// Gets a pooled instance of the <see cref="BulkResponse.Item"/> class (creates a new instance, if the pool is empty).
@@ -88,8 +88,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested <see cref="BulkResponse.Item"/> instance.</returns>
 		public BulkResponse.Item GetBulkResponseItem()
 		{
-			if (mBulkResponseItems.Count > 0)
-				return mBulkResponseItems.Pop();
+			if (mBulkResponseItemInstances.Count > 0)
+				return mBulkResponseItemInstances.Pop();
 
 			return new BulkResponse.Item(this);
 		}
@@ -102,94 +102,94 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		{
 			if (item == null) return;
 			item.Reset();
-			mBulkResponseItems.Push(item);
+			mBulkResponseItemInstances.Push(item);
 		}
 
 		#endregion
 
-		#region BulkResponse.Item_Index
+		#region BulkResponse.Item_Create
 
-		private readonly Stack<BulkResponse.Item_Index> mBulkResponseItemIndices = new Stack<BulkResponse.Item_Index>();
+		private readonly Stack<BulkResponse.Item_Create> mBulkResponseItemCreateInstances = new Stack<BulkResponse.Item_Create>();
 
 		/// <summary>
-		/// Gets a pooled instance of the <see cref="BulkResponse.Item_Index"/> class (creates a new instance, if the pool is empty).
+		/// Gets a pooled instance of the <see cref="BulkResponse.Item_Create"/> class (creates a new instance, if the pool is empty).
 		/// </summary>
-		/// <returns>The requested <see cref="BulkResponse.Item_Index"/> instance.</returns>
-		public BulkResponse.Item_Index GetBulkResponseItemIndex()
+		/// <returns>The requested <see cref="BulkResponse.Item_Create"/> instance.</returns>
+		public BulkResponse.Item_Create GetBulkResponseItemCreate()
 		{
-			if (mBulkResponseItemIndices.Count > 0)
-				return mBulkResponseItemIndices.Pop();
+			if (mBulkResponseItemCreateInstances.Count > 0)
+				return mBulkResponseItemCreateInstances.Pop();
 
-			return new BulkResponse.Item_Index(this);
+			return new BulkResponse.Item_Create(this);
 		}
 
 		/// <summary>
-		/// Returns the specified <see cref="BulkResponse.Item_Index"/> instance to the pool.
+		/// Returns the specified <see cref="BulkResponse.Item_Create"/> instance to the pool.
 		/// </summary>
 		/// <param name="item">The instance to return to the pool.</param>
-		public void Return(BulkResponse.Item_Index item)
+		public void Return(BulkResponse.Item_Create item)
 		{
 			if (item == null) return;
 			item.Reset();
-			mBulkResponseItemIndices.Push(item);
+			mBulkResponseItemCreateInstances.Push(item);
 		}
 
 		#endregion
 
-		#region BulkResponse.Item_Index_Shards
+		#region BulkResponse.Item_Create_Shards
 
-		private readonly Stack<BulkResponse.Item_Index_Shards> mBulkResponseItemIndexShards = new Stack<BulkResponse.Item_Index_Shards>();
+		private readonly Stack<BulkResponse.Item_Create_Shards> mBulkResponseItemCreateShardInstances = new Stack<BulkResponse.Item_Create_Shards>();
 
 		/// <summary>
-		/// Gets a pooled instance of the <see cref="BulkResponse.Item_Index_Shards"/> class (creates a new instance, if the pool is empty).
+		/// Gets a pooled instance of the <see cref="BulkResponse.Item_Create_Shards"/> class (creates a new instance, if the pool is empty).
 		/// </summary>
-		/// <returns>The requested <see cref="BulkResponse.Item_Index"/> instance.</returns>
-		public BulkResponse.Item_Index_Shards GetBulkResponseItemIndexShards()
+		/// <returns>The requested <see cref="BulkResponse.Item_Create"/> instance.</returns>
+		public BulkResponse.Item_Create_Shards GetBulkResponseItemIndexShards()
 		{
-			if (mBulkResponseItemIndexShards.Count > 0)
-				return mBulkResponseItemIndexShards.Pop();
+			if (mBulkResponseItemCreateShardInstances.Count > 0)
+				return mBulkResponseItemCreateShardInstances.Pop();
 
-			return new BulkResponse.Item_Index_Shards(this);
+			return new BulkResponse.Item_Create_Shards(this);
 		}
 
 		/// <summary>
-		/// Returns the specified <see cref="BulkResponse.Item_Index_Shards"/> instance to the pool.
+		/// Returns the specified <see cref="BulkResponse.Item_Create_Shards"/> instance to the pool.
 		/// </summary>
 		/// <param name="item">The instance to return to the pool.</param>
-		public void Return(BulkResponse.Item_Index_Shards item)
+		public void Return(BulkResponse.Item_Create_Shards item)
 		{
 			if (item == null) return;
 			item.Reset();
-			mBulkResponseItemIndexShards.Push(item);
+			mBulkResponseItemCreateShardInstances.Push(item);
 		}
 
 		#endregion
 
-		#region BulkResponse.Item_Index_Error
+		#region BulkResponse.Item_Create_Error
 
-		private readonly Stack<BulkResponse.Item_Index_Error> mBulkResponseItemIndexErrors = new Stack<BulkResponse.Item_Index_Error>();
+		private readonly Stack<BulkResponse.Item_Create_Error> mBulkResponseItemCreateErrorInstances = new Stack<BulkResponse.Item_Create_Error>();
 
 		/// <summary>
-		/// Gets a pooled instance of the <see cref="BulkResponse.Item_Index_Error"/> class (creates a new instance, if the pool is empty).
+		/// Gets a pooled instance of the <see cref="BulkResponse.Item_Create_Error"/> class (creates a new instance, if the pool is empty).
 		/// </summary>
-		/// <returns>The requested <see cref="BulkResponse.Item_Index"/> instance.</returns>
-		public BulkResponse.Item_Index_Error GetBulkResponseItemIndexError()
+		/// <returns>The requested <see cref="BulkResponse.Item_Create"/> instance.</returns>
+		public BulkResponse.Item_Create_Error GetBulkResponseItemIndexError()
 		{
-			if (mBulkResponseItemIndexErrors.Count > 0)
-				return mBulkResponseItemIndexErrors.Pop();
+			if (mBulkResponseItemCreateErrorInstances.Count > 0)
+				return mBulkResponseItemCreateErrorInstances.Pop();
 
-			return new BulkResponse.Item_Index_Error(this);
+			return new BulkResponse.Item_Create_Error(this);
 		}
 
 		/// <summary>
-		/// Returns the specified <see cref="BulkResponse.Item_Index_Error"/> instance to the pool.
+		/// Returns the specified <see cref="BulkResponse.Item_Create_Error"/> instance to the pool.
 		/// </summary>
 		/// <param name="item">The instance to return to the pool.</param>
-		public void Return(BulkResponse.Item_Index_Error item)
+		public void Return(BulkResponse.Item_Create_Error item)
 		{
 			if (item == null) return;
 			item.Reset();
-			mBulkResponseItemIndexErrors.Push(item);
+			mBulkResponseItemCreateErrorInstances.Push(item);
 		}
 
 		#endregion

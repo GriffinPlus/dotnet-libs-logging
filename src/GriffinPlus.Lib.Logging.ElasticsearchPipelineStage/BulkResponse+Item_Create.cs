@@ -26,7 +26,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			"_primary_term = {" + nameof(PrimaryTerm) + "}, " +
 			"status = {" + nameof(Status) + "}, " +
 			"error => ({" + nameof(Error) + "})")]
-		public sealed class Item_Index
+		public sealed class Item_Create
 		{
 			private readonly BulkResponsePool    mPool;
 			private          StringPropertyProxy mIndexProxy;
@@ -39,10 +39,10 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			private          Int32PropertyProxy  mStatusProxy;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="BulkResponse.Item_Index"/> class.
+			/// Initializes a new instance of the <see cref="Item_Create"/> class.
 			/// </summary>
 			/// <param name="pool">The pool managing the response and its resources.</param>
-			internal Item_Index(BulkResponsePool pool)
+			internal Item_Create(BulkResponsePool pool)
 			{
 				mPool = pool;
 				Reset(); // init pool references in proxies
@@ -84,7 +84,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// Gets or sets shard information for the operation.
 			/// This parameter is only returned for successful operations.
 			/// </summary>
-			public Item_Index_Shards Shards; // JSON field: '_shards'
+			public Item_Create_Shards Shards; // JSON field: '_shards'
 
 			/// <summary>
 			/// Gets or sets the sequence number assigned to the document for the operation.
@@ -112,7 +112,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// Gets or sets additional information about the failed operation.
 			/// The parameter is only returned for failed operations.
 			/// </summary>
-			public Item_Index_Error Error; // JSON field: 'error'
+			public Item_Create_Error Error; // JSON field: 'error'
 
 			/// <summary>
 			/// Resets the item for re-use.

@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <summary>
 		/// A container for a result in a bulk request.
 		/// </summary>
-		[DebuggerDisplay("index => ({" + nameof(Index) + "})")]
+		[DebuggerDisplay("create => ({" + nameof(Create) + "})")]
 		public sealed class Item
 		{
 			private readonly BulkResponsePool mPool;
@@ -31,17 +31,17 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			}
 
 			/// <summary>
-			/// Gets or sets the result of an 'index' operation.
+			/// Gets or sets the result of an 'create' operation.
 			/// </summary>
-			public Item_Index Index; // JSON field: 'index'
+			public Item_Create Create; // JSON field: 'create'
 
 			/// <summary>
 			/// Resets the item for re-use.
 			/// </summary>
 			public void Reset()
 			{
-				mPool.Return(Index);
-				Index = null;
+				mPool.Return(Create);
+				Create = null;
 			}
 
 			/// <summary>
@@ -69,9 +69,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						{
 							switch (propertyName)
 							{
-								case "index":
-									Index = mPool.GetBulkResponseItemIndex();
-									Index.InitFromJson(data, ref reader);
+								case "create":
+									Create = mPool.GetBulkResponseItemCreate();
+									Create.InitFromJson(data, ref reader);
 									break;
 
 								default:

@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release v5.1.2
+
+### Bugfixes
+
+#### Fix response handling when sending to Elasticsearch
+
+As the `ElasticsearchPipelineStage` was adjusted to work with data streams the `index` action was replaced with the `create` action. The changed action was not properly considered when processing the response. This could result in messages being sent multiple times if at least one operation in a bulk request fails.
+
+---
+
 ## Release v5.1.1
 
 ### Bugfixes
