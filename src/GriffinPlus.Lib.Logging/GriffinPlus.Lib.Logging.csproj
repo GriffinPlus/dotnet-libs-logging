@@ -9,7 +9,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="GriffinPlus.Lib.Common" Version="2.8.0" />
-		<PackageReference Include="GriffinPlus.Lib.Logging.Interface" Version="1.1.0" />
+		<PackageReference Include="GriffinPlus.Lib.Logging.Interface" Version="1.1.1" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 		<PackageReference Include="System.Diagnostics.EventLog" Version="6.0.0" />
 	</ItemGroup>
