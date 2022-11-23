@@ -1,6 +1,14 @@
 # Changelog
 ---
 
+## Release v5.1.4
+
+### Bugfixes
+
+#### Fix infinite loop in connectivity monitoring task in `LocalLogServicePipelineConnection`
+
+---
+
 ## Release v5.1.3
 
 ### Bugfixes
