@@ -302,6 +302,7 @@ namespace GriffinPlus.Lib.Logging
 					mInitialized = true;
 
 					// start task that checks the connectivity and tries to reconnect periodically if necessary
+					mConnectivityMonitorTaskCancellationTokenSource = new CancellationTokenSource();
 					mTriggerConnectivityMonitorEvent = new AsyncAutoResetEvent(false);
 					mConnectivityMonitorTask = RunConnectivityMonitor();
 				}
@@ -597,7 +598,6 @@ namespace GriffinPlus.Lib.Logging
 
 				// cancel connectivity monitoring task
 				mConnectivityMonitorTaskCancellationTokenSource?.Cancel();
-				mConnectivityMonitorTaskCancellationTokenSource = null;
 				connectivityMonitorTask = mConnectivityMonitorTask;
 
 				// signal that the shutdown is in progress
@@ -609,6 +609,14 @@ namespace GriffinPlus.Lib.Logging
 				// wait for the connectivity monitoring task to complete
 				if (connectivityMonitorTask != null)
 					await connectivityMonitorTask.ConfigureAwait(false);
+
+				// dispose the cancellation token source aborting the connectivity monitor task
+				lock (mSync)
+				{
+					mConnectivityMonitorTaskCancellationTokenSource?.Dispose();
+					mConnectivityMonitorTaskCancellationTokenSource = null;
+					mConnectivityMonitorTask = null;
+				}
 
 				// shut the connection down
 				ShutdownConnection();
