@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release v5.1.3
+
+### Bugfixes
+
+#### Fix periodic delay when processing messages in `LocalLogServicePipelineStage`
+
+The delay could occur if the *local log service* is not running and auto-reconnecting is enabled. As long as the stage tries to establish a connection to the service the stage lock was kept locked blocking a thread trying to write a log message.
+
+---
+
 ## Release v5.1.2
 
 ### Bugfixes
