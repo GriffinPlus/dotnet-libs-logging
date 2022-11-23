@@ -4,6 +4,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Threading;
+
+using GriffinPlus.Lib.Threading;
 
 namespace GriffinPlus.Lib.Logging
 {
@@ -13,7 +16,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class LocalLogServicePipelineStage : SyncProcessingPipelineStage
 	{
-		private LocalLogServiceConnection mSource;
+		private LocalLogServiceConnection mConnection;
 		private string                    mKernelObjectPrefix = "Griffin+";
 
 		/// <summary>
@@ -21,7 +24,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public LocalLogServicePipelineStage()
 		{
-			mSource = new LocalLogServiceConnection(KernelObjectPrefix);
+			mConnection = new LocalLogServiceConnection(KernelObjectPrefix);
 		}
 
 		/// <summary>
@@ -44,32 +47,21 @@ namespace GriffinPlus.Lib.Logging
 						mKernelObjectPrefix = value;
 
 						// create a new log service connection
-						mSource?.Shutdown();
-						mSource = null;
-						mSource = new LocalLogServiceConnection(mKernelObjectPrefix);
+						mConnection?.ShutdownAsync().WaitWithoutException();
+						mConnection = null;
+						mConnection = new LocalLogServiceConnection(mKernelObjectPrefix);
 					}
 				}
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the connection is re-established after breaking down
-		/// (most probably due to the local log service shutting down or restarting).
-		/// </summary>
-		public bool AutoConnect
-		{
-			get => mSource.AutoReconnect;
-			set => mSource.AutoReconnect = value;
-		}
-
-		/// <summary>
 		/// Gets or sets the interval between two attempts to re-establish the connection to the local log service.
-		/// Requires <see cref="AutoConnect"/> to be set to <c>true</c>.
 		/// </summary>
 		public TimeSpan AutoConnectRetryInterval
 		{
-			get => mSource.AutoReconnectRetryInterval;
-			set => mSource.AutoReconnectRetryInterval = value;
+			get => mConnection.AutoReconnectRetryInterval;
+			set => mConnection.AutoReconnectRetryInterval = value;
 		}
 
 		/// <summary>
@@ -77,8 +69,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public bool LosslessMode
 		{
-			get => mSource.LosslessMode;
-			set => mSource.LosslessMode = value;
+			get => mConnection.LosslessMode;
+			set => mConnection.LosslessMode = value;
 		}
 
 		/// <summary>
@@ -89,8 +81,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public int PeakBufferCapacity
 		{
-			get => mSource.PeakBufferCapacity;
-			set => mSource.PeakBufferCapacity = value;
+			get => mConnection.PeakBufferCapacity;
+			set => mConnection.PeakBufferCapacity = value;
 		}
 
 		/// <summary>
@@ -98,14 +90,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public bool WriteToLogFile
 		{
-			get => mSource.WriteToLogFile;
-			set => mSource.WriteToLogFile = value;
+			get => mConnection.WriteToLogFile;
+			set => mConnection.WriteToLogFile = value;
 		}
 
 		/// <summary>
 		/// Gets a value indicating whether the local log service is connected and alive.
 		/// </summary>
-		public bool IsConnectedAndAlive => mSource.IsLogSinkAlive();
+		public bool IsConnectedAndAlive => mConnection.IsLogSinkAlive();
 
 		/// <summary>
 		/// Sends a command telling the log viewer to clear its view.
@@ -116,7 +108,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		public bool ClearLogViewer()
 		{
-			return mSource.EnqueueClearLogViewerCommand();
+			return mConnection.EnqueueClearLogViewerCommand();
 		}
 
 		/// <summary>
@@ -128,7 +120,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		public bool SaveSnapshot()
 		{
-			return mSource.EnqueueSaveSnapshotCommand();
+			return mConnection.EnqueueSaveSnapshotCommand();
 		}
 
 		/// <summary>
@@ -136,7 +128,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		protected override void OnInitialize()
 		{
-			mSource.Initialize();
+			mConnection.InitializeAsync(CancellationToken.None).WaitAndUnwrapException();
 		}
 
 		/// <summary>
@@ -144,7 +136,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		protected override void OnShutdown()
 		{
-			mSource.Shutdown();
+			mConnection.ShutdownAsync().WaitWithoutException();
 		}
 
 		/// <summary>
@@ -157,7 +149,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </returns>
 		protected override bool ProcessSync(LocalLogMessage message)
 		{
-			mSource.EnqueueMessage(message);
+			mConnection.EnqueueMessage(message);
 			return true;
 		}
 
@@ -167,7 +159,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="level">The new log level.</param>
 		protected override void OnLogLevelAdded(LogLevel level)
 		{
-			mSource.EnqueueLogLevelAddedNotification(level);
+			mConnection.EnqueueLogLevelAddedNotification(level);
 		}
 
 		/// <summary>
@@ -176,7 +168,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="writer">The new log writer.</param>
 		protected override void OnLogWriterAdded(LogWriter writer)
 		{
-			mSource.EnqueueLogWriterAddedNotification(writer);
+			mConnection.EnqueueLogWriterAddedNotification(writer);
 		}
 	}
 

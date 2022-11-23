@@ -11,6 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using GriffinPlus.Lib.Threading;
+
 // ReSharper disable RedundantCaseLabel
 
 namespace GriffinPlus.Lib.Logging
@@ -19,35 +21,42 @@ namespace GriffinPlus.Lib.Logging
 	/// <summary>
 	/// An interface to the local log service for logging clients.
 	/// </summary>
-	sealed unsafe partial class LocalLogServiceConnection
+	sealed partial class LocalLogServiceConnection
 	{
-		private const int PipeRequestTimeout            = 1000; // ms
-		private const int QueueBlockFetchRetryDelayTime = 20;   // ms
+		private const int PipeConnectTimeout            = 1000;  // ms
+		private const int QueueBlockFetchRetryDelayTime = 20;    // ms
+		private const int ConnectivityCheckInterval     = 10000; // ms
 
-		private static readonly int                     sCurrentProcessId = Process.GetCurrentProcess().Id;
-		private readonly        object                  mSync             = new();
-		private readonly        string                  mSinkServerPipeName;
-		private readonly        string                  mGlobalQueueName;
-		private readonly        string                  mLocalQueueName;
-		private readonly        UnsafeSharedMemoryQueue mSharedMemoryQueue = new();
-		private                 bool                    mInitialized;
-		private                 int                     mPeakBufferCapacity;
-		private readonly        Queue<LogEntryBlock>    mPeakBufferQueue = new();
-		private                 int                     mLostMessageCount;
-		private                 bool                    mAutoReconnect              = true;
-		private                 TimeSpan                mAutoReconnectRetryInterval = TimeSpan.FromSeconds(15);
-		private                 Task                    mAutoReconnectTask;
-		private                 CancellationTokenSource mAutoReconnectTaskCancellationTokenSource;
-		private                 bool                    mLosslessMode;
-		private                 bool                    mWriteToLogFile = true;
-		private                 Process                 mServiceProcess;
+		private static readonly int                     sCurrentProcessId                               = Process.GetCurrentProcess().Id;
+		private readonly        object                  mSync                                           = new();
+		private readonly        string                  mSinkServerPipeName                             = null;
+		private readonly        string                  mGlobalQueueName                                = null;
+		private readonly        string                  mLocalQueueName                                 = null;
+		private readonly        UnsafeSharedMemoryQueue mSharedMemoryQueue                              = new();
+		private                 bool                    mInitialized                                    = false;
+		private                 TimeSpan                mAutoReconnectRetryInterval                     = TimeSpan.FromSeconds(15);
+		private                 AsyncAutoResetEvent     mTriggerConnectivityMonitorEvent                = null;
+		private                 Task                    mConnectivityMonitorTask                        = null;
+		private                 CancellationTokenSource mConnectivityMonitorTaskCancellationTokenSource = null;
+		private                 bool                    mLosslessMode                                   = false;
+		private                 int                     mLostMessageCount                               = 0;
+		private                 int                     mLastSentLogWriterId                            = -1;
+		private                 int                     mLastSentLogLevelId                             = -1;
+		private                 int                     mPeakBufferCapacity                             = 0;
+		private readonly        Queue<LogEntryBlock>    mPeakBufferQueue                                = new();
+		private                 bool                    mInitializationInProgress                       = false;
+		private                 bool                    mShutdownInProgress                             = false;
+		private                 Process                 mServiceProcess                                 = null;
+		private                 Task                    mSendSettingTask                                = null;
+		private                 bool                    mWriteToLogFile                                 = true;
+		private                 bool                    mEstablishingConnectionInProgress               = false;
 
 		#region Construction
 
 		/// <summary>
 		/// Initializes the <see cref="LocalLogServiceConnection"/> class.
 		/// </summary>
-		static LocalLogServiceConnection()
+		static unsafe LocalLogServiceConnection()
 		{
 			Debug.Assert(sizeof(LogEntryBlock) == 496, "Log entry block size does not match the expected size.");
 		}
@@ -69,37 +78,9 @@ namespace GriffinPlus.Lib.Logging
 		#region Auto Reconnect
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the connection is re-established after breaking down
-		/// (most probably due to the local log service shutting down or restarting).
-		/// </summary>
-		public bool AutoReconnect
-		{
-			get
-			{
-				lock (mSync)
-				{
-					return mAutoReconnect;
-				}
-			}
-
-			set
-			{
-				lock (mSync)
-				{
-					if (mAutoReconnect == value) return;
-					mAutoReconnect = value;
-					if (mInitialized && !IsLogSinkAlive())
-					{
-						StartAutoReconnectTask();
-					}
-				}
-			}
-		}
-
-		/// <summary>
 		/// Gets or sets the interval between two attempts to re-establish the connection to the local log service.
-		/// Requires <see cref="AutoReconnect"/> to be set to <c>true</c>.
 		/// </summary>
+		/// <exception cref="ArgumentOutOfRangeException">The property is set and the specified interval is negative.</exception>
 		public TimeSpan AutoReconnectRetryInterval
 		{
 			get
@@ -112,6 +93,9 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
+				if (value < TimeSpan.Zero)
+					throw new ArgumentOutOfRangeException(nameof(value), value, "The interval must be positive.");
+
 				lock (mSync)
 				{
 					mAutoReconnectRetryInterval = value;
@@ -164,7 +148,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets or sets the capacity of the queue buffering data blocks that would have been sent to the local
 		/// log service, but could not, because the shared memory queue was full. This can happen in case of severe
 		/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode"/> is <c>false</c>. Set the capacity
-		/// to 0 to disable peak buffering messages (notifications are always buffered to avoid getting out of sync).
+		/// to <c>0</c> to disable peak buffering messages (notifications are always buffered to avoid getting out of sync).
 		/// </summary>
 		/// <remarks>
 		/// The actual number of blocks in the peak buffer queue can get greater than this property as notifications
@@ -209,47 +193,39 @@ namespace GriffinPlus.Lib.Logging
 
 			set
 			{
-				if (mWriteToLogFile != value)
-				{
-					mWriteToLogFile = value;
-
-					if (mServiceProcess != null)
-					{
-						try
+				SetFieldBackedServiceSetting(
+						ref mWriteToLogFile,
+						value,
+						() => new Request
 						{
-							// prepare request for the local log service
-							var request = new Request
+							Command = Command.SetWritingToLogFile,
+							SetWritingToLogFileCommand =
 							{
-								Command = Command.SetWritingToLogFile,
-								SetWritingToLogFileCommand =
-								{
-									ProcessId = sCurrentProcessId,
-									Enable = mWriteToLogFile ? 1 : 0
-								}
-							};
-
-							// send request
-							var reply = SendRequest(request);
-
-							// got a reply to the issued request
+								ProcessId = sCurrentProcessId,
+								Enable = mWriteToLogFile ? 1 : 0
+							}
+						},
+						(request, reply) =>
+						{
+							// process reply returned from the local log service
 							// => evaluate the result code
 							//    0 = operation failed
 							//    1 = operation succeeded
 							if (reply.Result == 0)
 							{
+								// enabling/disabling the setting has failed
 								Debug.WriteLine(
-									mWriteToLogFile
+									request.SetWritingToLogFileCommand.Enable != 0
 										? "Enabling writing messages to the log file failed."
 										: "Disabling writing messages to the log file failed.");
+
+								return false;
 							}
-						}
-						catch (Exception ex)
-						{
-							Debug.WriteLine("Sending request to enable/disable writing messages to the log file failed.");
-							Debug.WriteLine(ex.ToString());
-						}
-					}
-				}
+
+							// enabling/disabling the setting has succeeded
+							return true;
+						})
+					.WaitWithoutException();
 			}
 		}
 
@@ -273,140 +249,156 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Initializes the connection to the local log service.
+		/// Gets a value indicating whether the connection to the local log service is established.
 		/// </summary>
-		/// <returns>
-		/// true, if the connection has been established successfully or if it already was established;
-		/// false, if establishing the connection failed and <see cref="AutoReconnect"/> is <c>false</c>,
-		/// so the connection will not be established automatically.
-		/// </returns>
-		public bool Initialize()
+		public bool IsEstablished
 		{
+			get
+			{
+				lock (mSync)
+				{
+					return mServiceProcess != null;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Initializes the connection to the local log service asynchronously.
+		/// </summary>
+		/// <param name="cancellationToken">Cancellation token that can be signaled to abort the operation.</param>
+		public async Task InitializeAsync(CancellationToken cancellationToken)
+		{
+			Debug.Assert(!Monitor.IsEntered(mSync));
+
 			lock (mSync)
+			{
+				// abort if the initialization is already in progress
+				if (mInitializationInProgress)
+					throw new InvalidOperationException("Initialization is already in progress.");
+
+				// abort if the shutdown is already in progress
+				if (mShutdownInProgress)
+					throw new InvalidOperationException("Shutdown is already in progress.");
+
+				mInitializationInProgress = true;
+			}
+
+			try
 			{
 				// abort, if the connection is already up and running
 				if (IsLogSinkAlive())
-					return true;
+					return;
 
 				// shut the connection down to clean up resources
 				ShutdownConnection();
 
 				// try to establish a new connection
-				if (InitConnection())
-				{
-					// connection was established successfully
-					mInitialized = true;
-					return true;
-				}
+				await EstablishConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-				// connection was not established successfully
-				if (mAutoReconnect)
+				// update the connection state
+				lock (mSync)
 				{
-					// start task that tries to reconnect periodically, if necessary
-					StartAutoReconnectTask();
+					Debug.Assert(!mInitialized);
 					mInitialized = true;
-					return true;
-				}
 
-				// the connection has not been established and the reconnect task is not scheduled
-				// => the will not be established automatically
-				mInitialized = false;
-				return false;
+					// start task that checks the connectivity and tries to reconnect periodically if necessary
+					mTriggerConnectivityMonitorEvent = new AsyncAutoResetEvent(false);
+					mConnectivityMonitorTask = RunConnectivityMonitor();
+				}
 			}
-		}
-
-		/// <summary>
-		/// Schedules a task to connect to the local log service after the <see cref="mAutoReconnectRetryInterval"/>.
-		/// </summary>
-		private void StartAutoReconnectTask()
-		{
-			lock (mSync)
+			finally
 			{
-				// cancel the last connect operation
-				// NOTE: Cannot wait for the task to complete, because this could hang up execution.
-				//       The task code is properly synchronized to avoid race conditions
-				mAutoReconnectTaskCancellationTokenSource?.Cancel();
-
-				// create a new cancellation token source
-				// (it is necessary to pull the token out of mAutoReconnectTaskCancellationTokenSource to ensure it is not overwritten by replacing mAutoReconnectTaskCancellationTokenSource)
-				mAutoReconnectTaskCancellationTokenSource = new CancellationTokenSource();
-				var cts = mAutoReconnectTaskCancellationTokenSource.Token;
-
-				// schedule a new task to retry to connect to the local log service
-				mAutoReconnectTask = Task
-					.Delay(mAutoReconnectRetryInterval, cts)
-					.ContinueWith(
-						_ =>
-						{
-							lock (mSync)
-							{
-								cts.ThrowIfCancellationRequested();
-
-								if (mInitialized && mAutoReconnect && !IsLogSinkAlive())
-								{
-									// shut the connection down to clean up resources
-									ShutdownConnection();
-
-									// try to connect to the local log service
-									if (!InitConnection())
-									{
-										// connecting to the local log service failed
-										// => schedule a new task to retry after the specified time
-										StartAutoReconnectTask();
-									}
-								}
-							}
-						},
-						cts,
-						TaskContinuationOptions.OnlyOnRanToCompletion,
-						TaskScheduler.Current);
+				lock (mSync)
+				{
+					mInitializationInProgress = false;
+				}
 			}
 		}
 
 		/// <summary>
-		/// Initializes the connection to the local log service.
+		/// Establishes the connection to the local log service.
 		/// </summary>
 		/// <returns>
-		/// true, if connecting to the local log service succeeded;
-		/// otherwise false.
+		/// <param name="cancellationToken">Cancellation token that may be signaled to abort the operation.</param>
+		/// <c>true</c> if connecting to the local log service succeeded;
+		/// otherwise <c>false</c>.
 		/// </returns>
-		private bool InitConnection()
+		private async Task<bool> EstablishConnectionAsync(CancellationToken cancellationToken)
 		{
-			lock (mSync)
+			Debug.Assert(!Monitor.IsEntered(mSync));
+
+			// ReSharper disable once LocalFunctionHidesMethod
+			async Task ShutdownAsync(bool unregister)
 			{
-				// create an 'unregister' request (for error conditions)
-				var unregisterRequest = new Request
+				if (unregister)
 				{
-					Command = Command.UnregisterLogSource,
-					UnregisterLogSourceCommand =
+					try
 					{
-						ProcessId = sCurrentProcessId
+						// create an 'unregister' request (for error conditions)
+						var unregisterRequest = new Request
+						{
+							Command = Command.UnregisterLogSource,
+							UnregisterLogSourceCommand = { ProcessId = sCurrentProcessId }
+						};
+
+						await SendRequestAsync(unregisterRequest, 0, CancellationToken.None).ConfigureAwait(false);
 					}
-				};
+					catch
+					{
+						/* swallow */
+					}
+				}
 
-				Debug.WriteLine("Initializing connection to the local log service.");
+				lock (mSync)
+				{
+					mEstablishingConnectionInProgress = false;
+					mSharedMemoryQueue.Close();
+					mServiceProcess = null;
+				}
+			}
 
-				// clear buffered messages / commands / notifications
-				mPeakBufferQueue.Clear();
-				mLostMessageCount = 0;
+			Process serviceProcess = null;
+
+			try
+			{
+				lock (mSync)
+				{
+					// abort, if the connection is already established
+					if (mServiceProcess != null)
+						throw new InvalidOperationException("The connection is already established, shut it down before connecting again.");
+
+					// reset state
+					mPeakBufferQueue.Clear();
+					mLastSentLogWriterId = -1;
+					mLastSentLogLevelId = -1;
+					mLostMessageCount = 0;
+
+					// remember that the establishing the connection is in progress
+					mEstablishingConnectionInProgress = true;
+				}
+
+				Debug.WriteLine("Initializing connection to the local log service...");
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				// register log source with the local log service
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+				Debug.WriteLine("Registering log source with the local log service...");
+
+				Request request;
+				Reply reply;
+
 				try
 				{
 					// prepare request
-					var request = new Request
+					request = new Request
 					{
 						Command = Command.RegisterLogSource,
-						RegisterLogSourceCommand =
-						{
-							ProcessId = sCurrentProcessId
-						}
+						RegisterLogSourceCommand = { ProcessId = sCurrentProcessId }
 					};
 
 					// send request
-					var reply = SendRequest(request);
+					reply = await SendRequestAsync(request, PipeConnectTimeout, cancellationToken).ConfigureAwait(false);
 
 					// evaluate the result code
 					// 0 = registering log source failed
@@ -418,160 +410,216 @@ namespace GriffinPlus.Lib.Logging
 					else
 					{
 						Debug.WriteLine("Registering log source with the local log service failed.");
+						await ShutdownAsync(false).ConfigureAwait(false);
 						return false;
 					}
 				}
 				catch (Exception ex)
 				{
-					// request failed
-					Debug.WriteLine("Registering log source with the local log service failed.");
+					Debug.WriteLine("Connecting to the local log service failed.");
 					Debug.WriteLine(ex.ToString());
+					await ShutdownAsync(false).ConfigureAwait(false);
 					return false;
 				}
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				// get the process id of the local log service
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				int serviceProcessId;
-				try
-				{
-					serviceProcessId = QueryProcessId();
-					Debug.WriteLine($"Getting process id of the local log service succeeded (process id: {serviceProcessId}).");
-				}
-				catch (Exception ex)
-				{
-					Debug.WriteLine("Getting process id of the local log service failed.");
-					try
-					{
-						SendRequest(unregisterRequest, 0);
-					}
-					catch
-					{
-						/* swallow */
-					}
 
-					Debug.WriteLine(ex.ToString());
-					return false;
-				}
+				Debug.WriteLine("Getting process id of the local log service...");
+				int serviceProcessId = await QueryProcessIdAsync(PipeConnectTimeout, cancellationToken).ConfigureAwait(false);
+				Debug.WriteLine($"Getting process id of the local log service succeeded (process id: {serviceProcessId}).");
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				// tell the local log service about the to 'write to log file' setting
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				try
+
+				Debug.WriteLine("Sending 'set writing to log file' request to the local log service...");
+				bool writeToLogFile = false;
+				lock (mSync) writeToLogFile = mWriteToLogFile;
+
+				request = new Request
 				{
-					var request = new Request
-					{
-						Command = Command.SetWritingToLogFile,
-						SetWritingToLogFileCommand =
-						{
-							ProcessId = sCurrentProcessId,
-							Enable = mWriteToLogFile ? 1 : 0
-						}
-					};
+					Command = Command.SetWritingToLogFile,
+					SetWritingToLogFileCommand = { ProcessId = sCurrentProcessId, Enable = writeToLogFile ? 1 : 0 }
+				};
 
-					// send request
-					var reply = SendRequest(request);
+				// send request
+				reply = await SendRequestAsync(request, PipeConnectTimeout, cancellationToken).ConfigureAwait(false);
 
-					// evaluate the result code
-					// 0 = setting succeeded
-					// 1 = setting failed
-					if (reply.Result == 0)
-					{
-						Debug.WriteLine("The local log service failed to enable writing to the log file.");
-
-						// proceed in case of an error...
-					}
-				}
-				catch (Exception ex)
+				// evaluate the result code
+				// 0 = setting succeeded
+				// 1 = setting failed
+				if (reply.Result == 0)
 				{
-					Debug.WriteLine("Sending 'set writing to log file' request to the local log service failed.");
-					Debug.WriteLine(ex.ToString());
-					return false;
+					Debug.WriteLine("The local log service failed to enable writing to the log file.");
+					// proceed in case of an error...
 				}
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				// open the sink's process
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				var serviceProcess = Process.GetProcessById(serviceProcessId);
+				serviceProcess = Process.GetProcessById(serviceProcessId);
 
+				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				// open the shared memory queue the sink has created for us
+				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				try
 				{
-					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-					// open the shared memory queue the sink has created for us
-					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-					try
-					{
-						mSharedMemoryQueue.Open(mGlobalQueueName);
-					}
-					catch (Exception ex)
-					{
-						Debug.WriteLine("Opening the shared memory queue in the global namespace failed.");
-						Debug.WriteLine(ex.ToString());
+					Debug.WriteLine("Opening the shared memory queue to the local log service in the global namespace...");
+					mSharedMemoryQueue.Open(mGlobalQueueName);
+				}
+				catch (Exception)
+				{
+					Debug.WriteLine("Opening the shared memory queue to the local log service in the global namespace failed.");
+					Debug.WriteLine("Opening the shared memory queue to the local log service in the local namespace...");
 
-						// try to open the shared memory queue in the local namespace
-						// (local log service has been started without the privilege to create global objects)
+					// try to open the shared memory queue in the local namespace
+					// (local log service has been started without the privilege to create global objects)
+					mSharedMemoryQueue.Open(mLocalQueueName);
+				}
+
+				Debug.WriteLine("Opening the shared memory queue to the local log service succeeded.");
+
+				// tell the sink that a new session begins
+				SendStartMarker();
+
+				// tell the sink about the application name
+				SendApplicationName();
+
+				// tell the sink about log levels in use
+				SendLogLevels();
+
+				// tell the sink about source names in use
+				SendSourceNames();
+
+				// the log source has been initialized successfully
+				Debug.WriteLine("Connection to the local log service has been established successfully.");
+				lock (mSync)
+				{
+					mEstablishingConnectionInProgress = false;
+					mServiceProcess = serviceProcess;
+					return true;
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine("Connecting to the local log service failed.");
+				Debug.WriteLine(ex.ToString());
+				serviceProcess?.Dispose();
+				await ShutdownAsync(true).ConfigureAwait(false);
+				return false;
+			}
+		}
+
+		/// <summary>
+		/// Starts the connectivity monitoring task.
+		/// </summary>
+		private async Task RunConnectivityMonitor()
+		{
+			while (true)
+			{
+				try
+				{
+					TimeSpan timeout;
+					CancellationToken connectivityMonitorCancellationToken;
+					AsyncAutoResetEvent triggerConnectivityMonitorEvent;
+					lock (mSync)
+					{
+						timeout = mServiceProcess != null ? TimeSpan.FromMilliseconds(ConnectivityCheckInterval) : mAutoReconnectRetryInterval;
+						connectivityMonitorCancellationToken = mConnectivityMonitorTaskCancellationTokenSource.Token;
+						triggerConnectivityMonitorEvent = mTriggerConnectivityMonitorEvent;
+					}
+
+					using (var cancellationTokenSource = new CancellationTokenSource())
+					using (var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, connectivityMonitorCancellationToken))
+					{
+						Task triggerTask = triggerConnectivityMonitorEvent.WaitAsync(linkedCancellationTokenSource.Token);
+						Task delayTask = Task.Delay(timeout, linkedCancellationTokenSource.Token);
+						await Task.WhenAny(triggerTask, delayTask).ConfigureAwait(false); // does not throw!
+						if (triggerTask.Status == TaskStatus.RanToCompletion || delayTask.Status == TaskStatus.RanToCompletion)
+							cancellationTokenSource.Cancel();
+
+						// wait for all tasks to complete
 						try
 						{
-							mSharedMemoryQueue.Open(mLocalQueueName);
+							await Task.WhenAll(triggerTask, delayTask).ConfigureAwait(false);
 						}
-						catch (Exception ex2)
+						catch (OperationCanceledException)
 						{
-							Debug.WriteLine("Opening the shared memory queue in the local namespace failed.");
-							Debug.WriteLine(ex2.ToString());
-							return false;
+							if (triggerTask.Status != TaskStatus.RanToCompletion && delayTask.Status != TaskStatus.RanToCompletion)
+								return;
+						}
+
+						// try to to connect to the local log service if the service process seems to be dead
+						if (!IsLogSinkAlive())
+						{
+							// shut the connection down to clean up resources
+							ShutdownConnection();
+
+							// try to connect to the local log service
+							try
+							{
+								await EstablishConnectionAsync(connectivityMonitorCancellationToken).ConfigureAwait(false);
+							}
+							catch (OperationCanceledException)
+							{
+								return;
+							}
 						}
 					}
-
-					Debug.WriteLine("Opening the shared memory queue succeeded.");
-
-					// tell the sink that a new session begins
-					SendStartMarker();
-
-					// tell the sink about the application name
-					SendApplicationName();
-
-					// tell the sink about log levels in use
-					SendLogLevels();
-
-					// tell the sink about source names in use
-					SendSourceNames();
 				}
 				catch (Exception ex)
 				{
-					Debug.WriteLine("Connecting to the local log service failed.");
+					Debug.WriteLine("The connectivity monitoring task threw an unhandled exception (catch and continue)...");
 					Debug.WriteLine(ex.ToString());
-
-					try
-					{
-						SendRequest(unregisterRequest, 0);
-					}
-					catch
-					{
-						/* swallow */
-					}
-
-					mSharedMemoryQueue.Close();
-					serviceProcess.Dispose();
-					return false;
 				}
-
-				// the log source has been initialized successfully
-				Debug.WriteLine("Connection to the local log service was established successfully.");
-				mServiceProcess = serviceProcess;
-
-				return true;
 			}
 		}
 
 		/// <summary>
 		/// Shuts the connection to the local log service down.
 		/// </summary>
-		public void Shutdown()
+		public async Task ShutdownAsync()
 		{
+			Debug.Assert(!Monitor.IsEntered(mSync));
+
+			Task connectivityMonitorTask;
 			lock (mSync)
 			{
+				// abort if the shutdown is already in progress
+				if (mShutdownInProgress)
+					throw new InvalidOperationException("Shutdown is already in progress.");
+
+				// abort if the initialization is already in progress
+				if (mInitializationInProgress)
+					throw new InvalidOperationException("Initialization is already in progress.");
+
+				// cancel connectivity monitoring task
+				mConnectivityMonitorTaskCancellationTokenSource?.Cancel();
+				mConnectivityMonitorTaskCancellationTokenSource = null;
+				connectivityMonitorTask = mConnectivityMonitorTask;
+
+				// signal that the shutdown is in progress
+				mShutdownInProgress = true;
+			}
+
+			try
+			{
+				// wait for the connectivity monitoring task to complete
+				if (connectivityMonitorTask != null)
+					await connectivityMonitorTask.ConfigureAwait(false);
+
+				// shut the connection down
 				ShutdownConnection();
-				mInitialized = false;
+			}
+			finally
+			{
+				lock (mSync)
+				{
+					mShutdownInProgress = false; // shutdown completed
+					mInitialized = false;        // connection is not initialized any more
+				}
 			}
 		}
 
@@ -582,31 +630,20 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (mSync)
 			{
-				// cancel reconnect task, but do not wait for the task to complete
-				// (could cause a dead lock in rare cases)
-				mAutoReconnectTaskCancellationTokenSource?.Cancel();
-				mAutoReconnectTaskCancellationTokenSource = null;
-
-				// clear buffered messages / commands / notifications
-				mPeakBufferQueue.Clear();
-				mLostMessageCount = 0;
-
 				if (mServiceProcess != null)
 				{
+					// unregister from the local log service
 					try
 					{
 						// prepare request
 						var request = new Request
 						{
 							Command = Command.UnregisterLogSource,
-							UnregisterLogSourceCommand =
-							{
-								ProcessId = sCurrentProcessId
-							}
+							UnregisterLogSourceCommand = { ProcessId = sCurrentProcessId }
 						};
 
 						// send request
-						var reply = SendRequest(request);
+						Reply reply = SendRequest(request, 0);
 
 						// evaluate the result code
 						// 0 = setting succeeded
@@ -621,12 +658,23 @@ namespace GriffinPlus.Lib.Logging
 						Debug.WriteLine("Sending request to unregister the log source failed.");
 						Debug.WriteLine(ex.ToString());
 					}
+				}
 
+				// clear buffered messages / commands / notifications
+				mPeakBufferQueue.Clear();
+				mLastSentLogWriterId = -1;
+				mLastSentLogLevelId = -1;
+				mLostMessageCount = 0;
+
+				// close the shared memory queue to the local log service
+				mSharedMemoryQueue.Close();
+
+				// close the handle of the local log service process
+				if (mServiceProcess != null)
+				{
 					mServiceProcess.Dispose();
 					mServiceProcess = null;
 				}
-
-				mSharedMemoryQueue.Close();
 			}
 		}
 
@@ -638,8 +686,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Checks whether the local log service is alive.
 		/// </summary>
 		/// <returns>
-		/// true, if the local log service process is alive;
-		/// otherwise false.
+		/// <c>true</c> if the local log service process is alive;
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public bool IsLogSinkAlive()
 		{
@@ -665,11 +713,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Sends the specified request to the local log service.
 		/// </summary>
 		/// <param name="request">Request to send.</param>
-		/// <param name="timeout">Time to wait for the request to finish (in ms).</param>
+		/// <param name="connectTimeout">Time to wait for the request to finish (in ms).</param>
 		/// <returns>The received reply.</returns>
 		/// <exception cref="LocalLogServiceCommunicationException">Communicating with the local log service failed.</exception>
-		// ReSharper disable once UnusedParameter.Local
-		private Reply SendRequest(Request request, int timeout = PipeRequestTimeout)
+		private Reply SendRequest(Request request, int connectTimeout)
 		{
 			try
 			{
@@ -680,7 +727,44 @@ namespace GriffinPlus.Lib.Logging
 				// connect to the pipe or wait until the pipe is available
 				// (the local log service has a set of pipes to serve multiple clients, so waiting most likely
 				// indicates that the service is not running)
-				pipe.Connect(timeout);
+				pipe.Connect(connectTimeout);
+				pipe.ReadMode = PipeTransmissionMode.Message;
+
+				// TODO: configure timeout for writing and reading struct
+				//       (at the moment the pipe does not support setting ReadTimeout and WriteTimeout)
+
+				// send the request to the local log service
+				writer.WriteStruct(request);
+
+				// wait for the reply
+				return reader.ReadStruct<Reply>();
+			}
+			catch (Exception ex)
+			{
+				throw new LocalLogServiceCommunicationException("Sending request to the local log service failed.", ex);
+			}
+		}
+
+		/// <summary>
+		/// Sends the specified request to the local log service.
+		/// </summary>
+		/// <param name="request">Request to send.</param>
+		/// <param name="connectTimeout">Time to wait for the request to finish (in ms).</param>
+		/// <param name="cancellationToken">Cancellation token that can be signaled to abort the operation.</param>
+		/// <returns>The received reply.</returns>
+		/// <exception cref="LocalLogServiceCommunicationException">Communicating with the local log service failed.</exception>
+		private async Task<Reply> SendRequestAsync(Request request, int connectTimeout, CancellationToken cancellationToken)
+		{
+			try
+			{
+				using var pipe = new NamedPipeClientStream(".", mSinkServerPipeName, PipeDirection.InOut);
+				using var reader = new MemoryReader(pipe);
+				using var writer = new MemoryWriter(pipe);
+
+				// connect to the pipe or wait until the pipe is available
+				// (the local log service has a set of pipes to serve multiple clients, so waiting most likely
+				// indicates that the service is not running)
+				await pipe.ConnectAsync(connectTimeout, cancellationToken).ConfigureAwait(false);
 				pipe.ReadMode = PipeTransmissionMode.Message;
 
 				// TODO: configure timeout for writing and reading struct
@@ -701,14 +785,113 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the process id of the local log service.
 		/// </summary>
-		/// <param name="timeout">Timeout (in ms).</param>
+		/// <param name="connectTimeout">Timeout (in ms).</param>
+		/// <param name="cancellationToken">Cancellation token that can be signaled to abort the operation.</param>
 		/// <returns>Process id of the local log service.</returns>
 		/// <exception cref="LocalLogServiceCommunicationException">Communicating with the local log service failed.</exception>
-		private int QueryProcessId(int timeout = PipeRequestTimeout)
+		private async Task<int> QueryProcessIdAsync(int connectTimeout, CancellationToken cancellationToken)
 		{
 			var request = new Request { Command = Command.QueryProcessId };
-			var reply = SendRequest(request, timeout);
+			Reply reply = await SendRequestAsync(request, connectTimeout, cancellationToken).ConfigureAwait(false);
 			return reply.QueryProcessIdCommand.ProcessId;
+		}
+
+		/// <summary>
+		/// Updates the value of a field and sends a request to set the corresponding setting in the local log service.
+		/// </summary>
+		/// <typeparam name="TField">Type of the field to update</typeparam>
+		/// <param name="field"></param>
+		/// <param name="value"></param>
+		/// <param name="requestFactory"></param>
+		/// <param name="replyProcessing"></param>
+		/// <returns>Task identifying the send operation.</returns>
+		private Task SetFieldBackedServiceSetting<TField>(
+			ref TField                 field,
+			TField                     value,
+			Func<Request>              requestFactory,
+			Func<Request, Reply, bool> replyProcessing)
+		{
+			Debug.Assert(
+				!Monitor.IsEntered(mSync),
+				"The lock should not have been acquired here. Otherwise the logic below will not work!");
+
+			while (true)
+			{
+				lock (mSync)
+				{
+					if (mSendSettingTask == null && !mEstablishingConnectionInProgress)
+					{
+						if (!Equals(field, value))
+						{
+							field = value;
+
+							if (mServiceProcess != null)
+							{
+								// the connection to the local log service is established
+								// => create request
+								Request request = requestFactory();
+
+								// send the request asynchronously
+								Task<bool> task = SendRequestAsync(request, PipeConnectTimeout, CancellationToken.None)
+									.ContinueWith(
+										sendTask =>
+										{
+											try
+											{
+												// abort, if sending the request threw an exception
+												if (sendTask.IsFaulted)
+												{
+													Debug.WriteLine("Sending request to the local log service failed.");
+													if (sendTask.Exception != null)
+													{
+														Debug.WriteLine("Exceptions:");
+														foreach (Exception exception in sendTask.Exception.Flatten().InnerExceptions)
+														{
+															Debug.WriteLine("{0}: {1}", exception.GetType().Name, exception.Message);
+														}
+													}
+
+													return false;
+												}
+
+												// abort, if sending the request has been canceled
+												if (sendTask.IsCanceled)
+													return false;
+
+												// the request was successfully sent to the local log service
+												// => retrieve the reply
+												Reply reply = sendTask.Result;
+
+												// process the reply
+												return replyProcessing(request, reply);
+											}
+											finally
+											{
+												// the send task has been completed
+												lock (mSync)
+												{
+													Debug.Assert(mSendSettingTask != null);
+													Debug.Assert(mSendSettingTask.IsCompleted);
+													mSendSettingTask = null;
+												}
+											}
+										},
+										CancellationToken.None); // continuation must always run...
+
+								return task;
+							}
+						}
+
+						break;
+					}
+				}
+
+				// another task sending the setting to the local log service is already running
+				// => wait some time and try again
+				Thread.Sleep(50);
+			}
+
+			return Task.CompletedTask;
 		}
 
 		#endregion
@@ -718,123 +901,123 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Sends a start marker to the local log service.
 		/// </summary>
-		private void SendStartMarker()
+		private unsafe void SendStartMarker()
 		{
-			lock (mSync)
-			{
-				// try to get a free block from the queue
-				var block = GetLogEntryBlock();
+			Debug.Assert(Monitor.IsEntered(mSync));
 
-				if (block != null)
-				{
-					// got a free block
-					// => put command into it and return
-					block->Type = LogEntryBlockType.StartMarker;
-					block->StartMarker.MaxLogLevelCount = -1; // unlimited
-					mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
-					mLostMessageCount = 0;
-				}
-				else
-				{
-					// no free block in the queue
-					// => lost connection to the local log service
-					throw new LocalLogServiceCommunicationException("No free block available, sending start marker failed.");
-				}
+			// try to get a free block from the queue
+			LogEntryBlock* block = GetLogEntryBlock();
+
+			if (block != null)
+			{
+				// got a free block
+				// => put command into it and return
+				block->Type = LogEntryBlockType.StartMarker;
+				block->StartMarker.MaxLogLevelCount = -1; // unlimited
+				mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
+				mLostMessageCount = 0;
+			}
+			else
+			{
+				// no free block in the queue
+				// => lost connection to the local log service
+				throw new LocalLogServiceCommunicationException("No free block available, sending start marker failed.");
 			}
 		}
 
 		/// <summary>
 		/// Sends the name of the application to the local log service.
 		/// </summary>
-		private void SendApplicationName()
+		private unsafe void SendApplicationName()
 		{
-			lock (mSync)
+			Debug.Assert(Monitor.IsEntered(mSync));
+
+			// try to get a free block from the queue
+			LogEntryBlock* block = GetLogEntryBlock();
+
+			if (block != null)
 			{
-				// try to get a free block from the queue
-				var block = GetLogEntryBlock();
+				// got a free block
 
-				if (block != null)
+				// put command into it
+				block->Type = LogEntryBlockType.SetApplicationName;
+				int charsToCopy = Math.Min(Log.ApplicationName.Length, LogEntryBlock_SetApplicationName.ApplicationNameSize);
+				fixed (char* pApplicationName = Log.ApplicationName)
 				{
-					// got a free block
-
-					// put command into it
-					block->Type = LogEntryBlockType.SetApplicationName;
-					int charsToCopy = Math.Min(Log.ApplicationName.Length, LogEntryBlock_SetApplicationName.ApplicationNameSize);
-					fixed (char* pApplicationName = Log.ApplicationName)
-					{
-						Buffer.MemoryCopy(
-							pApplicationName,
-							block->SetApplicationName.ApplicationName,
-							LogEntryBlock_SetApplicationName.ApplicationNameSize * sizeof(char),
-							charsToCopy * sizeof(char));
-					}
-
-					// terminate the string, if necessary
-					if (charsToCopy < LogEntryBlock_SetApplicationName.ApplicationNameSize)
-					{
-						block->SetApplicationName.ApplicationName[charsToCopy] = (char)0;
-					}
-
-					// write the block
-					mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
-					mLostMessageCount = 0;
+					Buffer.MemoryCopy(
+						pApplicationName,
+						block->SetApplicationName.ApplicationName,
+						LogEntryBlock_SetApplicationName.ApplicationNameSize * sizeof(char),
+						charsToCopy * sizeof(char));
 				}
-				else
+
+				// terminate the string, if necessary
+				if (charsToCopy < LogEntryBlock_SetApplicationName.ApplicationNameSize)
 				{
-					// no free block in the queue
-					// => lost connection to the local log service
-					throw new LocalLogServiceCommunicationException("No free block available, sending application name failed.");
+					block->SetApplicationName.ApplicationName[charsToCopy] = (char)0;
 				}
+
+				// write the block
+				mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
+				mLostMessageCount = 0;
+			}
+			else
+			{
+				// no free block in the queue
+				// => lost connection to the local log service
+				throw new LocalLogServiceCommunicationException("No free block available, sending application name failed.");
 			}
 		}
 
 		/// <summary>
 		/// Sends all log levels known to the logging subsystem to the local log service.
 		/// </summary>
-		private void SendLogLevels()
+		private unsafe void SendLogLevels()
 		{
-			lock (mSync)
+			Debug.Assert(Monitor.IsEntered(mSync));
+
+			LogLevel[] levels = LogLevel.KnownLevels.ToArray();
+			foreach (LogLevel level in levels)
 			{
-				var levels = LogLevel.KnownLevels.ToArray();
-				foreach (var level in levels)
+				Debug.Assert(level.Id == mLastSentLogLevelId + 1);
+
+				// try to get a free block from the queue
+				LogEntryBlock* block = GetLogEntryBlock();
+
+				if (block != null)
 				{
-					// try to get a free block from the queue
-					var block = GetLogEntryBlock();
+					// got a free block
 
-					if (block != null)
+					// put command into it
+					block->Type = LogEntryBlockType.AddLogLevelName;
+					block->AddLogLevelName.Identifier = level.Id;
+					string logLevelName = MapLogLevel(level);
+					int charsToCopy = Math.Min(logLevelName.Length, LogEntryBlock_AddLogLevelName.LogLevelNameSize);
+					fixed (char* pLevelName = logLevelName)
 					{
-						// got a free block
-
-						// put command into it
-						block->Type = LogEntryBlockType.AddLogLevelName;
-						block->AddLogLevelName.Identifier = level.Id;
-						string logLevelName = MapLogLevel(level);
-						int charsToCopy = Math.Min(logLevelName.Length, LogEntryBlock_AddLogLevelName.LogLevelNameSize);
-						fixed (char* pLevelName = logLevelName)
-						{
-							Buffer.MemoryCopy(
-								pLevelName,
-								block->AddLogLevelName.LogLevelName,
-								LogEntryBlock_AddLogLevelName.LogLevelNameSize * sizeof(char),
-								charsToCopy * sizeof(char));
-						}
-
-						// terminate the string, if necessary
-						if (charsToCopy < LogEntryBlock_AddLogLevelName.LogLevelNameSize)
-						{
-							block->AddLogLevelName.LogLevelName[charsToCopy] = (char)0;
-						}
-
-						// write the block
-						mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
-						mLostMessageCount = 0;
+						Buffer.MemoryCopy(
+							pLevelName,
+							block->AddLogLevelName.LogLevelName,
+							LogEntryBlock_AddLogLevelName.LogLevelNameSize * sizeof(char),
+							charsToCopy * sizeof(char));
 					}
-					else
+
+					// terminate the string, if necessary
+					if (charsToCopy < LogEntryBlock_AddLogLevelName.LogLevelNameSize)
 					{
-						// no free block in the queue
-						// => lost connection to the local log service
-						throw new LocalLogServiceCommunicationException("No free block available, sending log level failed.");
+						block->AddLogLevelName.LogLevelName[charsToCopy] = (char)0;
 					}
+
+					// write the block
+					mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
+					mLastSentLogLevelId = level.Id;
+					mLostMessageCount = 0;
+				}
+				else
+				{
+					// no free block in the queue
+					// => lost connection to the local log service
+					throw new LocalLogServiceCommunicationException("No free block available, sending log level failed.");
 				}
 			}
 		}
@@ -842,49 +1025,51 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Sends all source names known to the logging subsystem to the local log service.
 		/// </summary>
-		private void SendSourceNames()
+		private unsafe void SendSourceNames()
 		{
-			lock (mSync)
+			Debug.Assert(Monitor.IsEntered(mSync));
+
+			LogWriter[] writers = LogWriter.KnownWriters.ToArray();
+			foreach (LogWriter writer in writers)
 			{
-				var writers = LogWriter.KnownWriters.ToArray();
-				foreach (var writer in writers)
+				Debug.Assert(writer.Id == mLastSentLogWriterId + 1);
+
+				// try to get a free block from the queue
+				LogEntryBlock* block = GetLogEntryBlock();
+
+				if (block != null)
 				{
-					// try to get a free block from the queue
-					var block = GetLogEntryBlock();
+					// got a free block
 
-					if (block != null)
+					// put command into it
+					block->Type = LogEntryBlockType.AddSourceName;
+					block->AddSourceName.Identifier = writer.Id;
+					int charsToCopy = Math.Min(writer.Name.Length, LogEntryBlock_AddSourceName.SourceNameSize);
+					fixed (char* pWriterName = writer.Name)
 					{
-						// got a free block
-
-						// put command into it
-						block->Type = LogEntryBlockType.AddSourceName;
-						block->AddSourceName.Identifier = writer.Id;
-						int charsToCopy = Math.Min(writer.Name.Length, LogEntryBlock_AddSourceName.SourceNameSize);
-						fixed (char* pWriterName = writer.Name)
-						{
-							Buffer.MemoryCopy(
-								pWriterName,
-								block->AddSourceName.SourceName,
-								LogEntryBlock_AddSourceName.SourceNameSize * sizeof(char),
-								charsToCopy * sizeof(char));
-						}
-
-						// terminate the string, if necessary
-						if (charsToCopy < LogEntryBlock_AddSourceName.SourceNameSize)
-						{
-							block->AddSourceName.SourceName[charsToCopy] = (char)0;
-						}
-
-						// write the block
-						mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
-						mLostMessageCount = 0;
+						Buffer.MemoryCopy(
+							pWriterName,
+							block->AddSourceName.SourceName,
+							LogEntryBlock_AddSourceName.SourceNameSize * sizeof(char),
+							charsToCopy * sizeof(char));
 					}
-					else
+
+					// terminate the string, if necessary
+					if (charsToCopy < LogEntryBlock_AddSourceName.SourceNameSize)
 					{
-						// no free block in the queue
-						// => lost connection to the local log service
-						throw new LocalLogServiceCommunicationException("No free block available, sending log level failed.");
+						block->AddSourceName.SourceName[charsToCopy] = (char)0;
 					}
+
+					// write the block
+					mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
+					mLastSentLogWriterId = writer.Id;
+					mLostMessageCount = 0;
+				}
+				else
+				{
+					// no free block in the queue
+					// => lost connection to the local log service
+					throw new LocalLogServiceCommunicationException("No free block available, sending log level failed.");
 				}
 			}
 		}
@@ -894,13 +1079,19 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to send.</param>
 		/// <returns>
-		/// true, if the message was successfully enqueued;
-		/// false, if the queue is full.
+		/// <c>true</c> if the message was successfully enqueued;
+		/// <c>false</c> if the queue is full.
 		/// </returns>
 		public bool EnqueueMessage(LocalLogMessage message)
 		{
+			Debug.Assert(!Monitor.IsEntered(mSync));
+
 			lock (mSync)
 			{
+				// abort, if the connection is down
+				if (mServiceProcess == null)
+					return false;
+
 				// try to enqueue the message into the shared memory queue
 				if (EnqueueMessage(message, false))
 					return true;
@@ -924,176 +1115,175 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to send.</param>
 		/// <param name="defer">
-		/// true to put the message into the peak buffer queue;
-		/// false to put the message directly into the shared memory queue.
+		/// <c>true</c> to put the message into the peak buffer queue;
+		/// <c>false</c> to put the message directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// true, if the message was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the message was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
-		private bool EnqueueMessage(LocalLogMessage message, bool defer)
+		private unsafe bool EnqueueMessage(LocalLogMessage message, bool defer)
 		{
-			lock (mSync)
+			Debug.Assert(Monitor.IsEntered(mSync));
+
+			long timestamp = message.Timestamp.ToUniversalTime().ToFileTime();
+			long highPrecisionTimestamp = (message.HighPrecisionTimestamp + 500) / 1000; // ns => µs
+
+			if (defer || mServiceProcess != null)
 			{
-				long timestamp = message.Timestamp.ToUniversalTime().ToFileTime();
-				long highPrecisionTimestamp = (message.HighPrecisionTimestamp + 500) / 1000; // ns => µs
-
-				if (defer || mServiceProcess != null)
+				// get an empty block
+				LogEntryBlock* firstBlock;
+				if (defer)
 				{
-					// get an empty block
-					LogEntryBlock* firstBlock;
-					if (defer)
+					LogEntryBlock* b = stackalloc LogEntryBlock[1];
+					firstBlock = b;
+				}
+				else
+				{
+					firstBlock = GetLogEntryBlock();
+				}
+
+				if (firstBlock != null)
+				{
+					// write the first part of the message (and in most cases the only one...)
+					firstBlock->Type = LogEntryBlockType.Message;
+					firstBlock->Reserved = 0;
+					firstBlock->Message.Timestamp = timestamp;
+					firstBlock->Message.HighPrecisionTimestamp = highPrecisionTimestamp;
+					firstBlock->Message.LogLevelNameId = message.LogLevel.Id;
+					firstBlock->Message.SourceNameId = message.LogWriter.Id;
+					firstBlock->Message.ProcessId = sCurrentProcessId;
+					firstBlock->Message.MessageExtensionCount = 0;
+					int charsToCopy = Math.Min(message.Text.Length, LogEntryBlock_Message.MessageSize);
+
+					fixed (char* pMessage = message.Text)
 					{
-						var b = stackalloc LogEntryBlock[1];
-						firstBlock = b;
+						Buffer.MemoryCopy(
+							pMessage,
+							firstBlock->Message.Message,
+							LogEntryBlock_Message.MessageSize * sizeof(char),
+							charsToCopy * sizeof(char));
 					}
-					else
+
+					// terminate the message, if it is shorter than the buffer
+					if (charsToCopy < LogEntryBlock_Message.MessageSize)
 					{
-						firstBlock = GetLogEntryBlock();
+						firstBlock->Message.Message[charsToCopy] = (char)0;
 					}
 
-					if (firstBlock != null)
+					if (message.Text.Length <= LogEntryBlock_Message.MessageSize)
 					{
-						// write the first part of the message (and in most cases the only one...)
-						firstBlock->Type = LogEntryBlockType.Message;
-						firstBlock->Reserved = 0;
-						firstBlock->Message.Timestamp = timestamp;
-						firstBlock->Message.HighPrecisionTimestamp = highPrecisionTimestamp;
-						firstBlock->Message.LogLevelNameId = message.LogLevel.Id;
-						firstBlock->Message.SourceNameId = message.LogWriter.Id;
-						firstBlock->Message.ProcessId = sCurrentProcessId;
-						firstBlock->Message.MessageExtensionCount = 0;
-						int charsToCopy = Math.Min(message.Text.Length, LogEntryBlock_Message.MessageSize);
-
-						fixed (char* pMessage = message.Text)
-						{
-							Buffer.MemoryCopy(
-								pMessage,
-								firstBlock->Message.Message,
-								LogEntryBlock_Message.MessageSize * sizeof(char),
-								charsToCopy * sizeof(char));
-						}
-
-						// terminate the message, if it is shorter than the buffer
-						if (charsToCopy < LogEntryBlock_Message.MessageSize)
-						{
-							firstBlock->Message.Message[charsToCopy] = (char)0;
-						}
-
-						if (message.Text.Length <= LogEntryBlock_Message.MessageSize)
-						{
-							// message fits into a single buffer
-							// => enqueue block
-							if (defer)
-							{
-								mPeakBufferQueue.Enqueue(*firstBlock);
-							}
-							else
-							{
-								mSharedMemoryQueue.EndWriting(firstBlock, sizeof(LogEntryBlock), mLostMessageCount);
-								mLostMessageCount = 0;
-							}
-
-							return true;
-						}
-
-						// message does not fit into a single buffer
-
-						// determine the amount of space needed
-						int requiredLength = message.Text.Length;
-						const int maxExtensionMessageLength = LogEntryBlock_MessageExtension.MessageSize;
-						int requiredExtensionMessages = (requiredLength - LogEntryBlock_Message.MessageSize + maxExtensionMessageLength - 1) / maxExtensionMessageLength;
-						Debug.Assert(requiredExtensionMessages > 0);
-
-						// update the first log entry block to store the correct amount of following messages
-						// extending the first one
-						firstBlock->Message.MessageExtensionCount = requiredExtensionMessages;
-
-						// get enough blocks to store the resulting message
-						var blocks = stackalloc LogEntryBlock*[requiredExtensionMessages + 1];
-						int* bytesWritten = stackalloc int[requiredExtensionMessages + 1];
-						blocks[0] = firstBlock;
-						bytesWritten[0] = sizeof(LogEntryBlock);
-
+						// message fits into a single buffer
+						// => enqueue block
 						if (defer)
 						{
-							var b2 = stackalloc LogEntryBlock[requiredExtensionMessages];
-							for (int i = 1; i <= requiredExtensionMessages; i++) blocks[i] = &b2[i - 1];
+							mPeakBufferQueue.Enqueue(*firstBlock);
 						}
 						else
 						{
-							for (int i = 1; i <= requiredExtensionMessages; i++)
-							{
-								blocks[i] = GetLogEntryBlock();
-
-								if (blocks[i] == null)
-								{
-									// no free block left
-									// => release already allocated blocks and abort...
-									if (mSharedMemoryQueue.IsInitialized) // GetLogEntryBlock() might have shut the queue down...
-									{
-										for (int j = 0; j < i; j++)
-										{
-											mSharedMemoryQueue.AbortWriting(blocks[j]);
-										}
-									}
-
-									return false;
-								}
-							}
-						}
-
-						// initialize the log entry blocks appropriately
-						int offset = LogEntryBlock_Message.MessageSize;
-						int charsRemaining = requiredLength - LogEntryBlock_Message.MessageSize;
-						fixed (char* pMessage = message.Text)
-						{
-							for (int i = 1; i <= requiredExtensionMessages; i++)
-							{
-								Debug.Assert(charsRemaining > 0);
-								bytesWritten[i] = sizeof(LogEntryBlock);
-								blocks[i]->Type = LogEntryBlockType.MessageExtension;
-								blocks[i]->Reserved = 0;
-
-								charsToCopy = Math.Min(LogEntryBlock_MessageExtension.MessageSize, charsRemaining);
-
-								Buffer.MemoryCopy(
-									pMessage + offset,
-									blocks[i]->MessageExtension.Message,
-									LogEntryBlock_MessageExtension.MessageSize * sizeof(char),
-									charsToCopy * sizeof(char));
-
-								if (charsToCopy < LogEntryBlock_MessageExtension.MessageSize)
-								{
-									blocks[i]->MessageExtension.Message[charsToCopy] = (char)0;
-								}
-
-								offset += charsToCopy;
-								charsRemaining -= charsToCopy;
-							}
-						}
-
-						// enqueue sequence of log entry blocks
-						if (defer)
-						{
-							for (int i = 0; i < requiredExtensionMessages + 1; i++)
-							{
-								mPeakBufferQueue.Enqueue(*blocks[i]);
-							}
-						}
-						else
-						{
-							mSharedMemoryQueue.EndWritingSequence((void**)blocks, bytesWritten, requiredExtensionMessages + 1, mLostMessageCount);
+							mSharedMemoryQueue.EndWriting(firstBlock, sizeof(LogEntryBlock), mLostMessageCount);
 							mLostMessageCount = 0;
 						}
 
 						return true;
 					}
-				}
 
-				// enqueuing message failed
-				return false;
+					// message does not fit into a single buffer
+
+					// determine the amount of space needed
+					int requiredLength = message.Text.Length;
+					const int maxExtensionMessageLength = LogEntryBlock_MessageExtension.MessageSize;
+					int requiredExtensionMessages = (requiredLength - LogEntryBlock_Message.MessageSize + maxExtensionMessageLength - 1) / maxExtensionMessageLength;
+					Debug.Assert(requiredExtensionMessages > 0);
+
+					// update the first log entry block to store the correct amount of following messages
+					// extending the first one
+					firstBlock->Message.MessageExtensionCount = requiredExtensionMessages;
+
+					// get enough blocks to store the resulting message
+					LogEntryBlock** blocks = stackalloc LogEntryBlock*[requiredExtensionMessages + 1];
+					int* bytesWritten = stackalloc int[requiredExtensionMessages + 1];
+					blocks[0] = firstBlock;
+					bytesWritten[0] = sizeof(LogEntryBlock);
+
+					if (defer)
+					{
+						LogEntryBlock* b2 = stackalloc LogEntryBlock[requiredExtensionMessages];
+						for (int i = 1; i <= requiredExtensionMessages; i++) blocks[i] = &b2[i - 1];
+					}
+					else
+					{
+						for (int i = 1; i <= requiredExtensionMessages; i++)
+						{
+							blocks[i] = GetLogEntryBlock();
+
+							if (blocks[i] == null)
+							{
+								// no free block left
+								// => release already allocated blocks and abort...
+								if (mSharedMemoryQueue.IsInitialized) // GetLogEntryBlock() might have shut the queue down...
+								{
+									for (int j = 0; j < i; j++)
+									{
+										mSharedMemoryQueue.AbortWriting(blocks[j]);
+									}
+								}
+
+								return false;
+							}
+						}
+					}
+
+					// initialize the log entry blocks appropriately
+					int offset = LogEntryBlock_Message.MessageSize;
+					int charsRemaining = requiredLength - LogEntryBlock_Message.MessageSize;
+					fixed (char* pMessage = message.Text)
+					{
+						for (int i = 1; i <= requiredExtensionMessages; i++)
+						{
+							Debug.Assert(charsRemaining > 0);
+							bytesWritten[i] = sizeof(LogEntryBlock);
+							blocks[i]->Type = LogEntryBlockType.MessageExtension;
+							blocks[i]->Reserved = 0;
+
+							charsToCopy = Math.Min(LogEntryBlock_MessageExtension.MessageSize, charsRemaining);
+
+							Buffer.MemoryCopy(
+								pMessage + offset,
+								blocks[i]->MessageExtension.Message,
+								LogEntryBlock_MessageExtension.MessageSize * sizeof(char),
+								charsToCopy * sizeof(char));
+
+							if (charsToCopy < LogEntryBlock_MessageExtension.MessageSize)
+							{
+								blocks[i]->MessageExtension.Message[charsToCopy] = (char)0;
+							}
+
+							offset += charsToCopy;
+							charsRemaining -= charsToCopy;
+						}
+					}
+
+					// enqueue sequence of log entry blocks
+					if (defer)
+					{
+						for (int i = 0; i < requiredExtensionMessages + 1; i++)
+						{
+							mPeakBufferQueue.Enqueue(*blocks[i]);
+						}
+					}
+					else
+					{
+						mSharedMemoryQueue.EndWritingSequence((void**)blocks, bytesWritten, requiredExtensionMessages + 1, mLostMessageCount);
+						mLostMessageCount = 0;
+					}
+
+					return true;
+				}
 			}
+
+			// enqueuing message failed
+			return false;
 		}
 
 		/// <summary>
@@ -1102,13 +1292,17 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="level">The added log level.</param>
 		/// <returns>
-		/// true, if the notification was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the notification was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		public bool EnqueueLogLevelAddedNotification(LogLevel level)
 		{
 			lock (mSync)
 			{
+				// abort, if the connection is down
+				if (mServiceProcess == null)
+					return false;
+
 				// try to enqueue the notification into the shared memory queue
 				if (EnqueueLogLevelAddedNotification(level, false))
 					return true;
@@ -1125,73 +1319,74 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="level">The added log level.</param>
 		/// <param name="defer">
-		/// true to put the notification into the peak buffer queue;
-		/// false to put the notification directly into the shared memory queue.
+		/// <c>true</c> to put the notification into the peak buffer queue;
+		/// <c>false</c> to put the notification directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// true, if the notification was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the notification was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
-		private bool EnqueueLogLevelAddedNotification(LogLevel level, bool defer)
+		private unsafe bool EnqueueLogLevelAddedNotification(LogLevel level, bool defer)
 		{
-			lock (mSync)
+			Debug.Assert(Monitor.IsEntered(mSync));
+			Debug.Assert(level.Id == mLastSentLogLevelId + 1);
+
+			if (defer || mServiceProcess != null)
 			{
-				if (defer || mServiceProcess != null)
+				// try to get a free block
+				LogEntryBlock* block;
+				if (defer)
 				{
-					// try to get a free block
-					LogEntryBlock* block;
+					LogEntryBlock* b = stackalloc LogEntryBlock[1];
+					block = b;
+				}
+				else
+				{
+					block = GetLogEntryBlock();
+				}
+
+				if (block != null)
+				{
+					// got a free block
+
+					// prepare notification
+					block->Type = LogEntryBlockType.AddLogLevelName;
+					block->AddLogLevelName.Identifier = level.Id;
+					string logLevelName = MapLogLevel(level);
+					int charsToCopy = Math.Min(logLevelName.Length, LogEntryBlock_AddLogLevelName.LogLevelNameSize);
+					fixed (char* pName = logLevelName)
+					{
+						Buffer.MemoryCopy(
+							pName,
+							block->AddLogLevelName.LogLevelName,
+							LogEntryBlock_AddLogLevelName.LogLevelNameSize * sizeof(char),
+							charsToCopy * sizeof(char));
+					}
+
+					// terminate the message, if it is shorter than the buffer
+					if (charsToCopy < LogEntryBlock_AddLogLevelName.LogLevelNameSize)
+					{
+						block->AddLogLevelName.LogLevelName[charsToCopy] = (char)0;
+					}
+
+					// enqueue notification
 					if (defer)
 					{
-						var b = stackalloc LogEntryBlock[1];
-						block = b;
+						mPeakBufferQueue.Enqueue(*block);
 					}
 					else
 					{
-						block = GetLogEntryBlock();
+						mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
+						mLostMessageCount = 0;
 					}
 
-					if (block != null)
-					{
-						// got a free block
-
-						// prepare notification
-						block->Type = LogEntryBlockType.AddLogLevelName;
-						block->AddLogLevelName.Identifier = level.Id;
-						string logLevelName = MapLogLevel(level);
-						int charsToCopy = Math.Min(logLevelName.Length, LogEntryBlock_AddLogLevelName.LogLevelNameSize);
-						fixed (char* pName = logLevelName)
-						{
-							Buffer.MemoryCopy(
-								pName,
-								block->AddLogLevelName.LogLevelName,
-								LogEntryBlock_AddLogLevelName.LogLevelNameSize * sizeof(char),
-								charsToCopy * sizeof(char));
-						}
-
-						// terminate the message, if it is shorter than the buffer
-						if (charsToCopy < LogEntryBlock_AddLogLevelName.LogLevelNameSize)
-						{
-							block->AddLogLevelName.LogLevelName[charsToCopy] = (char)0;
-						}
-
-						// enqueue notification
-						if (defer)
-						{
-							mPeakBufferQueue.Enqueue(*block);
-						}
-						else
-						{
-							mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
-							mLostMessageCount = 0;
-						}
-
-						return true;
-					}
+					mLastSentLogLevelId = level.Id;
+					return true;
 				}
-
-				// enqueuing notification failed
-				return false;
 			}
+
+			// enqueuing notification failed
+			return false;
 		}
 
 		/// <summary>
@@ -1200,13 +1395,17 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">The added log writer.</param>
 		/// <returns>
-		/// true, if the notification was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the notification was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		public bool EnqueueLogWriterAddedNotification(LogWriter writer)
 		{
 			lock (mSync)
 			{
+				// abort, if the connection is down
+				if (mServiceProcess == null)
+					return false;
+
 				// try to enqueue the notification into the shared memory queue
 				if (EnqueueLogWriterAddedNotification(writer, false))
 					return true;
@@ -1223,83 +1422,86 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">The added log writer.</param>
 		/// <param name="defer">
-		/// true to put the notification into the peak buffer queue;
-		/// false to put the notification directly into the shared memory queue.
+		/// <c>true</c> to put the notification into the peak buffer queue;
+		/// <c>false</c> to put the notification directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// true, if the notification was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the notification was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
-		private bool EnqueueLogWriterAddedNotification(LogWriter writer, bool defer)
+		private unsafe bool EnqueueLogWriterAddedNotification(LogWriter writer, bool defer)
 		{
-			lock (mSync)
+			Debug.Assert(Monitor.IsEntered(mSync));
+			Debug.Assert(writer.Id == mLastSentLogWriterId + 1);
+
+			if (defer || mServiceProcess != null)
 			{
-				if (defer || mServiceProcess != null)
+				// try to get a free block
+				LogEntryBlock* block;
+				if (defer)
 				{
-					// try to get a free block
-					LogEntryBlock* block;
+					LogEntryBlock* b = stackalloc LogEntryBlock[1];
+					block = b;
+				}
+				else
+				{
+					block = GetLogEntryBlock();
+				}
+
+				if (block != null)
+				{
+					// got a free block
+
+					// prepare notification
+					block->Type = LogEntryBlockType.AddSourceName;
+					block->AddSourceName.Identifier = writer.Id;
+					int charsToCopy = Math.Min(writer.Name.Length, LogEntryBlock_AddSourceName.SourceNameSize);
+					fixed (char* pName = writer.Name)
+					{
+						Buffer.MemoryCopy(
+							pName,
+							block->AddSourceName.SourceName,
+							LogEntryBlock_AddSourceName.SourceNameSize * sizeof(char),
+							charsToCopy * sizeof(char));
+					}
+
+					// terminate the message, if it is shorter than the buffer
+					if (charsToCopy < LogEntryBlock_AddSourceName.SourceNameSize)
+					{
+						block->AddSourceName.SourceName[charsToCopy] = (char)0;
+					}
+
+					// enqueue notification
 					if (defer)
 					{
-						var b = stackalloc LogEntryBlock[1];
-						block = b;
+						mPeakBufferQueue.Enqueue(*block);
 					}
 					else
 					{
-						block = GetLogEntryBlock();
+						mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
+						mLostMessageCount = 0;
 					}
 
-					if (block != null)
-					{
-						// got a free block
-
-						// prepare notification
-						block->Type = LogEntryBlockType.AddSourceName;
-						block->AddSourceName.Identifier = writer.Id;
-						int charsToCopy = Math.Min(writer.Name.Length, LogEntryBlock_AddSourceName.SourceNameSize);
-						fixed (char* pName = writer.Name)
-						{
-							Buffer.MemoryCopy(
-								pName,
-								block->AddSourceName.SourceName,
-								LogEntryBlock_AddSourceName.SourceNameSize * sizeof(char),
-								charsToCopy * sizeof(char));
-						}
-
-						// terminate the message, if it is shorter than the buffer
-						if (charsToCopy < LogEntryBlock_AddSourceName.SourceNameSize)
-						{
-							block->AddSourceName.SourceName[charsToCopy] = (char)0;
-						}
-
-						// enqueue notification
-						if (defer)
-						{
-							mPeakBufferQueue.Enqueue(*block);
-						}
-						else
-						{
-							mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
-							mLostMessageCount = 0;
-						}
-
-						return true;
-					}
+					mLastSentLogWriterId = writer.Id;
+					return true;
 				}
-
-				// enqueuing notification failed
-				return false;
 			}
+
+			// enqueuing notification failed
+			return false;
 		}
 
 		/// <summary>
 		/// Enqueues a command telling the log viewer to clear its view.
 		/// </summary>
 		/// <returns>
-		/// true, if the command was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the command was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		public bool EnqueueClearLogViewerCommand()
 		{
+			Debug.Assert(!Monitor.IsEntered(mSync));
+
 			lock (mSync)
 			{
 				// try to enqueue the command into the shared memory queue
@@ -1321,15 +1523,17 @@ namespace GriffinPlus.Lib.Logging
 		/// Enqueues a command telling the log viewer to clear its view.
 		/// </summary>
 		/// <param name="defer">
-		/// true to put the command into the peak buffer queue;
-		/// false to put the command directly into the shared memory queue.
+		/// <c>true</c> to put the command into the peak buffer queue;
+		/// <c>false</c> to put the command directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// true, if the command was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the command was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
-		private bool EnqueueClearLogViewerCommand(bool defer)
+		private unsafe bool EnqueueClearLogViewerCommand(bool defer)
 		{
+			Debug.Assert(!Monitor.IsEntered(mSync));
+
 			lock (mSync)
 			{
 				if (defer || mServiceProcess != null)
@@ -1338,7 +1542,7 @@ namespace GriffinPlus.Lib.Logging
 					LogEntryBlock* block;
 					if (defer)
 					{
-						var b = stackalloc LogEntryBlock[1];
+						LogEntryBlock* b = stackalloc LogEntryBlock[1];
 						block = b;
 					}
 					else
@@ -1379,11 +1583,13 @@ namespace GriffinPlus.Lib.Logging
 		/// Enqueues a command telling the local log service to save a snapshot of the current log.
 		/// </summary>
 		/// <returns>
-		/// true, if the command was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the command was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		public bool EnqueueSaveSnapshotCommand()
 		{
+			Debug.Assert(!Monitor.IsEntered(mSync));
+
 			lock (mSync)
 			{
 				// try to enqueue the command into the shared memory queue
@@ -1405,67 +1611,66 @@ namespace GriffinPlus.Lib.Logging
 		/// Enqueues a command telling the local log service to save a snapshot of the current log.
 		/// </summary>
 		/// <param name="defer">
-		/// true to put the command into the peak buffer queue;
-		/// false to put the command directly into the shared memory queue.
+		/// <c>true</c> to put the command into the peak buffer queue;
+		/// <c>false</c> to put the command directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// true, if the command was successfully enqueued;
-		/// false, if the queue is full and lossless mode is disabled.
+		/// <c>true</c> if the command was successfully enqueued;
+		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
-		private bool EnqueueSaveSnapshotCommand(bool defer)
+		private unsafe bool EnqueueSaveSnapshotCommand(bool defer)
 		{
-			lock (mSync)
+			Debug.Assert(Monitor.IsEntered(mSync));
+
+			if (defer || mServiceProcess != null)
 			{
-				if (defer || mServiceProcess != null)
+				// try to get a free block
+				LogEntryBlock* block;
+				if (defer)
 				{
-					// try to get a free block
-					LogEntryBlock* block;
+					LogEntryBlock* b = stackalloc LogEntryBlock[1];
+					block = b;
+				}
+				else
+				{
+					block = GetLogEntryBlock();
+				}
+
+				if (block != null)
+				{
+					// got a free block
+
+					// prepare command and send it
+					block->Type = LogEntryBlockType.SaveSnapshot;
+					block->SaveSnapshot.Timestamp = LogWriter.GetTimestamp().ToUniversalTime().ToFileTime();
+					block->SaveSnapshot.HighPrecisionTimestamp = (LogWriter.GetHighPrecisionTimestamp() + 500) / 1000; // ns => µs
+					block->SaveSnapshot.ProcessId = sCurrentProcessId;
+
+					// enqueue command
 					if (defer)
 					{
-						var b = stackalloc LogEntryBlock[1];
-						block = b;
+						mPeakBufferQueue.Enqueue(*block);
 					}
 					else
 					{
-						block = GetLogEntryBlock();
+						mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
+						mLostMessageCount = 0;
 					}
 
-					if (block != null)
-					{
-						// got a free block
-
-						// prepare command and send it
-						block->Type = LogEntryBlockType.SaveSnapshot;
-						block->SaveSnapshot.Timestamp = LogWriter.GetTimestamp().ToUniversalTime().ToFileTime();
-						block->SaveSnapshot.HighPrecisionTimestamp = (LogWriter.GetHighPrecisionTimestamp() + 500) / 1000; // ns => µs
-						block->SaveSnapshot.ProcessId = sCurrentProcessId;
-
-						// enqueue command
-						if (defer)
-						{
-							mPeakBufferQueue.Enqueue(*block);
-						}
-						else
-						{
-							mSharedMemoryQueue.EndWriting(block, sizeof(LogEntryBlock), mLostMessageCount);
-							mLostMessageCount = 0;
-						}
-
-						return true;
-					}
+					return true;
 				}
-
-				// enqueuing command failed
-				return false;
 			}
+
+			// enqueuing command failed
+			return false;
 		}
 
 		/// <summary>
 		/// Gets a free block from the shared memory queue.
 		/// </summary>
 		/// <param name="sendDeferredItems">
-		/// true to send deferred items, if any;
-		/// false to skip sending deferred items (only for use within <see cref="GetLogEntryBlock"/>).
+		/// <c>true</c> to send deferred items, if any;
+		/// <c>false</c> to skip sending deferred items (only for use within <see cref="GetLogEntryBlock"/>).
 		/// </param>
 		/// <returns>
 		/// A free log entry block;
@@ -1475,8 +1680,10 @@ namespace GriffinPlus.Lib.Logging
 		/// This method returns a free block from the log entry queue. If the queue does not contain any
 		/// free blocks, it tries to get a block after a certain time (<see cref="QueueBlockFetchRetryDelayTime"/>).
 		/// </remarks>
-		private LogEntryBlock* GetLogEntryBlock(bool sendDeferredItems = true)
+		private unsafe LogEntryBlock* GetLogEntryBlock(bool sendDeferredItems = true)
 		{
+			Debug.Assert(Monitor.IsEntered(mSync));
+
 			// before returning a free block to the caller all deferred blocks have to be passed to ensure that the
 			// messages/commands/notifications arrive in the correct order
 			if (sendDeferredItems && !SendDeferredItems())
@@ -1494,9 +1701,8 @@ namespace GriffinPlus.Lib.Logging
 				if (!IsLogSinkAlive())
 				{
 					// local log service has died
-					// => initiate shutdown
-					ShutdownConnection();
-					if (mInitialized && mAutoReconnect) StartAutoReconnectTask();
+					// => initiate shutting down asynchronously and trigger to reconnect
+					mTriggerConnectivityMonitorEvent.Set();
 					return null;
 				}
 
@@ -1513,8 +1719,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Tries to transfer all items from the peak buffer queue to the shared memory queue.
 		/// </summary>
 		/// <returns>
-		/// true, if all items have been sent successfully;
-		/// false, if the queue is full or not initialized.
+		/// <c>true</c> if all items have been sent successfully;
+		/// <c>false</c> if the queue is full or not initialized.
 		/// </returns>
 		private bool SendDeferredItems()
 		{
@@ -1526,7 +1732,7 @@ namespace GriffinPlus.Lib.Logging
 
 			while (mPeakBufferQueue.Count > 0)
 			{
-				var block = mPeakBufferQueue.Peek();
+				LogEntryBlock block = mPeakBufferQueue.Peek();
 
 				switch (block.Type)
 				{
@@ -1561,14 +1767,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="extensionMessageCount">Number of extension message blocks following the message block..</param>
 		/// <returns>
-		/// true, if the message block and all extension blocks have been sent successfully;
-		/// false, if the queue is full.
+		/// <c>true</c> if the message block and all extension blocks have been sent successfully;
+		/// <c>false</c> if the queue is full.
 		/// </returns>
-		private bool SendDeferredItems_Message(int extensionMessageCount)
+		private unsafe bool SendDeferredItems_Message(int extensionMessageCount)
 		{
 			// allocate enough blocks for the message block incl. its extension blocks
 			int requiredBlockCount = extensionMessageCount + 1;
-			var blocks = stackalloc LogEntryBlock*[requiredBlockCount];
+			LogEntryBlock** blocks = stackalloc LogEntryBlock*[requiredBlockCount];
 			int* blockSizes = stackalloc int[requiredBlockCount];
 			for (int i = 0; i < requiredBlockCount; i++)
 			{
@@ -1592,7 +1798,7 @@ namespace GriffinPlus.Lib.Logging
 			for (int i = 0; i < requiredBlockCount; i++)
 			{
 				// there should be enough blocks in the queue, otherwise the enqueuing operation is broken...
-				var block = mPeakBufferQueue.Dequeue();
+				LogEntryBlock block = mPeakBufferQueue.Dequeue();
 				Buffer.MemoryCopy(&block, blocks[i], sizeof(LogEntryBlock), sizeof(LogEntryBlock));
 			}
 
@@ -1606,14 +1812,14 @@ namespace GriffinPlus.Lib.Logging
 		/// Tries to transfer the current block from the peak buffer queue to the shared memory queue.
 		/// </summary>
 		/// <returns>
-		/// true, if the block has been sent successfully;
-		/// false, if the queue is full.
+		/// <c>true</c> if the block has been sent successfully;
+		/// <c>false</c> if the queue is full.
 		/// </returns>
-		private bool SendDeferredItems_SingleBlock()
+		private unsafe bool SendDeferredItems_SingleBlock()
 		{
-			var pBlock = GetLogEntryBlock(false);
+			LogEntryBlock* pBlock = GetLogEntryBlock(false);
 			if (pBlock == null) return false;
-			var block = mPeakBufferQueue.Dequeue();
+			LogEntryBlock block = mPeakBufferQueue.Dequeue();
 			Buffer.MemoryCopy(&block, pBlock, sizeof(LogEntryBlock), sizeof(LogEntryBlock));
 			mSharedMemoryQueue.EndWriting(pBlock, sizeof(LogEntryBlock), mLostMessageCount);
 			mLostMessageCount = 0;
