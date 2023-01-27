@@ -5,6 +5,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
@@ -179,7 +180,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				for (int i = 0; i < mMessagesPreparedToSend.Count; i++)
 				{
 					// serialize indexing request
-					var message = mMessagesPreparedToSend[i];
+					LocalLogMessage message = mMessagesPreparedToSend[i];
 					SerializeIndexingRequest(message);
 
 					// determine whether the maximum request size is exceeded
@@ -303,7 +304,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				try
 				{
 					// get http response out of the task
-					var response = mSendBulkRequestTask.WaitAndUnwrapException(); // should return immediately
+					HttpResponseMessage response = mSendBulkRequestTask.WaitAndUnwrapException(); // should return immediately
 
 					if (response.StatusCode == HttpStatusCode.OK)
 					{
@@ -318,7 +319,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						{
 							// there are messages that were not indexed successfully
 							// => evaluate the the response
-							var bulkResponseItems = bulkResponse.Items;
+							List<BulkResponse.Item> bulkResponseItems = bulkResponse.Items;
 							for (int i = bulkResponseItems.Count - 1; i >= 0; i--)
 							{
 								int status = bulkResponseItems[i].Create.Status;

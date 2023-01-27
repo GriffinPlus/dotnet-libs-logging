@@ -437,13 +437,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				// tell the processing thread to shut down
 				mIsShutdownRequested = true;
 
-				// cancel hanging operations after some time if the stage is operational,
-				// otherwise cancel the processing thread immediately to avoid hanging unnecessarily
-				if (mShutdownCancellationTokenSource != null)
-				{
-					if (mIsOperational) mShutdownCancellationTokenSource.CancelAfter(MaxProcessingOverrunTimeMs);
-					else mShutdownCancellationTokenSource.Cancel();
-				}
+				// cancel waiting for the next processing loop in the processing thread
+				mShutdownCancellationTokenSource?.Cancel();
 
 				// release processing thread, so it can terminate, if appropriate
 				mProcessingNeededEvent?.Set();
@@ -459,10 +454,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			}
 
 			// discard messages that are still in the processing queue
-			// (under normal conditions there should be nothing left)
 			lock (mProcessingQueue)
 			{
-				Debug.Assert(mProcessingQueue.Count == 0);
 				while (mProcessingQueue.Count > 0)
 				{
 					mProcessingQueue.RemoveFromFront().Release();
@@ -546,8 +539,15 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <param name="obj">The cancellation token that is signaled when the stage has exceeded its time to shut down gracefully.</param>
 		private void ProcessingThreadProc(object obj)
 		{
-			var cancellationToken = (CancellationToken)obj;
+			var threadCancellationToken = (CancellationToken)obj;
+			var operationCancellationTokenSource = new CancellationTokenSource();
+			CancellationToken operationCancellationToken = operationCancellationTokenSource.Token;
 			int forcedWait = 0;
+
+			// load the configuration and create endpoints before waiting for work the first time
+			// (endpoints are necessary in the OperationCancelledException handler below to decide whether
+			// to delay the shutdown until one endpoint is operational or all endpoints have failed to connect)
+			ReloadConfigurationIfNecessary();
 
 			try
 			{
@@ -557,8 +557,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 					{
 						// wait for something to do
 						// --------------------------------------------------------------------------------------------------------------
-						if (forcedWait == 0) mProcessingNeededEvent.Wait(cancellationToken);
-						else Task.Delay(forcedWait, cancellationToken).WaitAndUnwrapException(cancellationToken);
+						if (forcedWait == 0) mProcessingNeededEvent.Wait(threadCancellationToken);
+						else Task.Delay(forcedWait, threadCancellationToken).WaitAndUnwrapException(threadCancellationToken);
 						mProcessingNeededEvent.Reset();
 						forcedWait = 0;
 
@@ -576,7 +576,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						// --------------------------------------------------------------------------------------------------------------
 						for (int i = 0; i < mPendingSendOperations.Count; i++)
 						{
-							var operation = mPendingSendOperations[i];
+							SendOperation operation = mPendingSendOperations[i];
 
 							if (operation.HasCompletedSending)
 							{
@@ -615,7 +615,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						// return to waiting, if the currently selected endpoint failed recently (calms the processing loop down, if no endpoint is operational)
 						// (the best choice is always at the beginning of the endpoint list, non-operational endpoints are put to the end of the list)
 						// --------------------------------------------------------------------------------------------------------------
-						var endpoint = mEndpoints[0];
+						EndpointInfo endpoint = mEndpoints[0];
 						int ticks = Environment.TickCount;
 						if (!endpoint.IsOperational && ticks - endpoint.ErrorTickCount < RetryEndpointAfterErrorTimeMs && !mIsShutdownRequested)
 						{
@@ -638,12 +638,12 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							{
 								// get the first available send operation from the list
 								// (may already contain messages)
-								var operation = mFreeSendOperations[0];
+								SendOperation operation = mFreeSendOperations[0];
 
 								// add more messages to the request, if it is not full, yet
 								while (true)
 								{
-									var message = DequeueMessage();
+									LocalLogMessage message = DequeueMessage();
 									if (message == null) break;
 									if (!operation.AddMessage(message))
 									{
@@ -654,7 +654,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 								// abort, if the request buffer does not contain any messages or
 								// the request is not full and there is no request scheduled or already on the line
-								if (operation.MessageCount == 0 || !operation.IsFull && mScheduledSendOperations.Count + mPendingSendOperations.Count != 0)
+								if (operation.MessageCount == 0 || (!operation.IsFull && mScheduledSendOperations.Count + mPendingSendOperations.Count != 0))
 									break;
 
 								// schedule the send operation
@@ -665,25 +665,28 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 						// start scheduled send operations
 						// --------------------------------------------------------------------------------------------------------------
-						while (mScheduledSendOperations.Count > 0 && mPendingSendOperations.Count < mBulkRequestMaxConcurrencyLevel)
+						if (endpoint.IsOperational || !endpoint.HasTriedToConnect || Environment.TickCount - endpoint.ErrorTickCount > RetryEndpointAfterErrorTimeMs)
 						{
-							var operation = mScheduledSendOperations[0];
+							while (mScheduledSendOperations.Count > 0 && mPendingSendOperations.Count < mBulkRequestMaxConcurrencyLevel)
+							{
+								SendOperation operation = mScheduledSendOperations[0];
 
-							// start sending the request
-							if (operation.StartSending(endpoint, cancellationToken))
-							{
-								// the send operation was started successfully
-								// => track operation in the 'in progress' list
-								operation = mScheduledSendOperations.RemoveFromFront();
-								mPendingSendOperations.Add(operation);
-							}
-							else
-							{
-								// the send operation could not be started
-								// => the endpoint seems to be inoperable
-								// (moves the endpoint to the end of the endpoint list, so the next attempt will use another endpoint)
-								SetEndpointOperational(endpoint, false);
-								break;
+								// start sending the request
+								if (operation.StartSending(endpoint, operationCancellationToken))
+								{
+									// the send operation was started successfully
+									// => track operation in the 'in progress' list
+									operation = mScheduledSendOperations.RemoveFromFront();
+									mPendingSendOperations.Add(operation);
+								}
+								else
+								{
+									// the send operation could not be started
+									// => the endpoint seems to be inoperable
+									// (moves the endpoint to the end of the endpoint list, so the next attempt will use another endpoint)
+									SetEndpointOperational(endpoint, false);
+									break;
+								}
 							}
 						}
 
@@ -692,33 +695,54 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						if (!mReloadConfiguration && mPendingSendOperations.Count == 0 && mIsShutdownRequested)
 							break;
 					}
-					catch (Exception ex) when (!(ex is OperationCanceledException))
+					catch (OperationCanceledException ex)
+					{
+						// rethrow to terminate the thread, if the operation cancellation token has been signaled
+						if (ex.CancellationToken == operationCancellationToken)
+							throw;
+
+						// the thread cancellation token should be the token that has been triggered
+						Debug.Assert(ex.CancellationToken == threadCancellationToken);
+						Debug.Assert(mIsShutdownRequested);
+
+						// abort the thread only, if all endpoints have been tried at least once and no endpoint is operational
+						// (otherwise messages might get lost in short running applications)
+						if (mEndpoints.All(x => x.HasTriedToConnect && !x.IsOperational))
+							throw;
+
+						// keep the loop running to send buffered messages
+						operationCancellationTokenSource.CancelAfter(MaxProcessingOverrunTimeMs);
+						threadCancellationToken = operationCancellationToken;
+						TriggerProcessing();
+					}
+					catch (Exception ex)
 					{
 						WritePipelineError("Unhandled exception in ProcessingThreadProc().", ex);
 					}
 				}
 			}
-			catch (OperationCanceledException ex)
+			catch (OperationCanceledException)
 			{
-				// the stage is shutting down and the processing thread has exceeded its overrun time
-				Debug.Assert(ex.CancellationToken == cancellationToken);
-
 				// put scheduled send operations back into the list of free send operations...
-				foreach (var operation in mScheduledSendOperations)
+				foreach (SendOperation operation in mScheduledSendOperations)
 				{
 					operation.Reset();
 					mFreeSendOperations.AddToBack(operation);
 				}
 
 				// put pending send operations back into the list of free send operations...
-				foreach (var operation in mPendingSendOperations)
+				foreach (SendOperation operation in mPendingSendOperations)
 				{
 					operation.Reset();
 					mFreeSendOperations.AddToBack(operation);
 				}
 
 				// ... and reset send operations
-				foreach (var operation in mFreeSendOperations) operation.Reset();
+				foreach (SendOperation operation in mFreeSendOperations) operation.Reset();
+			}
+			finally
+			{
+				operationCancellationTokenSource?.Dispose();
 			}
 		}
 
@@ -754,7 +778,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 				// rebuild request URLs
 				mEndpoints.Clear();
-				foreach (var apiBaseUrl in ApiBaseUrls) mEndpoints.AddToBack(new EndpointInfo(apiBaseUrl));
+				foreach (Uri apiBaseUrl in ApiBaseUrls) mEndpoints.AddToBack(new EndpointInfo(apiBaseUrl));
 				mIsOperational = mEndpoints.Any(x => x.IsOperational);
 
 				// initialize send operations (requests are prepared while other requests are on the line, so the number
@@ -806,16 +830,16 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// use specific username/password for authentication (if configured),
 			// otherwise use credentials of the user currently logged in
-			var authTypes = AuthenticationSchemes;
+			AuthenticationScheme authTypes = AuthenticationSchemes;
 			if (authTypes != AuthenticationScheme.None)
 			{
 				bool useCustomCredentials = !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
-				var credentials = useCustomCredentials
-					                  ? new NetworkCredential(Username, Password, Domain)
-					                  : CredentialCache.DefaultNetworkCredentials;
+				NetworkCredential credentials = useCustomCredentials
+					                                ? new NetworkCredential(Username, Password, Domain)
+					                                : CredentialCache.DefaultNetworkCredentials;
 
 				var cache = new CredentialCache();
-				foreach (var uriPrefix in ApiBaseUrls)
+				foreach (Uri uriPrefix in ApiBaseUrls)
 				{
 					if (useCustomCredentials) // Basic and Digest authentication are not supported with default credentials (security issue)
 					{
@@ -870,6 +894,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// </param>
 		private void SetEndpointOperational(EndpointInfo endpoint, bool isOperational)
 		{
+			endpoint.HasTriedToConnect = true;
 			endpoint.IsOperational = isOperational;
 			mIsOperational = mEndpoints.Any(x => x.IsOperational);
 
@@ -1120,7 +1145,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			// List of keywords used to tag each event.
 			// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-base.html#field-tags
 			// ------------------------------------------------------------------------------------------------------------------
-			var tags = message.Tags;
+			LogWriterTagSet tags = message.Tags;
 			int tagsCount = tags.Count;
 			if (tagsCount > 0)
 			{
