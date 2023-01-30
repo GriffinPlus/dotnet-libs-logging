@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release v5.1.5
+
+### Bugfixes
+
+#### Fix hanging shutdown if server is down in `ElasticsearchPipelineStage`
+
+The Elasticsearch Pipeline Stage caused a delay of 30 seconds when shutting down, if messages were buffered, but could not be sent to the configured elasticsearch endpoint.
+
+---
+
 ## Release v5.1.4
 
 ### Bugfixes
