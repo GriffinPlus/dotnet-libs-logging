@@ -23,9 +23,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 	{
 		/// <summary>
 		/// Gets or sets a value indicating whether the filter is enabled.
-		/// <c>true</c> applies the filter when matching log messages (default).
-		/// <c>false</c> lets all log messages pass the filter when matching.
 		/// </summary>
+		/// <Value>
+		/// <c>true</c> applies the filter when matching log messages (default).<br/>
+		/// <c>false</c> lets all log messages pass the filter when matching.
+		/// </Value>
 		bool Enabled { get; set; }
 
 		/// <summary>

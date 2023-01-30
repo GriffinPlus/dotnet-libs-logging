@@ -21,7 +21,7 @@ namespace ConsolePrinter
 		/// Main program.
 		/// </summary>
 		/// <param name="args"></param>
-		/// <returns></returns>
+		/// <returns>The application's exit code.</returns>
 		private static int Main(string[] args)
 		{
 			if (args.Length < 2)

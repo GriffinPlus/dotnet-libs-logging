@@ -19,9 +19,8 @@ namespace GriffinPlus.Lib.Logging
 	/// <typeparam name="T">Type of the setting value.</typeparam>
 	public class FileBackedProcessingPipelineStageSetting<T> : IProcessingPipelineStageSetting<T>
 	{
-		private readonly FileBackedProcessingPipelineStageRawSetting mRawSetting;
-		private readonly ObjectToStringConversionDelegate<T>         mValueToStringConverter;
-		private readonly StringToObjectConversionDelegate<T>         mStringToValueConverter;
+		private readonly ObjectToStringConversionDelegate<T> mValueToStringConverter;
+		private readonly StringToObjectConversionDelegate<T> mStringToValueConverter;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileBackedProcessingPipelineStageSetting{T}"/> class.
@@ -34,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 			ObjectToStringConversionDelegate<T>         valueToStringConverter,
 			StringToObjectConversionDelegate<T>         stringToValueConverter)
 		{
-			mRawSetting = rawSetting;
+			Raw = rawSetting;
 			mValueToStringConverter = valueToStringConverter;
 			mStringToValueConverter = stringToValueConverter;
 		}
@@ -61,7 +60,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="handler">Event handler to register.</param>
 		/// <param name="invokeInCurrentSynchronizationContext">
-		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
+		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;<br/>
 		/// <c>false</c> to invoke the event handler in a worker thread.
 		/// </param>
 		public void RegisterSettingChangedEventHandler(
@@ -94,7 +93,7 @@ namespace GriffinPlus.Lib.Logging
 		private void OnSettingChanged()
 		{
 			// notify that the configuration the setting belongs to has changed
-			mRawSetting.StageConfiguration.LogConfiguration.OnChanged();
+			Raw.StageConfiguration.LogConfiguration.OnChanged();
 
 			// raise the SettingChanged event
 			if (EventManager<SettingChangedEventArgs>.IsHandlerRegistered(this, nameof(SettingChanged)))
@@ -114,7 +113,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the raw setting containing the string representation of the setting.
 		/// </summary>
-		internal FileBackedProcessingPipelineStageRawSetting Raw => mRawSetting;
+		internal FileBackedProcessingPipelineStageRawSetting Raw { get; }
 
 		#endregion
 
@@ -123,7 +122,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets the name of the setting.
 		/// </summary>
-		public string Name => mRawSetting.Name;
+		public string Name => Raw.Name;
 
 		/// <summary>
 		/// Gets the type of the value.
@@ -134,23 +133,23 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets a value indicating whether the setting has valid value (<c>true</c>)
 		/// or just its default value (<c>false</c>).
 		/// </summary>
-		public bool HasValue => mRawSetting.HasValue;
+		public bool HasValue => Raw.HasValue;
 
 		/// <summary>
 		/// Gets or sets the value of the setting.
 		/// </summary>
 		public T Value
 		{
-			get => mStringToValueConverter(mRawSetting.Value, CultureInfo.InvariantCulture);
+			get => mStringToValueConverter(Raw.Value, CultureInfo.InvariantCulture);
 
 			set
 			{
-				lock (mRawSetting.StageConfiguration.Sync)
+				lock (Raw.StageConfiguration.Sync)
 				{
-					string oldRawValue = mRawSetting.HasValue | mRawSetting.HasDefaultValue ? mRawSetting.Value : null;
+					string oldRawValue = Raw.HasValue | Raw.HasDefaultValue ? Raw.Value : null;
 					string newRawValue = mValueToStringConverter(value, CultureInfo.InvariantCulture);
-					if (mRawSetting.HasValue && oldRawValue == newRawValue) return;
-					mRawSetting.Value = newRawValue;
+					if (Raw.HasValue && oldRawValue == newRawValue) return;
+					Raw.Value = newRawValue;
 					OnSettingChanged();
 				}
 			}
@@ -170,11 +169,11 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public string ValueAsString
 		{
-			get => mRawSetting.Value;
+			get => Raw.Value;
 			set
 			{
-				if (mRawSetting.HasValue && mRawSetting.Value == value) return;
-				mRawSetting.Value = value;
+				if (Raw.HasValue && Raw.Value == value) return;
+				Raw.Value = value;
 				OnSettingChanged();
 			}
 		}
@@ -182,12 +181,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets a value indicating whether the setting has valid default value.
 		/// </summary>
-		public bool HasDefaultValue => mRawSetting.HasDefaultValue;
+		public bool HasDefaultValue => Raw.HasDefaultValue;
 
 		/// <summary>
 		/// Gets the default value of the setting.
 		/// </summary>
-		public T DefaultValue => mStringToValueConverter(mRawSetting.DefaultValue, CultureInfo.InvariantCulture);
+		public T DefaultValue => mStringToValueConverter(Raw.DefaultValue, CultureInfo.InvariantCulture);
 
 		/// <summary>
 		/// Gets the default value of the setting.
@@ -197,7 +196,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Gets or sets the default value of the setting as a string (for serialization purposes).
 		/// </summary>
-		public string DefaultValueAsString => mRawSetting.DefaultValue;
+		public string DefaultValueAsString => Raw.DefaultValue;
 
 		#endregion
 
@@ -207,7 +206,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>String representation of the setting.</returns>
 		public override string ToString()
 		{
-			return mRawSetting.ToString();
+			return Raw.ToString();
 		}
 	}
 

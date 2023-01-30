@@ -16,26 +16,20 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LoggingException"/> class.
 		/// </summary>
-		public LoggingException()
-		{
-		}
+		public LoggingException() { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LoggingException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
-		public LoggingException(string message) : base(message)
-		{
-		}
+		public LoggingException(string message) : base(message) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LoggingException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		/// <param name="innerException">The original exception that led to the exception being thrown.</param>
-		public LoggingException(string message, Exception innerException) : base(message, innerException)
-		{
-		}
+		public LoggingException(string message, Exception innerException) : base(message, innerException) { }
 	}
 
 }

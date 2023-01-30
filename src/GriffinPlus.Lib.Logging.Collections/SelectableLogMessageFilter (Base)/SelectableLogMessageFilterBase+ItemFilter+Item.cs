@@ -22,7 +22,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 			public class Item : ISelectableLogMessageFilter_ItemInternal<T>
 			{
 				private bool mSelected;
-				private bool mValueUsed;
 
 				/// <summary>
 				/// Initializes a new instance of the <see cref="Item"/> class.
@@ -30,8 +29,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 				/// <param name="group">Name of the group the value belongs to.</param>
 				/// <param name="value">Value of the item in the filter.</param>
 				/// <param name="isStatic">
-				/// true, if the item stays in the list of selectable items;
-				/// false, if the item can be removed.
+				/// <c>true</c> if the item stays in the list of selectable items;<br/>
+				/// <c>false</c> if the item can be removed.
 				/// </param>
 				internal Item(string group, T value, bool isStatic)
 				{
@@ -53,7 +52,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				/// <param name="propertyName">Name of the property that has changed.</param>
 				protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
 				{
-					var handler = PropertyChanged;
+					PropertyChangedEventHandler handler = PropertyChanged;
 					handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 				}
 
@@ -120,19 +119,19 @@ namespace GriffinPlus.Lib.Logging.Collections
 				/// If <see cref="ISelectableLogMessageFilter_ItemFilter{T}.AccumulateItems"/> is <c>true</c>, this property remains
 				/// <c>true</c> once it is <c>true</c> for static items.
 				/// </summary>
-				public bool ValueUsed => mValueUsed;
+				public bool ValueUsed { get; private set; }
 
 				/// <summary>
 				/// Gets or sets a value indicating whether the item value is used in at least one message in the unfiltered message set.
 				/// </summary>
 				bool ISelectableLogMessageFilter_ItemInternal<T>.ValueUsed
 				{
-					get => mValueUsed;
+					get => ValueUsed;
 					set
 					{
-						if (mValueUsed != value)
+						if (ValueUsed != value)
 						{
-							mValueUsed = value;
+							ValueUsed = value;
 							OnPropertyChanged();
 						}
 					}

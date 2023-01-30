@@ -94,7 +94,7 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (mLogConfiguration.Sync)
 			{
-				var stage = mStageConfigurations.FirstOrDefault(x => x.Name == name);
+				IProcessingPipelineStageConfiguration stage = mStageConfigurations.FirstOrDefault(x => x.Name == name);
 				if (stage != null) throw new ArgumentException($"The collection already contains a configuration for the pipeline stage with the specified name ({name}).", nameof(name));
 				stage = new FileBackedProcessingPipelineStageConfiguration(mLogConfiguration, name);
 				mStageConfigurations.Add(stage);

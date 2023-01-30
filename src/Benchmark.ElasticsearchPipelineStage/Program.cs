@@ -15,8 +15,7 @@ namespace Benchmark.Elasticsearch
 		/// <summary>
 		/// The program's entry point.
 		/// </summary>
-		/// <param name="args"></param>
-		private static void Main(string[] args)
+		private static void Main()
 		{
 			// Benchmarks targeting specific methods
 			// -----------------------------------------------------------------------------------------------------------------

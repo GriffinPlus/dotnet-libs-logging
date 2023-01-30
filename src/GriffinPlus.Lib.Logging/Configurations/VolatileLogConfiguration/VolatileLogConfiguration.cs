@@ -37,12 +37,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Disposes the configuration cleaning up unmanaged resources
 		/// </summary>
 		/// <param name="disposing">
-		/// true, if called explicitly;
-		/// false, if called due to finalization.
+		/// <c>true</c> if called explicitly;<br/>
+		/// <c>false</c> if called due to finalization.
 		/// </param>
-		protected override void Dispose(bool disposing)
-		{
-		}
+		protected override void Dispose(bool disposing) { }
 
 		/// <summary>
 		/// Gets or sets the name of the application.
@@ -81,7 +79,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// get the first matching log writer settings
 				LogWriterConfiguration settings = null;
-				foreach (var configuration in mLogWriterSettings)
+				foreach (LogWriterConfiguration configuration in mLogWriterSettings)
 				{
 					if (configuration.NamePatterns.Any(x => x.Regex.IsMatch(writer.Name)))
 					{
@@ -101,7 +99,7 @@ namespace GriffinPlus.Lib.Logging
 					LogLevelBitMask mask;
 
 					// enable all log levels that are covered by the base level
-					var level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
+					LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
 					if (level == LogLevel.All)
 					{
 						mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
@@ -168,12 +166,10 @@ namespace GriffinPlus.Lib.Logging
 		/// (not supported as the volatile configuration does not support persistence).
 		/// </summary>
 		/// <param name="includeDefaults">
-		/// true to include the default value of settings that have not been explicitly set;
-		/// false to save only settings that have not been explicitly set.
+		/// <c>true</c> to include the default value of settings that have not been explicitly set;<br/>
+		/// <c>false</c> to save only settings that have not been explicitly set.
 		/// </param>
-		public override void Save(bool includeDefaults = false)
-		{
-		}
+		public override void Save(bool includeDefaults = false) { }
 	}
 
 }

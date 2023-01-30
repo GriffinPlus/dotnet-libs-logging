@@ -30,8 +30,8 @@ namespace Benchmark.Elasticsearch
 
 		static Benchmarks()
 		{
-			int lineCount = 10;
-			int lineLength = 100;
+			const int lineCount = 10;
+			const int lineLength = 100;
 
 			// prepare test text
 			var textBuilder = new StringBuilder();
@@ -48,10 +48,10 @@ namespace Benchmark.Elasticsearch
 			var pool = new LocalLogMessagePool();
 
 			// create a set of messages that can be used to feed the stage
-			var timestamp = DateTimeOffset.Now;
+			DateTimeOffset timestamp = DateTimeOffset.Now;
 			for (int i = 0; i < MaxTestMessageCount; i++)
 			{
-				var message = pool.GetMessage(
+				LocalLogMessage message = pool.GetMessage(
 					timestamp,
 					long.MaxValue, // maximum length of the timestamp
 					sTaggingLogWriter,

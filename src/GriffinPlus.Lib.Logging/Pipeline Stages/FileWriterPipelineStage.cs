@@ -44,9 +44,11 @@ namespace GriffinPlus.Lib.Logging
 
 		/// <summary>
 		/// Gets or sets a value determining whether log messages are appended to an existing log file.
-		/// (<c>true</c> to append new log messages to an existing log file (default),
-		/// <c>false</c> to truncate the log file before writing the first message).
 		/// </summary>
+		/// <Value>
+		/// <c>true</c> to append new log messages to an existing log file (default).<br/>
+		/// <c>false</c> to truncate the log file before writing the first message).
+		/// </Value>
 		public bool Append
 		{
 			get => mSetting_Append.Value;
@@ -113,7 +115,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// put all formatted messages into a single string to speed up writing them in the next step
 				mOutputBuilder.Clear();
-				foreach (var message in messages)
+				foreach (FormattedMessage message in messages)
 				{
 					mOutputBuilder.AppendLine(message.Output);
 				}
@@ -163,10 +165,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Opens the log file as specified by the <see cref="Path"/> property.
 		/// If the opened file has not changed, it is not re-opened.
 		/// </summary>
-		/// <returns>
-		/// <c>true</c> if the file was opened successfully; otherwise <c>false</c>.
-		/// </returns>
-		private bool TryOpenLogFile()
+		private void TryOpenLogFile()
 		{
 			using (mAsyncWriterLock.Lock())
 			{
@@ -176,7 +175,7 @@ namespace GriffinPlus.Lib.Logging
 
 				// abort, if the opened file has not changed
 				if (mOpenedFilePath == path)
-					return false;
+					return;
 
 				// the opened file has changed
 
@@ -202,15 +201,12 @@ namespace GriffinPlus.Lib.Logging
 					if (Append) mFile.Position = mFile.Length;
 					mWriter = new StreamWriter(mFile, Encoding.UTF8);
 					mOpenedFilePath = path;
-					return true;
 				}
 				catch (Exception ex)
 				{
 					WritePipelineError($"Opening log file ({Path}) failed.", ex);
 				}
 			}
-
-			return false;
 		}
 
 		/// <summary>

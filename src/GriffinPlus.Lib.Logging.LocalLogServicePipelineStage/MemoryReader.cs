@@ -18,9 +18,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="MemoryReader"/> class.
 		/// </summary>
 		/// <param name="stream">Stream to read from.</param>
-		public MemoryReader(Stream stream) : base(stream)
-		{
-		}
+		public MemoryReader(Stream stream) : base(stream) { }
 
 		/// <summary>
 		/// Reads a plain struct from the underlying stream (does not do any marshalling!).
@@ -31,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			int byteLength = Marshal.SizeOf(typeof(T));
 			byte[] bytes = ReadBytes(byteLength);
-			var pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+			GCHandle pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
 
 			try
 			{

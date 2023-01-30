@@ -127,7 +127,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// (<see cref="LocalLogMessage.Release"/> is called automatically when sending completes).
 			/// </param>
 			/// <returns>
-			/// <c>true</c> if the the request was successfully added to the request;
+			/// <c>true</c> if the the request was successfully added to the request;<br/>
 			/// <c>false</c> if the request is full.
 			/// </returns>
 			public bool AddMessage(LocalLogMessage message)
@@ -241,7 +241,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// <param name="endpoint">Endpoint the request is send to.</param>
 			/// <param name="cancellationToken">Cancellation token that can be signaled to abort the send operation.</param>
 			/// <returns>
-			/// <c>true</c> if sending was started successfully;
+			/// <c>true</c> if sending was started successfully;<br/>
 			/// otherwise <c>false</c>.
 			/// </returns>
 			public bool StartSending(EndpointInfo endpoint, CancellationToken cancellationToken)
@@ -292,7 +292,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// Processes a completed send operation (may be successful or not).
 			/// </summary>
 			/// <returns>
-			/// <c>true</c> if the endpoint is considered operational;
+			/// <c>true</c> if the endpoint is considered operational;<br/>
 			/// otherwise <c>false</c>.
 			/// </returns>
 			public bool ProcessSendCompleted()

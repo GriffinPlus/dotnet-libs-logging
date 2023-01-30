@@ -202,13 +202,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			Assert.Equal(mExpectedEventInvocations.Count, mWatchedEventInvocations.Count);
 
-			using (var expectedEnumerator = mExpectedEventInvocations.GetEnumerator())
-			using (var watchedEnumerator = mWatchedEventInvocations.GetEnumerator())
+			using (List<Tuple<string, EventArgs>>.Enumerator expectedEnumerator = mExpectedEventInvocations.GetEnumerator())
+			using (List<Tuple<string, EventArgs>>.Enumerator watchedEnumerator = mWatchedEventInvocations.GetEnumerator())
 			{
 				while (expectedEnumerator.MoveNext() && watchedEnumerator.MoveNext())
 				{
-					var expected = expectedEnumerator.Current;
-					var watched = watchedEnumerator.Current;
+					Tuple<string, EventArgs> expected = expectedEnumerator.Current;
+					Tuple<string, EventArgs> watched = watchedEnumerator.Current;
 					Assert.NotNull(expected);
 					Assert.NotNull(watched);
 

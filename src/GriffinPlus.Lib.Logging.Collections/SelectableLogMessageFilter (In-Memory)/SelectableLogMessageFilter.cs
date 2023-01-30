@@ -19,9 +19,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SelectableLogMessageFilter{TMessage}"/> class.
 		/// </summary>
-		public SelectableLogMessageFilter()
-		{
-		}
+		public SelectableLogMessageFilter() { }
 	}
 
 }

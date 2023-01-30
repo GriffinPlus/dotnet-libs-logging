@@ -20,29 +20,17 @@ using GriffinPlus.Lib.Logging.Elasticsearch;
 namespace GriffinPlus.Lib.Logging.Demo
 {
 
-	class MyClass1
-	{
-	}
+	class MyClass1 { }
 
-	class MyClass2
-	{
-	}
+	class MyClass2 { }
 
-	class MyClass3
-	{
-	}
+	class MyClass3 { }
 
-	class MyClass4
-	{
-	}
+	class MyClass4 { }
 
-	class MyClassA
-	{
-	}
+	class MyClassA { }
 
-	class MyClassB
-	{
-	}
+	class MyClassB { }
 
 	class Program
 	{
@@ -277,10 +265,10 @@ namespace GriffinPlus.Lib.Logging.Demo
 			// -----------------------------------------------------------------------------------------------------------------
 
 			// Get an aspect log level.
-			var aspect = LogLevel.GetAspect("Demo Aspect");
+			LogLevel aspect = LogLevel.GetAspect("Demo Aspect");
 
 			// Write messages to all known log levels (predefined log levels + aspects).
-			foreach (var level in LogLevel.KnownLevels)
+			foreach (LogLevel level in LogLevel.KnownLevels)
 			{
 				sLog1.Write(level, "This is sLog1 writing using level '{0}'.", level.Name);
 				sLog2.Write(level, "This is sLog2 writing using level '{0}'.", level.Name);

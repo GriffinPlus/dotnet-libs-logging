@@ -36,7 +36,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="unfiltered">The unfiltered collection.</param>
 		protected FilteredLogMessageCollectionBase(TUnfilteredCollection unfiltered)
 		{
-			mUnfiltered = unfiltered;
+			Unfiltered = unfiltered;
 			UsedLogWritersWritable = new ObservableCollection<string>();
 			UsedLogWriters = new ReadOnlyObservableCollection<string>(UsedLogWritersWritable);
 			UsedLogLevelsWritable = new ObservableCollection<string>();
@@ -67,8 +67,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Disposes the collection.
 		/// </summary>
 		/// <param name="disposing">
-		/// true if the object is being disposed;
-		/// false, if it is being finalized.
+		/// <c>true</c> if the object is being disposed;<br/>
+		/// <c>false</c> if it is being finalized.
 		/// </param>
 		protected abstract void Dispose(bool disposing);
 
@@ -93,7 +93,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="e">Event arguments to pass to event handlers.</param>
 		protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
 		{
-			var handler = CollectionChanged;
+			NotifyCollectionChangedEventHandler handler = CollectionChanged;
 			handler?.Invoke(this, e);
 		}
 
@@ -112,7 +112,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="name">Name of the property that has changed.</param>
 		protected virtual void OnPropertyChanged([CallerMemberName] string name = null)
 		{
-			var handler = PropertyChanged;
+			PropertyChangedEventHandler handler = PropertyChanged;
 			handler?.Invoke(this, new PropertyChangedEventArgs(name));
 		}
 
@@ -211,7 +211,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		#region IsFixedSize
 
 		/// <summary>
-		/// Gets a value indicating whether the collection is of fixed size (always false).
+		/// Gets a value indicating whether the collection is of fixed size (always <c>false</c>).
 		/// </summary>
 		public virtual bool IsFixedSize => false;
 
@@ -222,7 +222,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <summary>
 		/// Gets an object that can be used to synchronize the collection.
 		/// </summary>
-		public object SyncRoot => mUnfiltered.SyncRoot;
+		public object SyncRoot => Unfiltered.SyncRoot;
 
 		#endregion
 
@@ -240,17 +240,15 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 		#region Unfiltered
 
-		private readonly TUnfilteredCollection mUnfiltered;
+		/// <summary>
+		/// Gets the unfiltered message set.
+		/// </summary>
+		public TUnfilteredCollection Unfiltered { get; }
 
 		/// <summary>
 		/// Gets the unfiltered message set.
 		/// </summary>
-		public TUnfilteredCollection Unfiltered => mUnfiltered;
-
-		/// <summary>
-		/// Gets the unfiltered message set.
-		/// </summary>
-		ILogMessageCollection<TMessage> IFilteredLogMessageCollection<TMessage>.Unfiltered => mUnfiltered;
+		ILogMessageCollection<TMessage> IFilteredLogMessageCollection<TMessage>.Unfiltered => Unfiltered;
 
 		#endregion
 
@@ -437,14 +435,20 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Checks whether the collection contains the specified log message.
 		/// </summary>
 		/// <param name="message">Log message to check for.</param>
-		/// <returns>true, if the collection contains the log message; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the collection contains the log message;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public abstract bool Contains(TMessage message);
 
 		/// <summary>
 		/// Checks whether the collection contains the specified log message.
 		/// </summary>
 		/// <param name="item">Log message to check for.</param>
-		/// <returns>true, if the collection contains the log message; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the collection contains the log message;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		bool IList.Contains(object item)
 		{
 			return Contains((TMessage)item);
@@ -459,7 +463,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="message">Log message to locate in the collection.</param>
 		/// <returns>
-		/// Index of the log message;
+		/// Index of the log message;<br/>
 		/// -1, if the specified message is not in the collection.
 		/// </returns>
 		public abstract long IndexOf(TMessage message);
@@ -469,7 +473,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="item">Log message to locate in the collection.</param>
 		/// <returns>
-		/// Index of the log message;
+		/// Index of the log message;<br/>
 		/// -1, if the specified message is not in the collection.
 		/// </returns>
 		/// <exception cref="NotSupportedException">The collection is too large to be accessed via the ICollection interface.</exception>
@@ -517,7 +521,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Removes the specified log message from the collection (not supported).
 		/// </summary>
 		/// <param name="item">Log message to remove from the collection.</param>
-		/// <returns>true, if the log message was removed; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the log message was removed;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 		void IList.Remove(object item)
 		{
@@ -571,7 +578,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (arrayIndex > array.Length) throw new ArgumentOutOfRangeException(nameof(arrayIndex), "The array index is outside the specified array.");
 			if (Count > array.Length - arrayIndex) throw new ArgumentException("The specified array is too small to receive all log messages.");
 
-			using (var enumerator = GetEnumerator())
+			using (IEnumerator<TMessage> enumerator = GetEnumerator())
 			{
 				while (enumerator.MoveNext())
 				{

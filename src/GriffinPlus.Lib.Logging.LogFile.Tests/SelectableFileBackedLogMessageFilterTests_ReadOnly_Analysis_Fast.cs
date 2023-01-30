@@ -25,9 +25,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				fixture,
 				true,
 				LogFilePurpose.Analysis,
-				LogFileWriteMode.Fast)
-		{
-		}
+				LogFileWriteMode.Fast) { }
 	}
 
 }

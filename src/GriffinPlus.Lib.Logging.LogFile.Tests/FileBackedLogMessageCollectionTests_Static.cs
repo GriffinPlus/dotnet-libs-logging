@@ -43,8 +43,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			get
 			{
 				foreach (bool deleteAutomatically in new[] { false, true })
-				foreach (var purpose in sLogFilePurposes)
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				foreach (bool populate in new[] { false, true })
 				{
 					yield return new object[] { null, deleteAutomatically, purpose, writeMode, populate };                         // default temporary folder
@@ -57,8 +57,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests creating an instance of the <see cref="FileBackedLogMessageCollection"/> class with a temporary backing log file.
 		/// </summary>
 		/// <param name="deleteAutomatically">
-		/// true to delete the file automatically when the collection is disposed (or the next time, a temporary collection is created in the same directory);
-		/// false to keep it after the collection is disposed.
+		/// <c>true</c> to delete the file automatically when the collection is disposed
+		/// (or the next time, a temporary collection is created in the same directory);<br/>
+		/// <c>false</c> to keep it after the collection is disposed.
 		/// </param>
 		/// <param name="temporaryDirectoryPath">
 		/// Path of the temporary directory to use;
@@ -71,7 +72,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Write mode determining whether to open the log file in 'robust' or 'fast' mode (default).
 		/// </param>
 		/// <param name="populate">
-		/// <c>true</c> to populate the collection with log messages as part of the creation step; otherwise <c>false</c>.
+		/// <c>true</c> to populate the collection with log messages as part of the creation step;<br/>
+		/// otherwise <c>false</c>.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(CreateTemporaryCollectionTestData))]
@@ -85,13 +87,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 			string effectiveTemporaryFolderPath = temporaryDirectoryPath ?? Path.GetTempPath().TrimEnd(Path.DirectorySeparatorChar);
 			string backingFilePath;
 
-			var messages = populate ? mFixture.GetLogMessages_Random_10K() : null;
+			LogFileMessage[] messages = populate ? mFixture.GetLogMessages_Random_10K() : null;
 			using (var collection = FileBackedLogMessageCollection.CreateTemporaryCollection(deleteAutomatically, temporaryDirectoryPath, purpose, mode, messages))
 			{
 				Assert.True(File.Exists(collection.FilePath));
 				Assert.Equal(effectiveTemporaryFolderPath, Path.GetDirectoryName(collection.FilePath));
 
-				using (var eventWatcher = collection.AttachEventWatcher())
+				using (LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher())
 				{
 					// check collection specific properties
 					// ---------------------------------------------------------------------------------------------------------------

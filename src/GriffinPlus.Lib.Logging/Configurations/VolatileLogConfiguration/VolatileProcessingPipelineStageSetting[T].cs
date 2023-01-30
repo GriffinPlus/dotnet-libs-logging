@@ -116,7 +116,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="handler">Event handler to register.</param>
 		/// <param name="invokeInCurrentSynchronizationContext">
-		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
+		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;<br/>
 		/// <c>false</c> to invoke the event handler in a worker thread.
 		/// </param>
 		public void RegisterSettingChangedEventHandler(
@@ -202,12 +202,14 @@ namespace GriffinPlus.Lib.Logging
 				{
 					if (sUseDefensiveCopying)
 					{
-						if (mHasValue) return mStringToValueConverter(mValueToStringConverter(mValue, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
-						return mStringToValueConverter(mValueToStringConverter(mDefaultValue, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+						return mStringToValueConverter(
+							mHasValue
+								? mValueToStringConverter(mValue, CultureInfo.InvariantCulture)
+								: mValueToStringConverter(mDefaultValue, CultureInfo.InvariantCulture),
+							CultureInfo.InvariantCulture);
 					}
 
-					if (mHasValue) return mValue;
-					return mDefaultValue;
+					return mHasValue ? mValue : mDefaultValue;
 				}
 			}
 
@@ -244,8 +246,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (mConfiguration.Sync)
 				{
-					if (mHasValue) return mValueAsString;
-					return mDefaultValueAsString;
+					return mHasValue ? mValueAsString : mDefaultValueAsString;
 				}
 			}
 
@@ -284,8 +285,9 @@ namespace GriffinPlus.Lib.Logging
 				lock (mConfiguration.Sync)
 				{
 					if (!mHasDefaultValue) throw new InvalidOperationException("The item does not have a default value.");
-					if (sUseDefensiveCopying) return mStringToValueConverter(mDefaultValueAsString, CultureInfo.InvariantCulture);
-					return mDefaultValue;
+					return sUseDefensiveCopying
+						       ? mStringToValueConverter(mDefaultValueAsString, CultureInfo.InvariantCulture)
+						       : mDefaultValue;
 				}
 			}
 

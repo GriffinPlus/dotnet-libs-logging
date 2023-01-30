@@ -122,8 +122,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="data">JSON string to process.</param>
 		/// <param name="complete">
-		/// true, if the passed JSON string contains complete tokens;
-		/// false, if tokens may be split up over multiple calls if the method (<see cref="Flush"/> must be called explicitly at the end).
+		/// <c>true</c> if the passed JSON string contains complete tokens;<br/>
+		/// <c>false</c> if tokens may be split up over multiple calls if the method (<see cref="Flush"/> must be called explicitly at the end).
 		/// </param>
 		/// <returns>Number of extracted tokens.</returns>
 		/// <exception cref="TokenizingException">The specified data contains an invalid token.</exception>
@@ -245,7 +245,7 @@ namespace GriffinPlus.Lib.Logging
 
 				if (mState == State.ReadingUnicodeEscapeSequence)
 				{
-					if (c >= '0' && c <= '9' || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F')
+					if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
 					{
 						mEscapeSequenceBuilder.Append(c);
 						if (mEscapeSequenceBuilder.Length < 4) continue; // no enough characters to interpret the code unit

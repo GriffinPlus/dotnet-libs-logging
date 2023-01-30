@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
@@ -40,19 +39,17 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			if (messages == null) throw new ArgumentNullException(nameof(messages));
 			Messages = new List<TMessage>(messages);
-			foreach (var message in Messages) UpdateOverviewCollectionsOnAdd(message);
+			foreach (TMessage message in Messages) UpdateOverviewCollectionsOnAdd(message);
 		}
 
 		/// <summary>
 		/// Disposes the collection (actually does nothing, just to satisfy the interface).
 		/// </summary>
 		/// <param name="disposing">
-		/// true if the object is being disposed;
-		/// false, if it is being finalized.
+		/// <c>true</c> if the object is being disposed;<br/>
+		/// <c>false</c> if it is being finalized.
 		/// </param>
-		protected override void Dispose(bool disposing)
-		{
-		}
+		protected override void Dispose(bool disposing) { }
 
 		#region Count
 
@@ -94,7 +91,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Checks whether the collection contains the specified log message.
 		/// </summary>
 		/// <param name="item">Log message to check for.</param>
-		/// <returns>true, if the collection contains the log message; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the collection contains the log message;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public override bool Contains(TMessage item)
 		{
 			return Messages.Contains(item);
@@ -166,7 +166,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				{
 					int newMessagesStartIndex = Messages.Count;
 					var newMessages = new List<TMessage>();
-					foreach (var message in messages)
+					foreach (TMessage message in messages)
 					{
 						Messages.Add(message);
 						UpdateOverviewCollectionsOnAdd(message);
@@ -182,7 +182,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				}
 				else
 				{
-					foreach (var message in messages)
+					foreach (TMessage message in messages)
 					{
 						Messages.Add(message);
 						UpdateOverviewCollectionsOnAdd(message);
@@ -197,7 +197,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 			else
 			{
-				foreach (var message in messages)
+				foreach (TMessage message in messages)
 				{
 					Messages.Add(message);
 					UpdateOverviewCollectionsOnAdd(message);
@@ -383,7 +383,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			for (int i = 0; i < mFilteredCollections.Count; i++)
 			{
-				if (mFilteredCollections[i].TryGetTarget(out var other))
+				if (mFilteredCollections[i].TryGetTarget(out FilteredLogMessageCollection<TMessage> other))
 				{
 					if (ReferenceEquals(collection, other))
 					{
@@ -408,7 +408,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			for (int i = 0; i < mFilteredCollections.Count; i++)
 			{
-				if (mFilteredCollections[i].TryGetTarget(out var collection))
+				if (mFilteredCollections[i].TryGetTarget(out FilteredLogMessageCollection<TMessage> collection))
 				{
 					collection.ProcessUnfilteredCollectionChange_AfterAdd(startIndex, count);
 				}
@@ -430,7 +430,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			for (int i = 0; i < mFilteredCollections.Count; i++)
 			{
-				if (mFilteredCollections[i].TryGetTarget(out var collection))
+				if (mFilteredCollections[i].TryGetTarget(out FilteredLogMessageCollection<TMessage> collection))
 				{
 					collection.ProcessUnfilteredCollectionChange_BeforeRemoving(startIndex, count);
 				}
@@ -450,7 +450,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			for (int i = 0; i < mFilteredCollections.Count; i++)
 			{
-				if (mFilteredCollections[i].TryGetTarget(out var collection))
+				if (mFilteredCollections[i].TryGetTarget(out FilteredLogMessageCollection<TMessage> collection))
 				{
 					collection.ProcessUnfilteredCollectionChange_Clear();
 				}
@@ -525,7 +525,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="overviewCollection">Overview collection to add the items to.</param>
 		private static void RegisterForOverviewCollection<T>(IEnumerable<T> items, IDictionary<T, int> itemCountMap, ICollection<T> overviewCollection)
 		{
-			foreach (var item in items)
+			foreach (T item in items)
 			{
 				if (!itemCountMap.TryGetValue(item, out int count)) itemCountMap.Add(item, 0);
 				itemCountMap[item] = count + 1;
@@ -536,7 +536,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <summary>
 		/// Updates the overview collections as the specified message is removed from the collection.
 		/// </summary>
-		/// <param name="message">Message that is removed from the collection (null, if all messages are removed).</param>
+		/// <param name="message">Message that is removed from the collection (<c>null</c> if all messages are removed).</param>
 		private void UpdateOverviewCollectionsOnRemove(TMessage message)
 		{
 			if (message != null)
@@ -577,7 +577,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="item">Item to unregister.</param>
 		/// <param name="itemCountMap">Dictionary used to track the number of occurrences of the item in the message set.</param>
 		/// <param name="overviewCollection">Overview collection to remove the item from.</param>
-		private static void UnregisterForOverviewCollection<T>(T item, IDictionary<T, int> itemCountMap, ObservableCollection<T> overviewCollection)
+		private static void UnregisterForOverviewCollection<T>(T item, IDictionary<T, int> itemCountMap, ICollection<T> overviewCollection)
 		{
 			if (itemCountMap.TryGetValue(item, out int count))
 			{
@@ -600,9 +600,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="items">Items to unregister.</param>
 		/// <param name="itemCountMap">Dictionary used to track the number of occurrences of items in the message set.</param>
 		/// <param name="overviewCollection">Overview collection to remove the item from.</param>
-		private static void UnregisterForOverviewCollection<T>(IEnumerable<T> items, IDictionary<T, int> itemCountMap, ObservableCollection<T> overviewCollection)
+		private static void UnregisterForOverviewCollection<T>(IEnumerable<T> items, IDictionary<T, int> itemCountMap, ICollection<T> overviewCollection)
 		{
-			foreach (var item in items)
+			foreach (T item in items)
 			{
 				if (itemCountMap.TryGetValue(item, out int count))
 				{

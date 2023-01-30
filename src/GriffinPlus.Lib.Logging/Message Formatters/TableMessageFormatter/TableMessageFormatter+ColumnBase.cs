@@ -58,7 +58,10 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="message">Message containing the field to format.</param>
 			/// <param name="builder">String builder to append the output of the current column to.</param>
 			/// <param name="line">Line number to append (zero-based).</param>
-			/// <returns>true, if there are more lines to process; otherwise false.</returns>
+			/// <returns>
+			/// <c>true</c> if there are more lines to process;<br/>
+			/// otherwise <c>false</c>.
+			/// </returns>
 			public abstract bool Write(ILogMessage message, StringBuilder builder, int line);
 		}
 	}

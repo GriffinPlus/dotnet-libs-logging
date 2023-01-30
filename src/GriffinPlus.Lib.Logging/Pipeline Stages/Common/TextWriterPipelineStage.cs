@@ -39,9 +39,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TextWriterPipelineStage"/> class.
 		/// </summary>
-		protected TextWriterPipelineStage()
-		{
-		}
+		protected TextWriterPipelineStage() { }
 
 		/// <summary>
 		/// Gets or sets the formatter the pipeline stage uses to format log messages.
@@ -81,7 +79,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// enqueue messages to process
 			// (helps to defer messages that could not be processed successfully)
-			foreach (var message in messages)
+			foreach (LocalLogMessage message in messages)
 			{
 				message.AddRef();
 
@@ -101,7 +99,7 @@ namespace GriffinPlus.Lib.Logging
 				int count = await EmitOutputAsync(mFormattedMessageQueue.ToArray(), cancellationToken);
 				for (int i = 0; i < count; i++)
 				{
-					var item = mFormattedMessageQueue.Dequeue();
+					FormattedMessage item = mFormattedMessageQueue.Dequeue();
 					item.Message.Release();
 				}
 			}

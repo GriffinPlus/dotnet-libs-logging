@@ -103,8 +103,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Sends a command telling the log viewer to clear its view.
 		/// </summary>
 		/// <returns>
-		/// true, if the command was successfully sent;
-		/// otherwise false.
+		/// <c>true</c> if the command was successfully sent;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public bool ClearLogViewer()
 		{
@@ -115,8 +115,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Sends a command telling the local log service to save a snapshot of the current log.
 		/// </summary>
 		/// <returns>
-		/// true, if the command was successfully sent;
-		/// otherwise false.
+		/// <c>true</c> if the command was successfully sent;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public bool SaveSnapshot()
 		{
@@ -144,8 +144,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		/// <returns>
-		/// true to continue processing (pass message to the following stages);
-		/// false to stop processing.
+		/// <c>true</c> to continue processing (pass message to the following stages);<br/>
+		/// <c>false</c> to stop processing.
 		/// </returns>
 		protected override bool ProcessSync(LocalLogMessage message)
 		{

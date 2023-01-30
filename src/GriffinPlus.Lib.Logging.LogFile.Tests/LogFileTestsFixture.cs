@@ -30,7 +30,7 @@ namespace GriffinPlus.Lib.Logging
 #if GENERATE_TESTDATA
 
 			// generate the reference log files containing the log message sets
-			var messages = GetLogMessages_Random_10K();
+			LogFileMessage[] messages = GetLogMessages_Random_10K();
 
 			Directory.CreateDirectory("TestData");
 
@@ -56,9 +56,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Disposes the fixture.
 		/// </summary>
-		public void Dispose()
-		{
-		}
+		public void Dispose() { }
 
 		/// <summary>
 		/// Gets a set of log messages with deterministic content
@@ -66,7 +64,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public LogFileMessage[] GetLogMessages_Random_10K()
 		{
-			var messages = LoggingTestHelpers.GetTestMessages<LogFileMessage>(10000);
+			LogFileMessage[] messages = LoggingTestHelpers.GetTestMessages<LogFileMessage>(10000);
 			for (long i = 0; i < messages.Length; i++) messages[i].Id = i;
 			return messages;
 		}

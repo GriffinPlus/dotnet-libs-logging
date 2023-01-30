@@ -71,7 +71,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="json">JSON document containing the log message to read.</param>
 		/// <param name="newline">
-		/// Character sequence that was used to inject line breaks (null, if that does not matter).
+		/// Character sequence that was used to inject line breaks (<c>null</c> if that does not matter).
 		/// Not used by this test.
 		/// </param>
 		/// <param name="expected">The log message that is expected to be returned.</param>
@@ -80,7 +80,7 @@ namespace GriffinPlus.Lib.Logging
 		private void Process_SingleMessage_AllAtOnce(string json, string newline, LogMessage expected)
 		{
 			var reader = new JsonMessageReader();
-			var messages = reader.Process(json);
+			ILogMessage[] messages = reader.Process(json);
 			Assert.Single(messages);
 			Assert.Equal(expected, messages[0]);
 		}
@@ -90,7 +90,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="json">JSON document containing the log message to read.</param>
 		/// <param name="newline">
-		/// Character sequence that was used to inject line breaks (null, if that does not matter).
+		/// Character sequence that was used to inject line breaks (<c>null</c> if that does not matter).
 		/// Not used by this test.
 		/// </param>
 		/// <param name="expected">The log message that is expected to be returned.</param>
@@ -120,7 +120,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="testSetCount">Number of test data sets.</param>
 		/// <param name="minMessageCount">Minimum number of messages in a test data set.</param>
 		/// <param name="maxMessageCount">Maximum number of messages in a test data set.</param>
-		/// <param name="newline">Character sequence to use for line breaks (null to allow everything in the test set).</param>
+		/// <param name="newline">Character sequence to use for line breaks (<c>null</c> to allow everything in the test set).</param>
 		/// <param name="injectRandomWhiteSpaceBetweenMessages">
 		/// true to inject a random whitespace between log messages;
 		/// false to inject a newline character sequence only.
@@ -136,7 +136,7 @@ namespace GriffinPlus.Lib.Logging
 			string newline                               = null,
 			bool   injectRandomWhiteSpaceBetweenMessages = true)
 		{
-			var data = ProcessTestData_SingleMessage
+			Tuple<string, LogMessage>[] data = ProcessTestData_SingleMessage
 				.Where(x => newline == null || (string)x[1] == null || (string)x[1] == newline) // get only test sets with the desired line break character sequence
 				.Select(x => new Tuple<string, LogMessage>((string)x[0], (LogMessage)x[2]))
 				.ToArray();
@@ -185,11 +185,9 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var reader = new JsonMessageReader();
 
-			foreach (var data in GetTestData(minMessageCount: 2))
+			foreach ((string json, ILogMessage[] expectedMessages, HashSet<int> _) in GetTestData(minMessageCount: 2))
 			{
-				string json = data.Item1;
-				var expectedMessages = data.Item2;
-				var messages = reader.Process(json);
+				ILogMessage[] messages = reader.Process(json);
 				Assert.Equal(expectedMessages.Length, messages.Length);
 				Assert.Equal(expectedMessages, messages);
 			}
@@ -205,15 +203,12 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var reader = new JsonMessageReader();
 
-			foreach (var data in GetTestData(minMessageCount: 2))
+			foreach ((string json, ILogMessage[] expectedMessages, HashSet<int> endIndexOfLogMessages) in GetTestData(minMessageCount: 2))
 			{
-				string json = data.Item1;
-				var expectedMessages = data.Item2;
-				var endIndexOfLogMessages = data.Item3;
 				int messageNumber = 0;
 				for (int i = 0; i < json.Length; i++)
 				{
-					var readMessages = reader.Process(json[i].ToString());
+					ILogMessage[] readMessages = reader.Process(json[i].ToString());
 
 					if (endIndexOfLogMessages.Contains(i))
 					{

@@ -37,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>The requested log message.</returns>
 		public LocalLogMessage GetUninitializedMessage()
 		{
-			if (mMessages.TryTake(out var message))
+			if (mMessages.TryTake(out LocalLogMessage message))
 			{
 				message.AddRef();
 			}
@@ -78,7 +78,7 @@ namespace GriffinPlus.Lib.Logging
 			int            processId,
 			string         text)
 		{
-			var message = GetUninitializedMessage();
+			LocalLogMessage message = GetUninitializedMessage();
 			return message.InitWith(
 				timestamp,
 				highPrecisionTimestamp,

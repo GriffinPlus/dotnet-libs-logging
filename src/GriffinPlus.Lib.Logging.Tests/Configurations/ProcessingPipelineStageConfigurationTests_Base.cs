@@ -216,9 +216,9 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue,
 			string defaultValueAsString)
 		{
-			using (CreateConfiguration("Stage", out var configuration))
+			using (CreateConfiguration("Stage", out TStageConfiguration configuration))
 			{
-				var method = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo method = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
 					.MakeGenericMethod(type);
@@ -229,7 +229,7 @@ namespace GriffinPlus.Lib.Logging
 				RegisterSetting_UntypedInterface(setting1, defaultValue, defaultValueAsString);
 
 				// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-				var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
+				MethodInfo typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
 					.GetMethod(nameof(RegisterSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
 					.MakeGenericMethod(type);
 				typedTestMethod.Invoke(this, new[] { setting1, defaultValue, defaultValueAsString });
@@ -284,9 +284,9 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue2,
 			string valueAsString2)
 		{
-			using (CreateConfiguration("Stage", out var configuration))
+			using (CreateConfiguration("Stage", out TStageConfiguration configuration))
 			{
-				var method = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo method = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
 					.MakeGenericMethod(type);
@@ -318,9 +318,9 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			using (CreateConfiguration("Stage", out var configuration))
+			using (CreateConfiguration("Stage", out TStageConfiguration configuration))
 			{
-				var method = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo method = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
 					.MakeGenericMethod(type);
@@ -331,7 +331,7 @@ namespace GriffinPlus.Lib.Logging
 				RegisterSettingAndSetValue_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
 
 				// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-				var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
+				MethodInfo typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
 					.GetMethod(nameof(RegisterSettingAndSetValue_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
 					.MakeGenericMethod(type);
 				typedTestMethod.Invoke(this, new[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
@@ -403,13 +403,13 @@ namespace GriffinPlus.Lib.Logging
 			object defaultValue,
 			string defaultValueAsString)
 		{
-			using (CreateConfiguration("Stage", out var configuration))
+			using (CreateConfiguration("Stage", out TStageConfiguration configuration))
 			{
-				var registerSettingsMethod = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo registerSettingsMethod = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
 					.MakeGenericMethod(type);
-				var getSettingMethod = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo getSettingMethod = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
 					.MakeGenericMethod(type);
@@ -441,13 +441,13 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			using (CreateConfiguration("Stage", out var configuration))
+			using (CreateConfiguration("Stage", out TStageConfiguration configuration))
 			{
-				var registerMethod = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo registerMethod = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
 					.MakeGenericMethod(type);
-				var setMethod = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo setMethod = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
 					.MakeGenericMethod(type);
@@ -513,9 +513,9 @@ namespace GriffinPlus.Lib.Logging
 		[MemberData(nameof(GetSettingTestData_SettingDoesNotExist))]
 		public void GetSetting_SettingDoesNotExist(Type type)
 		{
-			using (CreateConfiguration("Stage", out var configuration))
+			using (CreateConfiguration("Stage", out TStageConfiguration configuration))
 			{
-				var method = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo method = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
 					.MakeGenericMethod(type);
@@ -542,9 +542,9 @@ namespace GriffinPlus.Lib.Logging
 			object value,
 			string valueAsString)
 		{
-			using (CreateConfiguration("Stage", out var configuration))
+			using (CreateConfiguration("Stage", out TStageConfiguration configuration))
 			{
-				var method = typeof(ProcessingPipelineStageConfigurationBase)
+				MethodInfo method = typeof(ProcessingPipelineStageConfigurationBase)
 					.GetMethods()
 					.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
 					.MakeGenericMethod(type);
@@ -555,7 +555,7 @@ namespace GriffinPlus.Lib.Logging
 				SetSetting_UntypedInterface(setting1, value, valueAsString);
 
 				// test typed interface to the setting (IProcessingPipelineStageSetting<T>)
-				var typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
+				MethodInfo typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
 					.GetMethod(nameof(SetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
 					.MakeGenericMethod(type);
 				typedTestMethod.Invoke(this, new[] { setting2, value, valueAsString });

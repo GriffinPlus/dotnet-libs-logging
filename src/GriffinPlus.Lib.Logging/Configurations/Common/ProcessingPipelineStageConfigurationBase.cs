@@ -28,8 +28,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="ProcessingPipelineStageConfigurationBase"/> class.
 		/// </summary>
 		/// <param name="sync">
-		/// The configuration lock used to synchronize access to the configuration.
-		/// Specify <c>null</c> to create a new lock.
+		/// The configuration lock used to synchronize access to the configuration (<c>null</c> to create a new lock).
 		/// </param>
 		protected ProcessingPipelineStageConfigurationBase(object sync)
 		{
@@ -292,7 +291,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Checks whether the configuration contains a setting with the specified name.
 		/// </summary>
 		/// <param name="key">Name of the setting to check.</param>
-		/// <returns>true, if the setting with the specified name exists in the configuration; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the setting with the specified name exists in the configuration;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public abstract bool ContainsKey(string key);
 
 		/// <summary>
@@ -300,7 +302,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="key">Name of the setting to get.</param>
 		/// <param name="value">Receives the setting, if it exists.</param>
-		/// <returns>true, if the requested setting was successfully returned; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the requested setting was successfully returned;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public abstract bool TryGetValue(string key, out IUntypedProcessingPipelineStageSetting value);
 
 		/// <summary>
@@ -328,7 +333,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Checks the name of a setting and throws an exception, if it is not valid.
 		/// </summary>
 		/// <param name="name">Name to check.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="name"/> is a null reference.</exception>
+		/// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>null</c>.</exception>
 		/// <exception cref="FormatException"><paramref name="name"/> is not a valid setting name.</exception>
 		protected static void CheckSettingName(string name)
 		{

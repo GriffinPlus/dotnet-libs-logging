@@ -14,9 +14,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SplitterPipelineStage"/> class.
 		/// </summary>
-		public SplitterPipelineStage()
-		{
-		}
+		public SplitterPipelineStage() { }
 	}
 
 }

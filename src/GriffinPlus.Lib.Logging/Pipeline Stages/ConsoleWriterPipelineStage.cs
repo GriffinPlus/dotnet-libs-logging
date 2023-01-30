@@ -139,7 +139,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					EnsureNotAttachedToLoggingSubsystem();
 					mStreamByLevel.Clear();
-					foreach (var kvp in value) mStreamByLevel.Add(kvp.Key, kvp.Value);
+					foreach (KeyValuePair<LogLevel, ConsoleOutputStream> kvp in value) mStreamByLevel.Add(kvp.Key, kvp.Value);
 				}
 			}
 		}
@@ -172,10 +172,10 @@ namespace GriffinPlus.Lib.Logging
 			// ReSharper disable once ForCanBeConvertedToForeach
 			for (int i = 0; i < messages.Length; i++)
 			{
-				var message = messages[i];
+				FormattedMessage message = messages[i];
 
 				// NOTE: After attaching the pipeline stage to the logging subsystem, mStreamByLevel will not change.
-				if (!mStreamByLevel.TryGetValue(message.Message.LogLevel, out var stream))
+				if (!mStreamByLevel.TryGetValue(message.Message.LogLevel, out ConsoleOutputStream stream))
 					stream = mDefaultStreamSetting.Value;
 
 				if (stream == ConsoleOutputStream.Stdout) mStdoutBuilder.AppendLine(message.Output);

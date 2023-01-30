@@ -116,7 +116,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			var tagSet = new TagSet(tags);
 			int i = 0;
-			using (var enumerator = tagSet.GetEnumerator())
+			using (IEnumerator<string> enumerator = tagSet.GetEnumerator())
 			{
 				while (enumerator.MoveNext())
 				{
@@ -226,7 +226,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether operator+ fails, if the right operand is null.
+		/// Tests whether operator+ fails, if the right operand is <c>null</c>.
 		/// </summary>
 		[Fact]
 		public void OperatorPlus_WithSingleTag_TagIsNull()
@@ -287,7 +287,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether operator+ fails, if the right operand is null.
+		/// Tests whether operator+ fails, if the right operand is <c>null</c>.
 		/// </summary>
 		[Fact]
 		public void OperatorPlus_WithMultipleTags_TagsIsNull()
@@ -336,7 +336,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether operator- fails, if the right operand is null.
+		/// Tests whether operator- fails, if the right operand is <c>null</c>.
 		/// </summary>
 		[Fact]
 		public void OperatorMinus_WithSingleTag_TagIsNull()
@@ -397,7 +397,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Tests whether operator- fails, if the right operand is null.
+		/// Tests whether operator- fails, if the right operand is <c>null</c>.
 		/// </summary>
 		[Fact]
 		public void OperatorMinus_WithMultipleTags_TagsIsNull()

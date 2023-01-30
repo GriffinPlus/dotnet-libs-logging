@@ -3,6 +3,7 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -19,9 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="stream">Stream to write to.</param>
 		public MemoryWriter(Stream stream)
-			: base(stream)
-		{
-		}
+			: base(stream) { }
 
 		/// <summary>
 		/// Writes a plain struct to the underlying stream (does not do any marshalling!).
@@ -31,7 +30,7 @@ namespace GriffinPlus.Lib.Logging
 		public void WriteStruct<T>(T @struct)
 		{
 			int sizeOfT = Marshal.SizeOf(typeof(T));
-			var ptr = Marshal.AllocHGlobal(sizeOfT);
+			IntPtr ptr = Marshal.AllocHGlobal(sizeOfT);
 			try
 			{
 				Marshal.StructureToPtr(@struct, ptr, false);

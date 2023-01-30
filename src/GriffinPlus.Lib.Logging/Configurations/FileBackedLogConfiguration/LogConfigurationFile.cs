@@ -159,7 +159,10 @@ namespace GriffinPlus.Lib.Logging
 			mGlobalSettings = new Dictionary<string, string>(other.mGlobalSettings);
 			ApplicationName = other.ApplicationName;
 			LogWriterSettings.AddRange(other.LogWriterSettings); // log writer settings are immutable, so no copy needed
-			foreach (var kvp in other.ProcessingPipelineStageSettings) ProcessingPipelineStageSettings.Add(kvp.Key, new Dictionary<string, string>(kvp.Value));
+			foreach (KeyValuePair<string, IDictionary<string, string>> kvp in other.ProcessingPipelineStageSettings)
+			{
+				ProcessingPipelineStageSettings.Add(kvp.Key, new Dictionary<string, string>(kvp.Value));
+			}
 		}
 
 		/// <summary>
@@ -236,7 +239,7 @@ namespace GriffinPlus.Lib.Logging
 				if (line.Length == 0) continue;
 
 				// a section?
-				var match = sSectionRegex.Match(line);
+				Match match = sSectionRegex.Match(line);
 				if (match.Success)
 				{
 					section = match.Groups[1].Value;
@@ -385,7 +388,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			// add default log writer name pattern, if there is no pattern configured
-			foreach (var writer in LogWriterSettings.Where(writer => writer.mNamePatterns.Count == 0))
+			foreach (LogWriterConfiguration writer in LogWriterSettings.Where(writer => writer.mNamePatterns.Count == 0))
 			{
 				writer.mNamePatterns.Add(LogWriterConfiguration.DefaultPattern);
 			}
@@ -429,7 +432,7 @@ namespace GriffinPlus.Lib.Logging
 				foreach (string line in sGlobalSettingsComment) writer.WriteLine(line);
 				writer.WriteLine();
 				writer.WriteLine("[{0}]", Section_Name_Settings);
-				foreach (var kvp in mGlobalSettings.OrderBy(x => x.Key))
+				foreach (KeyValuePair<string, string> kvp in mGlobalSettings.OrderBy(x => x.Key))
 				{
 					writer.WriteLine("{0} = {1}", kvp.Key.Trim(), kvp.Value.Trim());
 				}
@@ -441,14 +444,14 @@ namespace GriffinPlus.Lib.Logging
 				writer.WriteLine();
 				foreach (string line in sProcessingPipelineStageSettingsComment) writer.WriteLine(line);
 
-				foreach (var stage in ProcessingPipelineStageSettings)
+				foreach (KeyValuePair<string, IDictionary<string, string>> stage in ProcessingPipelineStageSettings)
 				{
 					if (stage.Value.Count > 0)
 					{
 						writer.WriteLine();
 						writer.WriteLine("[{0}:{1}]", Section_Name_Processing_Pipeline_Stage, stage.Key);
 
-						foreach (var kvp in stage.Value.OrderBy(x => x.Key))
+						foreach (KeyValuePair<string, string> kvp in stage.Value.OrderBy(x => x.Key))
 						{
 							writer.WriteLine("{0} = {1}", kvp.Key, kvp.Value);
 						}
@@ -461,12 +464,12 @@ namespace GriffinPlus.Lib.Logging
 			{
 				writer.WriteLine();
 				foreach (string line in sLogWriterConfigurationComment) writer.WriteLine(line);
-				foreach (var logWriter in LogWriterSettings)
+				foreach (LogWriterConfiguration logWriter in LogWriterSettings)
 				{
 					writer.WriteLine();
 					writer.WriteLine("[{0}]", Section_Name_Log_Writer);
 
-					foreach (var pattern in logWriter.NamePatterns)
+					foreach (LogWriterConfiguration.INamePattern pattern in logWriter.NamePatterns)
 					{
 						switch (pattern)
 						{
@@ -483,7 +486,7 @@ namespace GriffinPlus.Lib.Logging
 						}
 					}
 
-					foreach (var pattern in logWriter.TagPatterns)
+					foreach (LogWriterConfiguration.INamePattern pattern in logWriter.TagPatterns)
 					{
 						switch (pattern)
 						{

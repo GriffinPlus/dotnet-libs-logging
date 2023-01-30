@@ -116,8 +116,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="ProcessIntegration"/> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
-		/// <param name="logWriter">Log writer to use when logging received messages (may be null).</param>
-		/// <exception cref="ArgumentNullException">The specified process is null.</exception>
+		/// <param name="logWriter">Log writer to use when logging received messages (may be <c>null</c>).</param>
+		/// <exception cref="ArgumentNullException">The specified process is <c>null</c>.</exception>
 		private ProcessIntegration(Process process, LogWriter logWriter)
 		{
 			Process = process ?? throw new ArgumentNullException(nameof(process));
@@ -179,7 +179,7 @@ namespace GriffinPlus.Lib.Logging
 		/// must be started using <see cref="StartProcess"/> to kick off reading from its output/error stream.
 		/// </summary>
 		/// <param name="process">Process to configure.</param>
-		/// <param name="logWriter">Log writer to use when logging received messages (may be null).</param>
+		/// <param name="logWriter">Log writer to use when logging received messages (may be <c>null</c>).</param>
 		public static ProcessIntegration IntegrateIntoLogging(Process process, LogWriter logWriter = null)
 		{
 			return new ProcessIntegration(process, logWriter);
@@ -211,7 +211,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The maximum is the largest possible value of a 32-bit integer, which represents infinity to the operating system.
 		/// </param>
 		/// <returns>
-		/// <c>true</c> if the associated process has exited;
+		/// <c>true</c> if the associated process has exited;<br/>
 		/// otherwise, <c>false</c>.
 		/// </returns>
 		public bool WaitForExit(int milliseconds)
@@ -274,10 +274,10 @@ namespace GriffinPlus.Lib.Logging
 				{
 					try
 					{
-						var messages = mOutputMessageReader.Process(e.Data);
+						ILogMessage[] messages = mOutputMessageReader.Process(e.Data);
 						for (int i = 0; i < messages.Length; i++)
 						{
-							var message = messages[i];
+							ILogMessage message = messages[i];
 							if (IsLoggingMessagesEnabled) LogMessage(message, "output");
 							OnOutputStreamReceivedMessage(message);
 						}
@@ -330,10 +330,10 @@ namespace GriffinPlus.Lib.Logging
 				{
 					try
 					{
-						var messages = mErrorMessageReader.Process(e.Data);
+						ILogMessage[] messages = mErrorMessageReader.Process(e.Data);
 						for (int i = 0; i < messages.Length; i++)
 						{
-							var message = messages[i];
+							ILogMessage message = messages[i];
 							if (IsLoggingMessagesEnabled) LogMessage(message, "error");
 							OnErrorStreamReceivedMessage(message);
 						}
@@ -410,7 +410,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// write the received log message to our own log using the same log level
 			// (log message as 'Notice', if not specified explicitly)
-			var level = message.LogLevelName != null ? LogLevel.GetAspect(message.LogLevelName) : LogLevel.Notice;
+			LogLevel level = message.LogLevelName != null ? LogLevel.GetAspect(message.LogLevelName) : LogLevel.Notice;
 			LogWriter.Write(level, builder.ToString());
 		}
 

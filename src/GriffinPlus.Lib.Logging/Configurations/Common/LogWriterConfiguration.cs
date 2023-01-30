@@ -31,9 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class (for internal use only).
 		/// Please use <see cref="LogWriterConfigurationBuilder"/> instead.
 		/// </summary>
-		internal LogWriterConfiguration()
-		{
-		}
+		internal LogWriterConfiguration() { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class by copying another instance.
@@ -105,8 +103,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="name">Name of the log writer to match.</param>
 		/// <param name="baseLevel">Base level to use.</param>
-		/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be null).</param>
-		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be null).</param>
+		/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <c>null</c>).</param>
+		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <c>null</c>).</param>
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromName(
 			string              name,
@@ -127,8 +125,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="pattern">Wildcard pattern matching log writer names.</param>
 		/// <param name="baseLevel">Base level to use.</param>
-		/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be null).</param>
-		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be null).</param>
+		/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <c>null</c>).</param>
+		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <c>null</c>).</param>
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromWildcardPattern(
 			string              pattern,
@@ -149,8 +147,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="regex">Regex matching log writer names.</param>
 		/// <param name="baseLevel">Base level to use.</param>
-		/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be null).</param>
-		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be null).</param>
+		/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <c>null</c>).</param>
+		/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <c>null</c>).</param>
 		/// <returns>The created log writer configuration.</returns>
 		internal static LogWriterConfiguration FromRegexPattern(
 			string              regex,
@@ -212,17 +210,16 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets the hash code of the object
 		/// (does not take the <see cref="IsDefault"/> property into account).
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>The hash code of the configuration.</returns>
 		public override int GetHashCode()
 		{
 			unchecked
 			{
 				int hashCode = mBaseLevel.GetHashCode();
-				foreach (var pattern in mNamePatterns) hashCode = (hashCode * 397) ^ pattern.GetHashCode();
-				foreach (var pattern in mTagPatterns) hashCode = (hashCode * 397) ^ pattern.GetHashCode();
-				foreach (string include in mIncludes) hashCode = (hashCode * 397) ^ include.GetHashCode();
-				foreach (string exclude in mExcludes) hashCode = (hashCode * 397) ^ exclude.GetHashCode();
-				return hashCode;
+				hashCode = mNamePatterns.Aggregate(hashCode, (current, pattern) => (current * 397) ^ pattern.GetHashCode());
+				hashCode = mTagPatterns.Aggregate(hashCode, (current,  pattern) => (current * 397) ^ pattern.GetHashCode());
+				hashCode = mIncludes.Aggregate(hashCode, (current,     include) => (current * 397) ^ include.GetHashCode());
+				return mExcludes.Aggregate(hashCode, (current, exclude) => (current * 397) ^ exclude.GetHashCode());
 			}
 		}
 
@@ -231,7 +228,10 @@ namespace GriffinPlus.Lib.Logging
 		/// (does not take the <see cref="IsDefault"/> property into account).
 		/// </summary>
 		/// <param name="other">Object to compare with.</param>
-		/// <returns>true, if the specified object equals the current one; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the specified object equals the current one;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public bool Equals(LogWriterConfiguration other)
 		{
 			return mBaseLevel == other.mBaseLevel &&

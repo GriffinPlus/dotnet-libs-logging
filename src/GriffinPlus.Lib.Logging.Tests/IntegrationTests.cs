@@ -29,7 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Log_Configuration_Should_Let_Messages_Below_BaseLevel_Pass(string baseLevel)
 		{
 			// convert log level name to LogLevel object
-			var threshold = LogLevel.GetAspect(baseLevel);
+			LogLevel threshold = LogLevel.GetAspect(baseLevel);
 
 			// initialize the logging subsystem
 			int callbackInvokedCount = 0;
@@ -70,8 +70,8 @@ namespace GriffinPlus.Lib.Logging
 				});
 
 			// write a message using all predefined log levels
-			var writer = LogWriter.Get(sLogWriterName);
-			foreach (var level in LogLevel.PredefinedLogLevels)
+			LogWriter writer = LogWriter.Get(sLogWriterName);
+			foreach (LogLevel level in LogLevel.PredefinedLogLevels)
 			{
 				writer.Write(level, TestMessage);
 			}
@@ -134,8 +134,8 @@ namespace GriffinPlus.Lib.Logging
 				});
 
 			// write a message using all log messages
-			var writer = LogWriter.Get(sLogWriterName);
-			foreach (var level in LogLevel.PredefinedLogLevels)
+			LogWriter writer = LogWriter.Get(sLogWriterName);
+			foreach (LogLevel level in LogLevel.PredefinedLogLevels)
 			{
 				writer.Write(level, TestMessage);
 			}
@@ -197,8 +197,8 @@ namespace GriffinPlus.Lib.Logging
 				});
 
 			// write a message using all log messages
-			var writer = LogWriter.Get(sLogWriterName);
-			foreach (var level in LogLevel.PredefinedLogLevels)
+			LogWriter writer = LogWriter.Get(sLogWriterName);
+			foreach (LogLevel level in LogLevel.PredefinedLogLevels)
 			{
 				writer.Write(level, TestMessage);
 			}

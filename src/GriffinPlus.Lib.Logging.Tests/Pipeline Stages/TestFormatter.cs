@@ -20,6 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// specify format of the timestamp explicitly to work around an issue with duplicating the timezone offset
 			// (see https://github.com/microsoft/dotnet/issues/1144)
+			// ReSharper disable once UseStringInterpolation
 			return string.Format(
 				"{0:O} ### {1} ### {2} ### {3} ### {4} ### {5} ### {6} ### {7} ### {8}",
 				message.Timestamp,

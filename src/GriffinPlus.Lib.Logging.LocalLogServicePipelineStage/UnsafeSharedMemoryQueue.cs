@@ -298,8 +298,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Begins writing a block.
 		/// </summary>
 		/// <returns>
-		/// Pointer to the data buffer within the retrieved block;
-		/// null, if no block is available for writing.
+		/// Pointer to the data buffer within the retrieved block;<br/>
+		/// <c>null</c> if no block is available for writing.
 		/// </returns>
 		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 		/// <remarks>
@@ -313,7 +313,7 @@ namespace GriffinPlus.Lib.Logging
 			if (!mInitialized) throw new InvalidOperationException("Queue is not initialized, call Create() or Open() to initialize it.");
 
 			// fetch a free block
-			var block = GetFreeBlock();
+			QueueBlock* block = GetFreeBlock();
 			if (block == null)
 			{
 				// no free block left
@@ -447,12 +447,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="validSize">Receives the number of valid bytes in the block.</param>
 		/// <param name="overflowCount">Receives the number of lost single blocks or block sequences since the last reading attempt.</param>
 		/// <param name="blocksFollowingInSequence">
-		/// Receives <c>true</c>, if there are more blocks in the queue that belong to the block;
-		/// otherwise false.
+		/// Receives <c>true</c>, if there are more blocks in the queue that belong to the block;<br/>
+		/// otherwise <c>false</c>.
 		/// </param>
 		/// <returns>
-		/// Pointer to the data buffer within the retrieved block;
-		/// null if no block is available for reading.
+		/// Pointer to the data buffer within the retrieved block;<br/>
+		/// <c>null</c> if no block is available for reading.
 		/// </returns>
 		/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 		public void* BeginReading(out int validSize, out int overflowCount, out bool blocksFollowingInSequence)
@@ -468,7 +468,7 @@ namespace GriffinPlus.Lib.Logging
 				// prepare stuff to return
 				validSize = mFirstBlockUnderRead->DataSize;
 				overflowCount = mFirstBlockUnderRead->OverflowCount;
-				var block = mFirstBlockUnderRead;
+				QueueBlock* block = mFirstBlockUnderRead;
 				var buffer = (void*)((byte)block + sizeof(QueueBlock));
 
 				// proceed with the next block
@@ -612,8 +612,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets a free block.
 		/// </summary>
 		/// <returns>
-		/// A free block;
-		/// null, if no free block is available.
+		/// A free block;<br/>
+		/// <c>null</c> if no free block is available.
 		/// </returns>
 		private QueueBlock* GetFreeBlock()
 		{

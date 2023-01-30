@@ -22,8 +22,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
 		/// <returns>
-		/// The first log message matching the filter;
-		/// null, if no message matching the filter was found.
+		/// The first log message matching the filter;<br/>
+		/// <c>null</c> if no message matching the filter was found.
 		/// </returns>
 		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromMessageId"/> exceeds the bounds of the log file.</exception>
@@ -35,7 +35,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
 		/// <param name="count">Maximum number of matching log messages to get.</param>
 		/// <param name="reverse">
-		/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the log file;
+		/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the log file;<br/>
 		/// <c>false</c> to return the list of messages in the opposite order.
 		/// </param>
 		/// <returns>Log messages matching the filter.</returns>
@@ -52,8 +52,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
 		/// <returns>
-		/// The first log message matching the filter;
-		/// null, if no message matching the filter was found.
+		/// The first log message matching the filter;<br/>
+		/// <c>null</c> if no message matching the filter was found.
 		/// </returns>
 		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromMessageId"/> exceeds the bounds of the log file.</exception>

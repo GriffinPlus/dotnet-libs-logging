@@ -279,7 +279,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mProcessIdFilterTableName};");
 			if (Enabled && ProcessIdFilter.Enabled)
 			{
-				foreach (var item in ProcessIdFilter.Items)
+				foreach (ISelectableLogMessageFilter_Item<int> item in ProcessIdFilter.Items)
 				{
 					if (item.Selected)
 					{
@@ -293,7 +293,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mProcessNameFilterTableName};");
 			if (Enabled && ProcessNameFilter.Enabled)
 			{
-				foreach (var item in ProcessNameFilter.Items)
+				foreach (ISelectableLogMessageFilter_Item<string> item in ProcessNameFilter.Items)
 				{
 					if (item.Selected)
 					{
@@ -307,7 +307,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mApplicationNameFilterTableName};");
 			if (Enabled && ApplicationNameFilter.Enabled)
 			{
-				foreach (var item in ApplicationNameFilter.Items)
+				foreach (ISelectableLogMessageFilter_Item<string> item in ApplicationNameFilter.Items)
 				{
 					if (item.Selected)
 					{
@@ -321,7 +321,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mLogWriterFilterTableName};");
 			if (Enabled && LogWriterFilter.Enabled)
 			{
-				foreach (var item in LogWriterFilter.Items)
+				foreach (ISelectableLogMessageFilter_Item<string> item in LogWriterFilter.Items)
 				{
 					if (item.Selected)
 					{
@@ -335,7 +335,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mLogLevelFilterTableName};");
 			if (Enabled && LogLevelFilter.Enabled)
 			{
-				foreach (var item in LogLevelFilter.Items)
+				foreach (ISelectableLogMessageFilter_Item<string> item in LogLevelFilter.Items)
 				{
 					if (item.Selected)
 					{
@@ -349,7 +349,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			mAccessor.ExecuteNonQueryCommands($"DELETE FROM {mFilterDatabaseName}.{mTagFilterTableName};");
 			if (Enabled && TagFilter.Enabled)
 			{
-				foreach (var item in TagFilter.Items)
+				foreach (ISelectableLogMessageFilter_Item<string> item in TagFilter.Items)
 				{
 					if (item.Selected)
 					{
@@ -369,8 +369,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
 		/// <returns>
-		/// The first log message matching the filter;
-		/// null, if no message matching the filter was found.
+		/// The first log message matching the filter;<br/>
+		/// <c>null</c> if no message matching the filter was found.
 		/// </returns>
 		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromMessageId"/> exceeds the bounds of the log file.</exception>
@@ -389,11 +389,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			mSelectContinuousMessagesCommand_Backwards_FromIdParameter.Value = fromMessageId;
 			mSelectContinuousMessagesCommand_Backwards_CountParameter.Value = 1;
-			using (var reader = mSelectContinuousMessagesCommand_Backwards.ExecuteReader())
+			using (SQLiteDataReader reader = mSelectContinuousMessagesCommand_Backwards.ExecuteReader())
 			{
 				while (reader.Read())
 				{
-					ReadMessage(reader, out var message);
+					ReadMessage(reader, out LogFileMessage message);
 					return message;
 				}
 			}
@@ -407,7 +407,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
 		/// <param name="count">Maximum number of matching log messages to get.</param>
 		/// <param name="reverse">
-		/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the log file;
+		/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the log file;<br/>
 		/// <c>false</c> to return the list of messages in the opposite order.
 		/// </param>
 		/// <returns>Log messages matching the filter.</returns>
@@ -442,11 +442,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			mSelectContinuousMessagesCommand_Backwards_FromIdParameter.Value = fromMessageId;
 			mSelectContinuousMessagesCommand_Backwards_CountParameter.Value = count;
-			using (var reader = mSelectContinuousMessagesCommand_Backwards.ExecuteReader())
+			using (SQLiteDataReader reader = mSelectContinuousMessagesCommand_Backwards.ExecuteReader())
 			{
 				while (reader.Read())
 				{
-					ReadMessage(reader, out var message);
+					ReadMessage(reader, out LogFileMessage message);
 					messages.Add(message);
 				}
 			}
@@ -460,8 +460,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
 		/// <returns>
-		/// The first log message matching the filter;
-		/// null, if no message matching the filter was found.
+		/// The first log message matching the filter;<br/>
+		/// <c>null</c> if no message matching the filter was found.
 		/// </returns>
 		/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromMessageId"/> exceeds the bounds of the log file.</exception>
@@ -480,11 +480,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			mSelectContinuousMessagesCommand_Forward_FromIdParameter.Value = fromMessageId;
 			mSelectContinuousMessagesCommand_Forward_CountParameter.Value = 1;
-			using (var reader = mSelectContinuousMessagesCommand_Forward.ExecuteReader())
+			using (SQLiteDataReader reader = mSelectContinuousMessagesCommand_Forward.ExecuteReader())
 			{
 				while (reader.Read())
 				{
-					ReadMessage(reader, out var message);
+					ReadMessage(reader, out LogFileMessage message);
 					return message;
 				}
 			}
@@ -526,11 +526,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			mSelectContinuousMessagesCommand_Forward_FromIdParameter.Value = fromMessageId;
 			mSelectContinuousMessagesCommand_Forward_CountParameter.Value = count;
-			using (var reader = mSelectContinuousMessagesCommand_Forward.ExecuteReader())
+			using (SQLiteDataReader reader = mSelectContinuousMessagesCommand_Forward.ExecuteReader())
 			{
 				while (reader.Read())
 				{
-					ReadMessage(reader, out var message);
+					ReadMessage(reader, out LogFileMessage message);
 					messages.Add(message);
 				}
 			}
@@ -573,11 +573,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			mSelectContinuousMessagesCommand_Range_FromIdParameter.Value = fromMessageId;
 			mSelectContinuousMessagesCommand_Range_ToIdParameter.Value = toMessageId;
-			using (var reader = mSelectContinuousMessagesCommand_Range.ExecuteReader())
+			using (SQLiteDataReader reader = mSelectContinuousMessagesCommand_Range.ExecuteReader())
 			{
 				while (reader.Read())
 				{
-					ReadMessage(reader, out var message);
+					ReadMessage(reader, out LogFileMessage message);
 					messages.Add(message);
 				}
 			}
@@ -590,7 +590,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="reader">Sqlite reader to read from.</param>
 		/// <param name="message">Receives the read log message.</param>
-		private void ReadMessage(SQLiteDataReader reader, out LogFileMessage message)
+		private void ReadMessage(IDataRecord reader, out LogFileMessage message)
 		{
 			// columns in result:
 			// 0 = message id
@@ -606,7 +606,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// 10 = has tags
 			// 11 = text name
 			long messageId = reader.GetInt64(0);
-			var timezoneOffset = TimeSpan.FromTicks(reader.GetInt64(2));
+			TimeSpan timezoneOffset = TimeSpan.FromTicks(reader.GetInt64(2));
 			var timestamp = new DateTimeOffset(reader.GetInt64(1) + timezoneOffset.Ticks, timezoneOffset);
 			long highPrecisionTimestamp = reader.GetInt64(3);
 			int lostMessageCount = reader.GetInt32(4);

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Data.SQLite;
 using System.Diagnostics;
@@ -99,8 +98,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Disposes the collection closing the underlying file.
 		/// </summary>
 		/// <param name="disposing">
-		/// true if the object is being disposed;
-		/// false, if it is being finalized.
+		/// <c>true</c> if the object is being disposed;<br/>
+		/// <c>false</c> if it is being finalized.
 		/// </param>
 		protected override void Dispose(bool disposing)
 		{
@@ -129,7 +128,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="path">Path of the log file to create.</param>
 		/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 		/// <param name="mode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
-		/// <param name="messages">Messages to populate the log file with (may be null).</param>
+		/// <param name="messages">Messages to populate the log file with (may be <c>null</c>).</param>
 		/// <exception cref="LogFileException">Creating the log file failed (see message and inner exception for details).</exception>
 		public static FileBackedLogMessageCollection Create(
 			string                   path,
@@ -193,8 +192,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// optionally marking the file for auto-deletion.
 		/// </summary>
 		/// <param name="deleteAutomatically">
-		/// true to delete the file automatically when the collection is disposed (or the next time, a temporary collection is created in the same directory);
-		/// false to keep it after the collection is disposed.
+		/// <c>true</c> to delete the file automatically when the collection is disposed
+		/// (or the next time, a temporary collection is created in the same directory);<br/>
+		/// <c>false</c> to keep it after the collection is disposed.
 		/// </param>
 		/// <param name="temporaryDirectoryPath">
 		/// Path of the temporary directory to use;
@@ -206,7 +206,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="mode">
 		/// Write mode determining whether to open the log file in 'robust' or 'fast' mode (default).
 		/// </param>
-		/// <param name="messages">Messages to populate the temporary collection with (may be null).</param>
+		/// <param name="messages">Messages to populate the temporary collection with (may be <c>null</c>).</param>
 		/// <returns>The created collection.</returns>
 		public static FileBackedLogMessageCollection CreateTemporaryCollection(
 			bool                     deleteAutomatically,
@@ -377,7 +377,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// (the specified message must be associated with the collection as the check works with message ids).
 		/// </summary>
 		/// <param name="message">Log message to check for.</param>
-		/// <returns>true, if the collection contains the log message; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the collection contains the log message;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public override bool Contains(LogMessage message)
 		{
 			if (message is LogFileMessage fileLogMessage)
@@ -391,7 +394,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				// message could be in the collection, check whether the specified message equals the message in
 				// the collection with the same id
-				var other = GetMessage(fileLogMessage.Id);
+				LogFileMessage other = GetMessage(fileLogMessage.Id);
 				return message.Equals(other);
 			}
 
@@ -406,9 +409,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Gets the index of the specified log message
 		/// (the specified message must be associated with the collection as the check works with message ids).
 		/// </summary>
-		/// <param name="message">Log message to locate in the collection (may be null).</param>
+		/// <param name="message">Log message to locate in the collection (may be <c>null</c>).</param>
 		/// <returns>
-		/// Index of the log message;
+		/// Index of the log message;<br/>
 		/// -1, if the specified message is not in the collection.
 		/// </returns>
 		public override long IndexOf(LogMessage message)
@@ -424,7 +427,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				// message could be in the collection, check whether the specified message equals the message in
 				// the collection with the same id
-				var other = GetMessage(fileLogMessage.Id);
+				LogFileMessage other = GetMessage(fileLogMessage.Id);
 				if (message.Equals(other)) return other.Id - oldestMessageId;
 			}
 
@@ -567,7 +570,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			while (index < firstIndex + count)
 			{
 				int copyCount = Math.Min(CopySliceSize, remaining);
-				var messages = LogFile.Read(LogFile.OldestMessageId + index, copyCount);
+				LogFileMessage[] messages = LogFile.Read(LogFile.OldestMessageId + index, copyCount);
 				destination.AddRange(messages);
 				index += copyCount;
 				remaining -= copyCount;
@@ -623,7 +626,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				// some message might have been removed from the log file
 				// => flush cache pages that contain only messages that have been removed
-				var node = mCachePages.First;
+				LinkedListNode<CachePage> node = mCachePages.First;
 				while (node != null)
 				{
 					long firstMessageIdInPage = node.Value.FirstMessageId;
@@ -639,7 +642,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					{
 						// the page does not contain any messages that are still in the log file
 						// => remove the page
-						var next = node.Next;
+						LinkedListNode<CachePage> next = node.Next;
 						mCachePages.Remove(node);
 						node = next;
 					}
@@ -688,7 +691,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// read changed messages, but do not keep these messages in the cache
 			// (a continuous update would drop the performance since frequently requested messages are kicked out the cache)
-			var messages = LogFile.Read(LogFile.NewestMessageId - count + 1, count);
+			LogFileMessage[] messages = LogFile.Read(LogFile.NewestMessageId - count + 1, count);
 
 			// notify clients about the change
 			if (IsCollectionChangedRegistered)
@@ -705,7 +708,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				{
 					for (int i = 0; i < messages.Length; i++)
 					{
-						var message = messages[i];
+						LogFileMessage message = messages[i];
 
 						OnCollectionChanged(
 							new NotifyCollectionChangedEventArgs(
@@ -736,7 +739,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <typeparam name="T">Type of items in the overview collection.</typeparam>
 		/// <param name="collection">The overview collection.</param>
 		/// <param name="items">New items set.</param>
-		private static void SynchronizeOverviewCollection<T>(ObservableCollection<T> collection, T[] items)
+		private static void SynchronizeOverviewCollection<T>(IList<T> collection, T[] items)
 		{
 			// remove items from the collection that are not in the new item set
 			var itemSet = new HashSet<T>(items);
@@ -748,7 +751,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// add new items that are not in the collection, yet
 			itemSet = new HashSet<T>(collection);
-			foreach (var item in items)
+			foreach (T item in items)
 			{
 				if (!itemSet.Contains(item))
 				{
@@ -764,11 +767,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <typeparam name="T">Type of the items in the overview collection.</typeparam>
 		/// <param name="collection">The overview collection.</param>
 		/// <param name="items">Items to add.</param>
-		private static void AddToOverviewCollection<T>(ObservableCollection<T> collection, IEnumerable<T> items)
+		private static void AddToOverviewCollection<T>(ICollection<T> collection, IEnumerable<T> items)
 		{
 			// add new items that are not in the collection, yet
 			var itemSet = new HashSet<T>(collection);
-			foreach (var item in items)
+			foreach (T item in items)
 			{
 				if (!itemSet.Contains(item))
 				{
@@ -792,7 +795,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			long firstMessageId;
 			LogFileMessage[] messages;
-			var node = mCachePages.First;
+			LinkedListNode<CachePage> node = mCachePages.First;
 			while (node != null)
 			{
 				firstMessageId = node.Value.FirstMessageId;

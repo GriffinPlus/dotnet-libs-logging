@@ -4,6 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace GriffinPlus.Lib.Logging
@@ -20,9 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="LogWriterConfigurationBuilder"/> class.
 		/// Not supported, please use <see cref="New"/> instead to feature the fluent character.
 		/// </summary>
-		private LogWriterConfigurationBuilder()
-		{
-		}
+		private LogWriterConfigurationBuilder() { }
 
 		/// <summary>
 		/// Creates a new builder.
@@ -170,19 +169,15 @@ namespace GriffinPlus.Lib.Logging
 			if (to == null) throw new ArgumentNullException(nameof(to));
 
 			// get log levels associated with the log level names
-			var fromLevel = LogLevel.GetAspect(from);
-			var toLevel = LogLevel.GetAspect(to);
+			LogLevel fromLevel = LogLevel.GetAspect(from);
+			LogLevel toLevel = LogLevel.GetAspect(to);
 
 			// swap order, if specified in wrong order
 			if (fromLevel.Id > toLevel.Id)
-			{
-				var swap = toLevel;
-				toLevel = fromLevel;
-				fromLevel = swap;
-			}
+				(toLevel, fromLevel) = (fromLevel, toLevel);
 
 			// add one include per log level in the range
-			var levels = LogLevel.KnownLevels; // index corresponds to log level id
+			IReadOnlyList<LogLevel> levels = LogLevel.KnownLevels; // index corresponds to log level id
 			for (int id = fromLevel.Id; id <= toLevel.Id; id++)
 			{
 				if (!mConfiguration.mIncludes.Contains(levels[id].Name)) mConfiguration.mIncludes.Add(levels[id].Name);
@@ -247,19 +242,15 @@ namespace GriffinPlus.Lib.Logging
 			if (to == null) throw new ArgumentNullException(nameof(to));
 
 			// get log levels associated with the log level names
-			var fromLevel = LogLevel.GetAspect(from);
-			var toLevel = LogLevel.GetAspect(to);
+			LogLevel fromLevel = LogLevel.GetAspect(from);
+			LogLevel toLevel = LogLevel.GetAspect(to);
 
 			// swap order, if specified in wrong order
 			if (fromLevel.Id > toLevel.Id)
-			{
-				var swap = toLevel;
-				toLevel = fromLevel;
-				fromLevel = swap;
-			}
+				(toLevel, fromLevel) = (fromLevel, toLevel);
 
 			// add one exclude per log level in the range
-			var levels = LogLevel.KnownLevels; // index corresponds to log level id
+			IReadOnlyList<LogLevel> levels = LogLevel.KnownLevels; // index corresponds to log level id
 			for (int id = fromLevel.Id; id <= toLevel.Id; id++)
 			{
 				mConfiguration.mIncludes.Remove(levels[id].Name);

@@ -19,7 +19,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <returns>An operating specific system logger.</returns>
 		public static ISystemLogger Create()
 		{
-			var platform = Environment.OSVersion.Platform;
+			PlatformID platform = Environment.OSVersion.Platform;
 			switch (platform)
 			{
 				case PlatformID.Win32NT:
@@ -28,6 +28,11 @@ namespace GriffinPlus.Lib.Logging
 				case PlatformID.Unix:
 					return new UnixSystemLogger();
 
+				case PlatformID.MacOSX:
+				case PlatformID.Win32S:
+				case PlatformID.Win32Windows:
+				case PlatformID.WinCE:
+				case PlatformID.Xbox:
 				default:
 					return new NoopSystemLogger();
 			}

@@ -19,9 +19,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineTestStage"/> class.
 		/// </summary>
-		public AsyncProcessingPipelineTestStage()
-		{
-		}
+		public AsyncProcessingPipelineTestStage() { }
 
 		/// <summary>
 		/// Gets a value indicating whether <see cref="OnInitialize"/> was called.

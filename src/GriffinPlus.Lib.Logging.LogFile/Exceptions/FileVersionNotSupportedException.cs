@@ -17,26 +17,20 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileVersionNotSupportedException"/> class.
 		/// </summary>
-		public FileVersionNotSupportedException()
-		{
-		}
+		public FileVersionNotSupportedException() { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileVersionNotSupportedException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
-		public FileVersionNotSupportedException(string message) : base(message)
-		{
-		}
+		public FileVersionNotSupportedException(string message) : base(message) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileVersionNotSupportedException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		/// <param name="innerException">The original exception that led to the exception being thrown.</param>
-		public FileVersionNotSupportedException(string message, Exception innerException) : base(message, innerException)
-		{
-		}
+		public FileVersionNotSupportedException(string message, Exception innerException) : base(message, innerException) { }
 	}
 
 }

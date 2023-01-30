@@ -17,6 +17,7 @@
 				<dependency id="GriffinPlus.Lib.Common" version="[2.8.0,3)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
+				<dependency id="System.ValueTuple" version="4.5.0" include="all" />
 			</group>
 			<group targetFramework="netstandard2.0">
 				<dependency id="GriffinPlus.Lib.Common" version="[2.8.0,3)" include="all" />
@@ -26,12 +27,12 @@
 		</dependencies>
 	</metadata>
 	<files>
-		<file src="..\..\..\res\nuget-icon.png" target="images\" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.dll" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.pdb" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.xml" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.dll" target="lib\net461" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.pdb" target="lib\net461" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.xml" target="lib\net461" />
+		<file src="../../../res/nuget-icon.png" target="images/" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.dll" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.pdb" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.xml" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.dll" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.pdb" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.xml" target="lib/net461" />
 	</files>
 </package>

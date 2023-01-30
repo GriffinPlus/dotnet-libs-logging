@@ -29,9 +29,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessage"/> class.
 		/// </summary>
-		public LogMessage()
-		{
-		}
+		public LogMessage() { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessage"/> class copying the specified one.
@@ -42,7 +40,7 @@ namespace GriffinPlus.Lib.Logging
 			mTimestamp = other.Timestamp;
 			mHighPrecisionTimestamp = other.HighPrecisionTimestamp;
 			mLogWriterName = other.LogWriterName;
-			mTags = other.Tags is TagSet tags ? tags : new TagSet(other.Tags);
+			mTags = other.Tags as TagSet ?? new TagSet(other.Tags);
 			mLogLevelName = other.LogLevelName;
 			mApplicationName = other.ApplicationName;
 			mProcessName = other.ProcessName;
@@ -153,8 +151,8 @@ namespace GriffinPlus.Lib.Logging
 		/// (<see cref="IsInitialized"/> is <c>false</c> at first and set to <c>true</c> as soon as the message is initialized).
 		/// </summary>
 		/// <param name="readOnly">
-		/// true to create a read-only message that can only be set by the returned initializer;
-		/// otherwise false.
+		/// <c>true</c> to create a read-only message that can only be set by the returned initializer;<br/>
+		/// otherwise <c>false</c>.
 		/// </param>
 		/// <param name="initializer">Receives the initializer that allows to update the log message.</param>
 		/// <returns>The created log message.</returns>
@@ -716,8 +714,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="other">Log message to compare with.</param>
 		/// <returns>
-		/// true, if the current log message equals the specified one;
-		/// otherwise false.
+		/// <c>true</c> if the current log message equals the specified one;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public virtual bool Equals(ILogMessage other)
 		{
@@ -752,8 +750,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="other">Log message to compare with.</param>
 		/// <returns>
-		/// true, if the current log message equals the specified one;
-		/// otherwise false.
+		/// <c>true</c> if the current log message equals the specified one;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public virtual bool Equals(LogMessage other)
 		{
@@ -780,12 +778,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="obj">Log message to compare with.</param>
 		/// <returns>
-		/// true, if the current log message equals the specified one;
-		/// otherwise false.
+		/// <c>true</c> if the current log message equals the specified one;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public override bool Equals(object obj)
 		{
-			return ReferenceEquals(this, obj) || obj is ILogMessage other && Equals(other);
+			return ReferenceEquals(this, obj) || (obj is ILogMessage other && Equals(other));
 		}
 
 		/// <summary>
@@ -844,7 +842,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="propertyName">
 		/// Name of the property that has changed
-		/// (null to indicate that all properties (might) have changed).
+		/// (<c>null</c> to indicate that all properties (might) have changed).
 		/// </param>
 		protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{

@@ -141,6 +141,15 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							return;
 						}
 
+						case JsonTokenType.None:
+						case JsonTokenType.StartObject:
+						case JsonTokenType.StartArray:
+						case JsonTokenType.EndArray:
+						case JsonTokenType.Comment:
+						case JsonTokenType.Number:
+						case JsonTokenType.True:
+						case JsonTokenType.False:
+						case JsonTokenType.Null:
 						default:
 						{
 							// unexpected token, skip!

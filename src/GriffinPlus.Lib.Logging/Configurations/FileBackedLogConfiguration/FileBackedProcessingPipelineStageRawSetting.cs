@@ -62,7 +62,7 @@ namespace GriffinPlus.Lib.Logging
 		public string Name { get; } // immutable => no sync necessary
 
 		/// <summary>
-		/// Gets a value indicating whether the setting has valid value (true) or just its default value (false).
+		/// Gets a value indicating whether the setting has valid value (<c>true</c>) or just its default value (<c>false</c>).
 		/// </summary>
 		public bool HasValue
 		{
@@ -70,9 +70,9 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (StageConfiguration.Sync)
 				{
-					if (StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.TryGetValue(StageConfiguration.Name, out var settings))
+					if (StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.TryGetValue(StageConfiguration.Name, out IDictionary<string, string> settings))
 					{
-						if (settings.TryGetValue(Name, out _))
+						if (settings.TryGetValue(Name, out string _))
 						{
 							return true;
 						}
@@ -92,7 +92,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (StageConfiguration.Sync)
 				{
-					if (StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.TryGetValue(StageConfiguration.Name, out var settings))
+					if (StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.TryGetValue(StageConfiguration.Name, out IDictionary<string, string> settings))
 					{
 						if (settings.TryGetValue(Name, out string value))
 						{
@@ -108,7 +108,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (StageConfiguration.Sync)
 				{
-					if (!StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.TryGetValue(StageConfiguration.Name, out var settings))
+					if (!StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.TryGetValue(StageConfiguration.Name, out IDictionary<string, string> settings))
 					{
 						settings = new Dictionary<string, string>();
 						StageConfiguration.LogConfiguration.File.ProcessingPipelineStageSettings.Add(StageConfiguration.Name, settings);

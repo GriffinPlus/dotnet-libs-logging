@@ -176,7 +176,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void AllColumns()
 		{
-			var formatter = TableMessageFormatter.AllColumns;
+			TableMessageFormatter formatter = TableMessageFormatter.AllColumns;
 			const LogMessageField expectedFields = LogMessageField.Timestamp |
 			                                       LogMessageField.LogWriterName |
 			                                       LogMessageField.LogLevelName |
@@ -186,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 			                                       LogMessageField.ProcessId |
 			                                       LogMessageField.Text;
 			Assert.Equal(expectedFields, formatter.FormattedFields);
-			var message = GetTestMessage();
+			LogMessage message = GetTestMessage();
 			string output = formatter.Format(message);
 			Assert.Equal("2000-01-01 00:00:00Z | MyWriter | MyLevel | Tag1, Tag2 | MyApp | MyProcess | 42 | MyText", output);
 		}

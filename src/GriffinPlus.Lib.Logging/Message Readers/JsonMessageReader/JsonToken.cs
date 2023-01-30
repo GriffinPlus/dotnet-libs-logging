@@ -59,8 +59,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="other">Token to compare with.</param>
 		/// <returns>
-		/// true, if the current token equals the specified one;
-		/// otherwise false.
+		/// <c>true</c> if the current token equals the specified one;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public bool Equals(JsonToken other)
 		{
@@ -72,8 +72,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="obj">Token to compare with.</param>
 		/// <returns>
-		/// true, if the current token equals the specified one;
-		/// otherwise false.
+		/// <c>true</c> if the current token equals the specified one;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public override bool Equals(object obj)
 		{

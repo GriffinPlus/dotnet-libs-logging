@@ -31,9 +31,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="JsonMessageFormatter"/> class.
 		/// </summary>
-		public JsonMessageFormatter()
-		{
-		}
+		public JsonMessageFormatter() { }
 
 		/// <summary>
 		/// Gets a formatter that writes the following fields:
@@ -84,7 +82,7 @@ namespace GriffinPlus.Lib.Logging
 					if (mEscapeSolidus != value)
 					{
 						mEscapeSolidus = value;
-						foreach (var field in mFields) field.UpdateEscapedJsonKey();
+						foreach (FieldBase field in mFields) field.UpdateEscapedJsonKey();
 						UpdateMaxEscapedJsonKeyLength();
 					}
 				}
@@ -176,7 +174,7 @@ namespace GriffinPlus.Lib.Logging
 						mOutputBuilder.Append("{");
 						for (int i = 0; i < mFields.Count; i++)
 						{
-							var field = mFields[i];
+							FieldBase field = mFields[i];
 							mOutputBuilder.Append('"');
 							mOutputBuilder.Append(field.EscapedJsonKey);
 							mOutputBuilder.Append('"');
@@ -194,7 +192,7 @@ namespace GriffinPlus.Lib.Logging
 						mOutputBuilder.Append("{ ");
 						for (int i = 0; i < mFields.Count; i++)
 						{
-							var field = mFields[i];
+							FieldBase field = mFields[i];
 							mOutputBuilder.Append('"');
 							mOutputBuilder.Append(field.EscapedJsonKey);
 							mOutputBuilder.Append('"');
@@ -213,7 +211,7 @@ namespace GriffinPlus.Lib.Logging
 						mOutputBuilder.Append(mNewline);
 						for (int i = 0; i < mFields.Count; i++)
 						{
-							var field = mFields[i];
+							FieldBase field = mFields[i];
 							mOutputBuilder.Append(mIndent);
 							mOutputBuilder.Append('"');
 							mOutputBuilder.Append(field.EscapedJsonKey);
@@ -244,7 +242,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="format">
 		/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx" for details).
 		/// </param>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddTimestampField(string format = "u", string jsonKey = null)
 		{
 			if (format == null) throw new ArgumentNullException(nameof(format));
@@ -260,7 +258,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds the high precision timestamp field.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddHighPrecisionTimestampField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.HighPrecisionTimestamp;
@@ -271,7 +269,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds a field with the name of the log writer that was used to write a log message.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddLogWriterField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.LogWriter;
@@ -282,7 +280,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds a field with the tags the log writer attached when writing the log message.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddTagsField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Tags;
@@ -293,7 +291,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds a field with the name of the log level that was used to write a log message.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddLogLevelField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.LogLevel;
@@ -304,7 +302,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds a field with the name of the application that has written a log message.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddApplicationNameField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ApplicationName;
@@ -315,7 +313,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds a field with the name of the process that has written a log message.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddProcessNameField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ProcessName;
@@ -326,7 +324,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds a field with the id of the process that has written a log message.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddProcessIdField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ProcessId;
@@ -337,7 +335,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Adds a field with the message text.
 		/// </summary>
-		/// <param name="jsonKey">Key of the field in the JSON document (null to use the default key).</param>
+		/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 		public void AddTextField(string jsonKey = null)
 		{
 			if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Text;
@@ -365,7 +363,7 @@ namespace GriffinPlus.Lib.Logging
 		private void UpdateMaxEscapedJsonKeyLength()
 		{
 			mMaxEscapedJsonKeyLength = 0;
-			foreach (var field in mFields) mMaxEscapedJsonKeyLength = Math.Max(mMaxEscapedJsonKeyLength, field.EscapedJsonKey.Length);
+			foreach (FieldBase field in mFields) mMaxEscapedJsonKeyLength = Math.Max(mMaxEscapedJsonKeyLength, field.EscapedJsonKey.Length);
 		}
 
 		/// <summary>
@@ -373,7 +371,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="builder">String builder to append the escaped string to.</param>
 		/// <param name="s">String to escape and append to the string builder.</param>
-		/// <param name="escapeSolidus">true to escape the solidus ('/'), otherwise false.</param>
+		/// <param name="escapeSolidus">
+		/// <c>true</c> to escape the solidus ('/');<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		internal static void AppendEscapedStringToBuilder(StringBuilder builder, string s, bool escapeSolidus)
 		{
 			// NOTE:

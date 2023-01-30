@@ -21,9 +21,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="formatter">The formatter the field belongs to.</param>
 			/// <param name="jsonKey">Key of the field in the JSON document.</param>
 			public LogLevelField(JsonMessageFormatter formatter, string jsonKey) :
-				base(formatter, LogMessageField.LogLevelName, jsonKey)
-			{
-			}
+				base(formatter, LogMessageField.LogLevelName, jsonKey) { }
 
 			/// <summary>
 			/// Appends the formatted value of the current field to the specified string builder.

@@ -22,12 +22,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="AsyncCallbackPipelineStage"/> class.
 		/// Please set <see cref="SynchronousProcessingCallback"/> and <see cref="AsynchronousProcessingCallback"/> to callbacks of your choice.
 		/// </summary>
-		public AsyncCallbackPipelineStage()
-		{
-		}
+		public AsyncCallbackPipelineStage() { }
 
 		/// <summary>
-		/// Gets or sets the synchronous message processing callback (may be null).
+		/// Gets or sets the synchronous message processing callback (may be <c>null</c>).
 		/// The callback is executed in the context of the thread writing the message.
 		/// </summary>
 		/// <remarks>
@@ -46,7 +44,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets or sets the asynchronous message processing callback (may be null).
+		/// Gets or sets the asynchronous message processing callback (may be <c>null</c>).
 		/// The callback is executed by a worker thread.
 		/// </summary>
 		/// <remarks>
@@ -78,8 +76,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </remarks>
 		protected override bool ProcessSync(LocalLogMessage message, out bool queueForAsyncProcessing)
 		{
-			if (mSynchronousProcessingCallback != null) return mSynchronousProcessingCallback(message, out queueForAsyncProcessing);
-			return base.ProcessSync(message, out queueForAsyncProcessing);
+			return mSynchronousProcessingCallback != null
+				       ? mSynchronousProcessingCallback(message, out queueForAsyncProcessing)
+				       : base.ProcessSync(message, out queueForAsyncProcessing);
 		}
 
 		/// <summary>
@@ -96,8 +95,9 @@ namespace GriffinPlus.Lib.Logging
 		/// </remarks>
 		protected override Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)
 		{
-			if (mAsynchronousProcessingCallback != null) return mAsynchronousProcessingCallback(messages, cancellationToken);
-			return base.ProcessAsync(messages, cancellationToken);
+			return mAsynchronousProcessingCallback != null
+				       ? mAsynchronousProcessingCallback(messages, cancellationToken)
+				       : base.ProcessAsync(messages, cancellationToken);
 		}
 	}
 
@@ -109,7 +109,7 @@ namespace GriffinPlus.Lib.Logging
 	/// Receives a value indicating whether the message should be enqueued for asynchronous processing.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> to call the following pipeline stages;
+	/// <c>true</c> to call the following pipeline stages;<br/>
 	/// <c>false</c> to stop processing.
 	/// </returns>
 	public delegate bool SynchronousProcessingCallback(LocalLogMessage message, out bool queueForAsyncProcessing);

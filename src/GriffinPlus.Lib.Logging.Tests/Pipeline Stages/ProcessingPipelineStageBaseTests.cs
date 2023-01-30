@@ -187,7 +187,7 @@ namespace GriffinPlus.Lib.Logging
 		public void Process_FailsIfNotInitialized()
 		{
 			var stage = ProcessingPipelineStage.Create<TStage>("Stage", null);
-			var message = MessagePool.GetUninitializedMessage();
+			LocalLogMessage message = MessagePool.GetUninitializedMessage();
 			Assert.Throws<InvalidOperationException>(() => stage.ProcessMessage(message));
 		}
 	}

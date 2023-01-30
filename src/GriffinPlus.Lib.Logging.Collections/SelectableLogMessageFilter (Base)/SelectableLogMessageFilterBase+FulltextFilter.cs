@@ -26,9 +26,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// Initializes a new instance of the <see cref="FulltextFilter"/> class.
 			/// </summary>
 			/// <param name="parent">The <see cref="SelectableLogMessageFilterBase{TMessage,TUnfilteredCollection}"/> the filter belongs to.</param>
-			internal FulltextFilter(SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection> parent) : base(parent)
-			{
-			}
+			internal FulltextFilter(SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection> parent) : base(parent) { }
 
 			/// <summary>
 			/// Gets or sets the text a log message must contain to be matched.
@@ -49,8 +47,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			/// <summary>
-			/// Gets or sets a value indicating whether the search is done case sensitive (<c>true</c>)
-			/// or case insensitive (<c>false</c>).
+			/// Gets or sets a value indicating whether the search is done case sensitive (<c>true</c>) or case insensitive (<c>false</c>).
 			/// </summary>
 			public bool IsCaseSensitive
 			{
@@ -71,7 +68,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// </summary>
 			/// <param name="text">Text to check.</param>
 			/// <returns>
-			/// <c>true</c> if the item passes the filter;
+			/// <c>true</c> if the item passes the filter;<br/>
 			/// otherwise <c>false</c>.
 			/// </returns>
 			internal bool Matches(string text)

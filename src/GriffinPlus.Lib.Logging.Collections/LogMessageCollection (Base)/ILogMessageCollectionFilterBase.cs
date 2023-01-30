@@ -38,7 +38,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="message">Message to check.</param>
 		/// <returns>
-		/// <c>true</c> if the specified message matches the filter criteria;
+		/// <c>true</c> if the specified message matches the filter criteria;<br/>
 		/// otherwise <c>false</c>.
 		/// </returns>
 		/// <exception cref="ArgumentNullException">The specified message is <c>null</c>.</exception>

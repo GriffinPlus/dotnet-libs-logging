@@ -62,18 +62,18 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		private void Create()
 		{
-			var stage = CreateStage("File");
+			FileWriterPipelineStage stage = CreateStage("File");
 			Assert.Equal(2, stage.Settings.Count);
 
 			// check 'Append' setting
-			var appendSetting = stage.Settings.First(x => x.Key == "Append");
+			KeyValuePair<string, IUntypedProcessingPipelineStageSetting> appendSetting = stage.Settings.First(x => x.Key == "Append");
 			Assert.Equal("Append", appendSetting.Value.Name);
 			Assert.Equal(typeof(bool), appendSetting.Value.ValueType);
 			Assert.IsType<bool>(appendSetting.Value.Value);
 			Assert.False((bool)appendSetting.Value.Value);
 
 			// check 'Path' setting
-			var pathSetting = stage.Settings.First(x => x.Key == "Path");
+			KeyValuePair<string, IUntypedProcessingPipelineStageSetting> pathSetting = stage.Settings.First(x => x.Key == "Path");
 			Assert.Equal("Path", pathSetting.Value.Name);
 			Assert.Equal(typeof(string), pathSetting.Value.ValueType);
 			Assert.IsType<string>(pathSetting.Value.Value);
@@ -95,7 +95,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// create a new pipeline stage
 			var formatter = new TestFormatter();
-			var stage = CreateStage("File");
+			FileWriterPipelineStage stage = CreateStage("File");
 			stage.Formatter = formatter;
 
 			// initialize the pipeline stage
@@ -104,7 +104,7 @@ namespace GriffinPlus.Lib.Logging
 			// process the message and determine the expected output in stdout/stderr
 			// (the stage automatically adds a newline after each message)
 			var expected = new StringBuilder();
-			foreach (var message in messages)
+			foreach (LocalLogMessage message in messages)
 			{
 				stage.ProcessMessage(message);
 				expected.AppendLine(formatter.Format(message));

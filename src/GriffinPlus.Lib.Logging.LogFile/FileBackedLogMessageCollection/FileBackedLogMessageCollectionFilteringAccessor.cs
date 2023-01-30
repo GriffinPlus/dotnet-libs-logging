@@ -18,10 +18,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 	/// </summary>
 	public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollectionFilteringAccessor<LogMessage>
 	{
-		private readonly FileBackedLogMessageCollection        mCollection;
-		private readonly IFileBackedLogMessageCollectionFilter mFilter;
-		private readonly SearchByMessageIdComparer             mSearchByMessageIdComparer = new SearchByMessageIdComparer();
-		private          bool                                  mIsDisposed;
+		private readonly SearchByMessageIdComparer mSearchByMessageIdComparer = new SearchByMessageIdComparer();
+		private          bool                      mIsDisposed;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileBackedLogMessageCollectionFilteringAccessor"/> class.
@@ -32,10 +30,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 			FileBackedLogMessageCollection        collection,
 			IFileBackedLogMessageCollectionFilter filter)
 		{
-			mCollection = collection ?? throw new ArgumentNullException(nameof(collection));
-			mFilter = filter ?? throw new ArgumentNullException(nameof(filter));
-			mCollection.CollectionChanged += OnCollectionChanged;
-			mFilter.FilterChanged += OnFilterChanged;
+			Collection = collection ?? throw new ArgumentNullException(nameof(collection));
+			Filter = filter ?? throw new ArgumentNullException(nameof(filter));
+			Collection.CollectionChanged += OnCollectionChanged;
+			Filter.FilterChanged += OnFilterChanged;
 			UpdateFirstMatchingMessageId();
 			UpdateLastMatchingMessageId();
 		}
@@ -47,8 +45,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			if (!mIsDisposed)
 			{
-				mCollection.CollectionChanged -= OnCollectionChanged;
-				mFilter.FilterChanged -= OnFilterChanged;
+				Collection.CollectionChanged -= OnCollectionChanged;
+				Filter.FilterChanged -= OnFilterChanged;
 				mIsDisposed = true;
 			}
 		}
@@ -56,22 +54,22 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <summary>
 		/// Gets the unfiltered collection the accessor works on.
 		/// </summary>
-		public FileBackedLogMessageCollection Collection => mCollection;
+		public FileBackedLogMessageCollection Collection { get; }
 
 		/// <summary>
 		/// Gets the unfiltered collection the accessor works on.
 		/// </summary>
-		ILogMessageCollection<LogMessage> ILogMessageCollectionFilteringAccessor<LogMessage>.Collection => mCollection;
+		ILogMessageCollection<LogMessage> ILogMessageCollectionFilteringAccessor<LogMessage>.Collection => Collection;
 
 		/// <summary>
 		/// Gets the filter the accessor works with.
 		/// </summary>
-		public IFileBackedLogMessageCollectionFilter Filter => mFilter;
+		public IFileBackedLogMessageCollectionFilter Filter { get; }
 
 		/// <summary>
 		/// Gets the filter the accessor works with.
 		/// </summary>
-		ILogMessageCollectionFilterBase<LogMessage> ILogMessageCollectionFilteringAccessor<LogMessage>.Filter => mFilter;
+		ILogMessageCollectionFilterBase<LogMessage> ILogMessageCollectionFilteringAccessor<LogMessage>.Filter => Filter;
 
 		/// <summary>
 		/// Gets or sets a the maximum number of messages to cache before least recently used messages are removed (must be at least 1).
@@ -103,8 +101,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="fromIndex">Index of the log message in the unfiltered collection to start at.</param>
 		/// <param name="matchIndex">Receives the index of the first log message matching the filter.</param>
 		/// <returns>
-		/// The first log message matching the filter;
-		/// null, if no message matching the filter was found.
+		/// The first log message matching the filter;<br/>
+		/// <c>null</c> if no message matching the filter was found.
 		/// </returns>
 		/// <exception cref="ObjectDisposedException">The accessor has been disposed.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
@@ -115,7 +113,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (mIsDisposed)
 				throw new ObjectDisposedException(nameof(FileBackedLogMessageCollectionFilteringAccessor));
 
-			if (fromIndex < 0 || fromIndex >= mCollection.Count)
+			if (fromIndex < 0 || fromIndex >= Collection.Count)
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(fromIndex),
@@ -123,7 +121,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// determine the offset of the collection index to message ids in the log file
-			long offset = mCollection.LogFile.OldestMessageId;
+			long offset = Collection.LogFile.OldestMessageId;
 			long fromMessageId = fromIndex + offset;
 
 			// abort, of the requested message is outside the filtered set
@@ -134,7 +132,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// check whether the requested message is in the cache
-			int index = GetMessageFromCacheById_AdjustBackwards(fromMessageId, out var message);
+			int index = GetMessageFromCacheById_AdjustBackwards(fromMessageId, out LogFileMessage message);
 			if (index >= 0)
 			{
 				matchIndex = message.Id - offset;
@@ -155,7 +153,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="count">Maximum number of matching log messages to get.</param>
 		/// <param name="matchIndices">Receives the indices of the log messages matching the filter.</param>
 		/// <param name="reverse">
-		/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the collection;
+		/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the collection;<br/>
 		/// <c>false</c> to return the list of messages in the opposite order.
 		/// </param>
 		/// <returns>Log messages matching filter.</returns>
@@ -171,7 +169,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (mIsDisposed)
 				throw new ObjectDisposedException(nameof(FileBackedLogMessageCollectionFilteringAccessor));
 
-			if (fromIndex < 0 || fromIndex >= mCollection.Count)
+			if (fromIndex < 0 || fromIndex >= Collection.Count)
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(fromIndex),
@@ -193,7 +191,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// determine the offset of the collection index to message ids in the log file
-			long offset = mCollection.LogFile.OldestMessageId;
+			long offset = Collection.LogFile.OldestMessageId;
 
 			// determine the message id corresponding to the index in the collection
 			long fromMessageId = fromIndex + offset;
@@ -201,7 +199,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// check whether the first requested message is in the cache
 			long expectedSuccessorId = -1;
 			var messages = new List<LogFileMessage>();
-			int index = GetMessageFromCacheById_AdjustBackwards(fromMessageId, out var message);
+			int index = GetMessageFromCacheById_AdjustBackwards(fromMessageId, out LogFileMessage message);
 			if (index >= 0)
 			{
 				messages.Add(message);
@@ -214,7 +212,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				for (int i = 1; i < count; i++)
 				{
 					if (index - i < 0) break;
-					var cacheItem = mCachedMessagesSortedById[index - i];
+					CacheItem cacheItem = mCachedMessagesSortedById[index - i];
 					message = cacheItem.Message;
 					if (cacheItem.NextMessageId != expectedSuccessorId) break; // cache contains gaps between adjacent matching messages
 					messages.Add(message);
@@ -251,8 +249,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="fromIndex">Index of the log message in the unfiltered collection to start at.</param>
 		/// <param name="matchIndex">Receives the index of the first log message matching the filter.</param>
 		/// <returns>
-		/// The first log message matching the filter;
-		/// null, if no message matching the filter was found.
+		/// The first log message matching the filter;<br/>
+		/// <c>null</c> if no message matching the filter was found.
 		/// </returns>
 		/// <exception cref="ObjectDisposedException">The accessor has been disposed.</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
@@ -263,7 +261,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (mIsDisposed)
 				throw new ObjectDisposedException(nameof(FileBackedLogMessageCollectionFilteringAccessor));
 
-			if (fromIndex < 0 || fromIndex >= mCollection.Count)
+			if (fromIndex < 0 || fromIndex >= Collection.Count)
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(fromIndex),
@@ -271,7 +269,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// determine the offset of the collection index to message ids in the log file
-			long offset = mCollection.LogFile.OldestMessageId;
+			long offset = Collection.LogFile.OldestMessageId;
 			long fromMessageId = fromIndex + offset;
 
 			// abort, of the requested message is outside the filtered set
@@ -282,7 +280,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// check whether the requested message is in the cache
-			int index = GetMessageFromCacheById_AdjustForward(fromMessageId, out var message);
+			int index = GetMessageFromCacheById_AdjustForward(fromMessageId, out LogFileMessage message);
 			if (index >= 0)
 			{
 				matchIndex = message.Id - offset;
@@ -314,7 +312,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (mIsDisposed)
 				throw new ObjectDisposedException(nameof(FileBackedLogMessageCollectionFilteringAccessor));
 
-			if (fromIndex < 0 || fromIndex >= mCollection.Count)
+			if (fromIndex < 0 || fromIndex >= Collection.Count)
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(fromIndex),
@@ -336,7 +334,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// determine the offset of the collection index to message ids in the log file
-			long offset = mCollection.LogFile.OldestMessageId;
+			long offset = Collection.LogFile.OldestMessageId;
 
 			// determine the message id corresponding to the index in the collection
 			long fromMessageId = fromIndex + offset;
@@ -344,7 +342,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			// check whether the first requested message is in the cache
 			long expectedPredecessorId = -1;
 			var messages = new List<LogFileMessage>();
-			int index = GetMessageFromCacheById_AdjustForward(fromMessageId, out var message);
+			int index = GetMessageFromCacheById_AdjustForward(fromMessageId, out LogFileMessage message);
 			if (index >= 0)
 			{
 				messages.Add(message);
@@ -357,7 +355,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				for (int i = 1; i < count; i++)
 				{
 					if (index + i >= mCachedMessagesSortedById.Count) break;
-					var cacheItem = mCachedMessagesSortedById[index + i];
+					CacheItem cacheItem = mCachedMessagesSortedById[index + i];
 					message = cacheItem.Message;
 					if (cacheItem.PreviousMessageId != expectedPredecessorId) break; // cache contains gaps between adjacent matching messages
 					messages.Add(message);
@@ -407,14 +405,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (mIsDisposed)
 				throw new ObjectDisposedException(nameof(FileBackedLogMessageCollectionFilteringAccessor));
 
-			if (fromIndex < 0 || fromIndex >= mCollection.Count)
+			if (fromIndex < 0 || fromIndex >= Collection.Count)
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(fromIndex),
 					"The start index exceeds the bounds of the unfiltered collection.");
 			}
 
-			if (toIndex < 0 || toIndex >= mCollection.Count)
+			if (toIndex < 0 || toIndex >= Collection.Count)
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(toIndex),
@@ -429,7 +427,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// determine the offset of the collection index to message ids in the log file
-			long offset = mCollection.LogFile.OldestMessageId;
+			long offset = Collection.LogFile.OldestMessageId;
 
 			// determine the message id corresponding to the specified indices in the collection
 			long fromMessageId = fromIndex + offset;
@@ -437,7 +435,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// check whether the last requested message is in the cache (adjust backwards if necessary)
 			// (needed to determine whether the retrieved sequence is complete)
-			int lastMessageCacheIndex = GetMessageFromCacheById_AdjustBackwards(toMessageId, out var lastMessage);
+			int lastMessageCacheIndex = GetMessageFromCacheById_AdjustBackwards(toMessageId, out LogFileMessage lastMessage);
 			if (lastMessageCacheIndex >= 0)
 			{
 				// the last message is in the cache
@@ -445,7 +443,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// check whether the first requested message is in the cache (adjust forward if necessary)
 				long expectedPredecessorId = -1;
 				var messages = new List<LogFileMessage>();
-				int firstMessageCacheIndex = GetMessageFromCacheById_AdjustForward(fromMessageId, out var message);
+				int firstMessageCacheIndex = GetMessageFromCacheById_AdjustForward(fromMessageId, out LogFileMessage message);
 				if (firstMessageCacheIndex >= 0)
 				{
 					// abort, if the the first matching message is behind the end of the requested range
@@ -468,7 +466,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					while (true)
 					{
 						if (++index >= mCachedMessagesSortedById.Count) break;
-						var cacheItem = mCachedMessagesSortedById[index];
+						CacheItem cacheItem = mCachedMessagesSortedById[index];
 						message = cacheItem.Message;
 						if (cacheItem.PreviousMessageId != expectedPredecessorId) break; // cache contains gaps between adjacent matching messages
 						messages.Add(message);
@@ -488,7 +486,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// the cache could not suffice the request
 			// => fetch requested interval and update the cache
-			var messages2 = FetchAndAddMessageRangeToCache(fromMessageId, toMessageId);
+			List<LogFileMessage> messages2 = FetchAndAddMessageRangeToCache(fromMessageId, toMessageId);
 			matchIndices = messages2.Select(x => x.Id - offset).ToArray();
 			return messages2.Cast<LogMessage>().ToArray();
 		}
@@ -558,8 +556,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// <param name="x">Cache item to compare.</param>
 			/// <param name="y">Cache item to compare with.</param>
 			/// <returns>
-			/// -1, if the message id of <paramref name="x"/> is less than the message id of <paramref name="y"/>;
-			/// 1, if the message id of <paramref name="x"/> is greater than the message id of <paramref name="y"/>;
+			/// -1, if the message id of <paramref name="x"/> is less than the message id of <paramref name="y"/>;<br/>
+			/// 1, if the message id of <paramref name="x"/> is greater than the message id of <paramref name="y"/>;<br/>
 			/// 0, if both message ids are equal.
 			/// </returns>
 			public int Compare(CacheItem x, CacheItem y)
@@ -567,8 +565,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				Debug.Assert(x != null, nameof(x) + " != null");
 				Debug.Assert(y != null, nameof(y) + " != null");
 				if (x.MessageId < y.MessageId) return -1;
-				if (x.MessageId > y.MessageId) return 1;
-				return 0;
+				return x.MessageId > y.MessageId ? 1 : 0;
 			}
 		}
 
@@ -585,8 +582,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <returns>An empty cache item.</returns>
 		private CacheItem GetCacheItem()
 		{
-			if (mEmptyCacheItems.Count > 0) return mEmptyCacheItems.Dequeue();
-			return new CacheItem();
+			return mEmptyCacheItems.Count > 0
+				       ? mEmptyCacheItems.Dequeue()
+				       : new CacheItem();
 		}
 
 		/// <summary>
@@ -604,13 +602,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		private void UpdateFirstMatchingMessageId()
 		{
-			if (mCollection.LogFile.OldestMessageId < 0)
+			if (Collection.LogFile.OldestMessageId < 0)
 			{
 				mFirstMatchingMessageId = -1;
 				return;
 			}
 
-			var message = mFilter.GetNextMessage(mCollection.LogFile.OldestMessageId);
+			LogFileMessage message = Filter.GetNextMessage(Collection.LogFile.OldestMessageId);
 			mFirstMatchingMessageId = message?.Id ?? -1;
 		}
 
@@ -619,13 +617,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		private void UpdateLastMatchingMessageId()
 		{
-			if (mCollection.LogFile.NewestMessageId < 0)
+			if (Collection.LogFile.NewestMessageId < 0)
 			{
 				mLastMatchingMessageId = -1;
 				return;
 			}
 
-			var message = mFilter.GetPreviousMessage(mCollection.LogFile.NewestMessageId);
+			LogFileMessage message = Filter.GetPreviousMessage(Collection.LogFile.NewestMessageId);
 			mLastMatchingMessageId = message?.Id ?? -1;
 		}
 
@@ -639,14 +637,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 		private int GetMessageFromCacheById_AdjustBackwards(long fromMessageId, out LogFileMessage message)
 		{
 			// check whether the message at the specified location is in the cache (direct hit)
-			var searchItem = GetCacheItem();
+			CacheItem searchItem = GetCacheItem();
 			searchItem.MessageId = fromMessageId;
 			int index = mCachedMessagesSortedById.BinarySearch(searchItem, mSearchByMessageIdComparer);
 			ReturnCacheItem(searchItem);
 			if (index >= 0)
 			{
 				// found the requested messages
-				var cacheItem = mCachedMessagesSortedById[index];
+				CacheItem cacheItem = mCachedMessagesSortedById[index];
 				mCacheLruList.Remove(cacheItem.LruNode);
 				mCacheLruList.AddLast(cacheItem.LruNode);
 				message = cacheItem.Message;
@@ -659,7 +657,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (index > 0)
 			{
 				index--;
-				var cacheItem = mCachedMessagesSortedById[index];
+				CacheItem cacheItem = mCachedMessagesSortedById[index];
 				if (cacheItem.NextMessageId >= 0 && cacheItem.NextMessageId > fromMessageId)
 				{
 					// the message has a successor and the successor is behind the requested location
@@ -687,14 +685,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 		private int GetMessageFromCacheById_AdjustForward(long fromMessageId, out LogFileMessage message)
 		{
 			// check whether the message at the specified location is in the cache (direct hit)
-			var searchItem = GetCacheItem();
+			CacheItem searchItem = GetCacheItem();
 			searchItem.MessageId = fromMessageId;
 			int index = mCachedMessagesSortedById.BinarySearch(searchItem, mSearchByMessageIdComparer);
 			ReturnCacheItem(searchItem);
 			if (index >= 0)
 			{
 				// direct hit
-				var cacheItem = mCachedMessagesSortedById[index];
+				CacheItem cacheItem = mCachedMessagesSortedById[index];
 				mCacheLruList.Remove(cacheItem.LruNode);
 				mCacheLruList.AddLast(cacheItem.LruNode);
 				message = cacheItem.Message;
@@ -706,7 +704,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			index = ~index;
 			if (index < mCachedMessagesSortedById.Count)
 			{
-				var cacheItem = mCachedMessagesSortedById[index];
+				CacheItem cacheItem = mCachedMessagesSortedById[index];
 				if (cacheItem.PreviousMessageId >= 0 && cacheItem.PreviousMessageId < fromMessageId)
 				{
 					// the message has a predecessor and the predecessor is before the requested location
@@ -730,7 +728,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="messageId">Id of the message to fetch.</param>
 		/// <param name="adjustForward">
-		/// <c>true</c> to adjust forward, if the specified id does not belong to a message matching the filter;
+		/// <c>true</c> to adjust forward, if the specified id does not belong to a message matching the filter;<br/>
 		/// <c>false</c> to adjust backwards, if the specified id does not belong to a message matching the filter.
 		/// </param>
 		/// <returns>The found message.</returns>
@@ -739,9 +737,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 			bool adjustForward)
 		{
 			// try to fetch requested message
-			var message = adjustForward
-				              ? mFilter.GetNextMessage(messageId)
-				              : mFilter.GetPreviousMessage(messageId);
+			LogFileMessage message = adjustForward
+				                         ? Filter.GetNextMessage(messageId)
+				                         : Filter.GetPreviousMessage(messageId);
 
 			if (message != null)
 			{
@@ -749,7 +747,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				long previousMatchMessageId = -1;
 				if (message.Id > Collection.LogFile.OldestMessageId)
 				{
-					var previousMessage = mFilter.GetPreviousMessage(message.Id - 1);
+					LogFileMessage previousMessage = Filter.GetPreviousMessage(message.Id - 1);
 					previousMatchMessageId = previousMessage?.Id ?? -1;
 				}
 
@@ -757,13 +755,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 				long nextMatchMessageId = -1;
 				if (message.Id < Collection.LogFile.NewestMessageId)
 				{
-					var nextMessage = mFilter.GetNextMessage(message.Id + 1);
+					LogFileMessage nextMessage = Filter.GetNextMessage(message.Id + 1);
 					nextMatchMessageId = nextMessage?.Id ?? -1;
 				}
 
 				// update cache item, if the message is already cached
 				CacheItem cacheItem;
-				var searchItem = GetCacheItem();
+				CacheItem searchItem = GetCacheItem();
 				searchItem.MessageId = message.Id;
 				int index = mCachedMessagesSortedById.BinarySearch(searchItem, mSearchByMessageIdComparer);
 				ReturnCacheItem(searchItem);
@@ -809,11 +807,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="messageId">Id of the message to fetch.</param>
 		/// <param name="count">Maximum number of messages to fetch.</param>
 		/// <param name="adjustForward">
-		/// <c>true</c> to adjust forward, if the specified id does not belong to a message matching the filter;
+		/// <c>true</c> to adjust forward, if the specified id does not belong to a message matching the filter;<br/>
 		/// <c>false</c> to adjust backwards, if the specified id does not belong to a message matching the filter.
 		/// </param>
 		/// <param name="getForward">
-		/// <c>true</c> to get messages following the specified message id;
+		/// <c>true</c> to get messages following the specified message id;<br/>
 		/// <c>false</c> to get messages preceding the specified message id.
 		/// </param>
 		/// <returns>The retrieved messages.</returns>
@@ -824,9 +822,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 			bool getForward)
 		{
 			// try to fetch requested messages
-			var firstMessage = adjustForward
-				                   ? mFilter.GetNextMessage(messageId)
-				                   : mFilter.GetPreviousMessage(messageId);
+			LogFileMessage firstMessage = adjustForward
+				                              ? Filter.GetNextMessage(messageId)
+				                              : Filter.GetPreviousMessage(messageId);
 
 			// abort, if the start message was not found
 			if (firstMessage == null)
@@ -840,9 +838,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				// reading filtered message set forward
 				// => get messages following the first one
-				if (firstMessage.Id < mCollection.LogFile.NewestMessageId)
+				if (firstMessage.Id < Collection.LogFile.NewestMessageId)
 				{
-					var followingMessages = mFilter.GetNextMessages(firstMessage.Id + 1, count);
+					LogFileMessage[] followingMessages = Filter.GetNextMessages(firstMessage.Id + 1, count);
 					if (followingMessages.Length == count)
 					{
 						// got message following the last requested one which delivers the id of the successor of the last requested message
@@ -859,7 +857,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// fetch the predecessor of the first message
 				if (firstMessage.Id > Collection.LogFile.OldestMessageId)
 				{
-					var previousMessage = mFilter.GetPreviousMessage(firstMessage.Id - 1);
+					LogFileMessage previousMessage = Filter.GetPreviousMessage(firstMessage.Id - 1);
 					previousMatchMessageId = previousMessage?.Id ?? -1;
 				}
 			}
@@ -867,9 +865,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				// reading filtered message set backwards
 				// => get messages preceding the first one
-				if (firstMessage.Id > mCollection.LogFile.OldestMessageId)
+				if (firstMessage.Id > Collection.LogFile.OldestMessageId)
 				{
-					var precedingMessages = mFilter.GetPreviousMessages(firstMessage.Id - 1, count, false);
+					LogFileMessage[] precedingMessages = Filter.GetPreviousMessages(firstMessage.Id - 1, count, false);
 					if (precedingMessages.Length == count)
 					{
 						// got message following the last requested one which delivers id of the successor of the last requested message
@@ -886,7 +884,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// fetch the successor of the message
 				if (firstMessage.Id < Collection.LogFile.NewestMessageId)
 				{
-					var nextMessage = mFilter.GetNextMessage(firstMessage.Id + 1);
+					LogFileMessage nextMessage = Filter.GetNextMessage(firstMessage.Id + 1);
 					nextMatchMessageId = nextMessage?.Id ?? -1;
 				}
 			}
@@ -911,7 +909,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			Debug.Assert(fromMessageId <= toMessageId);
 
 			// try to fetch the first matching messages in the range
-			var firstMessage = mFilter.GetNextMessage(fromMessageId);
+			LogFileMessage firstMessage = Filter.GetNextMessage(fromMessageId);
 
 			// abort, if the start message was not found
 			if (firstMessage == null)
@@ -922,9 +920,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			// reading filtered message set forward
 			// => get messages following the first one
-			if (firstMessage.Id < mCollection.LogFile.NewestMessageId)
+			if (firstMessage.Id < Collection.LogFile.NewestMessageId)
 			{
-				var followingMessages = mFilter.GetMessageRange(firstMessage.Id + 1, toMessageId);
+				LogFileMessage[] followingMessages = Filter.GetMessageRange(firstMessage.Id + 1, toMessageId);
 				messages.AddRange(followingMessages);
 			}
 
@@ -932,16 +930,16 @@ namespace GriffinPlus.Lib.Logging.Collections
 			long previousMatchMessageId = -1;
 			if (firstMessage.Id > Collection.LogFile.OldestMessageId)
 			{
-				var previousMessage = mFilter.GetPreviousMessage(firstMessage.Id - 1);
+				LogFileMessage previousMessage = Filter.GetPreviousMessage(firstMessage.Id - 1);
 				previousMatchMessageId = previousMessage?.Id ?? -1;
 			}
 
 			// fetch the successor of the last message
 			long nextMatchMessageId = -1;
-			var lastMessage = messages[messages.Count - 1];
+			LogFileMessage lastMessage = messages[messages.Count - 1];
 			if (lastMessage.Id < Collection.LogFile.NewestMessageId)
 			{
-				var nextMessage = mFilter.GetNextMessage(lastMessage.Id + 1);
+				LogFileMessage nextMessage = Filter.GetNextMessage(lastMessage.Id + 1);
 				nextMatchMessageId = nextMessage?.Id ?? -1;
 			}
 
@@ -961,16 +959,16 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="predecessorMessageId">Id of the message preceding the first message in the sequence.</param>
 		/// <param name="successorMessageId">Id of the message following the last message in the sequence.</param>
 		private void AddMessagesToCache(
-			List<LogFileMessage> messages,
-			long                 predecessorMessageId,
-			long                 successorMessageId)
+			IReadOnlyList<LogFileMessage> messages,
+			long                          predecessorMessageId,
+			long                          successorMessageId)
 		{
 			// get cache item to use for searching in the sorted list
-			var searchItem = GetCacheItem();
+			CacheItem searchItem = GetCacheItem();
 
 			for (int i = 0; i < messages.Count; i++)
 			{
-				var message = messages[i];
+				LogFileMessage message = messages[i];
 
 				// update cache item, if the message is already cached
 				CacheItem cacheItem;
@@ -1020,9 +1018,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		private void RemoveLeastRecentlyUsedMessageFromCache()
 		{
 			// get cache item referring to the least recently used message (first node in the LRU list)
-			var lruNode = mCacheLruList.First;
-			var messageNodeToRemove = lruNode.Value;
-			var cacheItemToRemove = messageNodeToRemove.Value;
+			LinkedListNode<LinkedListNode<CacheItem>> lruNode = mCacheLruList.First;
+			LinkedListNode<CacheItem> messageNodeToRemove = lruNode.Value;
+			CacheItem cacheItemToRemove = messageNodeToRemove.Value;
 
 			// remove message from the list of cached messages and the LRU list
 			mCacheLruList.Remove(lruNode);
@@ -1053,7 +1051,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// at least one message matches the filter
 
 				// find index of the first cached message after the last matching message
-				var searchItem = GetCacheItem();
+				CacheItem searchItem = GetCacheItem();
 				searchItem.MessageId = mLastMatchingMessageId;
 				int index = mCachedMessagesSortedById.BinarySearch(searchItem, mSearchByMessageIdComparer);
 				ReturnCacheItem(searchItem);
@@ -1077,7 +1075,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				{
 					for (int i = indexOfFirstCacheItemAfterLastMatchingMessage; i < mCachedMessagesSortedById.Count; i++)
 					{
-						var cacheItem = mCachedMessagesSortedById[i];
+						CacheItem cacheItem = mCachedMessagesSortedById[i];
 						mCacheLruList.Remove(cacheItem.LruNode);
 						ReturnCacheItem(cacheItem);
 					}
@@ -1112,7 +1110,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					int messagesToRemoveCount = indexOfLastCacheItemBeforeFirstMatchingMessage + 1;
 					for (int i = 0; i < messagesToRemoveCount; i++)
 					{
-						var cacheItem = mCachedMessagesSortedById[i];
+						CacheItem cacheItem = mCachedMessagesSortedById[i];
 						mCacheLruList.Remove(cacheItem.LruNode);
 						ReturnCacheItem(cacheItem);
 					}
@@ -1169,6 +1167,15 @@ namespace GriffinPlus.Lib.Logging.Collections
 				case NotifyCollectionChangedAction.Reset: // for clearing
 					InvalidateCache();
 					break;
+
+				case NotifyCollectionChangedAction.Move:
+					break;
+
+				case NotifyCollectionChangedAction.Replace:
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 		}
 

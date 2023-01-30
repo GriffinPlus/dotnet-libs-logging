@@ -91,12 +91,12 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
 			/// <param name="isReadOnly">
-			/// true, if the log file is opened in read-only mode;
-			/// false, if the log file is opened in read/write mode.
+			/// <c>true</c> if the log file is opened in read-only mode;<br/>
+			/// <c>false</c> if the log file is opened in read/write mode.
 			/// </param>
 			/// <param name="create">
-			/// true to create the database;
-			/// false to just use it.
+			/// <c>true</c> to create the database;<br/>
+			/// <c>false</c> to just use it.
 			/// </param>
 			/// <param name="messages">Messages to populate the file with (works for new files only).</param>
 			public AnalysisDatabaseAccessor(
@@ -222,7 +222,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the id of the oldest message.
 			/// </summary>
 			/// <returns>
-			/// Id of the oldest message;
+			/// Id of the oldest message;<br/>
 			/// -1, if the database is empty.
 			/// </returns>
 			private long GetOldestMessageId()
@@ -235,7 +235,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the id of the newest message.
 			/// </summary>
 			/// <returns>
-			/// Id of the newest message;
+			/// Id of the newest message;<br/>
 			/// -1, if the database is empty.
 			/// </returns>
 			private long GetNewestMessageId()
@@ -302,8 +302,8 @@ namespace GriffinPlus.Lib.Logging
 			/// Removes all schema specific data from the log file.
 			/// </summary>
 			/// <param name="messagesOnly">
-			/// true to remove messages only;
-			/// false to remove processes, applications, log writers, log levels and tags as well.
+			/// <c>true</c> to remove messages only;<br/>
+			/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
 			/// </param>
 			protected override void ClearSpecific(bool messagesOnly)
 			{
@@ -319,8 +319,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="count">Number of log messages to get.</param>
 			/// <param name="callback">Callback to invoke for every read message</param>
 			/// <returns>
-			/// true, if reading ran to completion;
-			/// false, if reading was cancelled.
+			/// <c>true</c> if reading ran to completion;<br/>
+			/// <c>false</c> if reading was cancelled.
 			/// </returns>
 			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
 			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
@@ -333,12 +333,12 @@ namespace GriffinPlus.Lib.Logging
 				mSelectContinuousMessagesCommand.Reset();
 				mSelectContinuousMessagesCommand_FromIdParameter.Value = fromId;
 				mSelectContinuousMessagesCommand_CountParameter.Value = count;
-				using (var reader = mSelectContinuousMessagesCommand.ExecuteReader())
+				using (SQLiteDataReader reader = mSelectContinuousMessagesCommand.ExecuteReader())
 				{
 					while (reader.Read())
 					{
 						// read message and invoke processing callback
-						var message = ReadLogMessage(reader);
+						LogFileMessage message = ReadLogMessage(reader);
 						if (!callback(message))
 							return false;
 					}
@@ -352,7 +352,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="reader">Sqlite reader to read from.</param>
 			/// <returns>The read log message (is protected).</returns>
-			private LogFileMessage ReadLogMessage(SQLiteDataReader reader)
+			private LogFileMessage ReadLogMessage(IDataRecord reader)
 			{
 				// columns in result:
 				// 0 = message id
@@ -368,7 +368,7 @@ namespace GriffinPlus.Lib.Logging
 				// 10 = has tags
 				// 11 = text name
 				long messageId = reader.GetInt64(0);
-				var timezoneOffset = TimeSpan.FromTicks(reader.GetInt64(2));
+				TimeSpan timezoneOffset = TimeSpan.FromTicks(reader.GetInt64(2));
 				var timestamp = new DateTimeOffset(reader.GetInt64(1) + timezoneOffset.Ticks, timezoneOffset);
 				long highPrecisionTimestamp = reader.GetInt64(3);
 				int lostMessageCount = reader.GetInt32(4);
@@ -380,7 +380,7 @@ namespace GriffinPlus.Lib.Logging
 				bool hasTags = reader.GetBoolean(10);
 				string text = reader.GetString(11);
 
-				var message = new LogFileMessage().InitWith(
+				LogFileMessage message = new LogFileMessage().InitWith(
 					messageId,
 					timestamp,
 					highPrecisionTimestamp,
@@ -613,7 +613,7 @@ namespace GriffinPlus.Lib.Logging
 						mSelectContinuousMessagesCommand.Reset();
 						mSelectContinuousMessagesCommand_FromIdParameter.Value = OldestMessageId;
 						mSelectContinuousMessagesCommand_CountParameter.Value = removeCount;
-						using (var reader = mSelectContinuousMessagesCommand.ExecuteReader())
+						using (SQLiteDataReader reader = mSelectContinuousMessagesCommand.ExecuteReader())
 						{
 							while (reader.Read())
 							{

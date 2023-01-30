@@ -21,7 +21,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OverlayDictionary{TKey,TValue}"/> class.
 		/// </summary>
-		/// <param name="comparer">Comparer to use to checks keys for equality (may be null to use the default comparer).</param>
+		/// <param name="comparer">Comparer to use to checks keys for equality (may be <c>null</c> to use the default comparer).</param>
 		public OverlayDictionary(IEqualityComparer<TKey> comparer = null)
 		{
 			comparer = comparer ?? EqualityComparer<TKey>.Default;
@@ -78,7 +78,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Determines whether the collection contains the specified item.
 		/// </summary>
 		/// <param name="item">Item to check.</param>
-		/// <returns></returns>
+		/// <returns>
+		/// <c>true</c> if the specified key-value-pair is in the dictionary;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
 		{
 			return (mOverlay as ICollection<KeyValuePair<TKey, TValue>>).Contains(item);
@@ -98,7 +101,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Removes the first occurrence of a specific object from the dictionary.
 		/// </summary>
 		/// <param name="item">Item to remove.</param>
-		/// <returns></returns>
+		/// <returns>
+		/// <c>true</c> if the specified key-value-pair was removed from the dictionary;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
 		{
 			bool removed = (mOverlay as ICollection<KeyValuePair<TKey, TValue>>).Remove(item);
@@ -107,7 +113,7 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets a value indicating whether the dictionary is read-only (always false).
+		/// Gets a value indicating whether the dictionary is read-only (always <c>false</c>).
 		/// </summary>
 		bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => false;
 
@@ -120,7 +126,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Determines whether the dictionary contains the specified key.
 		/// </summary>
 		/// <param name="key">The key to locate in the dictionary.</param>
-		/// <returns>true, if the dictionary contains the specified key; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c>, if the dictionary contains the specified key;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public bool ContainsKey(TKey key)
 		{
 			return mOverlay.ContainsKey(key);
@@ -142,8 +151,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="key">The key of the element to remove.</param>
 		/// <returns>
-		/// true, if the element with the specified key was successfully removed;
-		/// false, if the element does not exist.
+		/// <c>true</c> if the element with the specified key was successfully removed;<br/>
+		/// <c>false</c> if the element does not exist.
 		/// </returns>
 		public bool Remove(TKey key)
 		{
@@ -158,8 +167,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="key">Key of the value to get.</param>
 		/// <param name="value">Receives the value with the specified key.</param>
 		/// <returns>
-		/// true, if the dictionary contains an element with the specified key;
-		/// otherwise false.
+		/// <c>true</c> if the dictionary contains an element with the specified key;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public bool TryGetValue(TKey key, out TValue value)
 		{
@@ -177,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 			set
 			{
 				// check whether the dictionary already contains this value
-				if (mOverlay.TryGetValue(key, out var oldValue))
+				if (mOverlay.TryGetValue(key, out TValue oldValue))
 				{
 					if (Equals(oldValue, value))
 					{
@@ -210,7 +219,7 @@ namespace GriffinPlus.Lib.Logging
 			if (Dirty)
 			{
 				mDictionary.Clear();
-				foreach (var kvp in mOverlay) mDictionary.Add(kvp.Key, kvp.Value);
+				foreach (KeyValuePair<TKey, TValue> kvp in mOverlay) mDictionary.Add(kvp.Key, kvp.Value);
 				Dirty = false;
 			}
 		}
@@ -223,7 +232,7 @@ namespace GriffinPlus.Lib.Logging
 			if (Dirty)
 			{
 				mOverlay.Clear();
-				foreach (var kvp in mDictionary) mOverlay.Add(kvp.Key, kvp.Value);
+				foreach (KeyValuePair<TKey, TValue> kvp in mDictionary) mOverlay.Add(kvp.Key, kvp.Value);
 				Dirty = false;
 			}
 		}

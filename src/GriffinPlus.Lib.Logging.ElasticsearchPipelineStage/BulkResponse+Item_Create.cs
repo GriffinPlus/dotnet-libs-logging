@@ -209,7 +209,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							{
 								case "_shards":
 								{
-									var model = mPool.GetBulkResponseItemIndexShards();
+									Item_Create_Shards model = mPool.GetBulkResponseItemIndexShards();
 									model.InitFromJson(data, ref reader);
 									Shards = model;
 									break;
@@ -217,7 +217,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 								case "error":
 								{
-									var model = mPool.GetBulkResponseItemIndexError();
+									Item_Create_Error model = mPool.GetBulkResponseItemIndexError();
 									model.InitFromJson(data, ref reader);
 									Error = model;
 									break;
@@ -237,6 +237,13 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 							return;
 						}
 
+						case JsonTokenType.None:
+						case JsonTokenType.StartArray:
+						case JsonTokenType.EndArray:
+						case JsonTokenType.Comment:
+						case JsonTokenType.True:
+						case JsonTokenType.False:
+						case JsonTokenType.Null:
 						default:
 						{
 							// unexpected token, skip!

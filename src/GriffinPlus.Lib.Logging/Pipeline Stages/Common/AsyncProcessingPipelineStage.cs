@@ -38,9 +38,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AsyncProcessingPipelineStage"/> class.
 		/// </summary>
-		protected AsyncProcessingPipelineStage()
-		{
-		}
+		protected AsyncProcessingPipelineStage() { }
 
 		#region Initialization / Shutdown
 
@@ -227,8 +225,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		/// <returns>
-		/// true to pass the message to the following stages;
-		/// false to stop processing the message.
+		/// <c>true</c> to pass the message to the following stages;<br/>
+		/// <c>false</c> to stop processing the message.
 		/// </returns>
 		internal override bool OnProcessMessageBase(LocalLogMessage message)
 		{
@@ -278,8 +276,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Receives a value indicating whether the message should be enqueued for asynchronous processing.
 		/// </param>
 		/// <returns>
-		/// true to pass the message to the following pipeline stages;
-		/// otherwise false.
+		/// <c>true</c> to pass the message to the following pipeline stages;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		/// <remarks>
 		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
@@ -314,7 +312,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		private async Task ProcessingTask()
 		{
-			var cancellationToken = mAsyncProcessingCancellationTokenSource.Token;
+			CancellationToken cancellationToken = mAsyncProcessingCancellationTokenSource.Token;
 
 			while (true)
 			{
@@ -359,7 +357,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="cancellationToken">Cancellation token that is signaled when the pipeline stage is shutting down.</param>
 		private async Task ProcessQueuedMessages(CancellationToken cancellationToken)
 		{
-			var messages = mAsyncProcessingMessageStack.FlushAndReverse();
+			LocalLogMessage[] messages = mAsyncProcessingMessageStack.FlushAndReverse();
 			if (messages == null) return;
 
 			try
@@ -373,7 +371,7 @@ namespace GriffinPlus.Lib.Logging
 			finally
 			{
 				// release message to let them return to the pool
-				foreach (var message in messages) message.Release();
+				foreach (LocalLogMessage message in messages) message.Release();
 			}
 		}
 

@@ -90,7 +90,7 @@ namespace GriffinPlus.Lib.Logging
 
 			while (remainingTokenCount-- > 0)
 			{
-				var token = mTokenizer.Tokens.Dequeue();
+				JsonToken token = mTokenizer.Tokens.Dequeue();
 
 				switch (mState)
 				{
@@ -170,7 +170,7 @@ namespace GriffinPlus.Lib.Logging
 					case State.ReadingTimestampValue:
 					{
 						if (token.Type != JsonTokenType.String) ThrowUnexpectedTokenException(ref token);
-						if (!DateTimeOffset.TryParseExact(token.Token, TimestampFormat, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var timestamp))
+						if (!DateTimeOffset.TryParseExact(token.Token, TimestampFormat, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out DateTimeOffset timestamp))
 							throw new JsonMessageReaderException(token.LineNumber, token.Position, $"The timestamp ({token.Token}) does not have the expected format.");
 						mLogMessage.Timestamp = timestamp;
 						mState = State.ExpectingCommaOrEndOfObject;

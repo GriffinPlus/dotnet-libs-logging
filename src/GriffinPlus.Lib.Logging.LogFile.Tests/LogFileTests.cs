@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using GriffinPlus.Lib.Logging.Collections;
+
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging
@@ -54,7 +56,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
 				{
 					yield return new object[] { purpose };
 				}
@@ -68,7 +70,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				{
 					yield return new object[] { writeMode };
 				}
@@ -82,8 +84,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				{
 					yield return new object[] { purpose, writeMode };
 				}
@@ -97,7 +99,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
 				foreach (bool readOnly in new[] { false, true })
 				{
 					yield return new object[] { purpose, readOnly };
@@ -112,8 +114,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				foreach (bool readOnly in new[] { false, true })
 				{
 					yield return new object[] { purpose, writeMode, readOnly };
@@ -132,8 +134,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				foreach (bool populate in new[] { false, true })
 				{
 					yield return new object[] { purpose, writeMode, populate };
@@ -147,7 +149,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
-		/// <param name="populate"><c>true</c> to populate the log file with messages; otherwise <c>false</c>.</param>
+		/// <param name="populate">
+		/// <c>true</c> to populate the log file with messages;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(CreateTestData))]
 		private void Create_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
@@ -159,7 +164,7 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(fullPath);
 
 			// create a new log file
-			var messages = populate ? mFixture.GetLogMessages_Random_10K() : null;
+			LogFileMessage[] messages = populate ? mFixture.GetLogMessages_Random_10K() : null;
 			using (var file = LogFile.Create(filename, purpose, writeMode, messages))
 			{
 				// the log file itself
@@ -182,7 +187,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				// the message collection working on top of the log file
-				var collection = file.Messages;
+				FileBackedLogMessageCollection collection = file.Messages;
 				Assert.Same(file, collection.LogFile);
 				Assert.False(collection.IsReadOnly);
 				Assert.Equal(20, collection.MaxCachePageCount);
@@ -192,7 +197,7 @@ namespace GriffinPlus.Lib.Logging
 				if (populate)
 				{
 					Assert.Equal(messages.Length, collection.Count);
-					var messagesInFile = file.Read(0, messages.Length + 1);
+					LogFileMessage[] messagesInFile = file.Read(0, messages.Length + 1);
 					Assert.Equal(messagesInFile, messagesInFile);
 				}
 				else
@@ -209,7 +214,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
-		/// <param name="populate"><c>true</c> to populate the log file with messages; otherwise <c>false</c>.</param>
+		/// <param name="populate">
+		/// <c>true</c> to populate the log file with messages;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(CreateTestData))]
 		private void Create_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
@@ -218,7 +226,7 @@ namespace GriffinPlus.Lib.Logging
 				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
 				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
-			var messages = populate ? mFixture.GetLogMessages_Random_10K() : null;
+			LogFileMessage[] messages = populate ? mFixture.GetLogMessages_Random_10K() : null;
 
 			try
 			{
@@ -264,7 +272,7 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(-1, file.NewestMessageId);
 
 				// the message collection working on top of the log file
-				var collection = file.Messages;
+				FileBackedLogMessageCollection collection = file.Messages;
 				Assert.Same(file, collection.LogFile);
 				Assert.Empty(collection);
 				Assert.False(collection.IsReadOnly);
@@ -303,7 +311,7 @@ namespace GriffinPlus.Lib.Logging
 					Assert.Equal(9999, file.NewestMessageId);
 
 					// the message collection working on top of the log file
-					var collection = file.Messages;
+					FileBackedLogMessageCollection collection = file.Messages;
 					Assert.Same(file, collection.LogFile);
 					Assert.False(collection.IsReadOnly);
 					Assert.Equal(10000, collection.Count);
@@ -340,7 +348,7 @@ namespace GriffinPlus.Lib.Logging
 			try
 			{
 				// open the existing log file
-				using (var file = LogFile.Open(path, writeMode))
+				using (LogFile file = LogFile.Open(path, writeMode))
 				{
 					// the log file itself
 					Assert.Equal(path, file.FilePath);
@@ -352,7 +360,7 @@ namespace GriffinPlus.Lib.Logging
 					Assert.Equal(9999, file.NewestMessageId);
 
 					// the message collection working on top of the log file
-					var collection = file.Messages;
+					FileBackedLogMessageCollection collection = file.Messages;
 					Assert.Same(file, collection.LogFile);
 					Assert.False(collection.IsReadOnly);
 					Assert.Equal(10000, collection.Count);
@@ -397,12 +405,12 @@ namespace GriffinPlus.Lib.Logging
 				              ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
 				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
-			var expectedMessages = mFixture.GetLogMessages_Random_10K();
+			LogFileMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 			try
 			{
 				// open the existing log file
-				using (var file = LogFile.OpenReadOnly(path))
+				using (LogFile file = LogFile.OpenReadOnly(path))
 				{
 					// the log file itself
 					Assert.Equal(path, file.FilePath);
@@ -414,7 +422,7 @@ namespace GriffinPlus.Lib.Logging
 					Assert.Equal(9999, file.NewestMessageId);
 
 					// the message collection working on top of the log file
-					var collection = file.Messages;
+					FileBackedLogMessageCollection collection = file.Messages;
 					Assert.Same(file, collection.LogFile);
 					Assert.True(collection.IsReadOnly);
 					Assert.Equal(10000, collection.Count);
@@ -452,8 +460,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				foreach (bool readOnly in new[] { false, true })
 				{
 					yield return new object[] { purpose, writeMode, readOnly, false };
@@ -471,12 +479,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file in read-only mode;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file in read-only mode;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting names that are referenced in the log file only;
-		/// false to get all names.
+		/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
+		/// <c>false</c> to get all names.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(GetNamesTestData))]
@@ -501,12 +509,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file in read-only mode;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file in read-only mode;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting names that are referenced in the log file only;
-		/// false to get all names.
+		/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
+		/// <c>false</c> to get all names.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(GetNamesTestData))]
@@ -531,12 +539,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file in read-only mode;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file in read-only mode;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting tags that are referenced in the log file only;
-		/// false to get all tags.
+		/// <c>true</c> to test getting tags that are referenced in the log file only;<br/>
+		/// <c>false</c> to get all tags.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(GetNamesTestData))]
@@ -561,12 +569,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file in read-only mode;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file in read-only mode;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting names that are referenced in the log file only;
-		/// false to get all names.
+		/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
+		/// <c>false</c> to get all names.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(GetNamesTestData))]
@@ -591,12 +599,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file in read-only mode;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file in read-only mode;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting names that are referenced in the log file only;
-		/// false to get all names.
+		/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
+		/// <c>false</c> to get all names.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(GetNamesTestData))]
@@ -621,12 +629,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file in read-only mode;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file in read-only mode;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting process ids that are referenced in the log file only;
-		/// false to get all process ids.
+		/// <c>true</c> to test getting process ids that are referenced in the log file only;<br/>
+		/// <c>false</c> to get all process ids.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(GetNamesTestData))]
@@ -651,12 +659,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file in read-only mode;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file in read-only mode;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting names that are referenced in the log file only;
-		/// false to get all names.
+		/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
+		/// <c>false</c> to get all names.
 		/// </param>
 		/// <param name="selector">Selects a string property value out of a log message.</param>
 		/// <param name="action">Action to perform on the log file, returns the strings to compare with the list of selected strings.</param>
@@ -675,10 +683,10 @@ namespace GriffinPlus.Lib.Logging
 			try
 			{
 				// get test data set with log messages that should be in the file
-				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+				LogFileMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 				// query the log file and check whether it returns the expected names
-				using (var file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
+				using (LogFile file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
 				{
 					Assert.Equal(readOnly, file.IsReadOnly);
 
@@ -694,7 +702,7 @@ namespace GriffinPlus.Lib.Logging
 
 					// collect name(s) from message properties and build the set of expected names
 					var expectedNamesSet = new HashSet<string>();
-					foreach (var message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
+					foreach (LogFileMessage message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
 					var expectedNames = new List<string>(expectedNamesSet);
 					expectedNames.Sort(StringComparer.OrdinalIgnoreCase); // the list returned by the log file is expected to be sorted in ascending order
 
@@ -716,12 +724,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file in read-only mode;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file in read-only mode;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="usedOnly">
-		/// true to test getting names that are referenced in the log file only;
-		/// false to get all names.
+		/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
+		/// <c>false</c> to get all names.
 		/// </param>
 		/// <param name="selector">Selects a string property value out of a log message.</param>
 		/// <param name="action">Action to perform on the log file, returns the strings to compare with the list of selected strings.</param>
@@ -740,10 +748,10 @@ namespace GriffinPlus.Lib.Logging
 			try
 			{
 				// get test data set with log messages that should be in the file
-				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+				LogFileMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 				// query the log file and check whether it returns the expected names
-				using (var file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
+				using (LogFile file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
 				{
 					Assert.Equal(readOnly, file.IsReadOnly);
 
@@ -759,7 +767,7 @@ namespace GriffinPlus.Lib.Logging
 
 					// collect name(s) from message properties and build the set of expected names
 					var expectedNamesSet = new HashSet<int>();
-					foreach (var message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
+					foreach (LogFileMessage message in expectedMessages) expectedNamesSet.UnionWith(selector(message));
 					var expectedNames = new List<int>(expectedNamesSet);
 					expectedNames.Sort(); // the list returned by the log file is expected to be sorted in ascending order
 
@@ -795,7 +803,7 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(fullPath);
 
 			// generate a message to write into the file
-			var message = LoggingTestHelpers.GetTestMessages<LogFileMessage>(1)[0];
+			LogFileMessage message = LoggingTestHelpers.GetTestMessages<LogFileMessage>(1)[0];
 
 			// create a new log file
 			using (var file = LogFile.OpenOrCreate(filename, purpose, writeMode))
@@ -810,7 +818,7 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(1, file.MessageCount);
 				Assert.Equal(0, file.OldestMessageId);
 				Assert.Equal(0, file.NewestMessageId);
-				var readMessages = file.Read(0, 100);
+				LogFileMessage[] readMessages = file.Read(0, 100);
 				Assert.Single(readMessages);
 
 				// the message returned by the log file should be the same as the inserted message
@@ -821,7 +829,7 @@ namespace GriffinPlus.Lib.Logging
 				Assert.True(readMessages[0].IsReadOnly);
 
 				// the wrapping collection should also reflect the change
-				var collection = file.Messages;
+				FileBackedLogMessageCollection collection = file.Messages;
 				Assert.Equal(1, collection.Count);
 				Assert.Single(collection);
 
@@ -846,11 +854,11 @@ namespace GriffinPlus.Lib.Logging
 				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
 			// generate a message to write into the file
-			var message = LoggingTestHelpers.GetTestMessages<LogFileMessage>(1)[0];
+			LogFileMessage message = LoggingTestHelpers.GetTestMessages<LogFileMessage>(1)[0];
 
 			try
 			{
-				using (var file = LogFile.OpenReadOnly(path))
+				using (LogFile file = LogFile.OpenReadOnly(path))
 				{
 					Assert.Throws<NotSupportedException>(() => file.Write(message));
 				}
@@ -882,7 +890,7 @@ namespace GriffinPlus.Lib.Logging
 			File.Delete(fullPath);
 
 			// generate messages to write into the file
-			var messages = mFixture.GetLogMessages_Random_10K();
+			LogFileMessage[] messages = mFixture.GetLogMessages_Random_10K();
 
 			// create a new log file
 			using (var file = LogFile.OpenOrCreate(filename, purpose, writeMode))
@@ -894,7 +902,7 @@ namespace GriffinPlus.Lib.Logging
 				file.Write(messages);
 
 				// the file should now contain the written messages
-				var readMessages = file.Read(0, messages.Length + 1);
+				LogFileMessage[] readMessages = file.Read(0, messages.Length + 1);
 				Assert.Equal(messages.Length, file.MessageCount);
 				Assert.Equal(0, file.OldestMessageId);
 				Assert.Equal(messages.Length - 1, file.NewestMessageId);
@@ -912,7 +920,7 @@ namespace GriffinPlus.Lib.Logging
 				}
 
 				// the wrapping collection should also reflect the change
-				var collection = file.Messages;
+				FileBackedLogMessageCollection collection = file.Messages;
 				Assert.Equal(messages.Length, collection.Count);
 
 				// the messages returned by the collection should be the same as the inserted messages
@@ -936,11 +944,11 @@ namespace GriffinPlus.Lib.Logging
 				              : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
 			// generate messages to write into the file
-			var messages = mFixture.GetLogMessages_Random_10K();
+			LogFileMessage[] messages = mFixture.GetLogMessages_Random_10K();
 
 			try
 			{
-				using (var file = LogFile.OpenReadOnly(path))
+				using (LogFile file = LogFile.OpenReadOnly(path))
 				{
 					Assert.Throws<NotSupportedException>(() => file.Write(messages));
 				}
@@ -962,8 +970,8 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file for reading only;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file for reading only;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(PurposeWriteModeReadOnlyMixTestData))]
@@ -975,11 +983,11 @@ namespace GriffinPlus.Lib.Logging
 
 			try
 			{
-				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+				LogFileMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 				int totalMessageCount = expectedMessages.Length;
 				var readMessages = new List<LogFileMessage>();
-				using (var file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
+				using (LogFile file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
 				{
 					// check initial status
 					Assert.Equal(readOnly, file.IsReadOnly);
@@ -992,7 +1000,7 @@ namespace GriffinPlus.Lib.Logging
 					const int chunkSize = 999;
 					for (int readMessageCount = 0; readMessageCount < totalMessageCount;)
 					{
-						var messages = file.Read(file.OldestMessageId + readMessageCount, chunkSize);
+						LogFileMessage[] messages = file.Read(file.OldestMessageId + readMessageCount, chunkSize);
 
 						int expectedReadCount = Math.Min(chunkSize, totalMessageCount - readMessageCount);
 						Assert.Equal(expectedReadCount, messages.Length);
@@ -1020,8 +1028,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				foreach (bool readOnly in new[] { false, true })
 				foreach (bool cancelReading in new[] { false, true })
 				{
@@ -1036,12 +1044,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="readOnly">
-		/// true to open the file for reading only;
-		/// false to open the file for reading and writing.
+		/// <c>true</c> to open the file for reading only;<br/>
+		/// <c>false</c> to open the file for reading and writing.
 		/// </param>
 		/// <param name="cancelReading">
-		/// true to cancel reading at half of the expected log messages;
-		/// false to read to the end.
+		/// <c>true</c> to cancel reading at half of the expected log messages;<br/>
+		/// <c>false</c> to read to the end.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(Read_WithCallbackTestData))]
@@ -1059,13 +1067,13 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// get expected result set
 				// (when cancellation is requested, it is done after half the log messages)
-				var allMessages = mFixture.GetLogMessages_Random_10K();
-				var expectedMessages = cancelReading ? allMessages.Take(5000).ToArray() : allMessages;
+				LogFileMessage[] allMessages = mFixture.GetLogMessages_Random_10K();
+				LogFileMessage[] expectedMessages = cancelReading ? allMessages.Take(5000).ToArray() : allMessages;
 				int totalMessageCount = allMessages.Length;
 				int expectedMessageCount = expectedMessages.Length;
 
 				var readMessages = new List<LogFileMessage>();
-				using (var file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
+				using (LogFile file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
 				{
 					// check initial status
 					Assert.Equal(readOnly, file.IsReadOnly);
@@ -1124,8 +1132,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				foreach (bool messagesOnly in new[] { false, true })
 				foreach (bool compact in new[] { false, true })
 				{
@@ -1140,12 +1148,12 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
 		/// <param name="messagesOnly">
-		/// true to remove messages only;
-		/// false to remove processes, applications, log writers, log levels and tags as well.
+		/// <c>true</c> to remove messages only;<br/>
+		/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
 		/// </param>
 		/// <param name="compact">
-		/// true to compact the log file after clearing (default);
-		/// false to clear the log file, but do not compact it.
+		/// <c>true</c> to compact the log file after clearing (default);<br/>
+		/// <c>false</c> to clear the log file, but do not compact it.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(ClearTestData_Success))]
@@ -1165,10 +1173,10 @@ namespace GriffinPlus.Lib.Logging
 				long fileSizeAtStart = new FileInfo(path).Length;
 
 				// get test data set with log messages that should be in the file
-				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+				LogFileMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 				int totalMessageCount = expectedMessages.Length;
-				using (var file = LogFile.Open(path, writeMode))
+				using (LogFile file = LogFile.Open(path, writeMode))
 				{
 					// check initial status of the file
 					Assert.Equal(totalMessageCount, file.MessageCount);
@@ -1233,7 +1241,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
 				foreach (bool messagesOnly in new[] { false, true })
 				foreach (bool compact in new[] { false, true })
 				{
@@ -1248,12 +1256,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="messagesOnly">
-		/// true to remove messages only;
-		/// false to remove processes, applications, log writers, log levels and tags as well.
+		/// <c>true</c> to remove messages only;<br/>
+		/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
 		/// </param>
 		/// <param name="compact">
-		/// true to compact the log file after clearing (default);
-		/// false to clear the log file, but do not compact it.
+		/// <c>true</c> to compact the log file after clearing (default);<br/>
+		/// <c>false</c> to clear the log file, but do not compact it.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(ClearTestData_ReadOnly))]
@@ -1268,7 +1276,7 @@ namespace GriffinPlus.Lib.Logging
 
 			try
 			{
-				using (var file = LogFile.OpenReadOnly(path))
+				using (LogFile file = LogFile.OpenReadOnly(path))
 				{
 					Assert.True(file.IsReadOnly);
 					Assert.Throws<NotSupportedException>(() => file.Clear(messagesOnly, compact));
@@ -1292,8 +1300,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			get
 			{
-				foreach (var purpose in sLogFilePurposes)
-				foreach (var writeMode in sLogFileWriteModes)
+				foreach (LogFilePurpose purpose in sLogFilePurposes)
+				foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 				foreach (bool readOnly in new[] { false, true })
 				foreach (bool compact in new[] { false, true })
 				{
@@ -1322,8 +1330,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
-		/// <param name="readOnly">true to open the file read-only; false to open the file read/write.</param>
-		/// <param name="compact">true to compact the log file; otherwise false.</param>
+		/// <param name="readOnly">
+		/// <c>true</c> to open the file read-only;<br/>
+		/// <c>false</c> to open the file read/write.
+		/// </param>
+		/// <param name="compact">
+		/// <c>true</c> to compact the log file;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		/// <param name="maximumMessageCount">Number of messages to keep in the log file.</param>
 		/// <param name="pruneByTimestampCount">Number of old messages to remove by timestamp.</param>
 		[Theory]
@@ -1346,11 +1360,11 @@ namespace GriffinPlus.Lib.Logging
 				long fileSizeAtStart = new FileInfo(path).Length;
 
 				// get test data set with log messages that should be in the file
-				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+				LogFileMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 				int totalMessageCount = expectedMessages.Length;
 				int pruneTotalCount;
-				using (var file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
+				using (LogFile file = readOnly ? LogFile.OpenReadOnly(path) : LogFile.Open(path, writeMode))
 				{
 					// check initial status of the file
 					Assert.Equal(readOnly, file.IsReadOnly);
@@ -1365,13 +1379,13 @@ namespace GriffinPlus.Lib.Logging
 					{
 						if (pruneByTimestampCount >= expectedMessages.Length)
 						{
-							var newestMessage = expectedMessages[expectedMessages.Length - 1];
+							LogFileMessage newestMessage = expectedMessages[expectedMessages.Length - 1];
 							pruneTimestamp = newestMessage.Timestamp.UtcDateTime + new TimeSpan(1);
 							pruneTotalCount = Math.Max(pruneTotalCount, expectedMessages.Length);
 						}
 						else
 						{
-							var firstMessageToKeep = expectedMessages[pruneByTimestampCount];
+							LogFileMessage firstMessageToKeep = expectedMessages[pruneByTimestampCount];
 							pruneTimestamp = firstMessageToKeep.Timestamp.UtcDateTime;
 							pruneTotalCount = Math.Max(pruneTotalCount, pruneByTimestampCount);
 						}
@@ -1400,7 +1414,7 @@ namespace GriffinPlus.Lib.Logging
 						{
 							Assert.Equal(totalMessageCount - expectedMessageCount, file.OldestMessageId);
 							Assert.Equal(totalMessageCount - 1, file.NewestMessageId);
-							var readMessages = file.Read(newOldestMessageId, expectedMessageCount + 1);
+							LogFileMessage[] readMessages = file.Read(newOldestMessageId, expectedMessageCount + 1);
 							Assert.Equal(expectedMessageCount, readMessages.Length);
 							Assert.Equal(
 								expectedMessages.Skip(expectedMessages.Length - expectedMessageCount).ToArray(),
@@ -1432,7 +1446,7 @@ namespace GriffinPlus.Lib.Logging
 
 				if (!readOnly)
 				{
-					// the file should be smaller now as the database is vacuum'ed after pruning
+					// the file should be smaller now as the database is vacuumed after pruning
 					// (this test is a bit tricky as a database page contains multiple records and removing only few records does not guarantee that a page is removed)
 					if (compact && pruneTotalCount > 10)
 					{
@@ -1471,10 +1485,10 @@ namespace GriffinPlus.Lib.Logging
 				long fileSizeAtStart = new FileInfo(path).Length;
 
 				// get test data set with log messages that should be in the file
-				var expectedMessages = mFixture.GetLogMessages_Random_10K();
+				LogFileMessage[] expectedMessages = mFixture.GetLogMessages_Random_10K();
 
 				int totalMessageCount = expectedMessages.Length;
-				using (var file = LogFile.Open(path, writeMode))
+				using (LogFile file = LogFile.Open(path, writeMode))
 				{
 					// check initial status of the file
 					Assert.Equal(totalMessageCount, file.MessageCount);
@@ -1495,7 +1509,7 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(fileSizeAtStart, fileSizeAtClearing);
 
 				// compact the log file
-				using (var file = LogFile.Open(path, writeMode))
+				using (LogFile file = LogFile.Open(path, writeMode))
 				{
 					file.Compact();
 				}
@@ -1526,7 +1540,7 @@ namespace GriffinPlus.Lib.Logging
 
 			try
 			{
-				using (var file = LogFile.OpenReadOnly(path))
+				using (LogFile file = LogFile.OpenReadOnly(path))
 				{
 					Assert.True(file.IsReadOnly);
 					Assert.Throws<NotSupportedException>(() => file.Compact());
@@ -1548,7 +1562,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
-		/// <param name="readOnly">true to open the file read-only; false to open the file read/write.</param>
+		/// <param name="readOnly">
+		/// <c>true</c> to open the file read-only;<br/>
+		/// <c>false</c> to open the file read/write.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(PurposeWriteModeReadOnlyMixTestData))]
 		private void SaveSnapshot(LogFilePurpose purpose, LogFileWriteMode writeMode, bool readOnly)
@@ -1564,11 +1581,11 @@ namespace GriffinPlus.Lib.Logging
 				long logFileSizeAtStart = new FileInfo(logFilePath).Length;
 
 				// get test data set with all log messages
-				var allMessages = mFixture.GetLogMessages_Random_10K();
+				LogFileMessage[] allMessages = mFixture.GetLogMessages_Random_10K();
 
 				// prune half of the messages, so taking a snapshot should return in a smaller file
 				int totalMessageCount = allMessages.Length;
-				using (var file = LogFile.Open(logFilePath, writeMode))
+				using (LogFile file = LogFile.Open(logFilePath, writeMode))
 				{
 					// check initial status of the file
 					Assert.Equal(totalMessageCount, file.MessageCount);
@@ -1589,7 +1606,7 @@ namespace GriffinPlus.Lib.Logging
 				Assert.Equal(logFileSizeAtStart, fileSizeAtPruning);
 
 				// save a snapshot of the log file
-				using (var file = readOnly ? LogFile.OpenReadOnly(logFilePath) : LogFile.Open(logFilePath, writeMode))
+				using (LogFile file = readOnly ? LogFile.OpenReadOnly(logFilePath) : LogFile.Open(logFilePath, writeMode))
 				{
 					file.SaveSnapshot(snapshotFilePath);
 				}
@@ -1600,13 +1617,13 @@ namespace GriffinPlus.Lib.Logging
 				Assert.True(snapshotFileSize < logFileSizeAtStart);
 
 				// the snapshot should now contain the 5000 newest messages
-				var expectedMessages = allMessages.Skip(5000).ToArray();
-				using (var file = LogFile.OpenReadOnly(snapshotFilePath))
+				LogFileMessage[] expectedMessages = allMessages.Skip(5000).ToArray();
+				using (LogFile file = LogFile.OpenReadOnly(snapshotFilePath))
 				{
 					Assert.Equal(5000, file.OldestMessageId);
 					Assert.Equal(9999, file.NewestMessageId);
 					Assert.Equal(5000, file.MessageCount);
-					var readMessages = file.Read(file.OldestMessageId, (int)file.MessageCount + 1); // +1 to check for no more than the expected messages
+					LogFileMessage[] readMessages = file.Read(file.OldestMessageId, (int)file.MessageCount + 1); // +1 to check for no more than the expected messages
 					Assert.Equal(file.MessageCount, readMessages.Length);
 					Assert.Equal(expectedMessages, readMessages); // does not take IsReadOnly into account
 					Assert.All(readMessages, message => Assert.True(message.IsReadOnly));

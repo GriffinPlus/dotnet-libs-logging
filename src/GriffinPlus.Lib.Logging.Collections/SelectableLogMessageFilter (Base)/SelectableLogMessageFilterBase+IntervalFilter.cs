@@ -104,7 +104,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// </summary>
 			/// <param name="timestamp">Item to check.</param>
 			/// <returns>
-			/// <c>true</c> if the item passes the filter;
+			/// <c>true</c> if the item passes the filter;<br/>
 			/// otherwise <c>false</c>.
 			/// </returns>
 			internal bool Matches(DateTimeOffset timestamp)
@@ -122,7 +122,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				{
 					base.Reset();
 
-					var collection = Parent.Collection;
+					TUnfilteredCollection collection = Parent.Collection;
 					if (collection != null && collection.Count > 0)
 					{
 						mMinTimestamp = collection[0].Timestamp;

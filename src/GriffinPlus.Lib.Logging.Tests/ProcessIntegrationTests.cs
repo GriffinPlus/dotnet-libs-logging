@@ -169,7 +169,7 @@ namespace GriffinPlus.Lib.Logging
 			const string newline = "\n";
 
 			// create a file containing mix log messages as JSON
-			var data = JsonMessageReaderTests.GetTestData(
+			Tuple<string, ILogMessage[], HashSet<int>> data = JsonMessageReaderTests.GetTestData(
 					1,       // generate one test set only
 					10000,   // the test set should contain 10000 log messages
 					10000,   //
@@ -186,7 +186,7 @@ namespace GriffinPlus.Lib.Logging
 				File.WriteAllText(testDataFile, data.Item1, Encoding.UTF8);
 
 				// set up the process integration for running the console printer process
-				using (var integration = PrepareConsolePrinterIntegration(stream, testDataFile))
+				using (ProcessIntegration integration = PrepareConsolePrinterIntegration(stream, testDataFile))
 				{
 					integration.IsLoggingMessagesEnabled = false;
 
@@ -333,7 +333,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.True(File.Exists(consolePrinterPath), $"{consolePrinterPath} does not exist.");
 			var startInfo = new ProcessStartInfo(dotnetExecutable, $"\"{consolePrinterPath}\" {stream} {testDataFile}") { WorkingDirectory = directory };
 			var process = new Process { StartInfo = startInfo };
-			var integration = ProcessIntegration.IntegrateIntoLogging(process);
+			ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal($"External Process ({dotnetExecutable})", integration.LogWriter.Name);
 
 #elif NETFRAMEWORK
@@ -348,7 +348,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.True(File.Exists(consolePrinterPath), $"{consolePrinterPath} does not exist.");
 			var startInfo = new ProcessStartInfo(consolePrinterPath, $"{stream} {testDataFile}") { WorkingDirectory = directory };
 			var process = new Process { StartInfo = startInfo };
-			var integration = ProcessIntegration.IntegrateIntoLogging(process);
+			ProcessIntegration integration = ProcessIntegration.IntegrateIntoLogging(process);
 			Assert.Equal("External Process (ConsolePrinter.exe)", integration.LogWriter.Name);
 #endif
 

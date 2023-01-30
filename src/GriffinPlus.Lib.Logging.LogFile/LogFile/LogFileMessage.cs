@@ -20,9 +20,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogFileMessage"/> class.
 		/// </summary>
-		public LogFileMessage()
-		{
-		}
+		public LogFileMessage() { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogFileMessage"/> class copying the specified one.
@@ -85,8 +83,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="other">Log message to compare with.</param>
 		/// <returns>
-		/// true, if the current log message equals the specified one;
-		/// otherwise false.
+		/// <c>true</c>, if the current log message equals the specified one;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public override bool Equals(LogMessage other)
 		{
@@ -94,8 +92,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				lock (Sync)
 				{
-					if (mId != otherFileLogMessage.Id) return false;
-					return base.Equals(other);
+					return mId == otherFileLogMessage.Id && base.Equals(other);
 				}
 			}
 
@@ -206,8 +203,8 @@ namespace GriffinPlus.Lib.Logging
 		/// (<see cref="LogMessage.IsInitialized"/> is <c>false</c> at first and set to <c>true</c> as soon as the message is initialized).
 		/// </summary>
 		/// <param name="readOnly">
-		/// true to create a read-only message that can only be set by the returned initializer;
-		/// otherwise false.
+		/// <c>true</c> to create a read-only message that can only be set by the returned initializer;<br/>
+		/// otherwise <c>false</c>.
 		/// </param>
 		/// <param name="initializer">Receives the initializer that allows to update the log message.</param>
 		/// <returns>The created log message.</returns>

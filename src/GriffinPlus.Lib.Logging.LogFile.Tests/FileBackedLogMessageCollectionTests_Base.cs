@@ -43,8 +43,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			get
 			{
-				foreach (var purpose in LogFilePurposes)
-				foreach (var writeMode in LogFileWriteModes)
+				foreach (LogFilePurpose purpose in LogFilePurposes)
+				foreach (LogFileWriteMode writeMode in LogFileWriteModes)
 				foreach (bool populate in new[] { false, true })
 				{
 					yield return new object[] { purpose, writeMode, populate };
@@ -57,7 +57,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
-		/// <param name="populate"><c>true</c> to populate the log file with messages; otherwise <c>false</c>.</param>
+		/// <param name="populate">
+		/// <c>true</c> to populate the log file with messages;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(CreateTestData))]
 		private void Create_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
@@ -70,7 +73,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			try
 			{
-				var messages = populate ? Fixture.GetLogMessages_Random_10K() : null;
+				LogFileMessage[] messages = populate ? Fixture.GetLogMessages_Random_10K() : null;
 				using (var collection = FileBackedLogMessageCollection.Create(backingFilePath, purpose, writeMode, messages))
 				{
 					Assert.True(File.Exists(backingFilePath));
@@ -103,7 +106,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="purpose">Log file purpose to test.</param>
 		/// <param name="writeMode">Log file write mode to test.</param>
-		/// <param name="populate"><c>true</c> to populate the log file with messages; otherwise <c>false</c>.</param>
+		/// <param name="populate">
+		/// <c>true</c> to populate the log file with messages;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(CreateTestData))]
 		private void Create_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
@@ -112,7 +118,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				                         ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
 				                         : Fixture.GetCopyOfFile_Analysis_RandomMessages_10K();
 
-			var messages = populate ? Fixture.GetLogMessages_Random_10K() : null;
+			LogFileMessage[] messages = populate ? Fixture.GetLogMessages_Random_10K() : null;
 
 			try
 			{
@@ -132,8 +138,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			get
 			{
-				foreach (var purpose in LogFilePurposes)
-				foreach (var writeMode in LogFileWriteModes)
+				foreach (LogFilePurpose purpose in LogFilePurposes)
+				foreach (LogFileWriteMode writeMode in LogFileWriteModes)
 				{
 					yield return new object[] { purpose, writeMode };
 				}
@@ -214,8 +220,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		{
 			get
 			{
-				foreach (var purpose in LogFilePurposes)
-				foreach (var writeMode in LogFileWriteModes)
+				foreach (LogFilePurpose purpose in LogFilePurposes)
+				foreach (LogFileWriteMode writeMode in LogFileWriteModes)
 				{
 					yield return new object[] { purpose, writeMode };
 				}
@@ -239,7 +245,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				Assert.True(File.Exists(path));
 
-				using (var collection = FileBackedLogMessageCollection.Open(path, writeMode))
+				using (FileBackedLogMessageCollection collection = FileBackedLogMessageCollection.Open(path, writeMode))
 				{
 					Assert.True(File.Exists(path));
 					Assert.Equal(path, collection.FilePath);
@@ -273,7 +279,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				Assert.True(File.Exists(path));
 
-				using (var collection = FileBackedLogMessageCollection.OpenReadOnly(path))
+				using (FileBackedLogMessageCollection collection = FileBackedLogMessageCollection.OpenReadOnly(path))
 				{
 					Assert.True(File.Exists(path));
 					Assert.Equal(path, collection.FilePath);
@@ -302,8 +308,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			get
 			{
 				foreach (bool deleteAutomatically in new[] { false, true })
-				foreach (var purpose in LogFilePurposes)
-				foreach (var writeMode in LogFileWriteModes)
+				foreach (LogFilePurpose purpose in LogFilePurposes)
+				foreach (LogFileWriteMode writeMode in LogFileWriteModes)
 				{
 					yield return new object[] { null, deleteAutomatically, purpose, writeMode };                         // default temporary folder
 					yield return new object[] { Environment.CurrentDirectory, deleteAutomatically, purpose, writeMode }; // specific temporary folder
@@ -315,12 +321,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests creating an instance of the <see cref="FileBackedLogMessageCollection"/> class with a temporary backing log file.
 		/// </summary>
 		/// <param name="deleteAutomatically">
-		/// true to delete the file automatically when the collection is disposed (or the next time, a temporary collection is created in the same directory);
-		/// false to keep it after the collection is disposed.
+		/// <c>true</c> to delete the file automatically when the collection is disposed
+		/// (or the next time, a temporary collection is created in the same directory);<br/>
+		/// <c>false</c> to keep it after the collection is disposed.
 		/// </param>
 		/// <param name="temporaryDirectoryPath">
-		/// Path of the temporary directory to use;
-		/// null to use the default temporary directory (default).
+		/// Path of the temporary directory to use;<br/>
+		/// <c>null</c> to use the default temporary directory (default).
 		/// </param>
 		/// <param name="purpose">
 		/// Purpose of the log file determining whether the log file is primarily used for recording or for analysis (default).
@@ -364,9 +371,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[Fact]
 		protected virtual void LogFileAndFilePath()
 		{
-			using (var collection = CreateCollection(0, out _))
+			using (FileBackedLogMessageCollection collection = CreateCollection(0, out LogMessage[] _))
 			{
-				var eventWatcher = collection.AttachEventWatcher();
+				LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
 				// check whether the actual state of the property matches the expected state
 				Assert.Equal(100, collection.CachePageCapacity);
@@ -400,10 +407,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="collection">Collection to check.</param>
 		/// <param name="expectedCount">Expected number of log messages in the collection.</param>
-		/// <param name="isReadOnly">true, if the collection is read-only; otherwise false.</param>
+		/// <param name="isReadOnly">
+		/// <c>true</c> if the collection is read-only;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		protected void TestCollectionPropertyDefaults(FileBackedLogMessageCollection collection, long expectedCount, bool isReadOnly)
 		{
-			using (var eventWatcher = collection.AttachEventWatcher())
+			using (LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher())
 			{
 				// check collection specific properties
 				Assert.Equal(expectedCount, collection.Count);

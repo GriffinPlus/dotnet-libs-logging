@@ -17,26 +17,20 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="InvalidLogFileFormatException"/> class.
 		/// </summary>
-		public InvalidLogFileFormatException()
-		{
-		}
+		public InvalidLogFileFormatException() { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="InvalidLogFileFormatException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
-		public InvalidLogFileFormatException(string message) : base(message)
-		{
-		}
+		public InvalidLogFileFormatException(string message) : base(message) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="InvalidLogFileFormatException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		/// <param name="innerException">The original exception that led to the exception being thrown.</param>
-		public InvalidLogFileFormatException(string message, Exception innerException) : base(message, innerException)
-		{
-		}
+		public InvalidLogFileFormatException(string message, Exception innerException) : base(message, innerException) { }
 	}
 
 }

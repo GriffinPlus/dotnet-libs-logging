@@ -144,7 +144,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.True(stage.IsInitialized);
 
 			// process a log message
-			var message = MessagePool.GetUninitializedMessage();
+			LocalLogMessage message = MessagePool.GetUninitializedMessage();
 			Assert.False(stage.ProcessSyncWasCalled);
 			stage.ProcessMessage(message);
 			Assert.True(stage.ProcessSyncWasCalled);
@@ -169,7 +169,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.True(stage2.IsInitialized);
 
 			// process a log message
-			var message = MessagePool.GetUninitializedMessage();
+			LocalLogMessage message = MessagePool.GetUninitializedMessage();
 			Assert.False(stage1.ProcessSyncWasCalled);
 			Assert.False(stage2.ProcessSyncWasCalled);
 			Assert.False(stage1.ProcessAsyncWasCalled);

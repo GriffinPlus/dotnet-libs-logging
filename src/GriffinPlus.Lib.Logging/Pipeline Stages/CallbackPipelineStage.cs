@@ -18,12 +18,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Initializes a new instance of the <see cref="CallbackPipelineStage"/> class.
 		/// Please set <see cref="ProcessingCallback"/> to a callback of your choice.
 		/// </summary>
-		public CallbackPipelineStage()
-		{
-		}
+		public CallbackPipelineStage() { }
 
 		/// <summary>
-		/// Gets or sets the message processing callback (may be null).
+		/// Gets or sets the message processing callback (may be <c>null</c>).
 		/// The callback is executed in the context of the thread writing the message.
 		/// </summary>
 		/// <remarks>
@@ -52,8 +50,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </remarks>
 		protected override bool ProcessSync(LocalLogMessage message)
 		{
-			if (mProcessingCallback != null) return mProcessingCallback(message);
-			return base.ProcessSync(message);
+			return mProcessingCallback?.Invoke(message) ?? base.ProcessSync(message);
 		}
 	}
 
@@ -62,7 +59,7 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	/// <param name="message">Log message to process.</param>
 	/// <returns>
-	/// <c>true</c> to call the following pipeline stages;
+	/// <c>true</c> to call the following pipeline stages;<br/>
 	/// <c>false</c> to stop processing.
 	/// </returns>
 	public delegate bool ProcessingCallback(LocalLogMessage message);

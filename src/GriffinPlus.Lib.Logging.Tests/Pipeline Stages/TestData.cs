@@ -27,7 +27,7 @@ namespace GriffinPlus.Lib.Logging
 
 				foreach (string[] tags in tagSets)
 				{
-					var message1 = sMessagePool.GetMessage(
+					LocalLogMessage message1 = sMessagePool.GetMessage(
 						DateTimeOffset.Parse("2001-01-01 00:00:00Z"),
 						123,
 						LogWriter.Get("MyWriter1").WithTags(tags),
@@ -37,7 +37,7 @@ namespace GriffinPlus.Lib.Logging
 						42,
 						"MyText1");
 
-					var message2 = sMessagePool.GetMessage(
+					LocalLogMessage message2 = sMessagePool.GetMessage(
 						DateTimeOffset.Parse("2002-01-01 00:00:00Z"),
 						456,
 						LogWriter.Get("MyWriter2").WithTags(tags),
@@ -47,7 +47,7 @@ namespace GriffinPlus.Lib.Logging
 						43,
 						"MyText2");
 
-					var message3 = sMessagePool.GetMessage(
+					LocalLogMessage message3 = sMessagePool.GetMessage(
 						DateTimeOffset.Parse("2003-01-01 00:00:00Z"),
 						789,
 						LogWriter.Get("MyWriter3").WithTags(tags),
@@ -57,7 +57,7 @@ namespace GriffinPlus.Lib.Logging
 						44,
 						"MyText3");
 
-					var message4 = sMessagePool.GetMessage(
+					LocalLogMessage message4 = sMessagePool.GetMessage(
 						DateTimeOffset.Parse("2004-01-01 00:00:00Z"),
 						1230,
 						LogWriter.Get("MyWriter4").WithTags(tags),
@@ -67,7 +67,7 @@ namespace GriffinPlus.Lib.Logging
 						44,
 						"MyText4");
 
-					var message5 = sMessagePool.GetMessage(
+					LocalLogMessage message5 = sMessagePool.GetMessage(
 						DateTimeOffset.Parse("2005-01-01 00:00:00Z"),
 						4560,
 						LogWriter.Get("MyWriter5").WithTags(tags),
@@ -77,7 +77,7 @@ namespace GriffinPlus.Lib.Logging
 						55,
 						"MyText5");
 
-					var message6 = sMessagePool.GetMessage(
+					LocalLogMessage message6 = sMessagePool.GetMessage(
 						DateTimeOffset.Parse("2006-01-01 00:00:00Z"),
 						7890,
 						LogWriter.Get("MyWriter6").WithTags(tags),

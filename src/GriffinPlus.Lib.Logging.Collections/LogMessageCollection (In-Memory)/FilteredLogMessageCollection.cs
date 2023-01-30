@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -42,8 +41,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Disposes the collection (actually does nothing, just to satisfy the interface).
 		/// </summary>
 		/// <param name="disposing">
-		/// true if the object is being disposed;
-		/// false, if it is being finalized.
+		/// <c>true</c> if the object is being disposed;<br/>
+		/// <c>false</c> if it is being finalized.
 		/// </param>
 		protected override void Dispose(bool disposing)
 		{
@@ -93,7 +92,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Checks whether the collection contains the specified log message.
 		/// </summary>
 		/// <param name="item">Log message to check for.</param>
-		/// <returns>true, if the collection contains the log message; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the collection contains the log message;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public override bool Contains(TMessage item)
 		{
 			return mMessages.Contains(item);
@@ -107,7 +109,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Gets the index of the specified log message.
 		/// </summary>
 		/// <param name="item">Log message to locate in the collection.</param>
-		/// <returns>Index of the log message; -1, if the specified message is not in the collection.</returns>
+		/// <returns>
+		/// Index of the log message;<br/>
+		/// -1, if the specified message is not in the collection.
+		/// </returns>
 		public override long IndexOf(TMessage item)
 		{
 			return mMessages.IndexOf(item);
@@ -147,15 +152,15 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="count">The number of new messages.</param>
 		internal void ProcessUnfilteredCollectionChange_AfterAdd(int startIndex, int count)
 		{
-			var newMessages = IsCollectionChangedRegistered && UseMultiItemNotifications
-				                  ? new List<TMessage>()
-				                  : null;
+			List<TMessage> newMessages = IsCollectionChangedRegistered && UseMultiItemNotifications
+				                             ? new List<TMessage>()
+				                             : null;
 
 			int newMessagesIndex = mMessages.Count;
 
 			for (int i = startIndex; i < startIndex + count; i++)
 			{
-				var message = Unfiltered[i];
+				TMessage message = Unfiltered[i];
 
 				if (Filter.Matches(message))
 				{
@@ -206,12 +211,12 @@ namespace GriffinPlus.Lib.Logging.Collections
 			int firstMatchingMessageIndex_filtered = -1;
 			for (int i = startIndex; i < startIndex + count; i++)
 			{
-				var message = Unfiltered[i];
+				TMessage message = Unfiltered[i];
 				if (Filter.Matches(message))
 				{
 					// found first message in specified range that matches the filter
 					// => this message should be in the filtered collection, find it!
-					var firstMatchingMessage = message;
+					TMessage firstMatchingMessage = message;
 					int firstMatchingMessageIndex_unfiltered = i;
 					for (int j = Math.Min(firstMatchingMessageIndex_unfiltered, mMessages.Count - 1); j >= 0; j--)
 					{
@@ -235,12 +240,12 @@ namespace GriffinPlus.Lib.Logging.Collections
 				int lastMatchingMessageIndex_filtered = -1;
 				for (int i = startIndex + count - 1; i >= startIndex; i--)
 				{
-					var message = Unfiltered[i];
+					TMessage message = Unfiltered[i];
 					if (Filter.Matches(message))
 					{
 						// found last message in specified range that matches the filter
 						// => this message should be in the filtered collection, find it!
-						var lastMatchingMessage = message;
+						TMessage lastMatchingMessage = message;
 						int lastMatchingMessageIndex_unfiltered = i;
 						for (int j = firstMatchingMessageIndex_filtered; j <= Math.Min(lastMatchingMessageIndex_unfiltered, mMessages.Count - 1); j++)
 						{
@@ -349,7 +354,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="overviewCollection">Overview collection to add the items to.</param>
 		private static void RegisterForOverviewCollection<T>(IEnumerable<T> items, IDictionary<T, int> itemCountMap, ICollection<T> overviewCollection)
 		{
-			foreach (var item in items)
+			foreach (T item in items)
 			{
 				if (!itemCountMap.TryGetValue(item, out int count)) itemCountMap.Add(item, 0);
 				itemCountMap[item] = count + 1;
@@ -360,7 +365,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <summary>
 		/// Updates the overview collections as the specified message is removed from the collection.
 		/// </summary>
-		/// <param name="message">Message that is removed from the collection (null, if all messages are removed).</param>
+		/// <param name="message">Message that is removed from the collection (<c>null</c> if all messages are removed).</param>
 		private void UpdateOverviewCollectionsOnRemove(TMessage message)
 		{
 			if (message != null)
@@ -401,7 +406,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="item">Item to unregister.</param>
 		/// <param name="itemCountMap">Dictionary used to track the number of occurrences of the item in the message set.</param>
 		/// <param name="overviewCollection">Overview collection to remove the item from.</param>
-		private static void UnregisterForOverviewCollection<T>(T item, IDictionary<T, int> itemCountMap, ObservableCollection<T> overviewCollection)
+		private static void UnregisterForOverviewCollection<T>(T item, IDictionary<T, int> itemCountMap, ICollection<T> overviewCollection)
 		{
 			if (itemCountMap.TryGetValue(item, out int count))
 			{
@@ -424,9 +429,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="items">Items to unregister.</param>
 		/// <param name="itemCountMap">Dictionary used to track the number of occurrences of items in the message set.</param>
 		/// <param name="overviewCollection">Overview collection to remove the item from.</param>
-		private static void UnregisterForOverviewCollection<T>(IEnumerable<T> items, IDictionary<T, int> itemCountMap, ObservableCollection<T> overviewCollection)
+		private static void UnregisterForOverviewCollection<T>(IEnumerable<T> items, IDictionary<T, int> itemCountMap, ICollection<T> overviewCollection)
 		{
-			foreach (var item in items)
+			foreach (T item in items)
 			{
 				if (itemCountMap.TryGetValue(item, out int count))
 				{
@@ -457,7 +462,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			if (Filter != null)
 			{
-				foreach (var message in Unfiltered)
+				foreach (TMessage message in Unfiltered)
 				{
 					if (Filter.Matches(message))
 					{

@@ -108,7 +108,7 @@ namespace GriffinPlus.Lib.Logging
 		#region Lossless Mode
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the lossless mode is enabled or disabled (default: false).
+		/// Gets or sets a value indicating whether the lossless mode is enabled or disabled (default: <c>false</c>).
 		/// Lossless mode ensures that messages and notifications are immediately passed to the local log service.
 		/// If there is no space in the shared memory queue to the local log service, the calling thread blocks until
 		/// there is enough space to enqueue the message/command/notification. The connection's peak buffering is disabled
@@ -321,10 +321,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <returns>
 		/// <param name="cancellationToken">Cancellation token that may be signaled to abort the operation.</param>
-		/// <c>true</c> if connecting to the local log service succeeded;
+		/// <c>true</c> if connecting to the local log service succeeded;<br/>
 		/// otherwise <c>false</c>.
 		/// </returns>
-		private async Task<bool> EstablishConnectionAsync(CancellationToken cancellationToken)
+		private async Task EstablishConnectionAsync(CancellationToken cancellationToken)
 		{
 			Debug.Assert(!Monitor.IsEntered(mSync));
 
@@ -412,7 +412,7 @@ namespace GriffinPlus.Lib.Logging
 					{
 						Debug.WriteLine("Registering log source with the local log service failed.");
 						await ShutdownAsync(false).ConfigureAwait(false);
-						return false;
+						return;
 					}
 				}
 				catch (Exception ex)
@@ -420,7 +420,7 @@ namespace GriffinPlus.Lib.Logging
 					Debug.WriteLine("Connecting to the local log service failed.");
 					Debug.WriteLine(ex.ToString());
 					await ShutdownAsync(false).ConfigureAwait(false);
-					return false;
+					return;
 				}
 
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,7 +436,7 @@ namespace GriffinPlus.Lib.Logging
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 				Debug.WriteLine("Sending 'set writing to log file' request to the local log service...");
-				bool writeToLogFile = false;
+				bool writeToLogFile;
 				lock (mSync) writeToLogFile = mWriteToLogFile;
 
 				request = new Request
@@ -500,7 +500,6 @@ namespace GriffinPlus.Lib.Logging
 				{
 					mEstablishingConnectionInProgress = false;
 					mServiceProcess = serviceProcess;
-					return true;
 				}
 			}
 			catch (Exception ex)
@@ -509,7 +508,6 @@ namespace GriffinPlus.Lib.Logging
 				Debug.WriteLine(ex.ToString());
 				serviceProcess?.Dispose();
 				await ShutdownAsync(true).ConfigureAwait(false);
-				return false;
 			}
 		}
 
@@ -694,7 +692,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Checks whether the local log service is alive.
 		/// </summary>
 		/// <returns>
-		/// <c>true</c> if the local log service process is alive;
+		/// <c>true</c> if the local log service process is alive;<br/>
 		/// otherwise <c>false</c>.
 		/// </returns>
 		public bool IsLogSinkAlive()
@@ -1087,7 +1085,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to send.</param>
 		/// <returns>
-		/// <c>true</c> if the message was successfully enqueued;
+		/// <c>true</c> if the message was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full.
 		/// </returns>
 		public bool EnqueueMessage(LocalLogMessage message)
@@ -1123,11 +1121,11 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to send.</param>
 		/// <param name="defer">
-		/// <c>true</c> to put the message into the peak buffer queue;
+		/// <c>true</c> to put the message into the peak buffer queue;<br/>
 		/// <c>false</c> to put the message directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// <c>true</c> if the message was successfully enqueued;
+		/// <c>true</c> if the message was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		private unsafe bool EnqueueMessage(LocalLogMessage message, bool defer)
@@ -1300,7 +1298,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="level">The added log level.</param>
 		/// <returns>
-		/// <c>true</c> if the notification was successfully enqueued;
+		/// <c>true</c> if the notification was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		public bool EnqueueLogLevelAddedNotification(LogLevel level)
@@ -1312,12 +1310,10 @@ namespace GriffinPlus.Lib.Logging
 					return false;
 
 				// try to enqueue the notification into the shared memory queue
-				if (EnqueueLogLevelAddedNotification(level, false))
-					return true;
-
-				// put the notification into the queue to send it later
+				// or put the notification into the queue to send it later, if it cannot be enqueued immediately
 				// (do not check the capacity of the peak buffer queue as the notifications must always be sent to the local log service)
-				return EnqueueLogLevelAddedNotification(level, true);
+				return EnqueueLogLevelAddedNotification(level, false) ||
+				       EnqueueLogLevelAddedNotification(level, true);
 			}
 		}
 
@@ -1327,11 +1323,11 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="level">The added log level.</param>
 		/// <param name="defer">
-		/// <c>true</c> to put the notification into the peak buffer queue;
+		/// <c>true</c> to put the notification into the peak buffer queue;<br/>
 		/// <c>false</c> to put the notification directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// <c>true</c> if the notification was successfully enqueued;
+		/// <c>true</c> if the notification was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		private unsafe bool EnqueueLogLevelAddedNotification(LogLevel level, bool defer)
@@ -1403,7 +1399,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">The added log writer.</param>
 		/// <returns>
-		/// <c>true</c> if the notification was successfully enqueued;
+		/// <c>true</c> if the notification was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		public bool EnqueueLogWriterAddedNotification(LogWriter writer)
@@ -1415,12 +1411,10 @@ namespace GriffinPlus.Lib.Logging
 					return false;
 
 				// try to enqueue the notification into the shared memory queue
-				if (EnqueueLogWriterAddedNotification(writer, false))
-					return true;
-
-				// put the notification into the queue to send it later
+				// or put the notification into the queue to send it later, if it cannot be enqueued immediately
 				// (do not check the capacity of the peak buffer queue as the notifications must always be sent to the local log service)
-				return EnqueueLogWriterAddedNotification(writer, true);
+				return EnqueueLogWriterAddedNotification(writer, false) ||
+				       EnqueueLogWriterAddedNotification(writer, true);
 			}
 		}
 
@@ -1430,11 +1424,11 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="writer">The added log writer.</param>
 		/// <param name="defer">
-		/// <c>true</c> to put the notification into the peak buffer queue;
+		/// <c>true</c> to put the notification into the peak buffer queue;<br/>
 		/// <c>false</c> to put the notification directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// <c>true</c> if the notification was successfully enqueued;
+		/// <c>true</c> if the notification was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		private unsafe bool EnqueueLogWriterAddedNotification(LogWriter writer, bool defer)
@@ -1503,7 +1497,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Enqueues a command telling the log viewer to clear its view.
 		/// </summary>
 		/// <returns>
-		/// <c>true</c> if the command was successfully enqueued;
+		/// <c>true</c> if the command was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		public bool EnqueueClearLogViewerCommand()
@@ -1517,13 +1511,9 @@ namespace GriffinPlus.Lib.Logging
 					return true;
 
 				// the shared memory queue is full
-				// => abort, if the peak buffer queue is also full
-				if (mPeakBufferQueue.Count >= mPeakBufferCapacity)
-					return false;
-
-				// there is space in the peak buffer queue
-				// => put the command into the queue to send it later
-				return EnqueueClearLogViewerCommand(true);
+				// => put the command into the queue to send it later, if there is some space in the peak buffer queue
+				return mPeakBufferQueue.Count < mPeakBufferCapacity &&
+				       EnqueueClearLogViewerCommand(true);
 			}
 		}
 
@@ -1531,11 +1521,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Enqueues a command telling the log viewer to clear its view.
 		/// </summary>
 		/// <param name="defer">
-		/// <c>true</c> to put the command into the peak buffer queue;
+		/// <c>true</c> to put the command into the peak buffer queue;<br/>
 		/// <c>false</c> to put the command directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// <c>true</c> if the command was successfully enqueued;
+		/// <c>true</c> if the command was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		private unsafe bool EnqueueClearLogViewerCommand(bool defer)
@@ -1591,7 +1581,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Enqueues a command telling the local log service to save a snapshot of the current log.
 		/// </summary>
 		/// <returns>
-		/// <c>true</c> if the command was successfully enqueued;
+		/// <c>true</c> if the command was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		public bool EnqueueSaveSnapshotCommand()
@@ -1605,13 +1595,9 @@ namespace GriffinPlus.Lib.Logging
 					return true;
 
 				// the shared memory queue is full
-				// => abort, if the peak buffer queue is also full
-				if (mPeakBufferQueue.Count >= mPeakBufferCapacity)
-					return false;
-
-				// there is space in the peak buffer queue
-				// => put the command into the queue to send it later
-				return EnqueueSaveSnapshotCommand(true);
+				// => put the command into the queue to send it later, if there is some space in the peak buffer queue
+				return mPeakBufferQueue.Count < mPeakBufferCapacity &&
+				       EnqueueSaveSnapshotCommand(true);
 			}
 		}
 
@@ -1619,11 +1605,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Enqueues a command telling the local log service to save a snapshot of the current log.
 		/// </summary>
 		/// <param name="defer">
-		/// <c>true</c> to put the command into the peak buffer queue;
+		/// <c>true</c> to put the command into the peak buffer queue;<br/>
 		/// <c>false</c> to put the command directly into the shared memory queue.
 		/// </param>
 		/// <returns>
-		/// <c>true</c> if the command was successfully enqueued;
+		/// <c>true</c> if the command was successfully enqueued;<br/>
 		/// <c>false</c> if the queue is full and lossless mode is disabled.
 		/// </returns>
 		private unsafe bool EnqueueSaveSnapshotCommand(bool defer)
@@ -1677,12 +1663,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Gets a free block from the shared memory queue.
 		/// </summary>
 		/// <param name="sendDeferredItems">
-		/// <c>true</c> to send deferred items, if any;
+		/// <c>true</c> to send deferred items, if any;<br/>
 		/// <c>false</c> to skip sending deferred items (only for use within <see cref="GetLogEntryBlock"/>).
 		/// </param>
 		/// <returns>
-		/// A free log entry block;
-		/// null, if the queue does not contain a free block.
+		/// A free log entry block;<br/>
+		/// <c>null</c> if the queue does not contain a free block.
 		/// </returns>
 		/// <remarks>
 		/// This method returns a free block from the log entry queue. If the queue does not contain any
@@ -1727,7 +1713,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Tries to transfer all items from the peak buffer queue to the shared memory queue.
 		/// </summary>
 		/// <returns>
-		/// <c>true</c> if all items have been sent successfully;
+		/// <c>true</c> if all items have been sent successfully;<br/>
 		/// <c>false</c> if the queue is full or not initialized.
 		/// </returns>
 		private bool SendDeferredItems()
@@ -1775,7 +1761,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="extensionMessageCount">Number of extension message blocks following the message block..</param>
 		/// <returns>
-		/// <c>true</c> if the message block and all extension blocks have been sent successfully;
+		/// <c>true</c> if the message block and all extension blocks have been sent successfully;<br/>
 		/// <c>false</c> if the queue is full.
 		/// </returns>
 		private unsafe bool SendDeferredItems_Message(int extensionMessageCount)
@@ -1820,7 +1806,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Tries to transfer the current block from the peak buffer queue to the shared memory queue.
 		/// </summary>
 		/// <returns>
-		/// <c>true</c> if the block has been sent successfully;
+		/// <c>true</c> if the block has been sent successfully;<br/>
 		/// <c>false</c> if the queue is full.
 		/// </returns>
 		private unsafe bool SendDeferredItems_SingleBlock()

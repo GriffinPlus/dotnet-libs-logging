@@ -17,9 +17,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 	public class LogMessageCollectionFilteringAccessor<TMessage> : ILogMessageCollectionFilteringAccessor<TMessage>
 		where TMessage : class, ILogMessage
 	{
-		private readonly LogMessageCollection<TMessage>        mCollection;
-		private readonly ILogMessageCollectionFilter<TMessage> mFilter;
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LogMessageCollectionFilteringAccessor{TMessage}"/> class.
 		/// </summary>
@@ -31,36 +28,34 @@ namespace GriffinPlus.Lib.Logging.Collections
 			LogMessageCollection<TMessage>        collection,
 			ILogMessageCollectionFilter<TMessage> filter)
 		{
-			mCollection = collection ?? throw new ArgumentNullException(nameof(collection));
-			mFilter = filter;
+			Collection = collection ?? throw new ArgumentNullException(nameof(collection));
+			Filter = filter;
 		}
 
 		/// <summary>
 		/// Disposes the accessor.
 		/// </summary>
-		public void Dispose()
-		{
-		}
+		public void Dispose() { }
 
 		/// <summary>
 		/// Gets the unfiltered collection the accessor works on.
 		/// </summary>
-		public LogMessageCollection<TMessage> Collection => mCollection;
+		public LogMessageCollection<TMessage> Collection { get; }
 
 		/// <summary>
 		/// Gets the unfiltered collection the accessor works on.
 		/// </summary>
-		ILogMessageCollection<TMessage> ILogMessageCollectionFilteringAccessor<TMessage>.Collection => mCollection;
+		ILogMessageCollection<TMessage> ILogMessageCollectionFilteringAccessor<TMessage>.Collection => Collection;
 
 		/// <summary>
 		/// Gets the filter the accessor works with.
 		/// </summary>
-		public ILogMessageCollectionFilter<TMessage> Filter => mFilter;
+		public ILogMessageCollectionFilter<TMessage> Filter { get; }
 
 		/// <summary>
 		/// Gets the filter the accessor works with.
 		/// </summary>
-		ILogMessageCollectionFilterBase<TMessage> ILogMessageCollectionFilteringAccessor<TMessage>.Filter => mFilter;
+		ILogMessageCollectionFilterBase<TMessage> ILogMessageCollectionFilteringAccessor<TMessage>.Filter => Filter;
 
 		/// <summary>
 		/// Gets the first log message matching the filter criteria starting at the specified index in the unfiltered collection going backwards.
@@ -68,15 +63,15 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="fromIndex">Index of the log message in the unfiltered collection to start at.</param>
 		/// <param name="matchIndex">Receives the index of the first log message matching the filter.</param>
 		/// <returns>
-		/// The first log message matching the filter;
-		/// null, if no message matching the filter was found.
+		/// The first log message matching the filter;<br/>
+		/// <c>null</c> if no message matching the filter was found.
 		/// </returns>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
 		public TMessage GetPreviousMessage(
 			long     fromIndex,
 			out long matchIndex)
 		{
-			var collection = mCollection.Messages;
+			List<TMessage> collection = Collection.Messages;
 
 			if (fromIndex < 0 || fromIndex >= collection.Count)
 			{
@@ -87,8 +82,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			for (int i = (int)fromIndex; i >= 0; i--)
 			{
-				var message = collection[i];
-				if (mFilter == null || mFilter.Matches(message))
+				TMessage message = collection[i];
+				if (Filter == null || Filter.Matches(message))
 				{
 					matchIndex = i;
 					return message;
@@ -106,7 +101,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="count">Maximum number of matching log messages to get.</param>
 		/// <param name="matchIndices">Receives the indices of the log messages matching the filter.</param>
 		/// <param name="reverse">
-		/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the collection;
+		/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the collection;<br/>
 		/// <c>false</c> to return the list of messages in the opposite order.
 		/// </param>
 		/// <returns>Log messages matching filter.</returns>
@@ -118,7 +113,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			out long[] matchIndices,
 			bool       reverse)
 		{
-			var collection = mCollection.Messages;
+			List<TMessage> collection = Collection.Messages;
 
 			if (fromIndex < 0 || fromIndex >= collection.Count)
 			{
@@ -139,8 +134,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			for (int i = (int)fromIndex; i >= 0 && matches.Count < count; i--)
 			{
-				var message = collection[i];
-				if (mFilter == null || mFilter.Matches(message))
+				TMessage message = collection[i];
+				if (Filter == null || Filter.Matches(message))
 				{
 					matches.Add(message);
 					matchIndexList.Add(i);
@@ -164,15 +159,15 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="fromIndex">Index of the log message in the unfiltered collection to start at.</param>
 		/// <param name="matchIndex">Receives the index of the first log message matching the filter.</param>
 		/// <returns>
-		/// The first log message matching the filter;
-		/// null, if no message matching the filter was found.
+		/// The first log message matching the filter;<br/>
+		/// <c>null</c> if no message matching the filter was found.
 		/// </returns>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
 		public TMessage GetNextMessage(
 			long     fromIndex,
 			out long matchIndex)
 		{
-			var collection = mCollection.Messages;
+			List<TMessage> collection = Collection.Messages;
 
 			if (fromIndex < 0 || fromIndex >= collection.Count)
 			{
@@ -183,8 +178,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			for (int i = (int)fromIndex; i < collection.Count; i++)
 			{
-				var message = collection[i];
-				if (mFilter == null || mFilter.Matches(message))
+				TMessage message = collection[i];
+				if (Filter == null || Filter.Matches(message))
 				{
 					matchIndex = i;
 					return message;
@@ -209,7 +204,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			int        count,
 			out long[] matchIndices)
 		{
-			var collection = mCollection.Messages;
+			List<TMessage> collection = Collection.Messages;
 
 			if (fromIndex < 0 || fromIndex >= collection.Count)
 			{
@@ -230,8 +225,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			for (int i = (int)fromIndex; i < collection.Count && matches.Count < count; i++)
 			{
-				var message = collection[i];
-				if (mFilter == null || mFilter.Matches(message))
+				TMessage message = collection[i];
+				if (Filter == null || Filter.Matches(message))
 				{
 					matches.Add(message);
 					matchIndexList.Add(i);
@@ -258,7 +253,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			long       toIndex,
 			out long[] matchIndices)
 		{
-			var collection = mCollection.Messages;
+			List<TMessage> collection = Collection.Messages;
 
 			if (fromIndex < 0 || fromIndex >= collection.Count)
 			{
@@ -279,8 +274,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 			for (int i = (int)fromIndex; i <= toIndex; i++)
 			{
-				var message = collection[i];
-				if (mFilter == null || mFilter.Matches(message))
+				TMessage message = collection[i];
+				if (Filter == null || Filter.Matches(message))
 				{
 					matches.Add(message);
 					matchIndexList.Add(i);

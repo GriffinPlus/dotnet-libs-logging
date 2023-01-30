@@ -81,7 +81,6 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		private void Create()
 		{
-			var callback = new Callback();
 			var stage = ProcessingPipelineStage.Create<AsyncCallbackPipelineStage>("Callback", null);
 			Assert.Null(stage.SynchronousProcessingCallback);
 			Assert.Null(stage.AsynchronousProcessingCallback);
@@ -115,7 +114,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.True(stage.IsInitialized);
 
 			// process a log message
-			var message = MessagePool.GetUninitializedMessage();
+			LocalLogMessage message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback.ProcessSyncCallbackWasCalled);
 			stage.ProcessMessage(message);
 
@@ -180,7 +179,7 @@ namespace GriffinPlus.Lib.Logging
 			Assert.True(stage2.IsInitialized);
 
 			// process a log message
-			var message = MessagePool.GetUninitializedMessage();
+			LocalLogMessage message = MessagePool.GetUninitializedMessage();
 			Assert.False(callback1.ProcessSyncCallbackWasCalled);
 			Assert.False(callback2.ProcessSyncCallbackWasCalled);
 			stage1.ProcessMessage(message);

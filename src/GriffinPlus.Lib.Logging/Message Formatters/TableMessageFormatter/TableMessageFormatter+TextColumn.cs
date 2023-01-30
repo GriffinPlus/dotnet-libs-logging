@@ -23,9 +23,7 @@ namespace GriffinPlus.Lib.Logging
 			/// Initializes a new instance of the <see cref="TextColumn"/> class.
 			/// </summary>
 			/// <param name="formatter">The formatter the column belongs to.</param>
-			public TextColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.Text)
-			{
-			}
+			public TextColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.Text) { }
 
 			/// <summary>
 			/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width"/> property.
@@ -44,7 +42,10 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="message">Message containing the field to format.</param>
 			/// <param name="builder">String builder to append the output of the current column to.</param>
 			/// <param name="line">Line number to append (zero-based).</param>
-			/// <returns>true, if there are more lines to process; otherwise false.</returns>
+			/// <returns>
+			/// <c>true</c> if there are more lines to process;<br/>
+			/// otherwise <c>false</c>.
+			/// </returns>
 			public override bool Write(ILogMessage message, StringBuilder builder, int line)
 			{
 				string s = mBuffer[line];

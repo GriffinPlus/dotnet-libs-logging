@@ -3,6 +3,7 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+using System.Collections.Generic;
 using System.Linq;
 
 using Xunit;
@@ -23,11 +24,11 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void MatchingExactly()
 		{
-			var builder = LogWriterConfigurationBuilder.New.MatchingExactly("MyLogWriter");
-			var writer = builder.Build();
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New.MatchingExactly("MyLogWriter");
+			LogWriterConfiguration writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Single(writer.NamePatterns);
-			var pattern = writer.NamePatterns.First();
+			LogWriterConfiguration.INamePattern pattern = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 			Assert.Equal("MyLogWriter", pattern.Pattern);
 			Assert.Empty(writer.TagPatterns);
@@ -47,11 +48,11 @@ namespace GriffinPlus.Lib.Logging
 		public void MatchingWildcardPattern()
 		{
 			const string wildcard = "MyLogWriter*";
-			var builder = LogWriterConfigurationBuilder.New.MatchingWildcardPattern(wildcard);
-			var writer = builder.Build();
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New.MatchingWildcardPattern(wildcard);
+			LogWriterConfiguration writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Single(writer.NamePatterns);
-			var pattern = writer.NamePatterns.First();
+			LogWriterConfiguration.INamePattern pattern = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Equal(wildcard, pattern.Pattern);
 			Assert.Empty(writer.TagPatterns);
@@ -71,11 +72,11 @@ namespace GriffinPlus.Lib.Logging
 		public void MatchingRegex()
 		{
 			const string regex = "^My.*LogWriter$";
-			var builder = LogWriterConfigurationBuilder.New.MatchingRegex(regex);
-			var writer = builder.Build();
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New.MatchingRegex(regex);
+			LogWriterConfiguration writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Single(writer.NamePatterns);
-			var pattern = writer.NamePatterns.First();
+			LogWriterConfiguration.INamePattern pattern = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.RegexNamePattern>(pattern);
 			Assert.Equal(regex, pattern.Pattern);
 			Assert.Empty(writer.TagPatterns);
@@ -94,17 +95,17 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithTag()
 		{
-			var builder = LogWriterConfigurationBuilder.New.WithTag("MyTag");
-			var writer = builder.Build();
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New.WithTag("MyTag");
+			LogWriterConfiguration writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 
 			Assert.Single(writer.NamePatterns);
-			var pattern1 = writer.NamePatterns.First();
+			LogWriterConfiguration.INamePattern pattern1 = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern1);
 			Assert.Equal("*", pattern1.Pattern);
 
 			Assert.Single(writer.TagPatterns);
-			var pattern2 = writer.TagPatterns.First();
+			LogWriterConfiguration.INamePattern pattern2 = writer.TagPatterns.First();
 			Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern2);
 			Assert.Equal("MyTag", pattern2.Pattern);
 
@@ -124,17 +125,17 @@ namespace GriffinPlus.Lib.Logging
 		public void WithTagWildcardPattern()
 		{
 			const string wildcard = "My*";
-			var builder = LogWriterConfigurationBuilder.New.WithTagWildcardPattern(wildcard);
-			var writer = builder.Build();
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New.WithTagWildcardPattern(wildcard);
+			LogWriterConfiguration writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 
 			Assert.Single(writer.NamePatterns);
-			var pattern1 = writer.NamePatterns.First();
+			LogWriterConfiguration.INamePattern pattern1 = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern1);
 			Assert.Equal("*", pattern1.Pattern);
 
 			Assert.Single(writer.TagPatterns);
-			var pattern = writer.TagPatterns.First();
+			LogWriterConfiguration.INamePattern pattern = writer.TagPatterns.First();
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Equal(wildcard, pattern.Pattern);
 
@@ -154,17 +155,17 @@ namespace GriffinPlus.Lib.Logging
 		public void WithTagRegex()
 		{
 			const string regex = "^My.*Tag$";
-			var builder = LogWriterConfigurationBuilder.New.WithTagRegex(regex);
-			var writer = builder.Build();
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New.WithTagRegex(regex);
+			LogWriterConfiguration writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 
 			Assert.Single(writer.NamePatterns);
-			var pattern1 = writer.NamePatterns.First();
+			LogWriterConfiguration.INamePattern pattern1 = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern1);
 			Assert.Equal("*", pattern1.Pattern);
 
 			Assert.Single(writer.TagPatterns);
-			var pattern2 = writer.TagPatterns.First();
+			LogWriterConfiguration.INamePattern pattern2 = writer.TagPatterns.First();
 			Assert.IsType<LogWriterConfiguration.RegexNamePattern>(pattern2);
 			Assert.Equal(regex, pattern2.Pattern);
 
@@ -183,12 +184,12 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithBaseLogLevel_LevelAsLogLevel()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
-			var levels = LogLevel.KnownLevels;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
+			IReadOnlyList<LogLevel> levels = LogLevel.KnownLevels;
 			for (int i = 0; i < levels.Count; i++)
 			{
 				Assert.Same(builder, builder.WithBaseLevel(levels[i])); // <- level as LogLevel
-				var writer = builder.Build();
+				LogWriterConfiguration writer = builder.Build();
 				Assert.Equal(levels[i].Name, writer.BaseLevel);
 			}
 		}
@@ -199,12 +200,12 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithBaseLogLevel_LevelAsString()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
-			var levels = LogLevel.KnownLevels;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
+			IReadOnlyList<LogLevel> levels = LogLevel.KnownLevels;
 			for (int i = 0; i < levels.Count; i++)
 			{
 				Assert.Same(builder, builder.WithBaseLevel(levels[i].Name)); // <- level as string
-				var writer = builder.Build();
+				LogWriterConfiguration writer = builder.Build();
 				Assert.Equal(levels[i].Name, writer.BaseLevel);
 			}
 		}
@@ -219,12 +220,12 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithLevel_AddOnly()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
-			var levels = LogLevel.KnownLevels;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
+			IReadOnlyList<LogLevel> levels = LogLevel.KnownLevels;
 			for (int i = 0; i < levels.Count; i++)
 			{
 				Assert.Same(builder, builder.WithLevel(levels[i])); // <- level as LogLevel
-				var writer = builder.Build();
+				LogWriterConfiguration writer = builder.Build();
 				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Includes);
 				Assert.Empty(writer.Excludes);
@@ -237,12 +238,12 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithLevel_AddOnly_LevelAsString()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
-			var levels = LogLevel.KnownLevels;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
+			IReadOnlyList<LogLevel> levels = LogLevel.KnownLevels;
 			for (int i = 0; i < levels.Count; i++)
 			{
 				Assert.Same(builder, builder.WithLevel(levels[i].Name)); // <- level as string
-				var writer = builder.Build();
+				LogWriterConfiguration writer = builder.Build();
 				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Includes);
 				Assert.Empty(writer.Excludes);
@@ -256,10 +257,10 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithLevel_AddRemovesExclude_LevelAsLogLevel()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var allLevels = LogLevel.KnownLevels.ToArray();
+			LogLevel[] allLevels = LogLevel.KnownLevels.ToArray();
 
 			// populate the exclude list with all known log levels
 			Assert.Same(builder, builder.WithoutLevel(allLevels));
@@ -293,10 +294,10 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithLevel_AddRemovesExclude_LevelAsString()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var allLevels = LogLevel.KnownLevels.ToArray();
+			LogLevel[] allLevels = LogLevel.KnownLevels.ToArray();
 
 			// populate the exclude list with all known log levels
 			Assert.Same(builder, builder.WithoutLevel(allLevels));
@@ -343,16 +344,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Alert", "Error")]         // include 'Alert', 'Critical' and 'Error'
 		public void WithLevelRange_AddOnly_LevelAsLogLevel(string fromLevelName, string toLevelName)
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var fromLevel = LogLevel.GetAspect(fromLevelName);
-			var toLevel = LogLevel.GetAspect(toLevelName);
+			LogLevel fromLevel = LogLevel.GetAspect(fromLevelName);
+			LogLevel toLevel = LogLevel.GetAspect(toLevelName);
 			Assert.Equal(fromLevelName, fromLevel.Name);
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var levels = LogLevel.KnownLevels
+			LogLevel[] levels = LogLevel.KnownLevels
 				.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id)
 				.ToArray();
 
@@ -387,16 +388,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Alert", "Error")]         // include 'Alert', 'Critical' and 'Error'
 		public void WithLevelRange_AddOnly_LevelAsString(string fromLevelName, string toLevelName)
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var fromLevel = LogLevel.GetAspect(fromLevelName);
-			var toLevel = LogLevel.GetAspect(toLevelName);
+			LogLevel fromLevel = LogLevel.GetAspect(fromLevelName);
+			LogLevel toLevel = LogLevel.GetAspect(toLevelName);
 			Assert.Equal(fromLevelName, fromLevel.Name);
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var levels = LogLevel.KnownLevels
+			LogLevel[] levels = LogLevel.KnownLevels
 				.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id)
 				.ToArray();
 
@@ -430,16 +431,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Alert", "Error")]         // include 'Alert', 'Critical' and 'Error'
 		public void WithLevelRange_AddRemovesExclude_LevelAsLogLevel(string fromLevelName, string toLevelName)
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var fromLevel = LogLevel.GetAspect(fromLevelName);
-			var toLevel = LogLevel.GetAspect(toLevelName);
+			LogLevel fromLevel = LogLevel.GetAspect(fromLevelName);
+			LogLevel toLevel = LogLevel.GetAspect(toLevelName);
 			Assert.Equal(fromLevelName, fromLevel.Name);
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var allLevels = LogLevel.KnownLevels.ToArray();
+			LogLevel[] allLevels = LogLevel.KnownLevels.ToArray();
 
 			// populate the exclude list with all known log levels
 			Assert.Same(builder, builder.WithoutLevel(allLevels));
@@ -449,8 +450,8 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(allLevels.Select(x => x.Name), writer.Excludes);
 
 			// determine log levels that should be included and those that should be excluded
-			var levelsToInclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
-			var levelsToExclude = allLevels.Where(x => !levelsToInclude.Contains(x)).ToArray();
+			LogLevel[] levelsToInclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
+			LogLevel[] levelsToExclude = allLevels.Where(x => !levelsToInclude.Contains(x)).ToArray();
 
 			// include the specified levels
 			// => log levels should automatically be removed from the exclude list
@@ -476,16 +477,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Alert", "Error")]         // include 'Alert', 'Critical' and 'Error'
 		public void WithLevelRange_AddRemovesExclude_LevelAsString(string fromLevelName, string toLevelName)
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var fromLevel = LogLevel.GetAspect(fromLevelName);
-			var toLevel = LogLevel.GetAspect(toLevelName);
+			LogLevel fromLevel = LogLevel.GetAspect(fromLevelName);
+			LogLevel toLevel = LogLevel.GetAspect(toLevelName);
 			Assert.Equal(fromLevelName, fromLevel.Name);
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var allLevels = LogLevel.KnownLevels.ToArray();
+			LogLevel[] allLevels = LogLevel.KnownLevels.ToArray();
 
 			// populate the exclude list with all known log levels
 			Assert.Same(builder, builder.WithoutLevel(allLevels));
@@ -495,8 +496,8 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Equal(allLevels.Select(x => x.Name), writer.Excludes);
 
 			// determine log levels that should be included and those that should be excluded
-			var levelsToInclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
-			var levelsToExclude = allLevels.Where(x => !levelsToInclude.Contains(x)).ToArray();
+			LogLevel[] levelsToInclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
+			LogLevel[] levelsToExclude = allLevels.Where(x => !levelsToInclude.Contains(x)).ToArray();
 
 			// include the specified levels
 			// => log levels should automatically be removed from the exclude list
@@ -517,12 +518,12 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithoutLevel_AddOnly()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
-			var levels = LogLevel.KnownLevels;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
+			IReadOnlyList<LogLevel> levels = LogLevel.KnownLevels;
 			for (int i = 0; i < levels.Count; i++)
 			{
 				Assert.Same(builder, builder.WithoutLevel(levels[i])); // <- level as LogLevel
-				var writer = builder.Build();
+				LogWriterConfiguration writer = builder.Build();
 				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Empty(writer.Includes);
 				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Excludes);
@@ -535,12 +536,12 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithoutLevel_AddOnly_LevelAsString()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
-			var levels = LogLevel.KnownLevels;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
+			IReadOnlyList<LogLevel> levels = LogLevel.KnownLevels;
 			for (int i = 0; i < levels.Count; i++)
 			{
 				Assert.Same(builder, builder.WithoutLevel(levels[i].Name)); // <- level as string
-				var writer = builder.Build();
+				LogWriterConfiguration writer = builder.Build();
 				Assert.Equal("Notice", writer.BaseLevel);
 				Assert.Empty(writer.Includes);
 				Assert.Equal(levels.Take(i + 1).Select(x => x.Name), writer.Excludes);
@@ -554,10 +555,10 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithoutLevel_AddRemovesInclude_LevelAsLogLevel()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var allLevels = LogLevel.KnownLevels.ToArray();
+			LogLevel[] allLevels = LogLevel.KnownLevels.ToArray();
 
 			// populate the include list with all known log levels
 			Assert.Same(builder, builder.WithLevel(allLevels));
@@ -591,10 +592,10 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void WithoutLevel_AddRemovesInclude_LevelAsString()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var allLevels = LogLevel.KnownLevels.ToArray();
+			LogLevel[] allLevels = LogLevel.KnownLevels.ToArray();
 
 			// populate the include list with all known log levels
 			Assert.Same(builder, builder.WithLevel(allLevels));
@@ -641,16 +642,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Alert", "Error")]         // exclude 'Alert', 'Critical' and 'Error'
 		public void WithoutLevelRange_AddOnly_LevelAsLogLevel(string fromLevelName, string toLevelName)
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var fromLevel = LogLevel.GetAspect(fromLevelName);
-			var toLevel = LogLevel.GetAspect(toLevelName);
+			LogLevel fromLevel = LogLevel.GetAspect(fromLevelName);
+			LogLevel toLevel = LogLevel.GetAspect(toLevelName);
 			Assert.Equal(fromLevelName, fromLevel.Name);
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var levels = LogLevel.KnownLevels
+			LogLevel[] levels = LogLevel.KnownLevels
 				.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id)
 				.ToArray();
 
@@ -685,16 +686,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Alert", "Error")]         // exclude 'Alert', 'Critical' and 'Error'
 		public void WithoutLevelRange_AddOnly_LevelAsString(string fromLevelName, string toLevelName)
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var fromLevel = LogLevel.GetAspect(fromLevelName);
-			var toLevel = LogLevel.GetAspect(toLevelName);
+			LogLevel fromLevel = LogLevel.GetAspect(fromLevelName);
+			LogLevel toLevel = LogLevel.GetAspect(toLevelName);
 			Assert.Equal(fromLevelName, fromLevel.Name);
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var levels = LogLevel.KnownLevels
+			LogLevel[] levels = LogLevel.KnownLevels
 				.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id)
 				.ToArray();
 
@@ -728,16 +729,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Alert", "Error")]         // exclude 'Alert', 'Critical' and 'Error'
 		public void WithoutLevelRange_AddRemovesInclude_LevelAsLogLevel(string fromLevelName, string toLevelName)
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var fromLevel = LogLevel.GetAspect(fromLevelName);
-			var toLevel = LogLevel.GetAspect(toLevelName);
+			LogLevel fromLevel = LogLevel.GetAspect(fromLevelName);
+			LogLevel toLevel = LogLevel.GetAspect(toLevelName);
 			Assert.Equal(fromLevelName, fromLevel.Name);
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var allLevels = LogLevel.KnownLevels.ToArray();
+			LogLevel[] allLevels = LogLevel.KnownLevels.ToArray();
 
 			// populate the include list with all known log levels
 			Assert.Same(builder, builder.WithLevel(allLevels));
@@ -747,8 +748,8 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Empty(writer.Excludes);
 
 			// determine log levels that should be included and those that should be excluded
-			var levelsToExclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
-			var levelsToInclude = allLevels.Where(x => !levelsToExclude.Contains(x)).ToArray();
+			LogLevel[] levelsToExclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
+			LogLevel[] levelsToInclude = allLevels.Where(x => !levelsToExclude.Contains(x)).ToArray();
 
 			// include the specified levels
 			// => log levels should automatically be removed from the exclude list
@@ -774,16 +775,16 @@ namespace GriffinPlus.Lib.Logging
 		[InlineData("Alert", "Error")]         // exclude 'Alert', 'Critical' and 'Error'
 		public void WithoutLevelRange_AddRemovesInclude_LevelAsString(string fromLevelName, string toLevelName)
 		{
-			var builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
 			LogWriterConfiguration writer;
 
-			var fromLevel = LogLevel.GetAspect(fromLevelName);
-			var toLevel = LogLevel.GetAspect(toLevelName);
+			LogLevel fromLevel = LogLevel.GetAspect(fromLevelName);
+			LogLevel toLevel = LogLevel.GetAspect(toLevelName);
 			Assert.Equal(fromLevelName, fromLevel.Name);
 			Assert.Equal(toLevelName, toLevel.Name);
 			Assert.True(fromLevel.Id <= toLevel.Id);
 
-			var allLevels = LogLevel.KnownLevels.ToArray();
+			LogLevel[] allLevels = LogLevel.KnownLevels.ToArray();
 
 			// populate the include list with all known log levels
 			Assert.Same(builder, builder.WithLevel(allLevels));
@@ -793,8 +794,8 @@ namespace GriffinPlus.Lib.Logging
 			Assert.Empty(writer.Excludes);
 
 			// determine log levels that should be included and those that should be excluded
-			var levelsToExclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
-			var levelsToInclude = allLevels.Where(x => !levelsToExclude.Contains(x)).ToArray();
+			LogLevel[] levelsToExclude = allLevels.Where(x => x.Id >= fromLevel.Id && x.Id <= toLevel.Id).ToArray();
+			LogLevel[] levelsToInclude = allLevels.Where(x => !levelsToExclude.Contains(x)).ToArray();
 
 			// include the specified levels
 			// => log levels should automatically be removed from the exclude list
@@ -815,11 +816,11 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void Build_Default()
 		{
-			var builder = LogWriterConfigurationBuilder.New;
-			var writer = builder.Build();
+			LogWriterConfigurationBuilder builder = LogWriterConfigurationBuilder.New;
+			LogWriterConfiguration writer = builder.Build();
 			Assert.Equal("Notice", writer.BaseLevel);
 			Assert.Single(writer.NamePatterns);
-			var pattern = writer.NamePatterns.First();
+			LogWriterConfiguration.INamePattern pattern = writer.NamePatterns.First();
 			Assert.IsType<LogWriterConfiguration.WildcardNamePattern>(pattern);
 			Assert.Empty(writer.TagPatterns);
 			Assert.Equal("*", pattern.Pattern);

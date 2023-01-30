@@ -24,9 +24,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SyncProcessingPipelineStage"/> class.
 		/// </summary>
-		protected SyncProcessingPipelineStage()
-		{
-		}
+		protected SyncProcessingPipelineStage() { }
 
 		#region Initialization / Shutdown
 
@@ -111,9 +109,7 @@ namespace GriffinPlus.Lib.Logging
 		/// (the method is executed by a worker thread).
 		/// </summary>
 		/// <param name="settings">Settings that have changed.</param>
-		protected virtual void OnSettingsChanged(IUntypedProcessingPipelineStageSetting[] settings)
-		{
-		}
+		protected virtual void OnSettingsChanged(IUntypedProcessingPipelineStageSetting[] settings) { }
 
 		#endregion
 
@@ -125,8 +121,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		/// <returns>
-		/// true to pass the message to the following stages;
-		/// false to stop processing the message.
+		/// <c>true</c> to pass the message to the following stages;<br/>
+		/// <c>false</c> to stop processing the message.
 		/// </returns>
 		internal override bool OnProcessMessageBase(LocalLogMessage message)
 		{
@@ -152,8 +148,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		/// <returns>
-		/// true to pass the message to the following pipeline stages;
-		/// otherwise false.
+		/// <c>true</c> to pass the message to the following pipeline stages;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		/// <remarks>
 		/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from

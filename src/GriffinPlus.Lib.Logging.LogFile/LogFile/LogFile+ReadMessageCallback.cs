@@ -13,8 +13,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Log message that was read from the log file.</param>
 		/// <returns>
-		/// true to continue reading;
-		/// false to stop reading.
+		/// <c>true</c> to continue reading;<br/>
+		/// <c>false</c> to stop reading.
 		/// </returns>
 		public delegate bool ReadMessageCallback(LogFileMessage message);
 	}

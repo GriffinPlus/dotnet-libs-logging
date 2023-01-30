@@ -33,7 +33,7 @@ namespace GriffinPlus.Lib.Logging
 		Type ValueType { get; }
 
 		/// <summary>
-		/// Gets a value indicating whether the setting has valid value (true) or just its default value (false).
+		/// Gets a value indicating whether the setting has valid value (<c>true</c>) or just its default value (<c>false</c>).
 		/// </summary>
 		bool HasValue { get; }
 
@@ -70,7 +70,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="handler">Event handler to register.</param>
 		/// <param name="invokeInCurrentSynchronizationContext">
-		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
+		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;<br/>
 		/// <c>false</c> to invoke the event handler in a worker thread.
 		/// </param>
 		void RegisterSettingChangedEventHandler(

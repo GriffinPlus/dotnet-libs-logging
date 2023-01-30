@@ -51,9 +51,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="tags">Tags to keep in the collection.</param>
 		/// <exception cref="ArgumentException">At least one of the tags is invalid.</exception>
 		public TagSet(params string[] tags) :
-			this((IEnumerable<string>)tags)
-		{
-		}
+			this((IEnumerable<string>)tags) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TagSet"/> class with the specified tags.
@@ -103,12 +101,14 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="left">Left tag set.</param>
 		/// <param name="right">Right tag set.</param>
-		/// <returns>true, if the specified tag sets are equal; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the specified tag sets are equal;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public static bool operator ==(TagSet left, ITagSet right)
 		{
 			if (ReferenceEquals(left, null) && ReferenceEquals(right, null)) return true;
-			if (ReferenceEquals(left, null)) return false;
-			return left.Equals(right);
+			return !ReferenceEquals(left, null) && left.Equals(right);
 		}
 
 		/// <summary>
@@ -116,7 +116,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="left">Left tag set.</param>
 		/// <param name="right">Right tag set.</param>
-		/// <returns>true, if the specified tag sets are not equal; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the specified tag sets are not equal;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public static bool operator !=(TagSet left, ITagSet right)
 		{
 			if (ReferenceEquals(left, null) && ReferenceEquals(right, null)) return false;
@@ -222,13 +225,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="other">Tag set to compare with.</param>
 		/// <returns>
-		/// true, if the specified tag set equals the current one;
-		/// otherwise false.
+		/// <c>true</c> if the specified tag set equals the current one;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public bool Equals(ITagSet other)
 		{
-			if (other == null) return false;
-			return mTags.SequenceEqual(other, StringComparer.Ordinal);
+			return other != null && mTags.SequenceEqual(other, StringComparer.Ordinal);
 		}
 
 		/// <summary>
@@ -236,12 +238,12 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="obj">Tag set to compare with.</param>
 		/// <returns>
-		/// true, if the specified tag set equals the current one;
-		/// otherwise false.
+		/// <c>true</c> if the specified tag set equals the current one;<br/>
+		/// otherwise <c>false</c>.
 		/// </returns>
 		public override bool Equals(object obj)
 		{
-			return ReferenceEquals(this, obj) || obj is ITagSet other && Equals(other);
+			return ReferenceEquals(this, obj) || (obj is ITagSet other && Equals(other));
 		}
 
 		/// <summary>

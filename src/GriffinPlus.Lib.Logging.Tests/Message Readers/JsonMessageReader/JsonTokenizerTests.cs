@@ -303,7 +303,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			const int iterations = 10000;
 
-			var data = ProcessTestData_SingleTokens
+			Tuple<string, JsonToken>[] data = ProcessTestData_SingleTokens
 				.Select(x => new Tuple<string, JsonToken>((string)x[0], (JsonToken)x[1]))
 				.ToArray();
 

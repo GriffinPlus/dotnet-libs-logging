@@ -15,9 +15,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineTestStage"/> class.
 		/// </summary>
-		public ProcessingPipelineTestStage()
-		{
-		}
+		public ProcessingPipelineTestStage() { }
 
 		/// <summary>
 		/// Gets a value indicating whether <see cref="OnInitialize"/> was called.

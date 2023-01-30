@@ -80,7 +80,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				FileBackedProcessingPipelineStageRawSetting rawSetting;
 				bool isNewSetting = false;
-				if (!mSettings.TryGetValue(name, out var setting))
+				if (!mSettings.TryGetValue(name, out IUntypedProcessingPipelineStageSetting setting))
 				{
 					// the setting was not requested before
 					// => create a setting
@@ -155,7 +155,7 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (Sync)
 			{
-				if (!mSettings.TryGetValue(name, out var setting))
+				if (!mSettings.TryGetValue(name, out IUntypedProcessingPipelineStageSetting setting))
 				{
 					// the setting was not requested before
 					// => create a new setting if the file contains a setting value and abort, if it does not...
@@ -215,7 +215,7 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (Sync)
 			{
-				if (!mSettings.TryGetValue(name, out var setting))
+				if (!mSettings.TryGetValue(name, out IUntypedProcessingPipelineStageSetting setting))
 				{
 					// the setting was not requested before
 					// => create a setting
@@ -304,7 +304,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Checks whether the configuration contains a setting with the specified name.
 		/// </summary>
 		/// <param name="key">Name of the setting to check.</param>
-		/// <returns>true, if the setting with the specified name exists in the configuration; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the setting with the specified name exists in the configuration;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public override bool ContainsKey(string key)
 		{
 			lock (Sync)
@@ -318,7 +321,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="key">Name of the setting to get.</param>
 		/// <param name="value">Receives the setting, if it exists.</param>
-		/// <returns>true, if the requested setting was successfully returned; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the requested setting was successfully returned;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public override bool TryGetValue(string key, out IUntypedProcessingPipelineStageSetting value)
 		{
 			lock (Sync)

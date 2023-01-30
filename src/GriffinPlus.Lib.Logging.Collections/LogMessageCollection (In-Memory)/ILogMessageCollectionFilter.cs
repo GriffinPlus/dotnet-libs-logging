@@ -15,8 +15,6 @@ namespace GriffinPlus.Lib.Logging.Collections
 	/// This interface exists only to ensure that in-memory filters can be used in <see cref="LogMessageCollection{TMessage}"/> only.
 	/// </remarks>
 	public interface ILogMessageCollectionFilter<TMessage> : ILogMessageCollectionFilterBase<TMessage>
-		where TMessage : class, ILogMessage
-	{
-	}
+		where TMessage : class, ILogMessage { }
 
 }

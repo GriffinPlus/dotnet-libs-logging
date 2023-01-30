@@ -152,6 +152,12 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						return;
 					}
 
+					case JsonTokenType.None:
+					case JsonTokenType.StartObject:
+					case JsonTokenType.EndArray:
+					case JsonTokenType.Comment:
+					case JsonTokenType.String:
+					case JsonTokenType.Null:
 					default:
 					{
 						// unexpected token, skip!
@@ -166,7 +172,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 		private List<Item> DeserializeItems(byte[] data, ref Utf8JsonReader reader)
 		{
-			var items = mPool.GetListOfBulkResponseItems();
+			List<Item> items = mPool.GetListOfBulkResponseItems();
 
 			while (reader.Read())
 			{
@@ -174,7 +180,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				{
 					case JsonTokenType.StartObject:
 					{
-						var item = mPool.GetBulkResponseItem();
+						Item item = mPool.GetBulkResponseItem();
 						item.InitFromJson(data, ref reader);
 						items.Add(item);
 						break;
@@ -185,6 +191,16 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 						return items;
 					}
 
+					case JsonTokenType.None:
+					case JsonTokenType.EndObject:
+					case JsonTokenType.StartArray:
+					case JsonTokenType.PropertyName:
+					case JsonTokenType.Comment:
+					case JsonTokenType.String:
+					case JsonTokenType.Number:
+					case JsonTokenType.True:
+					case JsonTokenType.False:
+					case JsonTokenType.Null:
 					default:
 					{
 						// unexpected token, skip!

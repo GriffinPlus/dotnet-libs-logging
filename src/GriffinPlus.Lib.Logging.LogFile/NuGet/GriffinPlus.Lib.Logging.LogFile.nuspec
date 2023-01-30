@@ -34,12 +34,12 @@ is also supported.
 		</dependencies>
 	</metadata>
 	<files>
-		<file src="..\..\..\res\nuget-icon.png" target="images\" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogFile\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.LogFile.dll" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogFile\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.LogFile.pdb" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogFile\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.LogFile.xml" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogFile\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.LogFile.dll" target="lib\net461" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogFile\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.LogFile.pdb" target="lib\net461" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.LogFile\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.LogFile.xml" target="lib\net461" />
+		<file src="../../../res/nuget-icon.png" target="images/" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.LogFile.dll" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.LogFile.pdb" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.LogFile.xml" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.LogFile.dll" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.LogFile.pdb" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.LogFile.xml" target="lib/net461" />
 	</files>
 </package>

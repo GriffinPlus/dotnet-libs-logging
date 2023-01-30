@@ -24,12 +24,12 @@
 		</dependencies>
 	</metadata>
 	<files>
-		<file src="..\..\..\res\nuget-icon.png" target="images\" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage\AnyCPU.Release\netstandard2.0\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml" target="lib\netstandard2.0" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll" target="lib\net461" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb" target="lib\net461" />
-		<file src="..\..\..\_build\.out\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage\AnyCPU.Release\net461\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml" target="lib\net461" />
+		<file src="../../../res/nuget-icon.png" target="images/" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/netstandard2.0/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml" target="lib/netstandard2.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml" target="lib/net461" />
 	</files>
 </package>

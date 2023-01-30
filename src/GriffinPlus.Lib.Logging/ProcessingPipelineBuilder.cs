@@ -13,9 +13,8 @@ namespace GriffinPlus.Lib.Logging
 	/// </summary>
 	public class ProcessingPipelineBuilder
 	{
-		private readonly ILogConfiguration       mConfiguration;
-		private          ProcessingPipelineStage mPipelineStage;
-		private          SplitterPipelineStage   mSplitter;
+		private readonly ILogConfiguration     mConfiguration;
+		private          SplitterPipelineStage mSplitter;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProcessingPipelineBuilder"/> class.
@@ -27,9 +26,9 @@ namespace GriffinPlus.Lib.Logging
 		}
 
 		/// <summary>
-		/// Gets the built pipeline stage (may be null).
+		/// Gets the built pipeline stage (may be <c>null</c>).
 		/// </summary>
-		public ProcessingPipelineStage PipelineStage => mPipelineStage;
+		public ProcessingPipelineStage PipelineStage { get; private set; }
 
 		/// <summary>
 		/// Adds the specified pipeline stage to the processing pipeline.
@@ -49,23 +48,23 @@ namespace GriffinPlus.Lib.Logging
 			initializer?.Invoke(stage);
 
 			// link pipeline stage with previously added stages, if necessary
-			if (mPipelineStage != null)
+			if (PipelineStage != null)
 			{
-				if (ReferenceEquals(mPipelineStage, mSplitter))
+				if (ReferenceEquals(PipelineStage, mSplitter))
 				{
 					mSplitter.AddNextStage(stage);
 				}
 				else
 				{
 					mSplitter = ProcessingPipelineStage.Create<SplitterPipelineStage>("Splitter (automatically injected)", mConfiguration);
-					mSplitter.AddNextStage(mPipelineStage);
+					mSplitter.AddNextStage(PipelineStage);
 					mSplitter.AddNextStage(stage);
-					mPipelineStage = mSplitter;
+					PipelineStage = mSplitter;
 				}
 			}
 			else
 			{
-				mPipelineStage = stage;
+				PipelineStage = stage;
 			}
 
 			return stage;

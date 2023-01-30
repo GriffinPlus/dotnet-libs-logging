@@ -141,7 +141,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// <param name="group">Name of the group, the item belongs to.</param>
 			internal void AddItem(T value, string group)
 			{
-				if (!mAllItemsByValue.TryGetValue(value, out var item))
+				if (!mAllItemsByValue.TryGetValue(value, out ISelectableLogMessageFilter_ItemInternal<T> item))
 				{
 					item = new Item(group, value, false);
 					item.ValueUsed = true;
@@ -167,9 +167,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// <param name="group">Name of the group, the items belong to.</param>
 			internal void AddItems(IEnumerable<T> values, string group)
 			{
-				foreach (var value in values)
+				foreach (T value in values)
 				{
-					if (!mAllItemsByValue.TryGetValue(value, out var item))
+					if (!mAllItemsByValue.TryGetValue(value, out ISelectableLogMessageFilter_ItemInternal<T> item))
 					{
 						item = new Item(group, value, false);
 						item.ValueUsed = true;
@@ -198,7 +198,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				Debug.Assert(mSortedItems.Count == 0);
 
-				foreach (var value in values)
+				foreach (T value in values)
 				{
 					var item = new Item(group, value, true);
 					item.PropertyChanged += ItemPropertyChanged;
@@ -216,7 +216,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// <param name="value">Item to remove.</param>
 			internal void RemoveItem(T value)
 			{
-				if (mAllItemsByValue.TryGetValue(value, out var item))
+				if (mAllItemsByValue.TryGetValue(value, out ISelectableLogMessageFilter_ItemInternal<T> item))
 				{
 					if (!mAccumulateItems)
 					{
@@ -242,7 +242,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			/// </summary>
 			/// <param name="value">Item to check.</param>
 			/// <returns>
-			/// <c>true</c> if the item passes the filter;
+			/// <c>true</c> if the item passes the filter;<br/>
 			/// otherwise <c>false</c>.
 			/// </returns>
 			internal bool Matches(T value)
@@ -265,16 +265,16 @@ namespace GriffinPlus.Lib.Logging.Collections
 					{
 						// filter should accumulate items
 						// => unselect all items, if requested, but do not remove anything
-						foreach (var item in mAllItemsByValue.Values)
+						foreach (ISelectableLogMessageFilter_ItemInternal<T> item in mAllItemsByValue.Values.Where(item => mUnselectItemsOnReset))
 						{
-							if (mUnselectItemsOnReset) item.Selected = false;
+							item.Selected = false;
 						}
 					}
 					else
 					{
 						// filter should not accumulate items
 						// => unselect static items only...
-						foreach (var item in mStaticItems)
+						foreach (ISelectableLogMessageFilter_ItemInternal<T> item in mStaticItems)
 						{
 							if (mUnselectItemsOnReset) item.Selected = false;
 							item.ValueUsed = false;
@@ -283,7 +283,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 						// ... and remove other items
 						for (int i = mSortedItems.Count - 1; i >= 0; i--)
 						{
-							var item = mSortedItems[i];
+							ISelectableLogMessageFilter_ItemInternal<T> item = mSortedItems[i];
 							item.PropertyChanged -= ItemPropertyChanged;
 							mCombinedItems.RemoveAt(mStaticItems.Count + i);
 							mSortedItems.RemoveAt(i);
@@ -293,10 +293,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 					// update enabled state
 					mEnabledValues.Clear();
-					foreach (var item in mAllItemsByValue.Values)
+					foreach (ISelectableLogMessageFilter_ItemInternal<T> item in mAllItemsByValue.Values.Where(item => item.Selected))
 					{
-						if (item.Selected)
-							mEnabledValues.Add(item.Value);
+						mEnabledValues.Add(item.Value);
 					}
 				}
 				finally
@@ -323,15 +322,15 @@ namespace GriffinPlus.Lib.Logging.Collections
 				{
 					// remove all items that are not in the new set
 					var set = new HashSet<T>(mOverviewCollection);
-					foreach (var item in mCombinedItems.ToArray())
+					foreach (ISelectableLogMessageFilter_Item<T> item in mCombinedItems.ToArray())
 					{
-						var value = item.Value;
+						T value = item.Value;
 						if (!set.Contains(value))
 							RemoveItem(value);
 					}
 
 					// add items that are not in the current set, yet
-					foreach (var value in mOverviewCollection)
+					foreach (T value in mOverviewCollection)
 					{
 						AddItem(value, mDefaultGroup);
 					}
@@ -363,7 +362,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				// capture current filter item set
 				var itemByValue = new Dictionary<T, ISelectableLogMessageFilter_ItemInternal<T>>();
-				foreach (var item in mCombinedItems) itemByValue[item.Value] = (ISelectableLogMessageFilter_ItemInternal<T>)item;
+				foreach (ISelectableLogMessageFilter_Item<T> item in mCombinedItems) itemByValue[item.Value] = (ISelectableLogMessageFilter_ItemInternal<T>)item;
 
 				// clear item set
 				mSortedItems.ForEach(x => x.PropertyChanged -= ItemPropertyChanged);
@@ -373,7 +372,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				mAllItemsByValue.Clear();
 
 				// add static items
-				foreach (var item in mStaticItems)
+				foreach (ISelectableLogMessageFilter_ItemInternal<T> item in mStaticItems)
 				{
 					mCombinedItems.Add(item);
 					if (item.Selected) mEnabledValues.Add(item.Value);
@@ -384,11 +383,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// add sorted items
 				if (mOverviewCollection != null)
 				{
-					foreach (var value in mOverviewCollection)
+					foreach (T value in mOverviewCollection)
 					{
-						if (!mAllItemsByValue.TryGetValue(value, out var item))
+						if (!mAllItemsByValue.TryGetValue(value, out ISelectableLogMessageFilter_ItemInternal<T> item))
 						{
-							item = itemByValue.TryGetValue(value, out var oldItem) ? oldItem : new Item(mDefaultGroup, value, false);
+							item = itemByValue.TryGetValue(value, out ISelectableLogMessageFilter_ItemInternal<T> oldItem) ? oldItem : new Item(mDefaultGroup, value, false);
 							int index = mSortedItems.BinarySearch(item, mComparer);
 							Debug.Assert(index < 0);
 							item.PropertyChanged += ItemPropertyChanged;

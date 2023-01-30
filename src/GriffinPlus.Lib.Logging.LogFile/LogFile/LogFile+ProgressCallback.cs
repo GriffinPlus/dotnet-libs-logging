@@ -12,10 +12,13 @@ namespace GriffinPlus.Lib.Logging
 		/// Delegate for methods that receive progress information for operations that may take some time.
 		/// </summary>
 		/// <param name="progress">Progress (0 = 0%, 1 = 100%).</param>
-		/// <param name="canceled">true, if the operation was canceled; otherwise false.</param>
+		/// <param name="canceled">
+		/// <c>true</c> if the operation was canceled;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		/// <returns>
-		/// true to continue the running operation;
-		/// false to stop running operation.
+		/// <c>true</c> to continue the running operation;<br/>
+		/// <c>false</c> to stop running operation.
 		/// </returns>
 		public delegate bool ProgressCallback(float progress, bool canceled);
 	}

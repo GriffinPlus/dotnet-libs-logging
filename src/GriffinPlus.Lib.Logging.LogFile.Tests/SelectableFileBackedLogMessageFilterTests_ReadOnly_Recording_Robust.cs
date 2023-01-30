@@ -25,9 +25,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				fixture,
 				true,
 				LogFilePurpose.Recording,
-				LogFileWriteMode.Robust)
-		{
-		}
+				LogFileWriteMode.Robust) { }
 	}
 
 }

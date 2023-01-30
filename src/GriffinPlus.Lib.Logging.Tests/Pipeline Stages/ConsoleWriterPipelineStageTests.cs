@@ -52,7 +52,7 @@ namespace GriffinPlus.Lib.Logging
 				List<Tuple<LogLevel, ConsoleOutputStream>> mappings;
 
 				// test adding log levels to the same stream
-				foreach (var stream in new[] { ConsoleOutputStream.Stdout, ConsoleOutputStream.Stdout })
+				foreach (ConsoleOutputStream stream in new[] { ConsoleOutputStream.Stdout, ConsoleOutputStream.Stdout })
 				{
 					mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
 					mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
@@ -99,7 +99,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// add the mappings and calculate the expected result
 			var expectedMapping = new Dictionary<LogLevel, ConsoleOutputStream>();
-			foreach (var mapping in mappings)
+			foreach (Tuple<LogLevel, ConsoleOutputStream> mapping in mappings)
 			{
 				expectedMapping[mapping.Item1] = mapping.Item2;
 				stage.MapLogLevelToStream(mapping.Item1, mapping.Item2);
@@ -145,7 +145,7 @@ namespace GriffinPlus.Lib.Logging
 
 			// add the mappings and calculate the expected result
 			var expectedMapping = new Dictionary<LogLevel, ConsoleOutputStream>();
-			foreach (var mapping in mappings) expectedMapping[mapping.Item1] = mapping.Item2;
+			foreach (Tuple<LogLevel, ConsoleOutputStream> mapping in mappings) expectedMapping[mapping.Item1] = mapping.Item2;
 			stage.StreamByLevelOverrides = expectedMapping;
 
 			// check that the 'StreamByLevelOverrides' property reflects the overrides
@@ -218,8 +218,8 @@ namespace GriffinPlus.Lib.Logging
 			stage.Formatter = formatter;
 
 			// replace i/o streams to avoid mixing up test output with regular console output
-			var stdoutStream = Stream.Synchronized(new MemoryStream()); // the stage writes to the stream asynchronously,
-			var stderrStream = Stream.Synchronized(new MemoryStream()); // so synchronize access to the stream
+			Stream stdoutStream = Stream.Synchronized(new MemoryStream()); // the stage writes to the stream asynchronously,
+			Stream stderrStream = Stream.Synchronized(new MemoryStream()); // so synchronize access to the stream
 			var stdoutWriter = new StreamWriter(stdoutStream);
 			var stderrWriter = new StreamWriter(stderrStream);
 			stage.OutputStream = stdoutWriter;
@@ -228,7 +228,7 @@ namespace GriffinPlus.Lib.Logging
 			// configure the stage
 			// build a dictionary that contains the mappings from log level to the corresponding console stream
 			var levelToStreamMap = new Dictionary<LogLevel, ConsoleOutputStream>();
-			foreach (var mapping in mappings)
+			foreach (Tuple<LogLevel, ConsoleOutputStream> mapping in mappings)
 			{
 				levelToStreamMap[mapping.Item1] = mapping.Item2;
 				stage.MapLogLevelToStream(mapping.Item1, mapping.Item2);
@@ -240,11 +240,11 @@ namespace GriffinPlus.Lib.Logging
 			// process the message and determine the expected output in stdout/stderr
 			var expectedStdout = new StringBuilder();
 			var expectedStderr = new StringBuilder();
-			foreach (var message in messages)
+			foreach (LocalLogMessage message in messages)
 			{
 				stage.ProcessMessage(message);
 
-				if (!levelToStreamMap.TryGetValue(message.LogLevel, out var stream))
+				if (!levelToStreamMap.TryGetValue(message.LogLevel, out ConsoleOutputStream stream))
 					stream = defaultStream;
 
 				// add formatted message to the expected output

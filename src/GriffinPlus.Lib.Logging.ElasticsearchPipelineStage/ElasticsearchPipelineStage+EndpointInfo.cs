@@ -16,7 +16,6 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		private sealed class EndpointInfo
 		{
 			private bool mIsOperational;
-			private int  mErrorTickCount;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="EndpointInfo"/> class.
@@ -24,19 +23,13 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// <param name="apiBaseUrl">Base URL of the API endpoint.</param>
 			public EndpointInfo(Uri apiBaseUrl)
 			{
-				ApiBaseUrl = apiBaseUrl;
 				BulkRequestApiUrl = new Uri(apiBaseUrl, "_bulk");
 
 				// the endpoint is considered to be non-operational at start
 				// (put the error tick count into the past, so the stage will try connecting immediately)
 				mIsOperational = false;
-				mErrorTickCount = Environment.TickCount - RetryEndpointAfterErrorTimeMs - 1;
+				ErrorTickCount = Environment.TickCount - RetryEndpointAfterErrorTimeMs - 1;
 			}
-
-			/// <summary>
-			/// Gets or sets the base URL of API endpoints.
-			/// </summary>
-			public Uri ApiBaseUrl { get; }
 
 			/// <summary>
 			/// Gets the URL of the bulk request endpoint.
@@ -47,7 +40,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			/// Gets the tick count (<see cref="Environment.TickCount"/>) of last reported error.
 			/// The value is 0, if no error has occurred.
 			/// </summary>
-			public int ErrorTickCount => mErrorTickCount;
+			public int ErrorTickCount { get; private set; }
 
 			/// <summary>
 			/// Gets or sets a value indicating whether the endpoint has been tried at least once.
@@ -63,7 +56,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 				set
 				{
 					mIsOperational = value;
-					mErrorTickCount = mIsOperational ? 0 : Environment.TickCount;
+					ErrorTickCount = mIsOperational ? 0 : Environment.TickCount;
 				}
 			}
 		}

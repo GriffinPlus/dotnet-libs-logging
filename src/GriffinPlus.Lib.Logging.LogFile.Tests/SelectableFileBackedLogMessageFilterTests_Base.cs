@@ -69,7 +69,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="count">Number of random log messages the collection should contain.</param>
 		/// <param name="purpose">Purpose of the log file backing the collection.</param>
 		/// <param name="writeMode">Write mode of the log file backing the collection.</param>
-		/// <param name="isReadOnly"><c>true</c> to create a read-only log file; otherwise <c>false</c>.</param>
+		/// <param name="isReadOnly">
+		/// <c>true</c> to create a read-only log file;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		/// <param name="messages">Receives messages that have been put into the collection.</param>
 		/// <returns>A new instance of the collection class to test.</returns>
 		private static FileBackedLogMessageCollection CreateCollection(
@@ -85,16 +88,16 @@ namespace GriffinPlus.Lib.Logging.Collections
 			using (var file1 = LogFile.OpenOrCreate(path, purpose, writeMode))
 			{
 				// generate the required number of log message and add them to the collection
-				var fileLogMessages = LoggingTestHelpers.GetTestMessages<LogFileMessage>(count);
+				LogFileMessage[] fileLogMessages = LoggingTestHelpers.GetTestMessages<LogFileMessage>(count);
 				for (long i = 0; i < fileLogMessages.Length; i++) fileLogMessages[i].Id = i;
 				messages = fileLogMessages.Cast<LogMessage>().ToArray();
 				if (count > 0) file1.Write(messages);
 			}
 
 			// open the created log file again as expected for the test
-			var file2 = isReadOnly
-				            ? LogFile.OpenReadOnly(path)
-				            : LogFile.Open(path, writeMode);
+			LogFile file2 = isReadOnly
+				                ? LogFile.OpenReadOnly(path)
+				                : LogFile.Open(path, writeMode);
 
 			// let the collection delete the log file on its disposal
 			file2.Messages.AutoDelete = true;
@@ -140,7 +143,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					LogMessageField.Tags |
 					LogMessageField.Text;
 
-				var matchBehaviors = new[]
+				MatchBehavior[] matchBehaviors =
 				{
 					MatchBehavior.MatchFirst,
 					MatchBehavior.MatchFirst | MatchBehavior.MatchInBetween,
@@ -161,7 +164,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				// global filter switch is enabled, non-matching specific filters are enabled one at a time
 				// => no message passes the filter as the specific filter blocks them
-				foreach (var enabledFilter in allFilters)
+				foreach (LogMessageField enabledFilter in allFilters)
 				{
 					yield return new object[]
 					{
@@ -174,8 +177,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				// global filter switch is enabled, matching specific filters are enabled one at a time
 				// => messages pass the filter selectively
-				foreach (var enabledFilter in allFilters)
-				foreach (var matchBehavior in matchBehaviors)
+				foreach (LogMessageField enabledFilter in allFilters)
+				foreach (MatchBehavior matchBehavior in matchBehaviors)
 				{
 					yield return new object[]
 					{
@@ -220,7 +223,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// to it and configures it for various test cases.
 		/// </summary>
 		/// <param name="isGloballyEnabled">
-		/// <c>true</c> to enable the filter globally (specific filters are in effect);
+		/// <c>true</c> to enable the filter globally (specific filters are in effect);<br/>
 		/// <c>false</c> to disable the filter globally (all messages bypass specific filters).
 		/// </param>
 		/// <param name="enabledSpecificFilters">Enabled specific filters (flags).</param>
@@ -241,12 +244,12 @@ namespace GriffinPlus.Lib.Logging.Collections
 			out LogFileMessage[]                     filteredMessages)
 		{
 			// create collection and attach a filter to it
-			collection = CreateCollection(500, out var generatedMessages);
+			collection = CreateCollection(500, out LogMessage[] generatedMessages);
 			unfilteredMessages = generatedMessages.Cast<LogFileMessage>().ToArray();
 			filter = new SelectableFileBackedLogMessageFilter { Enabled = isGloballyEnabled };
 			filter.AttachToCollection(collection);
-			var firstMessage = unfilteredMessages[0];
-			var lastMessage = unfilteredMessages[unfilteredMessages.Length - 1];
+			LogFileMessage firstMessage = unfilteredMessages[0];
+			LogFileMessage lastMessage = unfilteredMessages[unfilteredMessages.Length - 1];
 
 			// --------------------------------------------------------------------------------------------------------
 			// configure timestamp filter
@@ -301,7 +304,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchFirst))
 			{
 				// select the application name matching the first message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.ApplicationNameFilter
 					.Items
 					.First(x => x.Value == firstMessage.ApplicationName);
@@ -312,7 +315,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchLast))
 			{
 				// select the application name matching the last message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.ApplicationNameFilter
 					.Items
 					.First(x => x.Value == lastMessage.ApplicationName);
@@ -323,7 +326,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchInBetween))
 			{
 				// select an application name matching messages in between, but surely not the first or the last one
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.ApplicationNameFilter
 					.Items
 					.First(x => x.Value != firstMessage.ApplicationName && x.Value != lastMessage.ApplicationName);
@@ -341,7 +344,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchFirst))
 			{
 				// select the process name matching the first message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.ProcessNameFilter
 					.Items
 					.First(x => x.Value == firstMessage.ProcessName);
@@ -352,7 +355,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchLast))
 			{
 				// select the process name matching the last message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.ProcessNameFilter
 					.Items
 					.First(x => x.Value == lastMessage.ProcessName);
@@ -363,7 +366,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchInBetween))
 			{
 				// select a process name matching messages in between, but surely not the first or the last one
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.ProcessNameFilter
 					.Items
 					.First(x => x.Value != firstMessage.ProcessName && x.Value != lastMessage.ProcessName);
@@ -381,7 +384,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchFirst))
 			{
 				// select the process id matching the first message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<int> specificFilter = filter
 					.ProcessIdFilter
 					.Items
 					.First(x => x.Value == firstMessage.ProcessId);
@@ -392,7 +395,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchLast))
 			{
 				// select the process id matching the last message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<int> specificFilter = filter
 					.ProcessIdFilter
 					.Items
 					.First(x => x.Value == lastMessage.ProcessId);
@@ -403,7 +406,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchInBetween))
 			{
 				// select a process id matching messages in between, but surely not the first or the last one
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<int> specificFilter = filter
 					.ProcessIdFilter
 					.Items
 					.First(x => x.Value != firstMessage.ProcessId && x.Value != lastMessage.ProcessId);
@@ -421,7 +424,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchFirst))
 			{
 				// select the log level matching the first message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.LogLevelFilter
 					.Items
 					.First(x => x.Value == firstMessage.LogLevelName);
@@ -432,7 +435,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchLast))
 			{
 				// select the log level matching the last message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.LogLevelFilter
 					.Items
 					.First(x => x.Value == lastMessage.LogLevelName);
@@ -443,7 +446,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchInBetween))
 			{
 				// select a log level matching messages in between, but surely not the first or the last one
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.LogLevelFilter
 					.Items
 					.First(x => x.Value != firstMessage.LogLevelName && x.Value != lastMessage.LogLevelName);
@@ -461,7 +464,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchFirst))
 			{
 				// select the log writer name matching the first message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.LogWriterFilter
 					.Items
 					.First(x => x.Value == firstMessage.LogWriterName);
@@ -472,7 +475,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchLast))
 			{
 				// select the log writer name matching the last message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.LogWriterFilter
 					.Items
 					.First(x => x.Value == lastMessage.LogWriterName);
@@ -483,7 +486,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchInBetween))
 			{
 				// select a log writer matching messages in between, but surely not the first or the last one
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.LogWriterFilter
 					.Items
 					.First(x => x.Value != firstMessage.LogWriterName && x.Value != lastMessage.LogWriterName);
@@ -501,7 +504,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchFirst))
 			{
 				// select the tag matching the first message in the set
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.TagFilter
 					.Items
 					.First(x => firstMessage.Tags.Contains(x.Value));
@@ -513,7 +516,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			{
 				// select the tag matching the last message in the set
 				// (may also match the first as multiple tags can be attached to a message)
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.TagFilter
 					.Items
 					.First(x => lastMessage.Tags.Contains(x.Value));
@@ -524,7 +527,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			if (matchBehavior.HasFlag(MatchBehavior.MatchInBetween))
 			{
 				// select the tag matching messages in between, but surely not the first or the last one
-				var specificFilter = filter
+				ISelectableLogMessageFilter_Item<string> specificFilter = filter
 					.TagFilter
 					.Items
 					.First(x => !firstMessage.Tags.Contains(x.Value) && !lastMessage.Tags.Contains(x.Value));
@@ -596,6 +599,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				if (enabledSpecificFilters.HasFlag(LogMessageField.Text))
 				{
+					// ReSharper disable once HeuristicUnreachableCode
 					if (CultureInfo.InvariantCulture.CompareInfo.IndexOf(message.Text, searchText, isFilterCaseSensitive ? CompareOptions.None : CompareOptions.IgnoreCase) < 0)
 					{
 						return false;
@@ -658,17 +662,17 @@ namespace GriffinPlus.Lib.Logging.Collections
 				enabledSpecificFilters,
 				matchingSpecificFilters,
 				matchBehavior,
-				out var collection,
-				out var filter,
-				out var unfilteredMessages,
-				out var filteredMessages);
+				out FileBackedLogMessageCollection collection,
+				out SelectableFileBackedLogMessageFilter filter,
+				out LogFileMessage[] unfilteredMessages,
+				out LogFileMessage[] filteredMessages);
 
 			// calculate the id where to start searching
 			long startId = (long)(startIdRatio * (unfilteredMessages.Length - 1));
 
 			// determine the message that is expected to be returned
 			LogFileMessage expectedMessage = null; // assume no match at start, revise later
-			foreach (var message in filteredMessages)
+			foreach (LogFileMessage message in filteredMessages)
 			{
 				if (message.Id > startId) break;
 				expectedMessage = message;
@@ -677,7 +681,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			using (collection)
 			using (filter)
 			{
-				var found = filter.GetPreviousMessage(startId);
+				LogFileMessage found = filter.GetPreviousMessage(startId);
 				Assert.Equal(expectedMessage, found);
 			}
 		}
@@ -738,17 +742,17 @@ namespace GriffinPlus.Lib.Logging.Collections
 				enabledSpecificFilters,
 				matchingSpecificFilters,
 				matchBehavior,
-				out var collection,
-				out var filter,
-				out var unfilteredMessages,
-				out var filteredMessages);
+				out FileBackedLogMessageCollection collection,
+				out SelectableFileBackedLogMessageFilter filter,
+				out LogFileMessage[] unfilteredMessages,
+				out LogFileMessage[] filteredMessages);
 
 			// calculate the id where to start searching
 			long startId = (long)(startIdRatio * (unfilteredMessages.Length - 1));
 
 			// determine the messages that is expected to be returned
 			var expectedMessages = new List<LogFileMessage>();
-			foreach (var message in filteredMessages)
+			foreach (LogFileMessage message in filteredMessages)
 			{
 				if (message.Id > startId) break;
 				expectedMessages.Add(message);
@@ -761,7 +765,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			using (collection)
 			using (filter)
 			{
-				var found = filter.GetPreviousMessages(startId, count, reverse);
+				LogFileMessage[] found = filter.GetPreviousMessages(startId, count, reverse);
 				Assert.Equal(expectedMessages, found);
 			}
 		}
@@ -816,10 +820,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 				enabledSpecificFilters,
 				matchingSpecificFilters,
 				matchBehavior,
-				out var collection,
-				out var filter,
-				out var unfilteredMessages,
-				out var filteredMessages);
+				out FileBackedLogMessageCollection collection,
+				out SelectableFileBackedLogMessageFilter filter,
+				out LogFileMessage[] unfilteredMessages,
+				out LogFileMessage[] filteredMessages);
 
 			// calculate the id where to start searching
 			long startId = (long)(startIdRatio * (unfilteredMessages.Length - 1));
@@ -828,7 +832,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			LogFileMessage expectedMessage = null; // assume no match at start, revise later
 			for (int i = filteredMessages.Length - 1; i >= 0; i--)
 			{
-				var message = filteredMessages[i];
+				LogFileMessage message = filteredMessages[i];
 				if (message.Id < startId) break;
 				expectedMessage = message;
 			}
@@ -836,7 +840,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			using (collection)
 			using (filter)
 			{
-				var found = filter.GetNextMessage(startId);
+				LogFileMessage found = filter.GetNextMessage(startId);
 				Assert.Equal(expectedMessage, found);
 			}
 		}
@@ -894,10 +898,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 				enabledSpecificFilters,
 				matchingSpecificFilters,
 				matchBehavior,
-				out var collection,
-				out var filter,
-				out var unfilteredMessages,
-				out var filteredMessages);
+				out FileBackedLogMessageCollection collection,
+				out SelectableFileBackedLogMessageFilter filter,
+				out LogFileMessage[] unfilteredMessages,
+				out LogFileMessage[] filteredMessages);
 
 			// calculate the id where to start searching
 			long startId = (long)(startIdRatio * (unfilteredMessages.Length - 1));
@@ -906,7 +910,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			var expectedMessages = new List<LogFileMessage>();
 			for (int i = filteredMessages.Length - 1; i >= 0; i--)
 			{
-				var message = filteredMessages[i];
+				LogFileMessage message = filteredMessages[i];
 				if (message.Id < startId) break;
 				expectedMessages.Add(message);
 			}
@@ -918,7 +922,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			using (collection)
 			using (filter)
 			{
-				var found = filter.GetNextMessages(startId, count);
+				LogFileMessage[] found = filter.GetNextMessages(startId, count);
 				Assert.Equal(expectedMessages, found);
 			}
 		}
@@ -979,24 +983,24 @@ namespace GriffinPlus.Lib.Logging.Collections
 				enabledSpecificFilters,
 				matchingSpecificFilters,
 				matchBehavior,
-				out var collection,
-				out var filter,
-				out var unfilteredMessages,
-				out var filteredMessages);
+				out FileBackedLogMessageCollection collection,
+				out SelectableFileBackedLogMessageFilter filter,
+				out LogFileMessage[] unfilteredMessages,
+				out LogFileMessage[] filteredMessages);
 
 			// calculate the id where to start/end searching
 			long startId = (long)(startIdRatio * (unfilteredMessages.Length - 1));
 			long endId = (long)(endIdRatio * (unfilteredMessages.Length - 1));
 
 			// determine the messages that is expected to be returned
-			var expectedMessages = filteredMessages
+			List<LogFileMessage> expectedMessages = filteredMessages
 				.Where(message => message.Id >= startId && message.Id <= endId)
 				.ToList();
 
 			using (collection)
 			using (filter)
 			{
-				var found = filter.GetMessageRange(startId, endId);
+				LogFileMessage[] found = filter.GetMessageRange(startId, endId);
 				Assert.Equal(expectedMessages, found);
 			}
 		}

@@ -42,9 +42,8 @@ namespace GriffinPlus.Lib.Logging
 				ProcessingPipelineStage               stage,
 				IProcessingPipelineStageConfiguration configuration,
 				string                                name,
-				T                                     defaultValue) : this(stage, configuration, name, defaultValue, null, null)
-			{
-			}
+				T                                     defaultValue) :
+				this(stage, configuration, name, defaultValue, null, null) { }
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="SettingProxy{T}"/> class.
@@ -111,7 +110,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="configuration">The configuration the proxy should bind to.</param>
 			/// <param name="raiseChangedEvent">
-			/// <c>true</c> to notify clients that the setting has changed;
+			/// <c>true</c> to notify clients that the setting has changed;<br/>
 			/// otherwise <c>false</c>.
 			/// </param>
 			void IUntypedSettingProxy.SetProxyTarget(IProcessingPipelineStageConfiguration configuration, bool raiseChangedEvent)
@@ -156,7 +155,7 @@ namespace GriffinPlus.Lib.Logging
 			}
 
 			/// <summary>
-			/// Gets a value indicating whether the setting has valid value (true) or just its default value (false).
+			/// Gets a value indicating whether the setting has valid value (<c>true</c>) or just its default value (<c>false</c>).
 			/// </summary>
 			public bool HasValue
 			{
@@ -177,7 +176,7 @@ namespace GriffinPlus.Lib.Logging
 				{
 					lock (mSync)
 					{
-						var setting = mSetting;
+						IProcessingPipelineStageSetting<T> setting = mSetting;
 
 						try
 						{
@@ -191,7 +190,7 @@ namespace GriffinPlus.Lib.Logging
 							builder.AppendLine($"Getting pipeline stage setting '{Name}' failed.");
 							try
 							{
-								var defaultValue = setting.DefaultValue;
+								T defaultValue = setting.DefaultValue;
 								string defaultValueAsString = setting.DefaultValueAsString;
 								builder.AppendLine($"Falling back to default value '{defaultValueAsString}'.");
 								mStage.WritePipelineError(builder.ToString(), ex);
@@ -330,7 +329,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				mStage.ProcessSettingChanged(this);
 
-				var handler = SettingChanged;
+				EventHandler<SettingChangedEventArgs> handler = SettingChanged;
 				handler?.Invoke(this, e);
 			}
 

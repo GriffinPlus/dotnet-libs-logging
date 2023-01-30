@@ -21,11 +21,11 @@ namespace GriffinPlus.Lib.Logging
 		private          LogFile   mLogFile;
 
 		// defaults of settings determining the behavior of the stage
-		private static readonly string           sDefault_Path                = "Unnamed.log";
-		private static readonly LogFilePurpose   sDefault_Purpose             = LogFilePurpose.Recording;
-		private static readonly LogFileWriteMode sDefault_WriteMode           = LogFileWriteMode.Robust;
-		private static readonly long             sDefault_MaximumMessageCount = -1;
-		private static readonly TimeSpan         sDefault_MaximumMessageAge   = TimeSpan.Zero;
+		private const           string           Default_Path                = "Unnamed.log";
+		private const           LogFilePurpose   Default_Purpose             = LogFilePurpose.Recording;
+		private const           LogFileWriteMode Default_WriteMode           = LogFileWriteMode.Robust;
+		private const           long             Default_MaximumMessageCount = -1;
+		private static readonly TimeSpan         sDefault_MaximumMessageAge  = TimeSpan.Zero;
 
 		// the settings determining the behavior of the stage
 		private readonly IProcessingPipelineStageSetting<string>           mSetting_Path;
@@ -39,10 +39,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public LogFilePipelineStage()
 		{
-			mSetting_Path = RegisterSetting("Path", sDefault_Path);
-			mSetting_Purpose = RegisterSetting("Purpose", sDefault_Purpose);
-			mSetting_WriteMode = RegisterSetting("WriteMode", sDefault_WriteMode);
-			mSetting_MaximumMessageCount = RegisterSetting("MaximumMessageCount", sDefault_MaximumMessageCount);
+			mSetting_Path = RegisterSetting("Path", Default_Path);
+			mSetting_Purpose = RegisterSetting("Purpose", Default_Purpose);
+			mSetting_WriteMode = RegisterSetting("WriteMode", Default_WriteMode);
+			mSetting_MaximumMessageCount = RegisterSetting("MaximumMessageCount", Default_MaximumMessageCount);
 			mSetting_MaximumMessageAge = RegisterSetting("MaximumMessageAge", sDefault_MaximumMessageAge);
 		}
 
@@ -177,10 +177,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Opens the log file as specified by the <see cref="Path"/> property.
 		/// </summary>
-		/// <returns>
-		/// <c>true</c> if the file was opened successfully; otherwise <c>false</c>.
-		/// </returns>
-		private bool TryOpenLogFile()
+		private void TryOpenLogFile()
 		{
 			using (mAsyncWriterLock.Lock())
 			{
@@ -204,15 +201,12 @@ namespace GriffinPlus.Lib.Logging
 				{
 					string path = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path));
 					mLogFile = LogFile.OpenOrCreate(path, Purpose, WriteMode);
-					return true;
 				}
 				catch (Exception ex)
 				{
 					WritePipelineError($"Opening log file ({Path}) failed.", ex);
 				}
 			}
-
-			return false;
 		}
 
 		/// <summary>

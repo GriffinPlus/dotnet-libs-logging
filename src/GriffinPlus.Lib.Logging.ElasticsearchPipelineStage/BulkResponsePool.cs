@@ -29,10 +29,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested <see cref="BulkResponse"/> instance.</returns>
 		public BulkResponse GetBulkResponse()
 		{
-			if (mBulkResponseInstances.Count > 0)
-				return mBulkResponseInstances.Pop();
-
-			return new BulkResponse(this);
+			return mBulkResponseInstances.Count > 0
+				       ? mBulkResponseInstances.Pop()
+				       : new BulkResponse(this);
 		}
 
 		/// <summary>
@@ -58,10 +57,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested list.</returns>
 		public List<BulkResponse.Item> GetListOfBulkResponseItems()
 		{
-			if (mBulkResponseItemListInstances.Count > 0)
-				return mBulkResponseItemListInstances.Pop();
-
-			return new List<BulkResponse.Item>();
+			return mBulkResponseItemListInstances.Count > 0
+				       ? mBulkResponseItemListInstances.Pop()
+				       : new List<BulkResponse.Item>();
 		}
 
 		/// <summary>
@@ -88,10 +86,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested <see cref="BulkResponse.Item"/> instance.</returns>
 		public BulkResponse.Item GetBulkResponseItem()
 		{
-			if (mBulkResponseItemInstances.Count > 0)
-				return mBulkResponseItemInstances.Pop();
-
-			return new BulkResponse.Item(this);
+			return mBulkResponseItemInstances.Count > 0
+				       ? mBulkResponseItemInstances.Pop()
+				       : new BulkResponse.Item(this);
 		}
 
 		/// <summary>
@@ -117,10 +114,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested <see cref="BulkResponse.Item_Create"/> instance.</returns>
 		public BulkResponse.Item_Create GetBulkResponseItemCreate()
 		{
-			if (mBulkResponseItemCreateInstances.Count > 0)
-				return mBulkResponseItemCreateInstances.Pop();
-
-			return new BulkResponse.Item_Create(this);
+			return mBulkResponseItemCreateInstances.Count > 0
+				       ? mBulkResponseItemCreateInstances.Pop()
+				       : new BulkResponse.Item_Create(this);
 		}
 
 		/// <summary>
@@ -146,10 +142,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested <see cref="BulkResponse.Item_Create"/> instance.</returns>
 		public BulkResponse.Item_Create_Shards GetBulkResponseItemIndexShards()
 		{
-			if (mBulkResponseItemCreateShardInstances.Count > 0)
-				return mBulkResponseItemCreateShardInstances.Pop();
-
-			return new BulkResponse.Item_Create_Shards(this);
+			return mBulkResponseItemCreateShardInstances.Count > 0
+				       ? mBulkResponseItemCreateShardInstances.Pop()
+				       : new BulkResponse.Item_Create_Shards(this);
 		}
 
 		/// <summary>
@@ -175,10 +170,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The requested <see cref="BulkResponse.Item_Create"/> instance.</returns>
 		public BulkResponse.Item_Create_Error GetBulkResponseItemIndexError()
 		{
-			if (mBulkResponseItemCreateErrorInstances.Count > 0)
-				return mBulkResponseItemCreateErrorInstances.Pop();
-
-			return new BulkResponse.Item_Create_Error(this);
+			return mBulkResponseItemCreateErrorInstances.Count > 0
+				       ? mBulkResponseItemCreateErrorInstances.Pop()
+				       : new BulkResponse.Item_Create_Error(this);
 		}
 
 		/// <summary>

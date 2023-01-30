@@ -689,14 +689,14 @@ namespace GriffinPlus.Lib.Logging
 			// check whether the key has been escaped properly (without escaping the solidus)
 			formatter.EscapeSolidus = false;
 			string output1 = formatter.Format(message);
-			var match1 = regex.Match(output1);
+			Match match1 = regex.Match(output1);
 			Assert.True(match1.Success);
 			Assert.Equal(sEscapedString_WithoutSolidus, match1.Groups[1].Value);
 
 			// check whether the key has been escaped properly (with escaping the solidus)
 			formatter.EscapeSolidus = true;
 			string output2 = formatter.Format(message);
-			var match2 = regex.Match(output2);
+			Match match2 = regex.Match(output2);
 			Assert.True(match2.Success);
 			Assert.Equal(sEscapedString_WithSolidus, match2.Groups[1].Value);
 		}
@@ -788,7 +788,7 @@ namespace GriffinPlus.Lib.Logging
 			// check whether the key has been escaped properly (without escaping the solidus)
 			formatter.EscapeSolidus = false;
 			string output1 = formatter.Format(message);
-			var match1 = regex.Match(output1);
+			Match match1 = regex.Match(output1);
 			Assert.True(match1.Success);
 			Assert.Equal(key, match1.Groups[1].Value);
 			Assert.Equal(sEscapedString_WithoutSolidus, match1.Groups[2].Value);
@@ -796,7 +796,7 @@ namespace GriffinPlus.Lib.Logging
 			// check whether the key has been escaped properly (with escaping the solidus)
 			formatter.EscapeSolidus = true;
 			string output2 = formatter.Format(message);
-			var match2 = regex.Match(output2);
+			Match match2 = regex.Match(output2);
 			Assert.True(match2.Success);
 			Assert.Equal(key, match2.Groups[1].Value);
 			Assert.Equal(sEscapedString_WithSolidus, match2.Groups[2].Value);
@@ -809,7 +809,7 @@ namespace GriffinPlus.Lib.Logging
 		[Fact]
 		public void AllFields()
 		{
-			var formatter = JsonMessageFormatter.AllFields;
+			JsonMessageFormatter formatter = JsonMessageFormatter.AllFields;
 			const LogMessageField expectedFields = LogMessageField.Timestamp |
 			                                       LogMessageField.LogWriterName |
 			                                       LogMessageField.LogLevelName |
@@ -819,7 +819,7 @@ namespace GriffinPlus.Lib.Logging
 			                                       LogMessageField.ProcessId |
 			                                       LogMessageField.Text;
 			Assert.Equal(expectedFields, formatter.FormattedFields);
-			var message = GetTestMessage();
+			LogMessage message = GetTestMessage();
 			formatter.Style = JsonMessageFormatterStyle.OneLine;
 			string output = formatter.Format(message);
 			const string expected = "{" +

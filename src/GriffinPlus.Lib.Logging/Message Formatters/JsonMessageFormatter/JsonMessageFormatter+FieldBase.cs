@@ -69,7 +69,10 @@ namespace GriffinPlus.Lib.Logging
 			/// Escapes characters in the specified string complying with the JSON specification.
 			/// </summary>
 			/// <param name="s">String to escape.</param>
-			/// <param name="escapeSolidus">true to escape the solidus ('/'), otherwise false.</param>
+			/// <param name="escapeSolidus">
+			/// <c>true</c> to escape the solidus ('/');<br/>
+			/// otherwise <c>false</c>.
+			/// </param>
 			/// <returns>The escaped string.</returns>
 			private static string GetEscapedString(string s, bool escapeSolidus)
 			{

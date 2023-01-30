@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="configuration">The configuration the proxy should bind to.</param>
 			/// <param name="raiseChangedEvent">
-			/// <c>true</c> to notify clients that the associated setting has changed;
+			/// <c>true</c> to notify clients that the associated setting has changed;<br/>
 			/// otherwise <c>false</c>.
 			/// </param>
 			void SetProxyTarget(IProcessingPipelineStageConfiguration configuration, bool raiseChangedEvent);

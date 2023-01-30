@@ -33,14 +33,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 			using (var file1 = LogFile.OpenOrCreate(path, LogFilePurpose.Analysis, LogFileWriteMode.Fast))
 			{
 				// generate the required number of log message and add them to the collection
-				var fileLogMessages = LoggingTestHelpers.GetTestMessages<LogFileMessage>(count);
+				LogFileMessage[] fileLogMessages = LoggingTestHelpers.GetTestMessages<LogFileMessage>(count);
 				for (long i = 0; i < fileLogMessages.Length; i++) fileLogMessages[i].Id = i;
 				messages = fileLogMessages.Cast<LogMessage>().ToArray();
 				if (count > 0) file1.Write(messages);
 			}
 
 			// open the created log file again with support for reading only
-			var file2 = LogFile.OpenReadOnly(path);
+			LogFile file2 = LogFile.OpenReadOnly(path);
 
 			// let the collection delete the log file on its disposal
 			file2.Messages.AutoDelete = true;

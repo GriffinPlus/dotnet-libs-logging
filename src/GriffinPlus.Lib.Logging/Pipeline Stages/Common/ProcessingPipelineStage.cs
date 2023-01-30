@@ -48,7 +48,7 @@ namespace GriffinPlus.Lib.Logging
 
 			if (sNameOfPipelineStageToCreate.Value.Count > 0)
 			{
-				var constructionData = sNameOfPipelineStageToCreate.Value.Peek();
+				ConstructionData constructionData = sNameOfPipelineStageToCreate.Value.Peek();
 				Name = constructionData.Name;
 				configuration = constructionData.Configuration;
 			}
@@ -203,9 +203,7 @@ namespace GriffinPlus.Lib.Logging
 		/// the pipeline stage is attached to the logging subsystem. This method is called from within the pipeline stage
 		/// lock (<see cref="Sync"/>).
 		/// </summary>
-		protected virtual void OnInitialize()
-		{
-		}
+		protected virtual void OnInitialize() { }
 
 		/// <summary>
 		/// Shuts the processing pipeline stage down gracefully (works for a partially initialized pipeline stage as well).
@@ -238,9 +236,7 @@ namespace GriffinPlus.Lib.Logging
 		/// pipeline stage is about to be detached from the logging subsystem. This method is called from within the
 		/// pipeline stage lock (<see cref="Sync"/>). This method must not throw exceptions.
 		/// </summary>
-		protected internal virtual void OnShutdown()
-		{
-		}
+		protected internal virtual void OnShutdown() { }
 
 		#endregion
 
@@ -278,7 +274,7 @@ namespace GriffinPlus.Lib.Logging
 					if (mInitialized) ShutdownNextStages();
 
 					// set new following stages
-					var oldNextStages = mNextStages;
+					ProcessingPipelineStage[] oldNextStages = mNextStages;
 					var copy = new ProcessingPipelineStage[value.Length];
 					Array.Copy(value, copy, value.Length);
 					mNextStages = copy;
@@ -360,7 +356,7 @@ namespace GriffinPlus.Lib.Logging
 
 			lock (Sync)
 			{
-				var oldNextStages = mNextStages;
+				ProcessingPipelineStage[] oldNextStages = mNextStages;
 				var copy = new ProcessingPipelineStage[mNextStages.Length + 1];
 				Array.Copy(mNextStages, copy, mNextStages.Length);
 				copy[copy.Length - 1] = stage;
@@ -397,8 +393,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="stage">Pipeline stage to remove.</param>
 		/// <returns>
-		/// true, if the specified pipeline stage was removed successfully;
-		/// false, if the specified pipeline stage is not one of the following pipeline stages of the current stage.
+		/// <c>true</c> if the specified pipeline stage was removed successfully;<br/>
+		/// <c>false</c> if the specified pipeline stage is not one of the following pipeline stages of the current stage.
 		/// </returns>
 		public bool RemoveNextStage(ProcessingPipelineStage stage)
 		{
@@ -557,7 +553,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (mSettingProxies)
 			{
 				// get the settings associated with the pipeline stage to create
-				var settings =
+				IProcessingPipelineStageConfiguration settings =
 					mConfiguration.ProcessingPipeline.Stages.FirstOrDefault(x => x.Name == Name) ??
 					mConfiguration.ProcessingPipeline.Stages.AddNew(Name);
 
@@ -569,7 +565,7 @@ namespace GriffinPlus.Lib.Logging
 				// the pipeline stage configuration has changed
 				// => update setting proxies to use the new settings
 				mSettings = settings;
-				foreach (var proxy in mSettingProxies)
+				foreach (IUntypedSettingProxy proxy in mSettingProxies)
 				{
 					proxy.SetProxyTarget(mSettings, true);
 				}
@@ -639,9 +635,7 @@ namespace GriffinPlus.Lib.Logging
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="level">The new log level.</param>
-		protected virtual void OnLogLevelAdded(LogLevel level)
-		{
-		}
+		protected virtual void OnLogLevelAdded(LogLevel level) { }
 
 		/// <summary>
 		/// Processes that a new log writer was added to the logging subsystem.
@@ -686,9 +680,7 @@ namespace GriffinPlus.Lib.Logging
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="writer">The new log writer.</param>
-		protected virtual void OnLogWriterAdded(LogWriter writer)
-		{
-		}
+		protected virtual void OnLogWriterAdded(LogWriter writer) { }
 
 		/// <summary>
 		/// Processes that a new log writer tag was added to the logging subsystem.
@@ -733,9 +725,7 @@ namespace GriffinPlus.Lib.Logging
 		/// This method must not throw exceptions.
 		/// </summary>
 		/// <param name="tag">The new log writer tag.</param>
-		protected virtual void OnLogWriterTagAdded(LogWriterTag tag)
-		{
-		}
+		protected virtual void OnLogWriterTagAdded(LogWriterTag tag) { }
 
 		/// <summary>
 		/// Processes the specified log message synchronously and passes the log message to the next processing stages,
@@ -778,8 +768,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="message">Message to process.</param>
 		/// <returns>
-		/// true to pass the message to the following stages;
-		/// false to stop processing the message.
+		/// <c>true</c> to pass the message to the following stages;<br/>
+		/// <c>false</c> to stop processing the message.
 		/// </returns>
 		internal abstract bool OnProcessMessageBase(LocalLogMessage message);
 

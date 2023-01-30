@@ -27,12 +27,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// optionally marking the file for auto-deletion.
 		/// </summary>
 		/// <param name="deleteAutomatically">
-		/// true to delete the file automatically when the collection is disposed (or the next time, a temporary collection is created in the same directory);
-		/// false to keep it after the collection is disposed.
+		/// <c>true</c> to delete the file automatically when the collection is disposed
+		/// (or the next time, a temporary collection is created in the same directory);<br/>
+		/// <c>false</c> to keep it after the collection is disposed.
 		/// </param>
 		/// <param name="temporaryDirectoryPath">
 		/// Path of the temporary directory to use;
-		/// null to use the default temporary directory (default).
+		/// <c>null</c> to use the default temporary directory (default).
 		/// </param>
 		/// <returns>The full path of a non-existent file in the temporary directory.</returns>
 		public static string GetTemporaryFileName(bool deleteAutomatically, string temporaryDirectoryPath = null)
@@ -60,7 +61,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				foreach (string filePath in Directory.GetFiles(directoryPath))
 				{
 					string fileName = Path.GetFileName(filePath);
-					var match = sAutoDeleteFileRegex.Match(fileName);
+					Match match = sAutoDeleteFileRegex.Match(fileName);
 					if (match.Success)
 					{
 						try { File.Delete(filePath); }

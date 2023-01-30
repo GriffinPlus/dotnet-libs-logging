@@ -59,7 +59,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Disposes the filter detaching it from the collection and releasing unmanaged resources.
 		/// </summary>
 		/// <param name="disposing">
-		/// <c>true</c>, if Dispose() was called intentionally;
+		/// <c>true</c>, if Dispose() was called intentionally;<br/>
 		/// <c>false</c> if running as part of the finalization.
 		/// </param>
 		protected virtual void Dispose(bool disposing)
@@ -164,7 +164,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Raises the <see cref="FilterChanged"/> event.
 		/// </summary>
 		/// <param name="changeEffectsFilterResult">
-		/// <c>true</c> if the change to the filter may change the set of filtered messages;
+		/// <c>true</c> if the change to the filter may change the set of filtered messages;<br/>
 		/// otherwise <c>false</c>.
 		/// </param>
 		protected virtual void OnFilterChanged(bool changeEffectsFilterResult)
@@ -180,9 +180,11 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the filter is enabled.
-		/// <c>true</c> applies the filter when matching log messages (default).
-		/// <c>false</c> lets all log messages pass the filter when matching.
 		/// </summary>
+		/// <Value>
+		/// <c>true</c> applies the filter when matching log messages (default).<br/>
+		/// <c>false</c> lets all log messages pass the filter when matching.
+		/// </Value>
 		public bool Enabled
 		{
 			get => mEnabled;
@@ -383,9 +385,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <summary>
 		/// Is called after the filter has been attached to the collection.
 		/// </summary>
-		protected virtual void OnAttachToCollection()
-		{
-		}
+		protected virtual void OnAttachToCollection() { }
 
 		/// <summary>
 		/// Detaches the filter from its collection.
@@ -416,16 +416,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <summary>
 		/// Is called before the filter is detached from the collection.
 		/// </summary>
-		protected virtual void OnDetachFromCollection()
-		{
-		}
+		protected virtual void OnDetachFromCollection() { }
 
 		/// <summary>
 		/// Determines whether the specified log message matches the filter criteria.
 		/// </summary>
 		/// <param name="message">Message to check.</param>
 		/// <returns>
-		/// <c>true</c> if the specified message matches the filter criteria;
+		/// <c>true</c> if the specified message matches the filter criteria;<br/>
 		/// otherwise <c>false</c>.
 		/// </returns>
 		/// <exception cref="ArgumentNullException">The specified message is <c>null</c>.</exception>
@@ -449,11 +447,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			}
 
 			// match message text (most expensive operation)
-			if (TextFilter.Enabled && !TextFilter.Matches(message.Text))
-				return false;
-
-			// message passed all filters
-			return true;
+			return !TextFilter.Enabled || TextFilter.Matches(message.Text);
 		}
 
 		/// <summary>

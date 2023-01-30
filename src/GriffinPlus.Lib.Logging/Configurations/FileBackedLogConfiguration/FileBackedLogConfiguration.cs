@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 
 namespace GriffinPlus.Lib.Logging
@@ -62,7 +61,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Disposes the object cleaning up unmanaged resources
 		/// </summary>
 		/// <param name="disposing">
-		/// <c>true</c> if called explicitly;
+		/// <c>true</c> if called explicitly;<br/>
 		/// <c>false</c> if called due to finalization.
 		/// </param>
 		protected override void Dispose(bool disposing)
@@ -197,7 +196,7 @@ namespace GriffinPlus.Lib.Logging
 			{
 				// get the first matching log writer settings
 				LogWriterConfiguration settings = null;
-				foreach (var configuration in File.LogWriterSettings)
+				foreach (LogWriterConfiguration configuration in File.LogWriterSettings)
 				{
 					if (configuration.NamePatterns.Any(x => x.Regex.IsMatch(writer.Name)))
 					{
@@ -217,7 +216,7 @@ namespace GriffinPlus.Lib.Logging
 					LogLevelBitMask mask;
 
 					// enable all log levels that are covered by the base level
-					var level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
+					LogLevel level = LogLevel.GetAspect(settings.BaseLevel); // returns predefined log levels as well
 					if (level == LogLevel.All)
 					{
 						mask = new LogLevelBitMask(LogLevel.MaxId + 1, true, false);
@@ -255,7 +254,7 @@ namespace GriffinPlus.Lib.Logging
 		/// Saves the configuration.
 		/// </summary>
 		/// <param name="includeDefaults">
-		/// <c>true</c> to include the default value of settings that have not been explicitly set;
+		/// <c>true</c> to include the default value of settings that have not been explicitly set;<br/>
 		/// <c>false</c> to save only settings that have not been explicitly set.
 		/// </param>
 		public override void Save(bool includeDefaults = false)
@@ -263,7 +262,7 @@ namespace GriffinPlus.Lib.Logging
 			lock (Sync)
 			{
 				// save the configuration file before making modifications
-				var oldFile = File;
+				LogConfigurationFile oldFile = File;
 
 				try
 				{
@@ -272,9 +271,9 @@ namespace GriffinPlus.Lib.Logging
 						// create a temporary configuration file and add the default value of the settings that don't
 						// have an explicitly set value
 						File = new LogConfigurationFile(oldFile);
-						foreach (var stageSettings in mProcessingPipelineConfiguration.Stages)
+						foreach (IProcessingPipelineStageConfiguration stageSettings in mProcessingPipelineConfiguration.Stages)
 						{
-							foreach (var setting in stageSettings.Values)
+							foreach (IUntypedProcessingPipelineStageSetting setting in stageSettings.Values)
 							{
 								if (!setting.HasValue)
 								{
@@ -326,7 +325,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="fileName">File name to check.</param>
 		/// <returns>
-		/// <c>true</c> if the file name is the name of the configuration file;
+		/// <c>true</c> if the file name is the name of the configuration file;<br/>
 		/// otherwise <c>false</c>.
 		/// </returns>
 		private bool IsConfigurationFile(string fileName)

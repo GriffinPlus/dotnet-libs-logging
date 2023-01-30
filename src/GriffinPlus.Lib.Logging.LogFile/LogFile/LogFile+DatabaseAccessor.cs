@@ -72,9 +72,9 @@ namespace GriffinPlus.Lib.Logging
 
 			/// <summary>
 			/// Application id used within a sqlite database to recognize it as a log file
-			/// (GPLG = [G]riffin [P]lus [L]o[G])
 			/// </summary>
-			public const uint LogFileApplicationId = 0x47504C47;
+			// ReSharper disable once CommentTypo
+			public const uint LogFileApplicationId = 0x47504C47; // GPLG = [G]riffin [P]lus [L]o[G])
 
 			/// <summary>
 			/// SQL commands that create the database structure common to all file formats.
@@ -141,8 +141,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="connection">Database connection to use.</param>
 			/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
 			/// <param name="isReadOnly">
-			/// true, if the log file is opened in read-only mode;
-			/// false, if the log file is opened in read/write mode.
+			/// <c>true</c> if the log file is opened in read-only mode;<br/>
+			/// <c>false</c> if the log file is opened in read/write mode.
 			/// </param>
 			protected DatabaseAccessor(
 				SQLiteConnection connection,
@@ -278,6 +278,7 @@ namespace GriffinPlus.Lib.Logging
 							mCanRollback = false; // fast mode does not use a journal and cannot roll back, behavior is undefined in these cases
 							break;
 
+						case LogFileWriteMode.NotSpecified:
 						default:
 							throw new NotSupportedException($"The specified write mode({WriteMode}) is not supported.");
 					}
@@ -318,7 +319,7 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					// dispose prepared statements
-					foreach (var command in mCommands) command.Dispose();
+					foreach (SQLiteCommand command in mCommands) command.Dispose();
 
 					// close connection to the database
 					Connection?.Dispose();
@@ -384,8 +385,8 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the name of processes that are/were associated with log messages.
 			/// </summary>
 			/// <param name="usedOnly">
-			/// true to get the name of processes that are referenced by messages in the log file only;
-			/// false to get all process names (even if referencing log messages have been removed after clearing/pruning).
+			/// <c>true</c> to get the name of processes that are referenced by messages in the log file only;<br/>
+			/// <c>false</c> to get all process names (even if referencing log messages have been removed after clearing/pruning).
 			/// </param>
 			/// <returns>A list of process names.</returns>
 			public string[] GetProcessNames(bool usedOnly)
@@ -419,8 +420,8 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the name of applications that are/were associated with log messages.
 			/// </summary>
 			/// <param name="usedOnly">
-			/// true to get the name of applications that are referenced by messages in the log file only;
-			/// false to get all application names (even if referencing log messages have been removed after clearing/pruning).
+			/// <c>true</c> to get the name of applications that are referenced by messages in the log file only;<br/>
+			/// <c>false</c> to get all application names (even if referencing log messages have been removed after clearing/pruning).
 			/// </param>
 			/// <returns>A list of application names.</returns>
 			public string[] GetApplicationNames(bool usedOnly)
@@ -444,8 +445,8 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the name of log writers that are/were associated with log messages.
 			/// </summary>
 			/// <param name="usedOnly">
-			/// true to get the name of log writers that are referenced by messages in the log file only;
-			/// false to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+			/// <c>true</c> to get the name of log writers that are referenced by messages in the log file only;<br/>
+			/// <c>false</c> to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
 			/// </param>
 			/// <returns>A list of log writer names.</returns>
 			public string[] GetLogWriterNames(bool usedOnly)
@@ -469,8 +470,8 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the name of log levels that are/were associated with log messages.
 			/// </summary>
 			/// <param name="usedOnly">
-			/// true to get the name of log writers that are referenced by messages in the log file only;
-			/// false to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+			/// <c>true</c> to get the name of log writers that are referenced by messages in the log file only;<br/>
+			/// <c>false</c> to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
 			/// </param>
 			/// <returns>A list of log level names.</returns>
 			public string[] GetLogLevelNames(bool usedOnly)
@@ -494,8 +495,8 @@ namespace GriffinPlus.Lib.Logging
 			/// Gets the tags that are/were associated with log messages.
 			/// </summary>
 			/// <param name="usedOnly">
-			/// true to get the tags that are referenced by messages in the log file only;
-			/// false to get all tags (even if referencing log messages have been removed after clearing/pruning).
+			/// <c>true</c> to get the tags that are referenced by messages in the log file only;<br/>
+			/// <c>false</c> to get all tags (even if referencing log messages have been removed after clearing/pruning).
 			/// </param>
 			/// <returns>A list of tags.</returns>
 			public string[] GetTags(bool usedOnly)
@@ -519,8 +520,8 @@ namespace GriffinPlus.Lib.Logging
 			/// Removes all data from the log file.
 			/// </summary>
 			/// <param name="messagesOnly">
-			/// true to remove messages only;
-			/// false to remove processes, applications, log writers, log levels and tags as well.
+			/// <c>true</c> to remove messages only;<br/>
+			/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
 			/// </param>
 			/// <exception cref="NotSupportedException">The file is read-only.</exception>
 			public virtual void Clear(bool messagesOnly)
@@ -557,8 +558,8 @@ namespace GriffinPlus.Lib.Logging
 			/// Removes all schema specific data from the log file.
 			/// </summary>
 			/// <param name="messagesOnly">
-			/// true to remove messages only;
-			/// false to remove processes, applications, log writers, log levels and tags as well.
+			/// <c>true</c> to remove messages only;<br/>
+			/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
 			/// </param>
 			protected abstract void ClearSpecific(bool messagesOnly);
 
@@ -600,8 +601,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="count">Number of log messages to get.</param>
 			/// <param name="callback">Callback to invoke for every read message</param>
 			/// <returns>
-			/// true, if reading ran to completion;
-			/// false, if reading was cancelled.
+			/// <c>true</c> if reading ran to completion;<br/>
+			/// <c>false</c> if reading was cancelled.
 			/// </returns>
 			/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
 			/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
@@ -648,7 +649,7 @@ namespace GriffinPlus.Lib.Logging
 				void Operation()
 				{
 					// ReSharper disable once PossibleMultipleEnumeration
-					foreach (var message in messages)
+					foreach (ILogMessage message in messages)
 					{
 						WriteLogMessage(message, NewestMessageId + count + 1);
 						count++;
@@ -787,7 +788,7 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="path">Path of the file to save the snapshot to.</param>
 			/// <param name="progressCallback">
 			/// Callback method receiving progress information
-			/// (may be null, the callback may be called multiple times with the same progress, if database locking issues occur).
+			/// (may be <c>null</c>, the callback may be called multiple times with the same progress, if database locking issues occur).
 			/// </param>
 			public void SaveSnapshot(string path, ProgressCallback progressCallback)
 			{
@@ -1122,8 +1123,8 @@ namespace GriffinPlus.Lib.Logging
 			/// <param name="connection">Connection to use.</param>
 			/// <param name="commandText">Command text to execute.</param>
 			/// <returns>
-			/// The result of the query;
-			/// null, if the result was empty.
+			/// The result of the query;<br/>
+			/// <c>null</c> if the result was empty.
 			/// </returns>
 			public static object ExecuteScalarCommand(SQLiteConnection connection, string commandText)
 			{
@@ -1152,8 +1153,8 @@ namespace GriffinPlus.Lib.Logging
 			/// </summary>
 			/// <param name="command">Command to execute.</param>
 			/// <returns>
-			/// The result of the query;
-			/// null, if the result was empty.
+			/// The result of the query;<br/>
+			/// <c>null</c> if the result was empty.
 			/// </returns>
 			public static object ExecuteScalarCommand(SQLiteCommand command)
 			{
@@ -1195,7 +1196,7 @@ namespace GriffinPlus.Lib.Logging
 				var list = new List<string>();
 
 				command.Reset();
-				using (var reader = command.ExecuteReader())
+				using (SQLiteDataReader reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{
@@ -1217,7 +1218,7 @@ namespace GriffinPlus.Lib.Logging
 				var list = new List<int>();
 
 				command.Reset();
-				using (var reader = command.ExecuteReader())
+				using (SQLiteDataReader reader = command.ExecuteReader())
 				{
 					while (reader.Read())
 					{

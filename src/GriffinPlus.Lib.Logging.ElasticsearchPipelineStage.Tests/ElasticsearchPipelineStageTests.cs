@@ -57,7 +57,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			// check setting 'Server.ApiBaseUrls'
 			// ------------------------------------------------------------------------------------
 			var expectedApiEndpoints = new[] { new Uri("http://127.0.0.1:9200/") };
-			var endpointsSetting = stage.Settings.GetSetting("Server.ApiBaseUrls", UriArrayToString, StringToUriArray);
+			IProcessingPipelineStageSetting<Uri[]> endpointsSetting = stage.Settings.GetSetting("Server.ApiBaseUrls", UriArrayToString, StringToUriArray);
 			Assert.Equal(expectedApiEndpoints, endpointsSetting.DefaultValue);
 			Assert.Equal(expectedApiEndpoints, endpointsSetting.Value);
 
@@ -67,8 +67,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.Authentication.Schemes'
 			// ------------------------------------------------------------------------------------
-			var expectedAuthenticationSchemes = AuthenticationScheme.PasswordBased;
-			var authenticationSchemesSetting = stage.Settings.GetSetting<AuthenticationScheme>("Server.Authentication.Schemes");
+			const AuthenticationScheme expectedAuthenticationSchemes = AuthenticationScheme.PasswordBased;
+			IProcessingPipelineStageSetting<AuthenticationScheme> authenticationSchemesSetting = stage.Settings.GetSetting<AuthenticationScheme>("Server.Authentication.Schemes");
 			Assert.Equal(expectedAuthenticationSchemes, authenticationSchemesSetting.DefaultValue);
 			Assert.Equal(expectedAuthenticationSchemes, authenticationSchemesSetting.Value);
 
@@ -77,8 +77,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.Authentication.Username'
 			// ------------------------------------------------------------------------------------
-			string expectedUsername = "";
-			var usernameSetting = stage.Settings.GetSetting<string>("Server.Authentication.Username");
+			const string expectedUsername = "";
+			IProcessingPipelineStageSetting<string> usernameSetting = stage.Settings.GetSetting<string>("Server.Authentication.Username");
 			Assert.Equal(expectedUsername, usernameSetting.DefaultValue);
 			Assert.Equal(expectedUsername, usernameSetting.Value);
 
@@ -87,8 +87,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.Authentication.Password'
 			// ------------------------------------------------------------------------------------
-			string expectedPassword = "";
-			var passwordSetting = stage.Settings.GetSetting<string>("Server.Authentication.Password");
+			const string expectedPassword = "";
+			IProcessingPipelineStageSetting<string> passwordSetting = stage.Settings.GetSetting<string>("Server.Authentication.Password");
 			Assert.Equal(expectedPassword, passwordSetting.DefaultValue);
 			Assert.Equal(expectedPassword, passwordSetting.Value);
 
@@ -97,8 +97,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.Authentication.Domain'
 			// ------------------------------------------------------------------------------------
-			string expectedDomain = "";
-			var domainSetting = stage.Settings.GetSetting<string>("Server.Authentication.Domain");
+			const string expectedDomain = "";
+			IProcessingPipelineStageSetting<string> domainSetting = stage.Settings.GetSetting<string>("Server.Authentication.Domain");
 			Assert.Equal(expectedDomain, domainSetting.DefaultValue);
 			Assert.Equal(expectedDomain, domainSetting.Value);
 
@@ -107,8 +107,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.BulkRequest.MaxConcurrencyLevel'
 			// ------------------------------------------------------------------------------------
-			int expectedMaxConcurrencyLevel = 5;
-			var maxConcurrencyLevelSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxConcurrencyLevel");
+			const int expectedMaxConcurrencyLevel = 5;
+			IProcessingPipelineStageSetting<int> maxConcurrencyLevelSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxConcurrencyLevel");
 			Assert.Equal(expectedMaxConcurrencyLevel, maxConcurrencyLevelSetting.DefaultValue);
 			Assert.Equal(expectedMaxConcurrencyLevel, maxConcurrencyLevelSetting.Value);
 
@@ -117,8 +117,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.BulkRequest.MaxMessageCount'
 			// ------------------------------------------------------------------------------------
-			int expectedMaxMessageCount = 0; // unlimited
-			var maxMessageCountSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxMessageCount");
+			const int expectedMaxMessageCount = 0; // unlimited
+			IProcessingPipelineStageSetting<int> maxMessageCountSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxMessageCount");
 			Assert.Equal(expectedMaxMessageCount, maxMessageCountSetting.DefaultValue);
 			Assert.Equal(expectedMaxMessageCount, maxMessageCountSetting.Value);
 
@@ -127,8 +127,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.BulkRequest.MaxSize'
 			// ------------------------------------------------------------------------------------
-			int expectedMaxSize = 5 * 1024 * 1024;
-			var maxSizeSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxSize");
+			const int expectedMaxSize = 5 * 1024 * 1024;
+			IProcessingPipelineStageSetting<int> maxSizeSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxSize");
 			Assert.Equal(expectedMaxSize, maxSizeSetting.DefaultValue);
 			Assert.Equal(expectedMaxSize, maxSizeSetting.Value);
 
@@ -137,8 +137,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.IndexName'
 			// ------------------------------------------------------------------------------------
-			string expectedIndexName = "logs";
-			var indexNameSetting = stage.Settings.GetSetting<string>("Server.IndexName");
+			const string expectedIndexName = "logs";
+			IProcessingPipelineStageSetting<string> indexNameSetting = stage.Settings.GetSetting<string>("Server.IndexName");
 			Assert.Equal(expectedIndexName, indexNameSetting.DefaultValue);
 			Assert.Equal(expectedIndexName, indexNameSetting.Value);
 
@@ -147,8 +147,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Data.Organization.Id'
 			// ------------------------------------------------------------------------------------
-			string expectedOrganizationId = "";
-			var organizationIdSetting = stage.Settings.GetSetting<string>("Data.Organization.Id");
+			const string expectedOrganizationId = "";
+			IProcessingPipelineStageSetting<string> organizationIdSetting = stage.Settings.GetSetting<string>("Data.Organization.Id");
 			Assert.Equal(expectedOrganizationId, organizationIdSetting.DefaultValue);
 			Assert.Equal(expectedOrganizationId, organizationIdSetting.Value);
 
@@ -157,8 +157,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Data.Organization.Name'
 			// ------------------------------------------------------------------------------------
-			string expectedOrganizationName = "";
-			var organizationNameSetting = stage.Settings.GetSetting<string>("Data.Organization.Name");
+			const string expectedOrganizationName = "";
+			IProcessingPipelineStageSetting<string> organizationNameSetting = stage.Settings.GetSetting<string>("Data.Organization.Name");
 			Assert.Equal(expectedOrganizationName, organizationNameSetting.DefaultValue);
 			Assert.Equal(expectedOrganizationName, organizationNameSetting.Value);
 
@@ -167,8 +167,8 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 
 			// check setting 'Server.SendQueueSize'
 			// ------------------------------------------------------------------------------------
-			int expectedSendQueueSize = 50000;
-			var sendQueueSizeSetting = stage.Settings.GetSetting<int>("Stage.SendQueueSize");
+			const int expectedSendQueueSize = 50000;
+			IProcessingPipelineStageSetting<int> sendQueueSizeSetting = stage.Settings.GetSetting<int>("Stage.SendQueueSize");
 			Assert.Equal(expectedSendQueueSize, sendQueueSizeSetting.DefaultValue);
 			Assert.Equal(expectedSendQueueSize, sendQueueSizeSetting.Value);
 
@@ -194,7 +194,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 			var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", configuration);
 
 			// let the configuration provide the appropriate Elasticsearch endpoints
-			var stageSettings = configuration.ProcessingPipeline.Stages.First(x => x.Name == "Elasticsearch");
+			IProcessingPipelineStageConfiguration stageSettings = configuration.ProcessingPipeline.Stages.First(x => x.Name == "Elasticsearch");
 			stageSettings.SetSetting("Server.ApiBaseUrls", Setting_Server_ApiBaseUrls, UriArrayToString, StringToUriArray);
 			stageSettings.SetSetting("Server.Authentication.Schemes", Setting_Server_Authentication_Schemes);
 			stageSettings.SetSetting("Server.Authentication.Username", Setting_Server_Authentication_Username);
@@ -245,8 +245,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The formatted array of <see cref="Uri"/>.</returns>
 		private static string UriArrayToString(Uri[] uris, IFormatProvider provider = null)
 		{
-			if (uris == null) return "";
-			return string.Join("; ", uris.Select(x => x.ToString()));
+			return uris != null ? string.Join("; ", uris.Select(x => x.ToString())) : "";
 		}
 
 		/// <summary>

@@ -67,8 +67,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests creating a log message that must be initialized asynchronously, but does not initialize it.
 		/// </summary>
 		/// <param name="readOnly">
-		/// true to create a read-only message;
-		/// false to create a regular message.
+		/// <c>true</c> to create a read-only message;<br/>
+		/// <c>false</c> to create a regular message.
 		/// </param>
 		[Theory]
 		[InlineData(false)]
@@ -76,7 +76,7 @@ namespace GriffinPlus.Lib.Logging
 		private void CreateWithAsyncInit_CreateOnly(bool readOnly)
 		{
 			// create a new message with asynchronous initializer
-			var message = LogMessage.CreateWithAsyncInit(readOnly, out _);
+			var message = LogMessage.CreateWithAsyncInit(readOnly, out ILogMessageInitializer _);
 			CheckDefaultState(message, false, readOnly);
 
 			// check that the message is marked for asynchronous initialization
@@ -106,23 +106,23 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests creating a log message that must be initialized asynchronously abd initializes it.
 		/// </summary>
 		/// <param name="readOnly">
-		/// true to create a read-only message;
-		/// false to create a regular message.
+		/// <c>true</c> to create a read-only message;<br/>
+		/// <c>false</c> to create a regular message.
 		/// </param>
 		/// <param name="initInSameThread">
-		/// true to initialize the message in the thread that registers the event;
-		/// false to initialize the message and raise the event in some other thread.
+		/// <c>true</c> to initialize the message in the thread that registers the event;<br/>
+		/// <c>false</c> to initialize the message and raise the event in some other thread.
 		/// </param>
 		/// <param name="withPropertyChanged">
-		/// true to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;
-		/// otherwise false.
+		/// <c>true</c> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
+		/// otherwise <c>false</c>.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(CreateWithAsyncInitTestData_FollowedByInitialize))]
 		private async Task CreateWithAsyncInit_FollowedByInitialize(bool readOnly, bool initInSameThread, bool withPropertyChanged)
 		{
 			// create a new message with asynchronous initializer
-			var message = LogMessage.CreateWithAsyncInit(readOnly, out var initializer);
+			var message = LogMessage.CreateWithAsyncInit(readOnly, out ILogMessageInitializer initializer);
 			CheckDefaultState(message, false, readOnly); // checks IsInitialized
 
 			// check that the message is marked for asynchronous initialization
@@ -245,12 +245,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests <see cref="LogMessage.InitWith"/>.
 		/// </summary>
 		/// <param name="initInSameThread">
-		/// true to initialize the message in the thread that registers the event;
-		/// false to initialize the message and raise the event in some other thread.
+		/// <c>true</c> to initialize the message in the thread that registers the event;<br/>
+		/// <c>false</c> to initialize the message and raise the event in some other thread.
 		/// </param>
 		/// <param name="withPropertyChanged">
-		/// true to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;
-		/// otherwise false.
+		/// <c>true</c> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
+		/// otherwise <c>false</c>.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(InitWithTestData))]
@@ -447,7 +447,10 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="property">Property to test.</param>
 		/// <param name="expectedDefaultValue">Expected default value of the property.</param>
-		/// <param name="protect">true to protect the log message before setting the property; otherwise false.</param>
+		/// <param name="protect">
+		/// <c>true</c> to protect the log message before setting the property;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		private static void TestPropertyGetter(
 			Expression<Func<LogMessage, object>> property,
 			object                               expectedDefaultValue,
@@ -482,7 +485,10 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="property">Property to test.</param>
 		/// <param name="expectedDefaultValue">Expected default value of the property.</param>
 		/// <param name="valueToSet">Value of the property after setting it.</param>
-		/// <param name="protect">true to protect the log message before setting the property; otherwise false.</param>
+		/// <param name="protect">
+		/// <c>true</c> to protect the log message before setting the property;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		private static void TestPropertySetter_WithoutPropertyChanged(
 			Expression<Func<LogMessage, object>> property,
 			object                               expectedDefaultValue,
@@ -534,10 +540,13 @@ namespace GriffinPlus.Lib.Logging
 		/// <param name="property">Property to test.</param>
 		/// <param name="expectedDefaultValue">Expected default value of the property.</param>
 		/// <param name="valueToSet">Value of the property after setting it.</param>
-		/// <param name="protect">true to protect the log message before setting the property; otherwise false.</param>
+		/// <param name="protect">
+		/// <c>true</c> to protect the log message before setting the property;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		/// <param name="changeInSameThread">
-		/// true to change the property in the thread that registers the event;
-		/// false to change the property and raise the event in some other thread.
+		/// <c>true</c> to change the property in the thread that registers the event;<br/>
+		/// <c>false</c> to change the property and raise the event in some other thread.
 		/// </param>
 		private async Task TestPropertySetter_WithPropertyChanged(
 			Expression<Func<LogMessage, object>> property,
@@ -707,12 +716,12 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests whether <see cref="LogMessage.Protect"/> sets the <see cref="LogMessage.IsReadOnly"/> property to <c>true</c>.
 		/// </summary>
 		/// <param name="protectInSameThread">
-		/// true to protect the message in the thread that registers the event;
-		/// false to protect the message and raise the event in some other thread.
+		/// <c>true</c> to protect the message in the thread that registers the event;<br/>
+		/// <c>false</c> to protect the message and raise the event in some other thread.
 		/// </param>
 		/// <param name="withPropertyChanged">
-		/// true to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;
-		/// otherwise false.
+		/// <c>true</c> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
+		/// otherwise <c>false</c>.
 		/// </param>
 		[Theory]
 		[MemberData(nameof(InitWithTestData))]
@@ -917,8 +926,14 @@ namespace GriffinPlus.Lib.Logging
 		/// Tests whether the specified log message has the expected default state.
 		/// </summary>
 		/// <param name="message">Log message to check.</param>
-		/// <param name="inited">true, if the message is initialized; otherwise false.</param>
-		/// <param name="readOnly">true, if the message is readOnly, otherwise false.</param>
+		/// <param name="inited">
+		/// <c>true</c>, if the message is initialized;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
+		/// <param name="readOnly">
+		/// <c>true</c> if the message is read-only;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		private static void CheckDefaultState(
 			LogMessage message,
 			bool       inited   = true,

@@ -65,7 +65,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.TimestampFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -73,7 +73,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TimestampFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -102,7 +102,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'From' of the <see cref="ISelectableLogMessageFilter{TMessage}.TimestampFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -110,7 +110,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TimestampFilter_From(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -132,7 +132,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'To' of the <see cref="ISelectableLogMessageFilter{TMessage}.TimestampFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -140,7 +140,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TimestampFilter_To(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -166,7 +166,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.ApplicationNameFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -174,7 +174,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ApplicationNameFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -203,7 +203,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.ApplicationNameFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -211,7 +211,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ApplicationNameFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -242,7 +242,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.ProcessNameFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -250,7 +250,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ProcessNameFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -279,7 +279,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.ProcessNameFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -287,7 +287,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ProcessNameFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -318,7 +318,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.ProcessIdFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -326,7 +326,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ProcessIdFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -355,7 +355,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.ProcessIdFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -363,7 +363,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void ProcessIdFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -394,7 +394,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.LogLevelFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -402,7 +402,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void LogLevelFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -431,7 +431,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.LogLevelFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -439,7 +439,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void LogLevelFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -470,7 +470,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.LogWriterFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -478,7 +478,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void LogWriterFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -507,7 +507,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.LogWriterFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -515,7 +515,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void LogWriterFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -546,7 +546,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.TagFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -554,7 +554,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TagFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -583,7 +583,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.TagFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -591,7 +591,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TagFilter_AccumulateItems(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -622,7 +622,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.TextFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -630,7 +630,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TextFilter_Enabled(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -659,7 +659,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'IsCaseSensitive' of the <see cref="ISelectableLogMessageFilter{TMessage}.TextFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -667,7 +667,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TextFilter_IsCaseSensitive(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -696,7 +696,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests setting 'SearchText' of the <see cref="ISelectableLogMessageFilter{TMessage}.TextFilter"/>.
 		/// </summary>
 		/// <param name="attach">
-		/// <c>true</c> to attach the filter to a collection before testing;
+		/// <c>true</c> to attach the filter to a collection before testing;<br/>
 		/// <c>false</c> to test the filter without being attached to a collection.
 		/// </param>
 		[Theory]
@@ -704,7 +704,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(true)]
 		public void TextFilter_SearchText(bool attach)
 		{
-			using (var collection = CreateCollection(DefaultTestMessageCount, out _))
+			using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				if (attach) filter.AttachToCollection(collection);
@@ -735,7 +735,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(1000)]
 		public void AttachToCollection(int count)
 		{
-			using (var collection = CreateCollection(count, out var messages))
+			using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
 			{
 				// create a new filter
 				var filter = new TSelectableLogMessageFilter();
@@ -759,7 +759,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(1000)]
 		public void DetachFromCollection(int count)
 		{
-			using (var collection = CreateCollection(count, out var messages))
+			using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
 			{
 				// create a new filter
 				var filter = new TSelectableLogMessageFilter();
@@ -810,8 +810,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> with <see cref="ISelectableLogMessageFilter{TMessage}.TimestampFilter"/>.
 		/// </summary>
 		/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
-		/// <param name="enableGlobalFilter"><c>true</c> to enable the filter globally; otherwise <c>false</c> (disables the filter entirely).</param>
-		/// <param name="enableSpecificFilter"><c>true</c> to enable the specific item filter; otherwise <c>false</c> (disables the item filter).</param>
+		/// <param name="enableGlobalFilter">
+		/// <c>true</c> to enable the filter globally;<br/>
+		/// otherwise <c>false</c> (disables the filter entirely).
+		/// </param>
+		/// <param name="enableSpecificFilter">
+		/// <c>true</c> to enable the specific item filter;<br/>
+		/// otherwise <c>false</c> (disables the item filter).
+		/// </param>
 		/// <param name="firstMatchingMessageIndex">Index of the first message that should be in the selected interval.</param>
 		/// <param name="lastMatchingMessageIndex">Index of the last message that should be in the selected interval.</param>
 		[Theory]
@@ -823,7 +829,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			int  firstMatchingMessageIndex,
 			int  lastMatchingMessageIndex)
 		{
-			using (var collection = CreateCollection(count, out var messages))
+			using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
 			using (var filter = new TSelectableLogMessageFilter())
 			{
 				// attach filter to the collection
@@ -846,14 +852,14 @@ namespace GriffinPlus.Lib.Logging.Collections
 				// determine the log message set that is expected to pass the filter
 				var expected = new List<LogMessage>();
 				var matching = new List<LogMessage>();
-				foreach (var message in messages)
+				foreach (LogMessage message in messages)
 				{
 					// pass the message to filter and check whether it matches
 					if (filter.Matches(message))
 						matching.Add(message);
 
 					// adjust the set of messages that are expected to pass the filter
-					if (!enableGlobalFilter || !enableSpecificFilter || message.Timestamp >= from && message.Timestamp <= to)
+					if (!enableGlobalFilter || !enableSpecificFilter || (message.Timestamp >= from && message.Timestamp <= to))
 						expected.Add(message);
 				}
 
@@ -872,9 +878,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> with <see cref="ISelectableLogMessageFilter{TMessage}.ApplicationNameFilter"/>.
 		/// </summary>
 		/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
-		/// <param name="enableGlobalFilter"><c>true</c> to enable the filter globally; otherwise <c>false</c> (disables the filter entirely).</param>
-		/// <param name="enableSpecificFilter"><c>true</c> to enable the specific item filter; otherwise <c>false</c> (disables the item filter).</param>
-		/// <param name="accumulateItems"><c>true</c> to let the item filter accumulate items; otherwise <c>false</c>.</param>
+		/// <param name="enableGlobalFilter">
+		/// <c>true</c> to enable the filter globally;<br/>
+		/// otherwise <c>false</c> (disables the filter entirely).
+		/// </param>
+		/// <param name="enableSpecificFilter">
+		/// <c>true</c> to enable the specific item filter;<br/>
+		/// otherwise <c>false</c> (disables the item filter).
+		/// </param>
+		/// <param name="accumulateItems">
+		/// <c>true</c> to let the item filter accumulate items;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(MatchesTestData_ItemFilters))]
 		public void Matches_ApplicationNameFilter(
@@ -900,9 +915,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> with <see cref="ISelectableLogMessageFilter{TMessage}.ProcessNameFilter"/>.
 		/// </summary>
 		/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
-		/// <param name="enableGlobalFilter"><c>true</c> to enable the filter globally; otherwise <c>false</c> (disables the filter entirely).</param>
-		/// <param name="enableSpecificFilter"><c>true</c> to enable the specific item filter; otherwise <c>false</c> (disables the item filter).</param>
-		/// <param name="accumulateItems"><c>true</c> to let the item filter accumulate items; otherwise <c>false</c>.</param>
+		/// <param name="enableGlobalFilter">
+		/// <c>true</c> to enable the filter globally;<br/>
+		/// otherwise <c>false</c> (disables the filter entirely).
+		/// </param>
+		/// <param name="enableSpecificFilter">
+		/// <c>true</c> to enable the specific item filter;<br/>
+		/// otherwise <c>false</c> (disables the item filter).
+		/// </param>
+		/// <param name="accumulateItems">
+		/// <c>true</c> to let the item filter accumulate items;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(MatchesTestData_ItemFilters))]
 		public void Matches_ProcessNameFilter(
@@ -928,9 +952,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> with <see cref="ISelectableLogMessageFilter{TMessage}.ProcessIdFilter"/>.
 		/// </summary>
 		/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
-		/// <param name="enableGlobalFilter"><c>true</c> to enable the filter globally; otherwise <c>false</c> (disables the filter entirely).</param>
-		/// <param name="enableSpecificFilter"><c>true</c> to enable the specific item filter; otherwise <c>false</c> (disables the item filter).</param>
-		/// <param name="accumulateItems"><c>true</c> to let the item filter accumulate items; otherwise <c>false</c>.</param>
+		/// <param name="enableGlobalFilter">
+		/// <c>true</c> to enable the filter globally;<br/>
+		/// otherwise <c>false</c> (disables the filter entirely).
+		/// </param>
+		/// <param name="enableSpecificFilter">
+		/// <c>true</c> to enable the specific item filter;<br/>
+		/// otherwise <c>false</c> (disables the item filter).
+		/// </param>
+		/// <param name="accumulateItems">
+		/// <c>true</c> to let the item filter accumulate items;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(MatchesTestData_ItemFilters))]
 		public void Matches_ProcessIdFilter(
@@ -956,9 +989,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> with <see cref="ISelectableLogMessageFilter{TMessage}.LogLevelFilter"/>.
 		/// </summary>
 		/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
-		/// <param name="enableGlobalFilter"><c>true</c> to enable the filter globally; otherwise <c>false</c> (disables the filter entirely).</param>
-		/// <param name="enableSpecificFilter"><c>true</c> to enable the specific item filter; otherwise <c>false</c> (disables the item filter).</param>
-		/// <param name="accumulateItems"><c>true</c> to let the item filter accumulate items; otherwise <c>false</c>.</param>
+		/// <param name="enableGlobalFilter">
+		/// <c>true</c> to enable the filter globally;<br/>
+		/// otherwise <c>false</c> (disables the filter entirely).
+		/// </param>
+		/// <param name="enableSpecificFilter">
+		/// <c>true</c> to enable the specific item filter;<br/>
+		/// otherwise <c>false</c> (disables the item filter).
+		/// </param>
+		/// <param name="accumulateItems">
+		/// <c>true</c> to let the item filter accumulate items;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(MatchesTestData_ItemFilters))]
 		public void Matches_LogLevelFilter(
@@ -984,9 +1026,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> with <see cref="ISelectableLogMessageFilter{TMessage}.LogWriterFilter"/>.
 		/// </summary>
 		/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
-		/// <param name="enableGlobalFilter"><c>true</c> to enable the filter globally; otherwise <c>false</c> (disables the filter entirely).</param>
-		/// <param name="enableSpecificFilter"><c>true</c> to enable the specific item filter; otherwise <c>false</c> (disables the item filter).</param>
-		/// <param name="accumulateItems"><c>true</c> to let the item filter accumulate items; otherwise <c>false</c>.</param>
+		/// <param name="enableGlobalFilter">
+		/// <c>true</c> to enable the filter globally;<br/>
+		/// otherwise <c>false</c> (disables the filter entirely).
+		/// </param>
+		/// <param name="enableSpecificFilter">
+		/// <c>true</c> to enable the specific item filter;<br/>
+		/// otherwise <c>false</c> (disables the item filter).
+		/// </param>
+		/// <param name="accumulateItems">
+		/// <c>true</c> to let the item filter accumulate items;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(MatchesTestData_ItemFilters))]
 		public void Matches_LogWriterFilter(
@@ -1039,9 +1090,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="propertySelectorExpression">Expression that selects the property to filter for from a log message.</param>
 		/// <param name="itemFilterSelectorExpression">Expression that selects the item filter corresponding to the selected log message property.</param>
 		/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
-		/// <param name="enableGlobalFilter"><c>true</c> to enable the filter globally; otherwise <c>false</c> (disables the filter entirely).</param>
-		/// <param name="enableSpecificFilter"><c>true</c> to enable the specific item filter; otherwise <c>false</c> (disables the item filter).</param>
-		/// <param name="accumulateItems"><c>true</c> to let the item filter accumulate items; otherwise <c>false</c>.</param>
+		/// <param name="enableGlobalFilter">
+		/// <c>true</c> to enable the filter globally;<br/>
+		/// otherwise <c>false</c> (disables the filter entirely).
+		/// </param>
+		/// <param name="enableSpecificFilter">
+		/// <c>true</c> to enable the specific item filter;<br/>
+		/// otherwise <c>false</c> (disables the item filter).
+		/// </param>
+		/// <param name="accumulateItems">
+		/// <c>true</c> to let the item filter accumulate items;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		private void Matches_ItemFilters<T>(
 			Expression<Func<LogMessage, T>>                                                                      propertySelectorExpression,
 			Expression<Func<ISelectableLogMessageFilter<LogMessage>, ISelectableLogMessageFilter_ItemFilter<T>>> itemFilterSelectorExpression,
@@ -1050,16 +1110,16 @@ namespace GriffinPlus.Lib.Logging.Collections
 			bool                                                                                                 enableSpecificFilter,
 			bool                                                                                                 accumulateItems)
 		{
-			var propertySelector = propertySelectorExpression.Compile();
-			var itemFilterSelector = itemFilterSelectorExpression.Compile();
+			Func<LogMessage, T> propertySelector = propertySelectorExpression.Compile();
+			Func<ISelectableLogMessageFilter<LogMessage>, ISelectableLogMessageFilter_ItemFilter<T>> itemFilterSelector = itemFilterSelectorExpression.Compile();
 
-			using (var collection = CreateCollection(count, out var messages))
+			using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
 			{
 				// determine the different items one can filter
-				var itemsToFilterFor = messages.Select(propertySelector).OrderBy(x => x).Distinct().ToList();
+				List<T> itemsToFilterFor = messages.Select(propertySelector).OrderBy(x => x).Distinct().ToList();
 
 				// try to filter the message set selecting one item at a time
-				foreach (var itemToFilterFor in itemsToFilterFor)
+				foreach (T itemToFilterFor in itemsToFilterFor)
 				{
 					// create a new filter
 					using (var filter = new TSelectableLogMessageFilter())
@@ -1073,16 +1133,16 @@ namespace GriffinPlus.Lib.Logging.Collections
 						filter.Enabled = enableGlobalFilter;
 
 						// configure the filter
-						var itemFilter = itemFilterSelector(filter);
+						ISelectableLogMessageFilter_ItemFilter<T> itemFilter = itemFilterSelector(filter);
 						itemFilter.Enabled = enableSpecificFilter;
 						itemFilter.AccumulateItems = accumulateItems;
-						var itemFilterItem = itemFilter.Items.First(x => x.Value.Equals(itemToFilterFor));
+						ISelectableLogMessageFilter_Item<T> itemFilterItem = itemFilter.Items.First(x => x.Value.Equals(itemToFilterFor));
 						itemFilterItem.Selected = true;
 
 						// determine the log message set that is expected to pass the filter
 						var expected = new List<LogMessage>();
 						var matching = new List<LogMessage>();
-						foreach (var message in messages)
+						foreach (LogMessage message in messages)
 						{
 							// pass the message to filter and check whether it matches
 							if (filter.Matches(message))
@@ -1118,9 +1178,18 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Tests <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> with <see cref="ISelectableLogMessageFilter{TMessage}.TagFilter"/>.
 		/// </summary>
 		/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
-		/// <param name="enableGlobalFilter"><c>true</c> to enable the filter globally; otherwise <c>false</c> (disables the filter entirely).</param>
-		/// <param name="enableSpecificFilter"><c>true</c> to enable the specific item filter; otherwise <c>false</c> (disables the item filter).</param>
-		/// <param name="accumulateItems"><c>true</c> to let the item filter accumulate items; otherwise <c>false</c>.</param>
+		/// <param name="enableGlobalFilter">
+		/// <c>true</c> to enable the filter globally;<br/>
+		/// otherwise <c>false</c> (disables the filter entirely).
+		/// </param>
+		/// <param name="enableSpecificFilter">
+		/// <c>true</c> to enable the specific item filter;<br/>
+		/// otherwise <c>false</c> (disables the item filter).
+		/// </param>
+		/// <param name="accumulateItems">
+		/// <c>true</c> to let the item filter accumulate items;<br/>
+		/// otherwise <c>false</c>.
+		/// </param>
 		[Theory]
 		[MemberData(nameof(MatchesTestData_ItemFilters))]
 		public void Matches_TagFilter(
@@ -1129,10 +1198,10 @@ namespace GriffinPlus.Lib.Logging.Collections
 			bool enableSpecificFilter,
 			bool accumulateItems)
 		{
-			using (var collection = CreateCollection(count, out var messages))
+			using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
 			{
 				// determine the different tag sets one can filter
-				var tags = messages.SelectMany(x => x.Tags).OrderBy(x => x).Distinct().ToList();
+				List<string> tags = messages.SelectMany(x => x.Tags).OrderBy(x => x).Distinct().ToList();
 
 				// try to filter the message set selecting one item at a time
 				foreach (string tag in tags)
@@ -1150,13 +1219,13 @@ namespace GriffinPlus.Lib.Logging.Collections
 						// configure the filter
 						filter.TagFilter.Enabled = enableSpecificFilter;
 						filter.TagFilter.AccumulateItems = accumulateItems;
-						var itemFilterItem = filter.TagFilter.Items.First(x => x.Value.Equals(tag));
+						ISelectableLogMessageFilter_Item<string> itemFilterItem = filter.TagFilter.Items.First(x => x.Value.Equals(tag));
 						itemFilterItem.Selected = true;
 
 						// determine the log message set that is expected to pass the filter
 						var expected = new List<LogMessage>();
 						var matching = new List<LogMessage>();
-						foreach (var message in messages)
+						foreach (LogMessage message in messages)
 						{
 							// pass the message to filter and check whether it matches
 							if (filter.Matches(message))
@@ -1223,19 +1292,19 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// Number of log messages to insert into the collection before starting to filter.
 		/// </param>
 		/// <param name="enableGlobalFilter">
-		/// <c>true</c> to enable the filter globally;
+		/// <c>true</c> to enable the filter globally;<br/>
 		/// otherwise <c>false</c> (disables the filter entirely).
 		/// </param>
 		/// <param name="enableSpecificFilter">
-		/// <c>true</c> to enable the specific item filter;
+		/// <c>true</c> to enable the specific item filter;<br/>
 		/// otherwise <c>false</c> (disables the item filter).
 		/// </param>
 		/// <param name="isFilterCaseSensitive">
-		/// <c>true</c> to match case-sensitive;
+		/// <c>true</c> to match case-sensitive;<br/>
 		/// <c>false</c> to match case-insensitive.
 		/// </param>
 		/// <param name="isSearchTextExact">
-		/// <c>true</c> to pass the search text exactly as it occurs in the message;
+		/// <c>true</c> to pass the search text exactly as it occurs in the message;<br/>
 		/// <c>false</c> to convert it to upper-case expecting that a case-sensitive filter will fail.
 		/// </param>
 		[Theory]
@@ -1247,7 +1316,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			bool isFilterCaseSensitive,
 			bool isSearchTextExact)
 		{
-			using (var collection = CreateCollection(count, out var messages))
+			using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
 			{
 				// checking that at least one message passes the filter
 				// => search for '000000/a' which is always part of the text of the first message in the message set
@@ -1272,7 +1341,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 					// determine the log message set that is expected to pass the filter
 					var expected = new List<LogMessage>();
 					var matching = new List<LogMessage>();
-					foreach (var message in messages)
+					foreach (LogMessage message in messages)
 					{
 						// pass the message to filter and check whether it matches
 						bool matches = filter.Matches(message);
@@ -1314,7 +1383,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// <param name="filter">Filter to test.</param>
 		/// <param name="messages">The message set injected into the collection the filter works on.</param>
 		/// <param name="filterIsAttached">
-		/// <c>true</c> if the filter has been attached to a collection;
+		/// <c>true</c> if the filter has been attached to a collection;<br/>
 		/// <c>false</c> if the filter was created, but not attached to a collection.
 		/// </param>
 		protected static void TestInitialFilterSettings(
@@ -1323,8 +1392,8 @@ namespace GriffinPlus.Lib.Logging.Collections
 			bool                                    filterIsAttached = true)
 		{
 			// determine the oldest/newest message
-			var oldestMessage = messages.Length > 0 ? messages[0] : null;
-			var newestMessage = messages.Length > 0 ? messages[messages.Length - 1] : null;
+			LogMessage oldestMessage = messages.Length > 0 ? messages[0] : null;
+			LogMessage newestMessage = messages.Length > 0 ? messages[messages.Length - 1] : null;
 
 			// Enabled
 			Assert.True(filter.Enabled);
@@ -1351,7 +1420,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 			Assert.Equal(zeroTimestamp, filter.TimestampFilter.To);
 
 			// Application Name Filter
-			var expectedApplicationNames = messages.Select(x => x.ApplicationName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
+			List<string> expectedApplicationNames = messages.Select(x => x.ApplicationName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
 			Assert.False(filter.ApplicationNameFilter.Enabled);
 			Assert.False(filter.ApplicationNameFilter.AccumulateItems);
 			Assert.Equal(expectedApplicationNames, filter.ApplicationNameFilter.Items.Select(x => x.Value).ToList());
@@ -1364,7 +1433,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				});
 
 			// Log Level Filter
-			var logLevelsInFile = messages.Select(x => x.LogLevelName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
+			List<string> logLevelsInFile = messages.Select(x => x.LogLevelName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
 			var expectedLogLevels = new List<string>();
 			if (filterIsAttached) expectedLogLevels.AddRange(LogLevel.PredefinedLogLevels.Select(x => x.Name));
 			expectedLogLevels.AddRange(logLevelsInFile);
@@ -1381,7 +1450,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				});
 
 			// Log Writer Filter
-			var expectedLogWriters = messages.Select(x => x.LogWriterName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
+			List<string> expectedLogWriters = messages.Select(x => x.LogWriterName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
 			Assert.False(filter.LogWriterFilter.Enabled);
 			Assert.False(filter.LogWriterFilter.AccumulateItems);
 			Assert.Equal(expectedLogWriters, filter.LogWriterFilter.Items.Select(x => x.Value).ToList());
@@ -1394,7 +1463,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				});
 
 			// Process Name Filter
-			var expectedProcessNames = messages.Select(x => x.ProcessName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
+			List<string> expectedProcessNames = messages.Select(x => x.ProcessName).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
 			Assert.False(filter.ProcessNameFilter.Enabled);
 			Assert.False(filter.ProcessNameFilter.AccumulateItems);
 			Assert.Equal(expectedProcessNames, filter.ProcessNameFilter.Items.Select(x => x.Value).ToList());
@@ -1407,7 +1476,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				});
 
 			// Process Id Filter
-			var expectedProcessIds = messages.Select(x => x.ProcessId).OrderBy(x => x).Distinct().ToList();
+			List<int> expectedProcessIds = messages.Select(x => x.ProcessId).OrderBy(x => x).Distinct().ToList();
 			Assert.False(filter.ProcessIdFilter.Enabled);
 			Assert.False(filter.ProcessIdFilter.AccumulateItems);
 			Assert.Equal(expectedProcessIds, filter.ProcessIdFilter.Items.Select(x => x.Value).ToList());
@@ -1420,7 +1489,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 				});
 
 			// Tag Filter
-			var expectedTagNames = messages.SelectMany(x => x.Tags).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
+			List<string> expectedTagNames = messages.SelectMany(x => x.Tags).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Distinct().ToList();
 			Assert.False(filter.TagFilter.Enabled);
 			Assert.False(filter.TagFilter.AccumulateItems);
 			Assert.Equal(expectedTagNames, filter.TagFilter.Items.Select(x => x.Value).ToList());

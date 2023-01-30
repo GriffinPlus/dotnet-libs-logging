@@ -14,40 +14,30 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instances of the <see cref="NoopSystemLogger"/> class.
 		/// </summary>
-		public NoopSystemLogger()
-		{
-		}
+		public NoopSystemLogger() { }
 
 		/// <summary>
 		/// Disposes the system logger.
 		/// </summary>
-		public void Dispose()
-		{
-		}
+		public void Dispose() { }
 
 		/// <summary>
 		/// Writes an informational message to the system log.
 		/// </summary>
 		/// <param name="message">Message to write.</param>
-		public void WriteInfo(string message)
-		{
-		}
+		public void WriteInfo(string message) { }
 
 		/// <summary>
 		/// Writes a warning to the system log.
 		/// </summary>
 		/// <param name="message">Message to write.</param>
-		public void WriteWarning(string message)
-		{
-		}
+		public void WriteWarning(string message) { }
 
 		/// <summary>
 		/// Writes an error to the system log.
 		/// </summary>
 		/// <param name="message">Message to write.</param>
-		public void WriteError(string message)
-		{
-		}
+		public void WriteError(string message) { }
 	}
 
 }

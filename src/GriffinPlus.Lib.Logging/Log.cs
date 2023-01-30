@@ -25,7 +25,6 @@ namespace GriffinPlus.Lib.Logging
 		private static readonly int                     sProcessId                            = Process.GetCurrentProcess().Id;
 		private static readonly string                  sProcessName                          = Process.GetCurrentProcess().ProcessName;
 		private static readonly LocalLogMessagePool     sLogMessagePool                       = new LocalLogMessagePool();
-		private static          ILogConfiguration       sLogConfiguration                     = null;
 		private static volatile ProcessingPipelineStage sProcessingPipeline                   = null;
 		private static volatile bool                    sTerminateProcessOnUnhandledException = true;
 		private static readonly LogWriter               sLog                                  = LogWriter.Get("Logging");
@@ -71,8 +70,8 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		public static string ApplicationName
 		{
-			get => sLogConfiguration.ApplicationName;
-			set => sLogConfiguration.ApplicationName = value;
+			get => Configuration.ApplicationName;
+			set => Configuration.ApplicationName = value;
 		}
 
 		/// <summary>
@@ -96,12 +95,12 @@ namespace GriffinPlus.Lib.Logging
 		/// It starts with 1. When wrapping around it skips 0, so 0 can be safely used to indicate an invalid/unassigned id.
 		/// </summary>
 		[Obsolete("Deprecated, please use AsyncId.Current instead. Will be removed with the next major release.")]
-		public static uint AsyncId => GriffinPlus.Lib.Logging.AsyncId.Current;
+		public static uint AsyncId => Logging.AsyncId.Current;
 
 		/// <summary>
 		/// Gets the log configuration that determines the behavior of the log.
 		/// </summary>
-		public static ILogConfiguration Configuration => sLogConfiguration;
+		public static ILogConfiguration Configuration { get; private set; } = null;
 
 		/// <summary>
 		/// Gets the processing pipeline that processes any log messages written to the logging subsystem.
@@ -141,8 +140,8 @@ namespace GriffinPlus.Lib.Logging
 		{
 			lock (Sync)
 			{
-				var oldConfiguration = sLogConfiguration;
-				var oldPipeline = sProcessingPipeline;
+				ILogConfiguration oldConfiguration = Configuration;
+				ProcessingPipelineStage oldPipeline = sProcessingPipeline;
 
 				// create the new configuration
 				var configuration = new TConfiguration();
@@ -187,12 +186,12 @@ namespace GriffinPlus.Lib.Logging
 					}
 
 					// make new configuration and processing pipeline the current one
-					sLogConfiguration = configuration;
+					Configuration = configuration;
 					sProcessingPipeline = stage;
 				}
 
 				// register for configuration changes
-				sLogConfiguration.RegisterChangedEventHandler(OnLogConfigurationChanged, false);
+				Configuration.RegisterChangedEventHandler(OnLogConfigurationChanged, false);
 
 				// update log writers to comply with the new configuration
 				UpdateLogWriters();
@@ -232,11 +231,11 @@ namespace GriffinPlus.Lib.Logging
 				sProcessingPipeline = null;
 
 				// shut the configuration down
-				if (sLogConfiguration != null)
+				if (Configuration != null)
 				{
-					sLogConfiguration.UnregisterChangedEventHandler(OnLogConfigurationChanged);
-					sLogConfiguration.Dispose();
-					sLogConfiguration = null;
+					Configuration.UnregisterChangedEventHandler(OnLogConfigurationChanged);
+					Configuration.Dispose();
+					Configuration = null;
 				}
 			}
 		}
@@ -310,7 +309,7 @@ namespace GriffinPlus.Lib.Logging
 		{
 			// global logging lock is hold here...
 			Debug.Assert(Monitor.IsEntered(Sync));
-			LogWriter.UpdateLogWriters(sLogConfiguration);
+			LogWriter.UpdateLogWriters(Configuration);
 		}
 
 		/// <summary>
@@ -352,7 +351,7 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Is called when an exception is not caught.
 		/// </summary>
-		/// <param name="sender">The source of the unhandled exception event (may be null on some frameworks).</param>
+		/// <param name="sender">The source of the unhandled exception event (may be <c>null</c> on some frameworks).</param>
 		/// <param name="e">An <see cref="UnhandledExceptionEventArgs"/> that contains the event data.</param>
 		private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
@@ -469,7 +468,7 @@ namespace GriffinPlus.Lib.Logging
 			// remove preceding and trailing line breaks
 			text = text.Trim('\r', '\n');
 
-			var pipeline = ProcessingPipeline;
+			ProcessingPipelineStage pipeline = ProcessingPipeline;
 			if (pipeline != null)
 			{
 				LocalLogMessage message = null;

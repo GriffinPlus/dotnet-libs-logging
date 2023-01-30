@@ -53,7 +53,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="handler">Event handler to register.</param>
 		/// <param name="invokeInCurrentSynchronizationContext">
-		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
+		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;<br/>
 		/// <c>false</c> to invoke the event handler in a worker thread.
 		/// </param>
 		public void RegisterChangedEventHandler(
@@ -149,8 +149,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Disposes the configuration cleaning up unmanaged resources
 		/// </summary>
 		/// <param name="disposing">
-		/// true, if called explicitly;
-		/// false, if called due to finalization.
+		/// <c>true</c> if called explicitly;<br/>
+		/// <c>false</c> if called due to finalization.
 		/// </param>
 		protected abstract void Dispose(bool disposing);
 
@@ -199,8 +199,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Saves the configuration.
 		/// </summary>
 		/// <param name="includeDefaults">
-		/// true to include the default value of settings that have not been explicitly set;
-		/// false to save only settings that have not been explicitly set.
+		/// <c>true</c> to include the default value of settings that have not been explicitly set;<br/>
+		/// <c>false</c> to save only settings that have not been explicitly set.
 		/// </param>
 		public abstract void Save(bool includeDefaults = false);
 
@@ -209,7 +209,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The configuration will match exactly the log writer with this name.
 		/// </summary>
 		/// <typeparam name="T">The type whose full name should serve as the log writer name the configuration should apply to.</typeparam>
-		/// <param name="configuration">Callback that adjusts the log writer configuration (may be null).</param>
+		/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
 		public void AddLogWriter<T>(LogWriterConfigurationCallback configuration = null)
 		{
 			AddLogWriter(typeof(T).FullName, configuration);
@@ -220,7 +220,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The configuration will match exactly the log writer with this name.
 		/// </summary>
 		/// <param name="type">The type whose full name should serve as the log writer name the configuration should apply to.</param>
-		/// <param name="configuration">Callback that adjusts the log writer configuration (may be null).</param>
+		/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
 		public void AddLogWriter(Type type, LogWriterConfigurationCallback configuration = null)
 		{
 			AddLogWriter(type.FullName, configuration);
@@ -231,10 +231,10 @@ namespace GriffinPlus.Lib.Logging
 		/// The configuration will match exactly the log writer with this name.
 		/// </summary>
 		/// <param name="name">Name of the log writer the configuration should apply to.</param>
-		/// <param name="configuration">Callback that adjusts the log writer configuration (may be null).</param>
+		/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
 		public void AddLogWriter(string name, LogWriterConfigurationCallback configuration = null)
 		{
-			var writer = LogWriterConfigurationBuilder.New.MatchingExactly(name);
+			LogWriterConfigurationBuilder writer = LogWriterConfigurationBuilder.New.MatchingExactly(name);
 			configuration?.Invoke(writer);
 			AppendLogWriterConfiguration(writer.Build());
 		}
@@ -243,10 +243,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Adds a log writer configuration, using the specified wildcard pattern to match the name of log writers the configuration should apply to.
 		/// </summary>
 		/// <param name="pattern">A wildcard pattern matching the name of log writers the configuration should apply to.</param>
-		/// <param name="configuration">Callback that adjusts the log writer configuration (may be null).</param>
+		/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
 		public void AddLogWritersByWildcard(string pattern, LogWriterConfigurationCallback configuration = null)
 		{
-			var writer = LogWriterConfigurationBuilder.New.MatchingWildcardPattern(pattern);
+			LogWriterConfigurationBuilder writer = LogWriterConfigurationBuilder.New.MatchingWildcardPattern(pattern);
 			configuration?.Invoke(writer);
 			AppendLogWriterConfiguration(writer.Build());
 		}
@@ -255,10 +255,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Adds a log writer configuration using the specified regular expression to match the name of log writers the configuration should apply to.
 		/// </summary>
 		/// <param name="regex">A regular expression matching the name of log writers the configuration should apply to.</param>
-		/// <param name="configuration">Callback that adjusts the log writer configuration (may be null).</param>
+		/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
 		public void AddLogWritersByRegex(string regex, LogWriterConfigurationCallback configuration = null)
 		{
-			var writer = LogWriterConfigurationBuilder.New.MatchingRegex(regex);
+			LogWriterConfigurationBuilder writer = LogWriterConfigurationBuilder.New.MatchingRegex(regex);
 			configuration?.Invoke(writer);
 			AppendLogWriterConfiguration(writer.Build());
 		}
@@ -276,11 +276,11 @@ namespace GriffinPlus.Lib.Logging
 		/// Adds a log writer configuration which matches any log writer name catching all log writers that were not handled in
 		/// a preceding step. This log writer configuration should be added last.
 		/// </summary>
-		/// <param name="configuration">Callback that adjusts the log writer configuration (may be null).</param>
+		/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
 		/// <returns>The updated log configuration.</returns>
 		public void AddLogWriterDefault(LogWriterConfigurationCallback configuration = null)
 		{
-			var writer = LogWriterConfigurationBuilder.New.MatchingWildcardPattern("*");
+			LogWriterConfigurationBuilder writer = LogWriterConfigurationBuilder.New.MatchingWildcardPattern("*");
 			configuration?.Invoke(writer);
 			AppendLogWriterConfiguration(writer.Build());
 		}

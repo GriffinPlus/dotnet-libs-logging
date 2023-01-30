@@ -16,26 +16,20 @@ namespace GriffinPlus.Lib.Logging
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogServiceCommunicationException"/> class.
 		/// </summary>
-		public LocalLogServiceCommunicationException()
-		{
-		}
+		public LocalLogServiceCommunicationException() { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogServiceCommunicationException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
-		public LocalLogServiceCommunicationException(string message) : base(message)
-		{
-		}
+		public LocalLogServiceCommunicationException(string message) : base(message) { }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalLogServiceCommunicationException"/> class.
 		/// </summary>
 		/// <param name="message">Message describing the reason why the exception is thrown.</param>
 		/// <param name="innerException">The original exception that led to the exception being thrown.</param>
-		public LocalLogServiceCommunicationException(string message, Exception innerException) : base(message, innerException)
-		{
-		}
+		public LocalLogServiceCommunicationException(string message, Exception innerException) : base(message, innerException) { }
 	}
 
 }

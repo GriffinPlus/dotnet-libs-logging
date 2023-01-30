@@ -27,9 +27,7 @@ namespace GriffinPlus.Lib.Logging
 		/// The formatter contains no preconfigured columns.
 		/// The columns must be added explicitly afterwards using the 'Add...Column()' methods.
 		/// </summary>
-		public TableMessageFormatter()
-		{
-		}
+		public TableMessageFormatter() { }
 
 		/// <summary>
 		/// Gets a formatter writing all columns that are useful for user's eyes.
@@ -92,7 +90,7 @@ namespace GriffinPlus.Lib.Logging
 				mOutputBuilder.Clear();
 
 				// update the width of the column needed to print the message
-				foreach (var column in mColumns)
+				foreach (ColumnBase column in mColumns)
 				{
 					column.UpdateWidth(message);
 				}
@@ -104,7 +102,7 @@ namespace GriffinPlus.Lib.Logging
 					more = false;
 					for (int i = 0; i < mColumns.Count; i++)
 					{
-						var column = mColumns[i];
+						ColumnBase column = mColumns[i];
 						if (i > 0) mOutputBuilder.Append(" | ");
 						more |= column.Write(message, mOutputBuilder, line);
 					}

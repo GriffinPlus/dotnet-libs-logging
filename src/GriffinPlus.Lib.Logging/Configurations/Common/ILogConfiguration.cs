@@ -32,7 +32,7 @@ namespace GriffinPlus.Lib.Logging
 		/// </summary>
 		/// <param name="handler">Event handler to register.</param>
 		/// <param name="invokeInCurrentSynchronizationContext">
-		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;
+		/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;<br/>
 		/// <c>false</c> to invoke the event handler in a worker thread.
 		/// </param>
 		void RegisterChangedEventHandler(
@@ -75,8 +75,8 @@ namespace GriffinPlus.Lib.Logging
 		/// Saves the configuration.
 		/// </summary>
 		/// <param name="includeDefaults">
-		/// true to include the default value of settings that have not been explicitly set;
-		/// false to save only settings that have not been explicitly set.
+		/// <c>true</c> to include the default value of settings that have not been explicitly set;<br/>
+		/// <c>false</c> to save only settings that have not been explicitly set.
 		/// </param>
 		void Save(bool includeDefaults = false);
 	}

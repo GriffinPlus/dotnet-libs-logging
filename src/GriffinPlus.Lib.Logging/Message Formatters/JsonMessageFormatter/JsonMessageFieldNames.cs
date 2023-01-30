@@ -65,7 +65,10 @@ namespace GriffinPlus.Lib.Logging
 		/// Checks whether the specified name is one of the defined field names.
 		/// </summary>
 		/// <param name="name">Name to check.</param>
-		/// <returns>true, if the name is a defined field name; otherwise false.</returns>
+		/// <returns>
+		/// <c>true</c> if the name is a defined field name;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
 		public bool IsFieldName(string name)
 		{
 			return Timestamp == name ||

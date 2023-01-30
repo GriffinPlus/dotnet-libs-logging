@@ -26,9 +26,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		protected override ILogMessageCollection<LogMessage> CreateCollection(int count, out LogMessage[] messages)
 		{
 			messages = LoggingTestHelpers.GetTestMessages<LogMessage>(count);
-			var collection = count == 0
-				                 ? new LogMessageCollection<LogMessage>()
-				                 : new LogMessageCollection<LogMessage>(messages);
+			LogMessageCollection<LogMessage> collection = count == 0
+				                                              ? new LogMessageCollection<LogMessage>()
+				                                              : new LogMessageCollection<LogMessage>(messages);
 
 			// the test assumes that the collection uses single-item notifications
 			collection.UseMultiItemNotifications = false;
@@ -57,7 +57,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 		[InlineData(1000)]
 		private void Create_WithMessages(int count)
 		{
-			var messages = LoggingTestHelpers.GetTestMessages<LogMessage>(count, 1);
+			LogMessage[] messages = LoggingTestHelpers.GetTestMessages<LogMessage>(count, 1);
 			var collection = new LogMessageCollection<LogMessage>(messages);
 			TestCollectionPropertyDefaults(collection, count);
 			Assert.Equal(messages, collection.ToArray());
@@ -73,9 +73,9 @@ namespace GriffinPlus.Lib.Logging.Collections
 		/// </summary>
 		/// <param name="collection">Collection to check.</param>
 		/// <param name="expectedCount">Expected number of log messages in the collection.</param>
-		private void TestCollectionPropertyDefaults(LogMessageCollection<LogMessage> collection, long expectedCount)
+		private void TestCollectionPropertyDefaults(ILogMessageCollectionCommon<LogMessage> collection, long expectedCount)
 		{
-			using (var eventWatcher = collection.AttachEventWatcher())
+			using (LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher())
 			{
 				// check collection specific properties
 				Assert.Equal(expectedCount, collection.Count);
@@ -92,7 +92,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 				// check properties exposed by IList<T> implementation
 				{
-					var list = collection as IList<LogMessage>;
+					var list = (IList<LogMessage>)collection;
 					Assert.False(list.IsReadOnly);
 					Assert.Equal(expectedCount, list.Count);
 				}

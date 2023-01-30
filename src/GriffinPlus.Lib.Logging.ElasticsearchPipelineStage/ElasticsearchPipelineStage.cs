@@ -197,8 +197,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// <returns>The formatted array of <see cref="Uri"/>.</returns>
 		private static string UriArrayToString(Uri[] uris, IFormatProvider provider = null)
 		{
-			if (uris == null) return "";
-			return string.Join("; ", uris.Select(x => x.ToString()));
+			return uris != null ? string.Join("; ", uris.Select(x => x.ToString())) : "";
 		}
 
 		/// <summary>
@@ -867,8 +866,9 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		{
 			lock (mProcessingQueue)
 			{
-				if (mProcessingQueue.Count == 0) return null;
-				return mProcessingQueue.RemoveFromFront();
+				return mProcessingQueue.Count > 0
+					       ? mProcessingQueue.RemoveFromFront()
+					       : null;
 			}
 		}
 
@@ -889,7 +889,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// </summary>
 		/// <param name="endpoint">Endpoint to set.</param>
 		/// <param name="isOperational">
-		/// <c>true</c> if the endpoint is operational;
+		/// <c>true</c> if the endpoint is operational;<br/>
 		/// otherwise <c>false</c>.
 		/// </param>
 		private void SetEndpointOperational(EndpointInfo endpoint, bool isOperational)
@@ -1185,7 +1185,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch
 		/// respectively '+hh:mm' (positive timezone offsets).
 		/// </summary>
 		/// <param name="offset">Timezone offset to format.</param>
-		/// <returns></returns>
+		/// <returns>The formatted timezone offset.</returns>
 		private string ToTimezoneOffset(TimeSpan offset)
 		{
 			if (mLastTimezoneOffset == offset) return mLastTimezoneOffsetAsString;

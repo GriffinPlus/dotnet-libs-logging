@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging.Collections
 
 		/// <summary>
 		/// Gets or sets a value indicating whether <see cref="Items"/> contains items only that belong to at
-		/// least one message in the collection (<c>false</c>false) or whether all items are kept even when log
+		/// least one message in the collection (<c>false</c>) or whether all items are kept even when log
 		/// messages are removed from the collection (<c>true</c>). Default is <c>false</c>.
 		/// </summary>
 		bool AccumulateItems { get; set; }
