@@ -4,7 +4,7 @@ trigger:
     - feature/*
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-2022'
 
 stages:
 
@@ -19,6 +19,12 @@ stages:
   - job: 'Build'
     steps:
     - task: UseDotNet@2
+      displayName: 'Use .NET Core 2.2 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '2.2.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: UseDotNet@2
       displayName: 'Use .NET Core 3.1 SDK'
       inputs:
         packageType: 'sdk'
@@ -30,10 +36,22 @@ stages:
         packageType: 'sdk'
         version: '5.0.x'
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: UseDotNet@2
+      displayName: 'Use .NET 6.0 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '6.0.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: UseDotNet@2
+      displayName: 'Use .NET 7.0 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '7.0.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: NuGetToolInstaller@1
       displayName: 'Install NuGet'
       inputs:
-        versionSpec: '5.x'
+        versionSpec: '6.x'
     - task: DotNetCoreCLI@2
       displayName: 'Install GitVersion'
       inputs:
@@ -93,21 +111,31 @@ stages:
   jobs:
   ######################################################################################################################
   # Job:
-  # Tests for .NET 4.6.1 on Windows
-  # Tests for .NET Core 3.1 and .NET 5.0 on Windows and Linux
+  # - .NET Framework 4.6.1 on Windows Server 2022
+  # - .NET Core 2.2 on Windows Server 2022 and Ubuntu 22.04
+  # - .NET Core 3.1 on Windows Server 2022 and Ubuntu 22.04
+  # - .NET 5.0 on Windows Server 2022 and Ubuntu 22.04
+  # - .NET 6.0 on Windows Server 2022 and Ubuntu 22.04
+  # - .NET 7.0 on Windows Server 2022 and Ubuntu 22.04
   ######################################################################################################################
   - job:
     displayName: ''
-    timeoutInMinutes: 180
+    timeoutInMinutes: 120
     strategy:
       matrix:
-        'Windows Server 2019':
-          VmImage: 'windows-2019'
-        'Ubuntu 20.04':
-          VmImage: 'ubuntu-20.04'
+        'Windows Server 2022':
+          VmImage: 'windows-2022'
+        'Ubuntu 22.04':
+          VmImage: 'ubuntu-22.04'
     pool:
       vmImage: '$(VmImage)'
     steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core 2.2 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '2.2.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: UseDotNet@2
       displayName: 'Use .NET Core 3.1 SDK'
       inputs:
@@ -120,10 +148,22 @@ stages:
         packageType: 'sdk'
         version: '5.0.x'
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: UseDotNet@2
+      displayName: 'Use .NET 6.0 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '6.0.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: UseDotNet@2
+      displayName: 'Use .NET 7.0 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '7.0.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: NuGetToolInstaller@1
       displayName: 'Install NuGet'
       inputs:
-        versionSpec: '5.x'
+        versionSpec: '6.x'
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Pipeline Artifacts'
       inputs:
@@ -136,21 +176,42 @@ stages:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net461 --verbosity normal'
+        arguments: '--framework net461'
+    - task: DotNetCoreCLI@2
+      displayName: 'Test .NET Core 2.2'
+      inputs:
+        command: 'test'
+        projects: '**/*Tests/*.csproj'
+        nobuild: true
+        arguments: '--framework netcoreapp2.2'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 3.1'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework netcoreapp3.1 --verbosity normal'
+        arguments: '--framework netcoreapp3.1'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET 5.0'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net5.0 --verbosity normal'
+        arguments: '--framework net5.0'
+    - task: DotNetCoreCLI@2
+      displayName: 'Test .NET 6.0'
+      inputs:
+        command: 'test'
+        projects: '**/*Tests/*.csproj'
+        nobuild: true
+        arguments: '--framework net6.0'
+    - task: DotNetCoreCLI@2
+      displayName: 'Test .NET 7.0'
+      inputs:
+        command: 'test'
+        projects: '**/*Tests/*.csproj'
+        nobuild: true
+        arguments: '--framework net7.0'
 
 ########################################################################################################################
 # Stage: Deployment
@@ -162,6 +223,10 @@ stages:
   ######################################################################################################################
   - job: 'Pack'
     steps:
+    - task: NuGetToolInstaller@1
+      displayName: 'Install NuGet'
+      inputs:
+        versionSpec: '6.x'
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Pipeline Artifacts'
       inputs:
