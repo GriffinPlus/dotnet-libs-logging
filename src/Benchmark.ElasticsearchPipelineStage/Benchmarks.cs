@@ -20,7 +20,7 @@ namespace Benchmark.Elasticsearch
 	/// Benchmarks targeting the <see cref="ElasticsearchPipelineStage"/> class.
 	/// </summary>
 	[MemoryDiagnoser]
-	[SimpleJob(RunStrategy.Monitoring, warmupCount: 1, targetCount: 5)]
+	[SimpleJob(RunStrategy.Monitoring, warmupCount: 1, iterationCount: 5)]
 	public class Benchmarks
 	{
 		private const           int                        MaxTestMessageCount = 1000000;
