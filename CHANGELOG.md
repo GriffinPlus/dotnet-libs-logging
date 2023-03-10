@@ -1,6 +1,31 @@
 # Changelog
 ---
 
+## Release v6.0.2
+
+### Breaking Changes
+
+#### Adjust package dependencies
+
+`GriffinPlus.Lib.Common` has been updated to version 3.1.1.
+
+The following packages have been downgraded for support of .NET Core 2.2:
+- System.Diagnostics.EventLog: 4.7.0
+- System.Text.Json: 4.7.2
+
+#### Add tests for .NET Core 2.2 and .NET 6/7
+
+Test now run on the following frameworks:
+
+- Tests on .NET Framework 4.6.1 run with the library build for .NET Framework 4.6.1
+- Tests on .NET Core 2.2 run with the library build for .NET Standard 2.0
+- Tests on .NET Core 3.1 run with the library build for .NET Standard 2.0
+- Tests on .NET 5.0 run with the library build for .NET Standard 2.0
+- Tests on .NET 6.0 run with the library build for .NET Standard 2.0
+- Tests on .NET 7.0 run with the library build for .NET Standard 2.0
+
+---
+
 ## Release v5.1.5
 
 ### Bugfixes
