@@ -14,13 +14,13 @@
 		<tags>logging</tags>
 		<dependencies>
 			<group targetFramework="net461">
-				<dependency id="GriffinPlus.Lib.Common" version="[2.8.0,3)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.1.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 				<dependency id="System.ValueTuple" version="4.5.0" include="all" />
 			</group>
 			<group targetFramework="netstandard2.0">
-				<dependency id="GriffinPlus.Lib.Common" version="[2.8.0,3)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.1.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 			</group>
