@@ -1,19 +1,38 @@
 # Changelog
 ---
 
+## Release v6.0.3
+
+### Other Changes
+
+#### Update Package Dependencies
+
+The following package dependencies have been updated to work the highest version that is available for a certain target framework:
+
+- `GriffinPlus.Lib.Common`: 3.1.5 (all frameworks)
+- `System.Data.SQLite.Core`: 1.0.117 (all frameworks)
+- `System.Diagnostics.EventLog`: 5.0.1 (.NET Standard 2.0)
+- `System.Diagnostics.EventLog`: 6.0.0 (.NET Framework 4.6.1)
+- `System.Diagnostics.EventLog`: 7.0.0 (.NET Framework 4.8, .NET 5.0)
+- `System.Text.Json`: 5.0.2 (.NET Standard 2.0)
+- `System.Text.Json`: 6.0.7 (.NET Framework 4.6.1)
+- `System.Text.Json`: 7.0.2 (.NET Framework 4.8)
+
+---
+
 ## Release v6.0.2
 
 ### Breaking Changes
 
-#### Adjust package dependencies
+#### Adjust Package Dependencies
 
-`GriffinPlus.Lib.Common` has been updated to version 3.1.1.
+`GriffinPlus.Lib.Common` has been updated to version 3.1.3.
 
 The following packages have been downgraded for support of .NET Core 2.2:
-- System.Diagnostics.EventLog: 4.7.0
-- System.Text.Json: 4.7.2
+- `System.Diagnostics.EventLog`: 4.7.0
+- `System.Text.Json`: 4.7.2
 
-#### Add tests for .NET Core 2.2 and .NET 6/7
+#### Add Tests for .NET Core 2.2 and .NET 6/7
 
 Test now run on the following frameworks:
 
