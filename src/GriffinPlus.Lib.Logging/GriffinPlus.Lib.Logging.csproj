@@ -6,6 +6,7 @@
 		<AssemblyName>GriffinPlus.Lib.Logging</AssemblyName>
 		<RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>CA1416</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
