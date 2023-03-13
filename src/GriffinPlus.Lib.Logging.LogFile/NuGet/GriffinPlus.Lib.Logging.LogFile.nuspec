@@ -5,7 +5,7 @@
 		<id>GriffinPlus.Lib.Logging.LogFile</id>
 		<version>$version$</version>
 		<authors>Sascha Falk</authors>
-		<copyright>Copyright (c) 2022 Sascha Falk and Contributors</copyright>
+		<copyright>Copyright (c) 2023 Sascha Falk and Contributors</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>A log file for the Griffin+ logging subsystem working on a sqlite database.
 Includes a pipeline stage to integrate the log file into the Griffin+ logging subsystem.
@@ -24,12 +24,12 @@ is also supported.
 			<group targetFramework="netstandard2.0">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Collections" version="[$version$]" include="all" />
-				<dependency id="System.Data.SQLite.Core" version="1.0.116" include="all" />
+				<dependency id="System.Data.SQLite.Core" version="1.0.117" include="all" />
 			</group>
 			<group targetFramework="net461">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Collections" version="[$version$]" include="all" />
-				<dependency id="System.Data.SQLite.Core" version="1.0.116" include="all" />
+				<dependency id="System.Data.SQLite.Core" version="1.0.117" include="all" />
 			</group>
 		</dependencies>
 	</metadata>
