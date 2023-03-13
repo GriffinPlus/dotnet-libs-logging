@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0; net461; net5.0</TargetFrameworks>
+		<CheckEolTargetFramework>false</CheckEolTargetFramework>
 		<AssemblyName>GriffinPlus.Lib.Logging.Collections</AssemblyName>
 		<RootNamespace>GriffinPlus.Lib.Logging.Collections</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -12,11 +13,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+		<ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\GriffinPlus.Lib.Logging\GriffinPlus.Lib.Logging.csproj" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 	</ItemGroup>
 
 </Project>

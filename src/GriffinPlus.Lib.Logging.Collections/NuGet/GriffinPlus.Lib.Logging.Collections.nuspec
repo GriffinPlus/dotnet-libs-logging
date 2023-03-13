@@ -5,7 +5,7 @@
 		<id>GriffinPlus.Lib.Logging.Collections</id>
 		<version>$version$</version>
 		<authors>Sascha Falk</authors>
-		<copyright>Copyright (c) 2022 Sascha Falk and Contributors</copyright>
+		<copyright>Copyright (c) 2023 Sascha Falk and Contributors</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>Interfaces and in-memory implementation of a collection of log messages with filtering capabilities.
 The unfiltered collection and the filtered collection are fully data-binding capable and can be directly used from code that
@@ -28,6 +28,9 @@ The filter can be used in conjunction with the filtered collection and the filte
 			<group targetFramework="net461">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
 			</group>
+			<group targetFramework="net5.0">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
+			</group>
 		</dependencies>
 	</metadata>
 	<files>
@@ -38,5 +41,8 @@ The filter can be used in conjunction with the filtered collection and the filte
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.Collections.dll" target="lib/net461" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.Collections.pdb" target="lib/net461" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.Collections.xml" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.Collections.dll" target="lib/net5.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.Collections.pdb" target="lib/net5.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.Collections.xml" target="lib/net5.0" />
 	</files>
 </package>

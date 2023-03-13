@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0; net461; net48; net5.0</TargetFrameworks>
+		<CheckEolTargetFramework>false</CheckEolTargetFramework>
 		<AssemblyName>GriffinPlus.Lib.Logging</AssemblyName>
 		<RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -11,11 +12,23 @@
 		<PackageReference Include="GriffinPlus.Lib.Common" Version="3.1.4" />
 		<PackageReference Include="GriffinPlus.Lib.Logging.Interface" Version="1.1.1" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-		<PackageReference Include="System.Diagnostics.EventLog" Version="4.7.0" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+		<PackageReference Include="System.Diagnostics.EventLog" Version="5.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)'=='net461'">
+		<PackageReference Include="System.Diagnostics.EventLog" Version="6.0.0" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)'=='net48'">
+		<PackageReference Include="System.Diagnostics.EventLog" Version="6.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)'=='net5.0'">
+		<PackageReference Include="System.Diagnostics.EventLog" Version="6.0.0" />
 	</ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@
 		<id>GriffinPlus.Lib.Logging.ElasticsearchPipelineStage</id>
 		<version>$version$</version>
 		<authors>Sascha Falk</authors>
-		<copyright>Copyright (c) 2022 Sascha Falk and Contributors</copyright>
+		<copyright>Copyright (c) 2023 Sascha Falk and Contributors</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>A pipeline stage for the Griffin+ logging subsystem that forwards log messages to an Elasticsearch cluster.</description>
 		<license type="expression">MIT</license>
@@ -15,11 +15,18 @@
 		<dependencies>
 			<group targetFramework="netstandard2.0">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
-				<dependency id="System.Text.Json" version="6.0.7" include="all" />
+				<dependency id="System.Text.Json" version="5.0.2" include="all" />
 			</group>
 			<group targetFramework="net461">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
 				<dependency id="System.Text.Json" version="6.0.7" include="all" />
+			</group>
+			<group targetFramework="net48">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
+				<dependency id="System.Text.Json" version="7.0.2" include="all" />
+			</group>
+			<group targetFramework="net5.0">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
 			</group>
 		</dependencies>
 	</metadata>
@@ -31,5 +38,11 @@
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll" target="lib/net461" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb" target="lib/net461" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net48/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll" target="lib/net48" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net48/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb" target="lib/net48" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net48/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml" target="lib/net48" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll" target="lib/net5.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb" target="lib/net5.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml" target="lib/net5.0" />
 	</files>
 </package>

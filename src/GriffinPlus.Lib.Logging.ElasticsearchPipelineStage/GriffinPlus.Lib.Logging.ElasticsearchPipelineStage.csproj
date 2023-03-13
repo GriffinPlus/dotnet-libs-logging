@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0; net461; net48; net5.0</TargetFrameworks>
+		<CheckEolTargetFramework>false</CheckEolTargetFramework>
 		<AssemblyName>GriffinPlus.Lib.Logging.ElasticsearchPipelineStage</AssemblyName>
 		<RootNamespace>GriffinPlus.Lib.Logging.Elasticsearch</RootNamespace>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -18,12 +19,26 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-		<PackageReference Include="System.Text.Json" Version="4.7.2" />
+		<Reference Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='net48'" Include="System.Net.Http" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Condition="'$(TargetFramework)'=='net461'" Include="System.Net.Http" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
+		<PackageReference Include="System.Text.Json" Version="5.0.2" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)'=='net461'">
+		<PackageReference Include="System.Text.Json" Version="6.0.7" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)'=='net48'">
+		<PackageReference Include="System.Text.Json" Version="7.0.2" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)'=='net5.0'">
 	</ItemGroup>
 
 </Project>

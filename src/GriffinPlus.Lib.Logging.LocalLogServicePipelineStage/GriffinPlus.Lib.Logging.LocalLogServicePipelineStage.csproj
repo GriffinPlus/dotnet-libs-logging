@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net461; netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0; net461; net5.0</TargetFrameworks>
+		<CheckEolTargetFramework>false</CheckEolTargetFramework>
 		<AssemblyName>GriffinPlus.Lib.Logging.LocalLogServicePipelineStage</AssemblyName>
 		<RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

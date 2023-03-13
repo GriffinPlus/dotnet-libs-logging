@@ -31,6 +31,11 @@ is also supported.
 				<dependency id="GriffinPlus.Lib.Logging.Collections" version="[$version$]" include="all" />
 				<dependency id="System.Data.SQLite.Core" version="1.0.117" include="all" />
 			</group>
+			<group targetFramework="net5.0">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
+				<dependency id="GriffinPlus.Lib.Logging.Collections" version="[$version$]" include="all" />
+				<dependency id="System.Data.SQLite.Core" version="1.0.117" include="all" />
+			</group>
 		</dependencies>
 	</metadata>
 	<files>
@@ -41,5 +46,8 @@ is also supported.
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.LogFile.dll" target="lib/net461" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.LogFile.pdb" target="lib/net461" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net461/GriffinPlus.Lib.Logging.LogFile.xml" target="lib/net461" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.LogFile.dll" target="lib/net5.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.LogFile.pdb" target="lib/net5.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.LogFile/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.LogFile.xml" target="lib/net5.0" />
 	</files>
 </package>

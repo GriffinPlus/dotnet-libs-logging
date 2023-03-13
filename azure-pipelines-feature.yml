@@ -112,6 +112,7 @@ stages:
   ######################################################################################################################
   # Job:
   # - .NET Framework 4.6.1 on Windows Server 2022
+  # - .NET Framework 4.8 on Windows Server 2022
   # - .NET Core 2.2 on Windows Server 2022 and Ubuntu 22.04
   # - .NET Core 3.1 on Windows Server 2022 and Ubuntu 22.04
   # - .NET 5.0 on Windows Server 2022 and Ubuntu 22.04
@@ -177,6 +178,14 @@ stages:
         projects: '**/*Tests/*.csproj'
         nobuild: true
         arguments: '--framework net461'
+    - task: DotNetCoreCLI@2
+      displayName: 'Test .NET Framework 4.8'
+      condition: eq(variables['agent.os'], 'Windows_NT')
+      inputs:
+        command: 'test'
+        projects: '**/*Tests/*.csproj'
+        nobuild: true
+        arguments: '--framework net48'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 2.2'
       inputs:
