@@ -11,6 +11,8 @@ using System.Threading;
 
 using Xunit;
 
+#pragma warning disable xUnit2013
+
 namespace GriffinPlus.Lib.Logging.Elasticsearch
 {
 
