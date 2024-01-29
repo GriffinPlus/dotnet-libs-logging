@@ -1,6 +1,29 @@
 # Changelog
 ---
 
+## Release 6.1.0
+
+### Other Changes
+
+#### Add explicit support for .NET 6/7/8
+
+All NuGet packages contain specific builds for .NET 6/7/8 now.
+
+#### Update Package Dependencies
+
+The following package dependencies have been updated to work the highest version that is available for a certain target framework:
+
+- `GriffinPlus.Lib.Common`: 3.3.1 (all frameworks)
+- `System.Data.SQLite.Core`: 1.0.118 (all frameworks)
+- `System.Diagnostics.EventLog`: 5.0.1 (.NET Standard 2.0)
+- `System.Diagnostics.EventLog`: 6.0.0 (.NET Framework 4.6.1)
+- `System.Diagnostics.EventLog`: 8.0.0 (.NET Framework 4.8, NET 5.0/6.0/7.0)
+- `System.Text.Json`: 5.0.2 (.NET Standard 2.0)
+- `System.Text.Json`: 6.0.9 (.NET Framework 4.6.1)
+- `System.Text.Json`: 8.0.1 (.NET Framework 4.8)
+
+---
+
 ## Release v6.0.3
 
 ### Other Changes
