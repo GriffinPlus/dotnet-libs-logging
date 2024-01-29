@@ -48,6 +48,12 @@ stages:
         packageType: 'sdk'
         version: '7.0.x'
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: UseDotNet@2
+      displayName: 'Use .NET 8.0 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: NuGetToolInstaller@1
       displayName: 'Install NuGet'
       inputs:
@@ -118,6 +124,7 @@ stages:
   # - .NET 5.0 on Windows Server 2022 and Ubuntu 22.04
   # - .NET 6.0 on Windows Server 2022 and Ubuntu 22.04
   # - .NET 7.0 on Windows Server 2022 and Ubuntu 22.04
+  # - .NET 8.0 on Windows Server 2022 and Ubuntu 22.04
   ######################################################################################################################
   - job:
     displayName: ''
@@ -160,6 +167,12 @@ stages:
       inputs:
         packageType: 'sdk'
         version: '7.0.x'
+        installationPath: '$(Agent.ToolsDirectory)/dotnet'
+    - task: UseDotNet@2
+      displayName: 'Use .NET 8.0 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
         installationPath: '$(Agent.ToolsDirectory)/dotnet'
     - task: NuGetToolInstaller@1
       displayName: 'Install NuGet'
@@ -221,6 +234,13 @@ stages:
         projects: '**/*Tests/*.csproj'
         nobuild: true
         arguments: '--framework net7.0'
+    - task: DotNetCoreCLI@2
+      displayName: 'Test .NET 8.0'
+      inputs:
+        command: 'test'
+        projects: '**/*Tests/*.csproj'
+        nobuild: true
+        arguments: '--framework net8.0'
 
 ########################################################################################################################
 # Stage: Deployment

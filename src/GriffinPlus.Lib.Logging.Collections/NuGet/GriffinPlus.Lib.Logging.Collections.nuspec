@@ -31,6 +31,15 @@ The filter can be used in conjunction with the filtered collection and the filte
 			<group targetFramework="net5.0">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
 			</group>
+			<group targetFramework="net6.0">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
+			</group>
+			<group targetFramework="net7.0">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
+			</group>
+			<group targetFramework="net8.0">
+				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
+			</group>
 		</dependencies>
 	</metadata>
 	<files>
@@ -44,5 +53,14 @@ The filter can be used in conjunction with the filtered collection and the filte
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.Collections.dll" target="lib/net5.0" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.Collections.pdb" target="lib/net5.0" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.Collections.xml" target="lib/net5.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net6.0/GriffinPlus.Lib.Logging.Collections.dll" target="lib/net6.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net6.0/GriffinPlus.Lib.Logging.Collections.pdb" target="lib/net6.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net6.0/GriffinPlus.Lib.Logging.Collections.xml" target="lib/net6.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net7.0/GriffinPlus.Lib.Logging.Collections.dll" target="lib/net7.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net7.0/GriffinPlus.Lib.Logging.Collections.pdb" target="lib/net7.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net7.0/GriffinPlus.Lib.Logging.Collections.xml" target="lib/net7.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net8.0/GriffinPlus.Lib.Logging.Collections.dll" target="lib/net8.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net8.0/GriffinPlus.Lib.Logging.Collections.pdb" target="lib/net8.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging.Collections/AnyCPU.Release/net8.0/GriffinPlus.Lib.Logging.Collections.xml" target="lib/net8.0" />
 	</files>
 </package>

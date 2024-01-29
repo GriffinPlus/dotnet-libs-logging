@@ -34,6 +34,21 @@
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 			</group>
+			<group targetFramework="net6.0">
+				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
+				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
+			</group>
+			<group targetFramework="net7.0">
+				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
+				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
+			</group>
+			<group targetFramework="net8.0">
+				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
+				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
+			</group>
 		</dependencies>
 	</metadata>
 	<files>
@@ -50,5 +65,14 @@
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.dll" target="lib/net5.0" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.pdb" target="lib/net5.0" />
 		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net5.0/GriffinPlus.Lib.Logging.xml" target="lib/net5.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net6.0/GriffinPlus.Lib.Logging.dll" target="lib/net6.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net6.0/GriffinPlus.Lib.Logging.pdb" target="lib/net6.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net6.0/GriffinPlus.Lib.Logging.xml" target="lib/net6.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net7.0/GriffinPlus.Lib.Logging.dll" target="lib/net7.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net7.0/GriffinPlus.Lib.Logging.pdb" target="lib/net7.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net7.0/GriffinPlus.Lib.Logging.xml" target="lib/net7.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net8.0/GriffinPlus.Lib.Logging.dll" target="lib/net8.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net8.0/GriffinPlus.Lib.Logging.pdb" target="lib/net8.0" />
+		<file src="../../../_build/.out/GriffinPlus.Lib.Logging/AnyCPU.Release/net8.0/GriffinPlus.Lib.Logging.xml" target="lib/net8.0" />
 	</files>
 </package>
