@@ -54,7 +54,7 @@ namespace GriffinPlus.Lib.Logging
 			// create stage 1 and add stage 2 following stage 1
 			var stage1 = ProcessingPipelineStage.Create<TStage>("Stage1", null);
 			var stage2 = stage1.AddNextStage<TStage>("Stage2");
-			var stages12 = new HashSet<TStage> { stage1, stage2 };
+			var stages12 = new HashSet<ProcessingPipelineStage> { stage1, stage2 };
 
 			// stage 1 should have stage 2 as following stage
 			Assert.Single(stage1.NextStages);
