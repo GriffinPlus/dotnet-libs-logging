@@ -14,38 +14,38 @@
 		<tags>logging</tags>
 		<dependencies>
 			<group targetFramework="netstandard2.0">
-				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.3.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="5.0.1" include="all" />
 			</group>
 			<group targetFramework="net461">
-				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.3.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 				<dependency id="System.ValueTuple" version="4.5.0" include="all" />
 			</group>
 			<group targetFramework="net48">
-				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.3.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 			</group>
 			<group targetFramework="net5.0">
-				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.3.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 			</group>
 			<group targetFramework="net6.0">
-				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.3.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 			</group>
 			<group targetFramework="net7.0">
-				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.3.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 			</group>
 			<group targetFramework="net8.0">
-				<dependency id="GriffinPlus.Lib.Common" version="[3.1.5,4)" include="all" />
+				<dependency id="GriffinPlus.Lib.Common" version="[3.3.1,4)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.1.1,2)" include="all" />
 				<dependency id="System.Diagnostics.EventLog" version="6.0.0" include="all" />
 			</group>
