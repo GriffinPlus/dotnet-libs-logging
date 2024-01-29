@@ -5,7 +5,7 @@
 		<id>GriffinPlus.Lib.Logging.LogFile</id>
 		<version>$version$</version>
 		<authors>Sascha Falk</authors>
-		<copyright>Copyright (c) 2023 Sascha Falk and Contributors</copyright>
+		<copyright>Copyright (c) 2024 Sascha Falk and Contributors</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>A log file for the Griffin+ logging subsystem working on a sqlite database.
 Includes a pipeline stage to integrate the log file into the Griffin+ logging subsystem.

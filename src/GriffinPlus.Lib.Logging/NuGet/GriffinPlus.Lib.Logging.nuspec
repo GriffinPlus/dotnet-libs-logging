@@ -5,7 +5,7 @@
 		<id>GriffinPlus.Lib.Logging</id>
 		<version>$version$</version>
 		<authors>Sascha Falk</authors>
-		<copyright>Copyright (c) 2023 Sascha Falk and Contributors</copyright>
+		<copyright>Copyright (c) 2024 Sascha Falk and Contributors</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>A simple, but modular extensible logging facility that focuses on applications built on the .NET framework.</description>
 		<license type="expression">MIT</license>
