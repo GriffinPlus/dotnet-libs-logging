@@ -31,11 +31,11 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net461'">
-		<PackageReference Include="System.Text.Json" Version="6.0.7" />
+		<PackageReference Include="System.Text.Json" Version="6.0.9" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net48'">
-		<PackageReference Include="System.Text.Json" Version="7.0.2" />
+		<PackageReference Include="System.Text.Json" Version="8.0.1" />
 	</ItemGroup>
 
 </Project>
