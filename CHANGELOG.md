@@ -1,6 +1,19 @@
 # Changelog
 ---
 
+## Release 7.0.0
+
+### Other Changes
+
+#### Update Package Dependencies
+
+The following package dependencies have been updated to work the highest version that is available for a certain target framework:
+
+- `GriffinPlus.Lib.Common`: 4.0.0 (all frameworks)
+- `System.Text.Json`: 8.0.3 (.NET Framework 4.8)
+
+---
+
 ## Release 6.1.0
 
 ### Other Changes
