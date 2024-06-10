@@ -7,42 +7,39 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+/// <summary>
+/// A binary writer that is capable of writing plain structs.
+/// </summary>
+class MemoryWriter : BinaryWriter
 {
+	/// <summary>
+	/// Initializes a new instance of the <see cref="MemoryWriter"/> class.
+	/// </summary>
+	/// <param name="stream">Stream to write to.</param>
+	public MemoryWriter(Stream stream)
+		: base(stream) { }
 
 	/// <summary>
-	/// A binary writer that is capable of writing plain structs.
+	/// Writes a plain struct to the underlying stream (does not do any marshalling!).
 	/// </summary>
-	class MemoryWriter : BinaryWriter
+	/// <typeparam name="T">Type of the struct to read.</typeparam>
+	/// <returns>The read struct.</returns>
+	public void WriteStruct<T>(T @struct)
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryWriter"/> class.
-		/// </summary>
-		/// <param name="stream">Stream to write to.</param>
-		public MemoryWriter(Stream stream)
-			: base(stream) { }
-
-		/// <summary>
-		/// Writes a plain struct to the underlying stream (does not do any marshalling!).
-		/// </summary>
-		/// <typeparam name="T">Type of the struct to read.</typeparam>
-		/// <returns>The read struct.</returns>
-		public void WriteStruct<T>(T @struct)
+		int sizeOfT = Marshal.SizeOf(typeof(T));
+		IntPtr ptr = Marshal.AllocHGlobal(sizeOfT);
+		try
 		{
-			int sizeOfT = Marshal.SizeOf(typeof(T));
-			IntPtr ptr = Marshal.AllocHGlobal(sizeOfT);
-			try
-			{
-				Marshal.StructureToPtr(@struct, ptr, false);
-				byte[] bytes = new byte[sizeOfT];
-				Marshal.Copy(ptr, bytes, 0, bytes.Length);
-				Write(bytes);
-			}
-			finally
-			{
-				Marshal.FreeHGlobal(ptr);
-			}
+			Marshal.StructureToPtr(@struct, ptr, false);
+			byte[] bytes = new byte[sizeOfT];
+			Marshal.Copy(ptr, bytes, 0, bytes.Length);
+			Write(bytes);
+		}
+		finally
+		{
+			Marshal.FreeHGlobal(ptr);
 		}
 	}
-
 }

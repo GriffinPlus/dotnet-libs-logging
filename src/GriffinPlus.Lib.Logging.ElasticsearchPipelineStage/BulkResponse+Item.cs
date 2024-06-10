@@ -7,108 +7,105 @@ using System;
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace GriffinPlus.Lib.Logging.Elasticsearch
+namespace GriffinPlus.Lib.Logging.Elasticsearch;
+
+partial class BulkResponse
 {
-
-	partial class BulkResponse
+	/// <summary>
+	/// A container for a result in a bulk request.
+	/// </summary>
+	[DebuggerDisplay("create => ({" + nameof(Create) + "})")]
+	public sealed class Item
 	{
+		private readonly BulkResponsePool mPool;
+
 		/// <summary>
-		/// A container for a result in a bulk request.
+		/// Initializes a new instance of the <see cref="BulkResponse.Item"/> class.
 		/// </summary>
-		[DebuggerDisplay("create => ({" + nameof(Create) + "})")]
-		public sealed class Item
+		/// <param name="pool">The pool managing the response and its resources.</param>
+		internal Item(BulkResponsePool pool)
 		{
-			private readonly BulkResponsePool mPool;
+			mPool = pool;
+			Reset(); // init pool references in proxies
+		}
 
-			/// <summary>
-			/// Initializes a new instance of the <see cref="BulkResponse.Item"/> class.
-			/// </summary>
-			/// <param name="pool">The pool managing the response and its resources.</param>
-			internal Item(BulkResponsePool pool)
+		/// <summary>
+		/// Gets or sets the result of an 'create' operation.
+		/// </summary>
+		public Item_Create Create; // JSON field: 'create'
+
+		/// <summary>
+		/// Resets the item for re-use.
+		/// </summary>
+		public void Reset()
+		{
+			mPool.Return(Create);
+			Create = null;
+		}
+
+		/// <summary>
+		/// Initializes the current instance from a JSON document using the specified JSON reader.
+		/// </summary>
+		/// <param name="data">The UTF-8 encoded JSON document being deserialized.</param>
+		/// <param name="reader">The JSON reader used during deserialization.</param>
+		internal void InitFromJson(byte[] data, ref Utf8JsonReader reader)
+		{
+			Debug.Assert(reader.TokenType == JsonTokenType.StartObject);
+
+			string propertyName = null;
+
+			while (reader.Read())
 			{
-				mPool = pool;
-				Reset(); // init pool references in proxies
-			}
-
-			/// <summary>
-			/// Gets or sets the result of an 'create' operation.
-			/// </summary>
-			public Item_Create Create; // JSON field: 'create'
-
-			/// <summary>
-			/// Resets the item for re-use.
-			/// </summary>
-			public void Reset()
-			{
-				mPool.Return(Create);
-				Create = null;
-			}
-
-			/// <summary>
-			/// Initializes the current instance from a JSON document using the specified JSON reader.
-			/// </summary>
-			/// <param name="data">The UTF-8 encoded JSON document being deserialized.</param>
-			/// <param name="reader">The JSON reader used during deserialization.</param>
-			internal void InitFromJson(byte[] data, ref Utf8JsonReader reader)
-			{
-				Debug.Assert(reader.TokenType == JsonTokenType.StartObject);
-
-				string propertyName = null;
-
-				while (reader.Read())
+				switch (reader.TokenType)
 				{
-					switch (reader.TokenType)
+					case JsonTokenType.PropertyName:
 					{
-						case JsonTokenType.PropertyName:
+						propertyName = mPool.GetStringFromUtf8(reader.ValueSpan);
+						break;
+					}
+
+					case JsonTokenType.StartObject:
+					{
+						switch (propertyName)
 						{
-							propertyName = mPool.GetStringFromUtf8(reader.ValueSpan);
-							break;
+							case "create":
+								Create = mPool.GetBulkResponseItemCreate();
+								Create.InitFromJson(data, ref reader);
+								break;
+
+							default:
+								// unexpected property, skip all children!
+								reader.Skip();
+								break;
 						}
 
-						case JsonTokenType.StartObject:
-						{
-							switch (propertyName)
-							{
-								case "create":
-									Create = mPool.GetBulkResponseItemCreate();
-									Create.InitFromJson(data, ref reader);
-									break;
+						break;
+					}
 
-								default:
-									// unexpected property, skip all children!
-									reader.Skip();
-									break;
-							}
+					case JsonTokenType.EndObject:
+					{
+						return;
+					}
 
-							break;
-						}
-
-						case JsonTokenType.EndObject:
-						{
-							return;
-						}
-
-						case JsonTokenType.None:
-						case JsonTokenType.StartArray:
-						case JsonTokenType.EndArray:
-						case JsonTokenType.Comment:
-						case JsonTokenType.String:
-						case JsonTokenType.Number:
-						case JsonTokenType.True:
-						case JsonTokenType.False:
-						case JsonTokenType.Null:
-						default:
-						{
-							// unexpected token, skip!
-							reader.Skip();
-							break;
-						}
+					case JsonTokenType.None:
+					case JsonTokenType.StartArray:
+					case JsonTokenType.EndArray:
+					case JsonTokenType.Comment:
+					case JsonTokenType.String:
+					case JsonTokenType.Number:
+					case JsonTokenType.True:
+					case JsonTokenType.False:
+					case JsonTokenType.Null:
+					default:
+					{
+						// unexpected token, skip!
+						reader.Skip();
+						break;
 					}
 				}
-
-				throw new ArgumentException("The reader did not deliver a closing 'EndObject'.");
 			}
+
+			throw new ArgumentException("The reader did not deliver a closing 'EndObject'.");
 		}
 	}
-
 }

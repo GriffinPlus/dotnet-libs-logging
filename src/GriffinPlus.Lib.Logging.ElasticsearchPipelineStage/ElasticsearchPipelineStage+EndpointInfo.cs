@@ -5,61 +5,58 @@
 
 using System;
 
-namespace GriffinPlus.Lib.Logging.Elasticsearch
+namespace GriffinPlus.Lib.Logging.Elasticsearch;
+
+partial class ElasticsearchPipelineStage
 {
-
-	partial class ElasticsearchPipelineStage
+	/// <summary>
+	/// Information about an Elasticsearch API endpoint.
+	/// </summary>
+	private sealed class EndpointInfo
 	{
+		private bool mIsOperational;
+
 		/// <summary>
-		/// Information about an Elasticsearch API endpoint.
+		/// Initializes a new instance of the <see cref="EndpointInfo"/> class.
 		/// </summary>
-		private sealed class EndpointInfo
+		/// <param name="apiBaseUrl">Base URL of the API endpoint.</param>
+		public EndpointInfo(Uri apiBaseUrl)
 		{
-			private bool mIsOperational;
+			BulkRequestApiUrl = new Uri(apiBaseUrl, "_bulk");
 
-			/// <summary>
-			/// Initializes a new instance of the <see cref="EndpointInfo"/> class.
-			/// </summary>
-			/// <param name="apiBaseUrl">Base URL of the API endpoint.</param>
-			public EndpointInfo(Uri apiBaseUrl)
+			// the endpoint is considered to be non-operational at start
+			// (put the error tick count into the past, so the stage will try connecting immediately)
+			mIsOperational = false;
+			ErrorTickCount = Environment.TickCount - RetryEndpointAfterErrorTimeMs - 1;
+		}
+
+		/// <summary>
+		/// Gets the URL of the bulk request endpoint.
+		/// </summary>
+		public Uri BulkRequestApiUrl { get; }
+
+		/// <summary>
+		/// Gets the tick count (<see cref="Environment.TickCount"/>) of last reported error.
+		/// The value is 0, if no error has occurred.
+		/// </summary>
+		public int ErrorTickCount { get; private set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the endpoint has been tried at least once.
+		/// </summary>
+		public bool HasTriedToConnect { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the endpoint accepts new messages to index.
+		/// </summary>
+		public bool IsOperational
+		{
+			get => mIsOperational;
+			set
 			{
-				BulkRequestApiUrl = new Uri(apiBaseUrl, "_bulk");
-
-				// the endpoint is considered to be non-operational at start
-				// (put the error tick count into the past, so the stage will try connecting immediately)
-				mIsOperational = false;
-				ErrorTickCount = Environment.TickCount - RetryEndpointAfterErrorTimeMs - 1;
-			}
-
-			/// <summary>
-			/// Gets the URL of the bulk request endpoint.
-			/// </summary>
-			public Uri BulkRequestApiUrl { get; }
-
-			/// <summary>
-			/// Gets the tick count (<see cref="Environment.TickCount"/>) of last reported error.
-			/// The value is 0, if no error has occurred.
-			/// </summary>
-			public int ErrorTickCount { get; private set; }
-
-			/// <summary>
-			/// Gets or sets a value indicating whether the endpoint has been tried at least once.
-			/// </summary>
-			public bool HasTriedToConnect { get; set; }
-
-			/// <summary>
-			/// Gets or sets a value indicating whether the endpoint accepts new messages to index.
-			/// </summary>
-			public bool IsOperational
-			{
-				get => mIsOperational;
-				set
-				{
-					mIsOperational = value;
-					ErrorTickCount = mIsOperational ? 0 : Environment.TickCount;
-				}
+				mIsOperational = value;
+				ErrorTickCount = mIsOperational ? 0 : Environment.TickCount;
 			}
 		}
 	}
-
 }

@@ -5,44 +5,41 @@
 
 using System;
 
-namespace GriffinPlus.Lib.Logging.Collections
+namespace GriffinPlus.Lib.Logging.Collections;
+
+/// <summary>
+/// Interface for log message filters that plug into a collection inheriting from the <see cref="LogMessageCollectionBase{TMessage}"/>
+/// class to filter messages provided by the collection.
+/// </summary>
+/// <typeparam name="TMessage">The type of the log message.</typeparam>
+public interface ILogMessageCollectionFilterBase<TMessage>
+	where TMessage : class, ILogMessage
 {
+	/// <summary>
+	/// Occurs when the filter changes.
+	/// </summary>
+	event EventHandler<FilterChangedEventArgs> FilterChanged;
 
 	/// <summary>
-	/// Interface for log message filters that plug into a collection inheriting from the <see cref="LogMessageCollectionBase{TMessage}"/>
-	/// class to filter messages provided by the collection.
+	/// Attaches the filter to the specified collection.
 	/// </summary>
-	/// <typeparam name="TMessage">The type of the log message.</typeparam>
-	public interface ILogMessageCollectionFilterBase<TMessage>
-		where TMessage : class, ILogMessage
-	{
-		/// <summary>
-		/// Occurs when the filter changes.
-		/// </summary>
-		event EventHandler<FilterChangedEventArgs> FilterChanged;
+	/// <param name="collection">Collection to attach.</param>
+	/// <exception cref="ArgumentNullException">The specified collection is <c>null</c>.</exception>
+	void AttachToCollection(ILogMessageCollection<TMessage> collection);
 
-		/// <summary>
-		/// Attaches the filter to the specified collection.
-		/// </summary>
-		/// <param name="collection">Collection to attach.</param>
-		/// <exception cref="ArgumentNullException">The specified collection is <c>null</c>.</exception>
-		void AttachToCollection(ILogMessageCollection<TMessage> collection);
+	/// <summary>
+	/// Detaches the filter from its collection.
+	/// </summary>
+	void DetachFromCollection();
 
-		/// <summary>
-		/// Detaches the filter from its collection.
-		/// </summary>
-		void DetachFromCollection();
-
-		/// <summary>
-		/// Determines whether the specified log message matches the filter criteria.
-		/// </summary>
-		/// <param name="message">Message to check.</param>
-		/// <returns>
-		/// <c>true</c> if the specified message matches the filter criteria;<br/>
-		/// otherwise <c>false</c>.
-		/// </returns>
-		/// <exception cref="ArgumentNullException">The specified message is <c>null</c>.</exception>
-		bool Matches(TMessage message);
-	}
-
+	/// <summary>
+	/// Determines whether the specified log message matches the filter criteria.
+	/// </summary>
+	/// <param name="message">Message to check.</param>
+	/// <returns>
+	/// <c>true</c> if the specified message matches the filter criteria;<br/>
+	/// otherwise <c>false</c>.
+	/// </returns>
+	/// <exception cref="ArgumentNullException">The specified message is <c>null</c>.</exception>
+	bool Matches(TMessage message);
 }

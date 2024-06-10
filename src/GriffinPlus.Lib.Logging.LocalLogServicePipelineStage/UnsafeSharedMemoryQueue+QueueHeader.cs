@@ -5,47 +5,44 @@
 
 using System.Runtime.InteropServices;
 
-namespace GriffinPlus.Lib.Logging
-{
+namespace GriffinPlus.Lib.Logging;
 
-	partial class UnsafeSharedMemoryQueue
+partial class UnsafeSharedMemoryQueue
+{
+	/// <summary>
+	/// The header of the shared memory queue.
+	/// </summary>
+	[StructLayout(LayoutKind.Sequential)]
+	private unsafe struct QueueHeader
 	{
 		/// <summary>
-		/// The header of the shared memory queue.
+		/// The signature (used to recognize the shared memory queue).
 		/// </summary>
-		[StructLayout(LayoutKind.Sequential)]
-		private unsafe struct QueueHeader
-		{
-			/// <summary>
-			/// The signature (used to recognize the shared memory queue).
-			/// </summary>
-			public fixed byte Signature[4];
+		public fixed byte Signature[4];
 
-			/// <summary>
-			/// Index of the first block in the 'free block stack'.
-			/// </summary>
-			public int FreeStackHeaderIndex;
+		/// <summary>
+		/// Index of the first block in the 'free block stack'.
+		/// </summary>
+		public int FreeStackHeaderIndex;
 
-			/// <summary>
-			/// Index of the first block in the 'used block stack'.
-			/// </summary>
-			public int UsedStackHeaderIndex;
+		/// <summary>
+		/// Index of the first block in the 'used block stack'.
+		/// </summary>
+		public int UsedStackHeaderIndex;
 
-			/// <summary>
-			/// Maximum number of elements in the queue.
-			/// </summary>
-			public int NumberOfBlocks;
+		/// <summary>
+		/// Maximum number of elements in the queue.
+		/// </summary>
+		public int NumberOfBlocks;
 
-			/// <summary>
-			/// Size of a queue element (as specified when creating the queue).
-			/// </summary>
-			public int BufferSize;
+		/// <summary>
+		/// Size of a queue element (as specified when creating the queue).
+		/// </summary>
+		public int BufferSize;
 
-			/// <summary>
-			/// Size of a queue element (including padding bytes to fill up entire cache lines).
-			/// </summary>
-			public int BlockSize;
-		}
+		/// <summary>
+		/// Size of a queue element (including padding bytes to fill up entire cache lines).
+		/// </summary>
+		public int BlockSize;
 	}
-
 }

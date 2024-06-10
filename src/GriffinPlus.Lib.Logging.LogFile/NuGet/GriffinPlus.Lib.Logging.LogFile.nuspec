@@ -7,14 +7,15 @@
 		<authors>Sascha Falk</authors>
 		<copyright>Copyright (c) 2024 Sascha Falk and Contributors</copyright>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<description>A log file for the Griffin+ logging subsystem working on a sqlite database.
-Includes a pipeline stage to integrate the log file into the Griffin+ logging subsystem.
-A collection with data-binding capabilities backed by the log file allows to access log files conveniently.
-A filtering accessor on top of the collection allows to access messages matching a specific filter.
-A data-binding capable filter is also part of the package. It allows to filter by timestamp and select from
-collections of process names/ids, application names, log writer names, log level names and tags. Items from
-these collections simply need to be selected to filter by them. A full-text search on the message text field
-is also supported.
+		<description>
+			A log file for the Griffin+ logging subsystem working on a sqlite database.
+			Includes a pipeline stage to integrate the log file into the Griffin+ logging subsystem.
+			A collection with data-binding capabilities backed by the log file allows to access log files conveniently.
+			A filtering accessor on top of the collection allows to access messages matching a specific filter.
+			A data-binding capable filter is also part of the package. It allows to filter by timestamp and select from
+			collections of process names/ids, application names, log writer names, log level names and tags. Items from
+			these collections simply need to be selected to filter by them. A full-text search on the message text field
+			is also supported.
 		</description>
 		<license type="expression">MIT</license>
 		<projectUrl>https://github.com/GriffinPlus/dotnet-libs-logging</projectUrl>

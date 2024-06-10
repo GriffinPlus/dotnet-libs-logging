@@ -6,40 +6,37 @@
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+/// <summary>
+/// A binary reader that is capable of reading plain structs.
+/// </summary>
+class MemoryReader : BinaryReader
 {
+	/// <summary>
+	/// Initializes a new instance of the <see cref="MemoryReader"/> class.
+	/// </summary>
+	/// <param name="stream">Stream to read from.</param>
+	public MemoryReader(Stream stream) : base(stream) { }
 
 	/// <summary>
-	/// A binary reader that is capable of reading plain structs.
+	/// Reads a plain struct from the underlying stream (does not do any marshalling!).
 	/// </summary>
-	class MemoryReader : BinaryReader
+	/// <typeparam name="T">Type of the struct to read.</typeparam>
+	/// <returns>The read struct.</returns>
+	public T ReadStruct<T>()
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="MemoryReader"/> class.
-		/// </summary>
-		/// <param name="stream">Stream to read from.</param>
-		public MemoryReader(Stream stream) : base(stream) { }
+		int byteLength = Marshal.SizeOf(typeof(T));
+		byte[] bytes = ReadBytes(byteLength);
+		GCHandle pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
 
-		/// <summary>
-		/// Reads a plain struct from the underlying stream (does not do any marshalling!).
-		/// </summary>
-		/// <typeparam name="T">Type of the struct to read.</typeparam>
-		/// <returns>The read struct.</returns>
-		public T ReadStruct<T>()
+		try
 		{
-			int byteLength = Marshal.SizeOf(typeof(T));
-			byte[] bytes = ReadBytes(byteLength);
-			GCHandle pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-
-			try
-			{
-				return (T)Marshal.PtrToStructure(pinned.AddrOfPinnedObject(), typeof(T));
-			}
-			finally
-			{
-				pinned.Free();
-			}
+			return (T)Marshal.PtrToStructure(pinned.AddrOfPinnedObject(), typeof(T));
+		}
+		finally
+		{
+			pinned.Free();
 		}
 	}
-
 }

@@ -7,32 +7,29 @@ using System;
 
 using BenchmarkDotNet.Running;
 
-namespace Benchmark.Elasticsearch
+namespace Benchmark.Elasticsearch;
+
+class Program
 {
-
-	class Program
+	/// <summary>
+	/// The program's entry point.
+	/// </summary>
+	private static void Main()
 	{
-		/// <summary>
-		/// The program's entry point.
-		/// </summary>
-		private static void Main()
-		{
-			// Benchmarks targeting specific methods
-			// -----------------------------------------------------------------------------------------------------------------
-			BenchmarkRunner.Run(typeof(Benchmarks));
+		// Benchmarks targeting specific methods
+		// -----------------------------------------------------------------------------------------------------------------
+		BenchmarkRunner.Run(typeof(Benchmarks));
 
-			/*
-			var benchmarks = new Benchmarks();
-			benchmarks.GlobalSetup();
-			benchmarks.Process(1000000);
-			benchmarks.GlobalCleanup();
-			*/
+		/*
+		var benchmarks = new Benchmarks();
+		benchmarks.GlobalSetup();
+		benchmarks.Process(1000000);
+		benchmarks.GlobalCleanup();
+		*/
 
-			// -----------------------------------------------------------------------------------------------------------------
-			Console.WriteLine();
-			Console.WriteLine("Press any key to continue...");
-			Console.ReadKey();
-		}
+		// -----------------------------------------------------------------------------------------------------------------
+		Console.WriteLine();
+		Console.WriteLine("Press any key to continue...");
+		Console.ReadKey();
 	}
-
 }

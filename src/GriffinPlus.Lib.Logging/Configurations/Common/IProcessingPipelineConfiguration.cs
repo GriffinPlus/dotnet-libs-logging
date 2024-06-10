@@ -3,19 +3,16 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+/// <summary>
+/// Interface for the pipeline configuration.
+/// Must be implemented thread-safe.
+/// </summary>
+public interface IProcessingPipelineConfiguration
 {
-
 	/// <summary>
-	/// Interface for the pipeline configuration.
-	/// Must be implemented thread-safe.
+	/// Gets the configurations for pipeline stages.
 	/// </summary>
-	public interface IProcessingPipelineConfiguration
-	{
-		/// <summary>
-		/// Gets the configurations for pipeline stages.
-		/// </summary>
-		IProcessingPipelineStageConfigurations Stages { get; }
-	}
-
+	IProcessingPipelineStageConfigurations Stages { get; }
 }

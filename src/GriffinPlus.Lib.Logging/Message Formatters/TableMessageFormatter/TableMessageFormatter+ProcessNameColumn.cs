@@ -6,58 +6,55 @@
 using System;
 using System.Text;
 
-namespace GriffinPlus.Lib.Logging
-{
+namespace GriffinPlus.Lib.Logging;
 
-	partial class TableMessageFormatter
+partial class TableMessageFormatter
+{
+	/// <summary>
+	/// The process name column.
+	/// </summary>
+	private sealed class ProcessNameColumn : ColumnBase
 	{
 		/// <summary>
-		/// The process name column.
+		/// Initializes a new instance of the <see cref="ProcessNameColumn"/> class.
 		/// </summary>
-		private sealed class ProcessNameColumn : ColumnBase
+		/// <param name="formatter">The formatter the column belongs to.</param>
+		public ProcessNameColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.ProcessName) { }
+
+		/// <summary>
+		/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width"/> property.
+		/// </summary>
+		/// <param name="message">Message to measure to adjust the width of the column.</param>
+		public override void UpdateWidth(ILogMessage message)
 		{
-			/// <summary>
-			/// Initializes a new instance of the <see cref="ProcessNameColumn"/> class.
-			/// </summary>
-			/// <param name="formatter">The formatter the column belongs to.</param>
-			public ProcessNameColumn(TableMessageFormatter formatter) : base(formatter, LogMessageField.ProcessName) { }
+			int length = message.ProcessName.Length;
+			Width = Math.Max(Width, length);
+		}
 
-			/// <summary>
-			/// Measures the field of the message to present in the column and updates the <see cref="ColumnBase.Width"/> property.
-			/// </summary>
-			/// <param name="message">Message to measure to adjust the width of the column.</param>
-			public override void UpdateWidth(ILogMessage message)
+		/// <summary>
+		/// Appends output of the current column for the specified line to the specified string builder.
+		/// </summary>
+		/// <param name="message">Message containing the field to format.</param>
+		/// <param name="builder">String builder to append the output of the current column to.</param>
+		/// <param name="line">Line number to append (zero-based).</param>
+		/// <returns>
+		/// <c>true</c> if there are more lines to process;<br/>
+		/// otherwise <c>false</c>.
+		/// </returns>
+		public override bool Write(ILogMessage message, StringBuilder builder, int line)
+		{
+			if (line == 0)
 			{
-				int length = message.ProcessName.Length;
-				Width = Math.Max(Width, length);
+				string s = message.ProcessName;
+				builder.Append(s);
+				if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
+			}
+			else
+			{
+				if (!IsLastColumn) builder.Append(' ', Width);
 			}
 
-			/// <summary>
-			/// Appends output of the current column for the specified line to the specified string builder.
-			/// </summary>
-			/// <param name="message">Message containing the field to format.</param>
-			/// <param name="builder">String builder to append the output of the current column to.</param>
-			/// <param name="line">Line number to append (zero-based).</param>
-			/// <returns>
-			/// <c>true</c> if there are more lines to process;<br/>
-			/// otherwise <c>false</c>.
-			/// </returns>
-			public override bool Write(ILogMessage message, StringBuilder builder, int line)
-			{
-				if (line == 0)
-				{
-					string s = message.ProcessName;
-					builder.Append(s);
-					if (!IsLastColumn && s.Length < Width) builder.Append(' ', Width - s.Length);
-				}
-				else
-				{
-					if (!IsLastColumn) builder.Append(' ', Width);
-				}
-
-				return false; // last line
-			}
+			return false; // last line
 		}
 	}
-
 }

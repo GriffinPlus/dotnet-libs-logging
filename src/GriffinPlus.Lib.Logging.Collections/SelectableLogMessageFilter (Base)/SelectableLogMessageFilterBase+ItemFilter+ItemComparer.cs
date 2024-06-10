@@ -6,42 +6,39 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace GriffinPlus.Lib.Logging.Collections
-{
+namespace GriffinPlus.Lib.Logging.Collections;
 
-	partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
+partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
+{
+	/// <summary>
+	/// Base class for more specific filters filtering for names.
+	/// </summary>
+	partial class ItemFilter<T>
 	{
 		/// <summary>
-		/// Base class for more specific filters filtering for names.
+		/// An comparer for items of an <see cref="ItemFilter{T}"/>.
 		/// </summary>
-		partial class ItemFilter<T>
+		internal class ItemValueComparer : IComparer<ISelectableLogMessageFilter_Item<T>>, IComparer
 		{
-			/// <summary>
-			/// An comparer for items of an <see cref="ItemFilter{T}"/>.
-			/// </summary>
-			internal class ItemValueComparer : IComparer<ISelectableLogMessageFilter_Item<T>>, IComparer
+			public readonly IComparer<T> ValueComparer;
+
+			public ItemValueComparer(IComparer<T> valueComparer)
 			{
-				public readonly IComparer<T> ValueComparer;
+				ValueComparer = valueComparer;
+			}
 
-				public ItemValueComparer(IComparer<T> valueComparer)
-				{
-					ValueComparer = valueComparer;
-				}
+			public int Compare(ISelectableLogMessageFilter_Item<T> x, ISelectableLogMessageFilter_Item<T> y)
+			{
+				if (x == y) return 0;
+				if (x == null) return -1;
+				if (y == null) return 1;
+				return ValueComparer.Compare(x.Value, y.Value);
+			}
 
-				public int Compare(ISelectableLogMessageFilter_Item<T> x, ISelectableLogMessageFilter_Item<T> y)
-				{
-					if (x == y) return 0;
-					if (x == null) return -1;
-					if (y == null) return 1;
-					return ValueComparer.Compare(x.Value, y.Value);
-				}
-
-				public int Compare(object x, object y)
-				{
-					return Compare((ISelectableLogMessageFilter_Item<T>)x, (ISelectableLogMessageFilter_Item<T>)y);
-				}
+			public int Compare(object x, object y)
+			{
+				return Compare((ISelectableLogMessageFilter_Item<T>)x, (ISelectableLogMessageFilter_Item<T>)y);
 			}
 		}
 	}
-
 }

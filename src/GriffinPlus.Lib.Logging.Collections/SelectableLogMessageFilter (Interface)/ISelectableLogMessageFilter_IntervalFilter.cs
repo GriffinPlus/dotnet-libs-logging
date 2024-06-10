@@ -5,33 +5,30 @@
 
 using System;
 
-namespace GriffinPlus.Lib.Logging.Collections
+namespace GriffinPlus.Lib.Logging.Collections;
+
+/// <summary>
+/// A filter selecting log messages with timestamps in a specific interval.
+/// </summary>
+public interface ISelectableLogMessageFilter_IntervalFilter : ISelectableLogMessageFilter_FilterBase
 {
+	/// <summary>
+	/// Gets the timestamp of the oldest message in the collection.
+	/// </summary>
+	DateTimeOffset MinTimestamp { get; }
 
 	/// <summary>
-	/// A filter selecting log messages with timestamps in a specific interval.
+	/// Gets the timestamp of the newest message in the collection.
 	/// </summary>
-	public interface ISelectableLogMessageFilter_IntervalFilter : ISelectableLogMessageFilter_FilterBase
-	{
-		/// <summary>
-		/// Gets the timestamp of the oldest message in the collection.
-		/// </summary>
-		DateTimeOffset MinTimestamp { get; }
+	DateTimeOffset MaxTimestamp { get; }
 
-		/// <summary>
-		/// Gets the timestamp of the newest message in the collection.
-		/// </summary>
-		DateTimeOffset MaxTimestamp { get; }
+	/// <summary>
+	/// Gets or sets the lower limit of the timestamp interval to select.
+	/// </summary>
+	DateTimeOffset From { get; set; }
 
-		/// <summary>
-		/// Gets or sets the lower limit of the timestamp interval to select.
-		/// </summary>
-		DateTimeOffset From { get; set; }
-
-		/// <summary>
-		/// Gets or sets the upper limit of the timestamp interval to select.
-		/// </summary>
-		DateTimeOffset To { get; set; }
-	}
-
+	/// <summary>
+	/// Gets or sets the upper limit of the timestamp interval to select.
+	/// </summary>
+	DateTimeOffset To { get; set; }
 }

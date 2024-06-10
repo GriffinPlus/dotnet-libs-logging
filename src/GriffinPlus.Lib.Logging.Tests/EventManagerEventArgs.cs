@@ -5,17 +5,14 @@
 
 using System;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+public class EventManagerEventArgs : EventArgs
 {
-
-	public class EventManagerEventArgs : EventArgs
+	public EventManagerEventArgs(string myString)
 	{
-		public EventManagerEventArgs(string myString)
-		{
-			MyString = myString;
-		}
-
-		public string MyString { get; }
+		MyString = myString;
 	}
 
+	public string MyString { get; }
 }

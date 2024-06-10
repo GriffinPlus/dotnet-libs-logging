@@ -5,37 +5,34 @@
 
 using System.Collections.Generic;
 
-namespace GriffinPlus.Lib.Logging.Collections
-{
+namespace GriffinPlus.Lib.Logging.Collections;
 
-	public partial class FileBackedLogMessageCollection
+public partial class FileBackedLogMessageCollection
+{
+	/// <summary>
+	/// A page in the log message cache.
+	/// </summary>
+	internal class CachePage
 	{
 		/// <summary>
-		/// A page in the log message cache.
+		/// Id of the first message in the cache page.
 		/// </summary>
-		internal class CachePage
+		public long FirstMessageId;
+
+		/// <summary>
+		/// Messages in the cache page.
+		/// </summary>
+		public readonly List<LogFileMessage> Messages;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="CachePage"/> class.
+		/// </summary>
+		/// <param name="firstMessageId">Id of the first message in the cache page.</param>
+		/// <param name="capacity">Capacity of the cache page.</param>
+		public CachePage(long firstMessageId, int capacity)
 		{
-			/// <summary>
-			/// Id of the first message in the cache page.
-			/// </summary>
-			public long FirstMessageId;
-
-			/// <summary>
-			/// Messages in the cache page.
-			/// </summary>
-			public readonly List<LogFileMessage> Messages;
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="CachePage"/> class.
-			/// </summary>
-			/// <param name="firstMessageId">Id of the first message in the cache page.</param>
-			/// <param name="capacity">Capacity of the cache page.</param>
-			public CachePage(long firstMessageId, int capacity)
-			{
-				FirstMessageId = firstMessageId;
-				Messages = new List<LogFileMessage>(capacity);
-			}
+			FirstMessageId = firstMessageId;
+			Messages = new List<LogFileMessage>(capacity);
 		}
 	}
-
 }

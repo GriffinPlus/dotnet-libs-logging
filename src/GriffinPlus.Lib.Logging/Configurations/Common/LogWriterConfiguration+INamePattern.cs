@@ -5,26 +5,23 @@
 
 using System.Text.RegularExpressions;
 
-namespace GriffinPlus.Lib.Logging
-{
+namespace GriffinPlus.Lib.Logging;
 
-	public partial class LogWriterConfiguration
+public partial class LogWriterConfiguration
+{
+	/// <summary>
+	/// Interface of log writer pattern classes (must be implemented immutable).
+	/// </summary>
+	public interface INamePattern
 	{
 		/// <summary>
-		/// Interface of log writer pattern classes (must be implemented immutable).
+		/// Gets the original pattern.
 		/// </summary>
-		public interface INamePattern
-		{
-			/// <summary>
-			/// Gets the original pattern.
-			/// </summary>
-			string Pattern { get; }
+		string Pattern { get; }
 
-			/// <summary>
-			/// Gets the regular expression matching the specified pattern.
-			/// </summary>
-			Regex Regex { get; }
-		}
+		/// <summary>
+		/// Gets the regular expression matching the specified pattern.
+		/// </summary>
+		Regex Regex { get; }
 	}
-
 }

@@ -6,25 +6,22 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace GriffinPlus.Lib.Logging.Collections
+namespace GriffinPlus.Lib.Logging.Collections;
+
+/// <summary>
+/// Extension methods for the <see cref="ILogMessageCollection{TMessage}"/> interface.
+/// </summary>
+public static class LogMessageCollectionEventWatcherExtensions
 {
-
 	/// <summary>
-	/// Extension methods for the <see cref="ILogMessageCollection{TMessage}"/> interface.
+	/// Creates an event watcher for the <see cref="INotifyCollectionChanged.CollectionChanged"/> and the
+	/// <see cref="INotifyPropertyChanged.PropertyChanged"/> event that assists with checking whether these
+	/// events were called or not.
 	/// </summary>
-	public static class LogMessageCollectionEventWatcherExtensions
+	/// <param name="collection">Collection to attach the watcher to.</param>
+	/// <returns>The registered event watcher.</returns>
+	public static LogMessageCollectionEventWatcher AttachEventWatcher(this ILogMessageCollectionCommon<LogMessage> collection)
 	{
-		/// <summary>
-		/// Creates an event watcher for the <see cref="INotifyCollectionChanged.CollectionChanged"/> and the
-		/// <see cref="INotifyPropertyChanged.PropertyChanged"/> event that assists with checking whether these
-		/// events were called or not.
-		/// </summary>
-		/// <param name="collection">Collection to attach the watcher to.</param>
-		/// <returns>The registered event watcher.</returns>
-		public static LogMessageCollectionEventWatcher AttachEventWatcher(this ILogMessageCollectionCommon<LogMessage> collection)
-		{
-			return new LogMessageCollectionEventWatcher(collection);
-		}
+		return new LogMessageCollectionEventWatcher(collection);
 	}
-
 }

@@ -3,41 +3,38 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+/// <summary>
+/// System logger that does not do anything (for missing integrations).
+/// </summary>
+public class NoopSystemLogger : ISystemLogger
 {
+	/// <summary>
+	/// Initializes a new instances of the <see cref="NoopSystemLogger"/> class.
+	/// </summary>
+	public NoopSystemLogger() { }
 
 	/// <summary>
-	/// System logger that does not do anything (for missing integrations).
+	/// Disposes the system logger.
 	/// </summary>
-	public class NoopSystemLogger : ISystemLogger
-	{
-		/// <summary>
-		/// Initializes a new instances of the <see cref="NoopSystemLogger"/> class.
-		/// </summary>
-		public NoopSystemLogger() { }
+	public void Dispose() { }
 
-		/// <summary>
-		/// Disposes the system logger.
-		/// </summary>
-		public void Dispose() { }
+	/// <summary>
+	/// Writes an informational message to the system log.
+	/// </summary>
+	/// <param name="message">Message to write.</param>
+	public void WriteInfo(string message) { }
 
-		/// <summary>
-		/// Writes an informational message to the system log.
-		/// </summary>
-		/// <param name="message">Message to write.</param>
-		public void WriteInfo(string message) { }
+	/// <summary>
+	/// Writes a warning to the system log.
+	/// </summary>
+	/// <param name="message">Message to write.</param>
+	public void WriteWarning(string message) { }
 
-		/// <summary>
-		/// Writes a warning to the system log.
-		/// </summary>
-		/// <param name="message">Message to write.</param>
-		public void WriteWarning(string message) { }
-
-		/// <summary>
-		/// Writes an error to the system log.
-		/// </summary>
-		/// <param name="message">Message to write.</param>
-		public void WriteError(string message) { }
-	}
-
+	/// <summary>
+	/// Writes an error to the system log.
+	/// </summary>
+	/// <param name="message">Message to write.</param>
+	public void WriteError(string message) { }
 }

@@ -5,36 +5,33 @@
 
 using System.Text;
 
-namespace GriffinPlus.Lib.Logging
-{
+namespace GriffinPlus.Lib.Logging;
 
-	partial class JsonMessageFormatter
+partial class JsonMessageFormatter
+{
+	/// <summary>
+	/// The process name field (immutable).
+	/// </summary>
+	private sealed class ProcessNameField : FieldBase
 	{
 		/// <summary>
-		/// The process name field (immutable).
+		/// Initializes a new instance of the <see cref="ProcessNameField"/> class.
 		/// </summary>
-		private sealed class ProcessNameField : FieldBase
-		{
-			/// <summary>
-			/// Initializes a new instance of the <see cref="ProcessNameField"/> class.
-			/// </summary>
-			/// <param name="formatter">The formatter the field belongs to.</param>
-			/// <param name="jsonKey">Key of the field in the JSON document.</param>
-			public ProcessNameField(JsonMessageFormatter formatter, string jsonKey) :
-				base(formatter, LogMessageField.ProcessName, jsonKey) { }
+		/// <param name="formatter">The formatter the field belongs to.</param>
+		/// <param name="jsonKey">Key of the field in the JSON document.</param>
+		public ProcessNameField(JsonMessageFormatter formatter, string jsonKey) :
+			base(formatter, LogMessageField.ProcessName, jsonKey) { }
 
-			/// <summary>
-			/// Appends the formatted value of the current field to the specified string builder.
-			/// </summary>
-			/// <param name="message">Message containing the field to format.</param>
-			/// <param name="builder">String builder to append the output of the current field to.</param>
-			public override void AppendFormattedValue(ILogMessage message, StringBuilder builder)
-			{
-				builder.Append('"');
-				if (message.ProcessName != null) AppendEscapedStringToBuilder(builder, message.ProcessName, Formatter.mEscapeSolidus);
-				builder.Append('"');
-			}
+		/// <summary>
+		/// Appends the formatted value of the current field to the specified string builder.
+		/// </summary>
+		/// <param name="message">Message containing the field to format.</param>
+		/// <param name="builder">String builder to append the output of the current field to.</param>
+		public override void AppendFormattedValue(ILogMessage message, StringBuilder builder)
+		{
+			builder.Append('"');
+			if (message.ProcessName != null) AppendEscapedStringToBuilder(builder, message.ProcessName, Formatter.mEscapeSolidus);
+			builder.Append('"');
 		}
 	}
-
 }

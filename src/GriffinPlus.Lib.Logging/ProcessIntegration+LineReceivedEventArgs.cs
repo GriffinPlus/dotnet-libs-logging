@@ -5,30 +5,27 @@
 
 using System;
 
-namespace GriffinPlus.Lib.Logging
-{
+namespace GriffinPlus.Lib.Logging;
 
-	partial class ProcessIntegration
+partial class ProcessIntegration
+{
+	/// <summary>
+	/// Event arguments for the <see cref="OutputStreamReceivedText"/> and the <see cref="ErrorStreamReceivedText"/> events.
+	/// </summary>
+	public class LineReceivedEventArgs : EventArgs
 	{
 		/// <summary>
-		/// Event arguments for the <see cref="OutputStreamReceivedText"/> and the <see cref="ErrorStreamReceivedText"/> events.
+		/// Initializes a new instance of the <see cref="LineReceivedEventArgs"/> class.
 		/// </summary>
-		public class LineReceivedEventArgs : EventArgs
+		/// <param name="line">The received line.</param>
+		public LineReceivedEventArgs(string line)
 		{
-			/// <summary>
-			/// Initializes a new instance of the <see cref="LineReceivedEventArgs"/> class.
-			/// </summary>
-			/// <param name="line">The received line.</param>
-			public LineReceivedEventArgs(string line)
-			{
-				Line = line;
-			}
-
-			/// <summary>
-			/// Gets the received line.
-			/// </summary>
-			public string Line { get; }
+			Line = line;
 		}
-	}
 
+		/// <summary>
+		/// Gets the received line.
+		/// </summary>
+		public string Line { get; }
+	}
 }

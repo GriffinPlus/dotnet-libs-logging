@@ -9,30 +9,27 @@ using System.IO;
 
 using Xunit;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+/// <summary>
+/// Unit tests targeting the <see cref="FileBackedLogConfiguration"/> class.
+/// </summary>
+public class FileBackedLogConfigurationTests : LogConfigurationTests_Base<FileBackedLogConfiguration>
 {
-
-	/// <summary>
-	/// Unit tests targeting the <see cref="FileBackedLogConfiguration"/> class.
-	/// </summary>
-	public class FileBackedLogConfigurationTests : LogConfigurationTests_Base<FileBackedLogConfiguration>
+	[Fact]
+	public override void Saving_Default_Configuration()
 	{
-		[Fact]
-		public override void Saving_Default_Configuration()
+		// create a new configuration file containing default settings
+		string fileName = $"{Guid.NewGuid():N}.gplogconf";
+		using (var configuration = new FileBackedLogConfiguration())
 		{
-			// create a new configuration file containing default settings
-			string fileName = $"{Guid.NewGuid():N}.gplogconf";
-			using (var configuration = new FileBackedLogConfiguration())
-			{
-				configuration.Path = fileName;
-				Assert.Equal(Process.GetCurrentProcess().ProcessName, configuration.ApplicationName);
-				configuration.Save();
-				Assert.True(File.Exists(configuration.FullPath));
-			}
-
-			// delete the create configuration
-			File.Delete(fileName);
+			configuration.Path = fileName;
+			Assert.Equal(Process.GetCurrentProcess().ProcessName, configuration.ApplicationName);
+			configuration.Save();
+			Assert.True(File.Exists(configuration.FullPath));
 		}
-	}
 
+		// delete the create configuration
+		File.Delete(fileName);
+	}
 }

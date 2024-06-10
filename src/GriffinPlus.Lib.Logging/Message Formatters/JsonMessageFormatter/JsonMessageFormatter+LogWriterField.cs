@@ -5,36 +5,33 @@
 
 using System.Text;
 
-namespace GriffinPlus.Lib.Logging
-{
+namespace GriffinPlus.Lib.Logging;
 
-	partial class JsonMessageFormatter
+partial class JsonMessageFormatter
+{
+	/// <summary>
+	/// The log writer name field (immutable).
+	/// </summary>
+	private sealed class LogWriterField : FieldBase
 	{
 		/// <summary>
-		/// The log writer name field (immutable).
+		/// Initializes a new instance of the <see cref="LogWriterField"/> class.
 		/// </summary>
-		private sealed class LogWriterField : FieldBase
-		{
-			/// <summary>
-			/// Initializes a new instance of the <see cref="LogWriterField"/> class.
-			/// </summary>
-			/// <param name="formatter">The formatter the field belongs to.</param>
-			/// <param name="jsonKey">Key of the field in the JSON document.</param>
-			public LogWriterField(JsonMessageFormatter formatter, string jsonKey) :
-				base(formatter, LogMessageField.LogWriterName, jsonKey) { }
+		/// <param name="formatter">The formatter the field belongs to.</param>
+		/// <param name="jsonKey">Key of the field in the JSON document.</param>
+		public LogWriterField(JsonMessageFormatter formatter, string jsonKey) :
+			base(formatter, LogMessageField.LogWriterName, jsonKey) { }
 
-			/// <summary>
-			/// Appends the formatted value of the current field to the specified string builder.
-			/// </summary>
-			/// <param name="message">Message containing the field to format.</param>
-			/// <param name="builder">String builder to append the output of the current field to.</param>
-			public override void AppendFormattedValue(ILogMessage message, StringBuilder builder)
-			{
-				builder.Append('"');
-				if (message.LogWriterName != null) AppendEscapedStringToBuilder(builder, message.LogWriterName, Formatter.mEscapeSolidus);
-				builder.Append('"');
-			}
+		/// <summary>
+		/// Appends the formatted value of the current field to the specified string builder.
+		/// </summary>
+		/// <param name="message">Message containing the field to format.</param>
+		/// <param name="builder">String builder to append the output of the current field to.</param>
+		public override void AppendFormattedValue(ILogMessage message, StringBuilder builder)
+		{
+			builder.Append('"');
+			if (message.LogWriterName != null) AppendEscapedStringToBuilder(builder, message.LogWriterName, Formatter.mEscapeSolidus);
+			builder.Append('"');
 		}
 	}
-
 }

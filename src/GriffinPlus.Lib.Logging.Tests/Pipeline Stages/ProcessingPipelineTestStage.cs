@@ -3,60 +3,57 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+/// <summary>
+/// Pipeline stage that only provides functionality of the <see cref="SyncProcessingPipelineStage"/> class.
+/// It is used for testing purposes only.
+/// </summary>
+public class ProcessingPipelineTestStage : SyncProcessingPipelineStage
 {
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ProcessingPipelineTestStage"/> class.
+	/// </summary>
+	public ProcessingPipelineTestStage() { }
 
 	/// <summary>
-	/// Pipeline stage that only provides functionality of the <see cref="SyncProcessingPipelineStage"/> class.
-	/// It is used for testing purposes only.
+	/// Gets a value indicating whether <see cref="OnInitialize"/> was called.
 	/// </summary>
-	public class ProcessingPipelineTestStage : SyncProcessingPipelineStage
+	public bool OnInitializeWasCalled { get; private set; }
+
+	/// <summary>
+	/// Gets a value indicating whether <see cref="OnShutdown"/> was called.
+	/// </summary>
+	public bool OnShutdownWasCalled { get; private set; }
+
+	/// <summary>
+	/// Gets a value indicating whether <see cref="ProcessSync"/> was called.
+	/// </summary>
+	public bool ProcessSyncWasCalled { get; private set; }
+
+	/// <summary>
+	/// Gets the message that was passed to <see cref="ProcessSync"/> with the last call.
+	/// </summary>
+	public LocalLogMessage MessagePassedToProcessSync { get; private set; }
+
+	protected override void OnInitialize()
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ProcessingPipelineTestStage"/> class.
-		/// </summary>
-		public ProcessingPipelineTestStage() { }
-
-		/// <summary>
-		/// Gets a value indicating whether <see cref="OnInitialize"/> was called.
-		/// </summary>
-		public bool OnInitializeWasCalled { get; private set; }
-
-		/// <summary>
-		/// Gets a value indicating whether <see cref="OnShutdown"/> was called.
-		/// </summary>
-		public bool OnShutdownWasCalled { get; private set; }
-
-		/// <summary>
-		/// Gets a value indicating whether <see cref="ProcessSync"/> was called.
-		/// </summary>
-		public bool ProcessSyncWasCalled { get; private set; }
-
-		/// <summary>
-		/// Gets the message that was passed to <see cref="ProcessSync"/> with the last call.
-		/// </summary>
-		public LocalLogMessage MessagePassedToProcessSync { get; private set; }
-
-		protected override void OnInitialize()
-		{
-			OnInitializeWasCalled = true;
-			base.OnInitialize();
-		}
-
-		protected internal override void OnShutdown()
-		{
-			OnShutdownWasCalled = true;
-			base.OnShutdown();
-		}
-
-		protected override bool ProcessSync(LocalLogMessage message)
-		{
-			ProcessSyncWasCalled = true;
-			MessagePassedToProcessSync?.Release();
-			MessagePassedToProcessSync = message;
-			MessagePassedToProcessSync.AddRef();
-			return base.ProcessSync(message);
-		}
+		OnInitializeWasCalled = true;
+		base.OnInitialize();
 	}
 
+	protected internal override void OnShutdown()
+	{
+		OnShutdownWasCalled = true;
+		base.OnShutdown();
+	}
+
+	protected override bool ProcessSync(LocalLogMessage message)
+	{
+		ProcessSyncWasCalled = true;
+		MessagePassedToProcessSync?.Release();
+		MessagePassedToProcessSync = message;
+		MessagePassedToProcessSync.AddRef();
+		return base.ProcessSync(message);
+	}
 }

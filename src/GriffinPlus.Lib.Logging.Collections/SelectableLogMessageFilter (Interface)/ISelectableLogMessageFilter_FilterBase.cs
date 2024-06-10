@@ -5,18 +5,15 @@
 
 using System.ComponentModel;
 
-namespace GriffinPlus.Lib.Logging.Collections
+namespace GriffinPlus.Lib.Logging.Collections;
+
+/// <summary>
+/// Common interface for all filters in a <see cref="ISelectableLogMessageFilter{TMessage}"/>.
+/// </summary>
+public interface ISelectableLogMessageFilter_FilterBase : INotifyPropertyChanged
 {
-
 	/// <summary>
-	/// Common interface for all filters in a <see cref="ISelectableLogMessageFilter{TMessage}"/>.
+	/// Gets or sets a value indicating whether the filter is enabled.
 	/// </summary>
-	public interface ISelectableLogMessageFilter_FilterBase : INotifyPropertyChanged
-	{
-		/// <summary>
-		/// Gets or sets a value indicating whether the filter is enabled.
-		/// </summary>
-		bool Enabled { get; set; }
-	}
-
+	bool Enabled { get; set; }
 }

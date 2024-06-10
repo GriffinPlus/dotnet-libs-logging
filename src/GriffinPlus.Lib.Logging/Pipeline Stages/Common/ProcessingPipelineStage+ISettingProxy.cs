@@ -3,16 +3,13 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+partial class ProcessingPipelineStage
 {
-
-	partial class ProcessingPipelineStage
-	{
-		/// <summary>
-		/// Typed interface for a setting proxy (must be implemented thread-safe).
-		/// </summary>
-		/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
-		internal interface ISettingProxy<T> : IProcessingPipelineStageSetting<T>, IUntypedSettingProxy { }
-	}
-
+	/// <summary>
+	/// Typed interface for a setting proxy (must be implemented thread-safe).
+	/// </summary>
+	/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
+	internal interface ISettingProxy<T> : IProcessingPipelineStageSetting<T>, IUntypedSettingProxy { }
 }

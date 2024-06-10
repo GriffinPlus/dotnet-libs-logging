@@ -3,23 +3,20 @@
 // The source code is licensed under the MIT license.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace GriffinPlus.Lib.Logging.Collections
+namespace GriffinPlus.Lib.Logging.Collections;
+
+/// <summary>
+/// Interface of a filter selecting log messages containing a specific string in the message text.
+/// </summary>
+public interface ISelectableLogMessageFilter_FulltextFilter : ISelectableLogMessageFilter_FilterBase
 {
+	/// <summary>
+	/// Gets or sets the text a log message must contain to be matched.
+	/// </summary>
+	string SearchText { get; set; }
 
 	/// <summary>
-	/// Interface of a filter selecting log messages containing a specific string in the message text.
+	/// Gets or sets a value indicating whether filtering is done case-sensitive or not.
 	/// </summary>
-	public interface ISelectableLogMessageFilter_FulltextFilter : ISelectableLogMessageFilter_FilterBase
-	{
-		/// <summary>
-		/// Gets or sets the text a log message must contain to be matched.
-		/// </summary>
-		string SearchText { get; set; }
-
-		/// <summary>
-		/// Gets or sets a value indicating whether filtering is done case-sensitive or not.
-		/// </summary>
-		bool IsCaseSensitive { get; set; }
-	}
-
+	bool IsCaseSensitive { get; set; }
 }

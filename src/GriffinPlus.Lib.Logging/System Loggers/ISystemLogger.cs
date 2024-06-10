@@ -5,31 +5,28 @@
 
 using System;
 
-namespace GriffinPlus.Lib.Logging
+namespace GriffinPlus.Lib.Logging;
+
+/// <summary>
+/// Interface of the system's logging facility, i.e. the windows event log on Windows and syslog on Linux.
+/// </summary>
+public interface ISystemLogger : IDisposable
 {
+	/// <summary>
+	/// Writes an informational message to the system log.
+	/// </summary>
+	/// <param name="message">Message to write.</param>
+	void WriteInfo(string message);
 
 	/// <summary>
-	/// Interface of the system's logging facility, i.e. the windows event log on Windows and syslog on Linux.
+	/// Writes a warning to the system log.
 	/// </summary>
-	public interface ISystemLogger : IDisposable
-	{
-		/// <summary>
-		/// Writes an informational message to the system log.
-		/// </summary>
-		/// <param name="message">Message to write.</param>
-		void WriteInfo(string message);
+	/// <param name="message">Message to write.</param>
+	void WriteWarning(string message);
 
-		/// <summary>
-		/// Writes a warning to the system log.
-		/// </summary>
-		/// <param name="message">Message to write.</param>
-		void WriteWarning(string message);
-
-		/// <summary>
-		/// Writes an error to the system log.
-		/// </summary>
-		/// <param name="message">Message to write.</param>
-		void WriteError(string message);
-	}
-
+	/// <summary>
+	/// Writes an error to the system log.
+	/// </summary>
+	/// <param name="message">Message to write.</param>
+	void WriteError(string message);
 }
