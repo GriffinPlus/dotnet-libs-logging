@@ -23,7 +23,7 @@
 			</group>
 			<group targetFramework="net48">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
-				<dependency id="System.Text.Json" version="8.0.1" include="all" />
+				<dependency id="System.Text.Json" version="8.0.3" include="all" />
 			</group>
 			<group targetFramework="net5.0">
 				<dependency id="GriffinPlus.Lib.Logging" version="[$version$]" include="all" />
