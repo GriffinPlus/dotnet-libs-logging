@@ -19,7 +19,7 @@ public interface IFileBackedLogMessageCollectionFilter : ILogMessageCollectionFi
 	/// <summary>
 	/// Gets the first log message matching the filter criteria starting at the specified position in the log file going backwards.
 	/// </summary>
-	/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
+	/// <param name="fromMessageId">ID of the log message in the log file to start at.</param>
 	/// <returns>
 	/// The first log message matching the filter;<br/>
 	/// <c>null</c> if no message matching the filter was found.
@@ -31,7 +31,7 @@ public interface IFileBackedLogMessageCollectionFilter : ILogMessageCollectionFi
 	/// <summary>
 	/// Gets a range of log messages matching the filter criteria from the log file going backwards.
 	/// </summary>
-	/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
+	/// <param name="fromMessageId">ID of the log message in the log file to start at.</param>
 	/// <param name="count">Maximum number of matching log messages to get.</param>
 	/// <param name="reverse">
 	/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the log file;<br/>
@@ -49,7 +49,7 @@ public interface IFileBackedLogMessageCollectionFilter : ILogMessageCollectionFi
 	/// <summary>
 	/// Gets the first log message matching the filter criteria starting at the specified position in the log file going forward.
 	/// </summary>
-	/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
+	/// <param name="fromMessageId">ID of the log message in the log file to start at.</param>
 	/// <returns>
 	/// The first log message matching the filter;<br/>
 	/// <c>null</c> if no message matching the filter was found.
@@ -61,7 +61,7 @@ public interface IFileBackedLogMessageCollectionFilter : ILogMessageCollectionFi
 	/// <summary>
 	/// Gets a range of log messages matching the filter criteria from the log file going forward.
 	/// </summary>
-	/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
+	/// <param name="fromMessageId">ID of the log message in the log file to start at.</param>
 	/// <param name="count">Maximum number of matching log messages to get.</param>
 	/// <returns>Log messages matching the filter.</returns>
 	/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
@@ -72,8 +72,8 @@ public interface IFileBackedLogMessageCollectionFilter : ILogMessageCollectionFi
 	/// <summary>
 	/// Gets a range of log messages matching the filter criteria from the log file.
 	/// </summary>
-	/// <param name="fromMessageId">Id of the log message in the log file to start at.</param>
-	/// <param name="toMessageId">Id of the log message in the log file to stop at.</param>
+	/// <param name="fromMessageId">ID of the log message in the log file to start at.</param>
+	/// <param name="toMessageId">ID of the log message in the log file to stop at.</param>
 	/// <returns>Log messages matching the filter.</returns>
 	/// <exception cref="InvalidOperationException">The filter is not attached to a collection.</exception>
 	/// <exception cref="ArgumentOutOfRangeException">

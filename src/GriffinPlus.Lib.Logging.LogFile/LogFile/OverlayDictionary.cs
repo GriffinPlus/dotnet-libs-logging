@@ -23,7 +23,7 @@ class OverlayDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	/// <param name="comparer">Comparer to use to checks keys for equality (may be <c>null</c> to use the default comparer).</param>
 	public OverlayDictionary(IEqualityComparer<TKey> comparer = null)
 	{
-		comparer = comparer ?? EqualityComparer<TKey>.Default;
+		comparer ??= EqualityComparer<TKey>.Default;
 		mOverlay = new Dictionary<TKey, TValue>(comparer);
 		mDictionary = new Dictionary<TKey, TValue>(comparer);
 	}

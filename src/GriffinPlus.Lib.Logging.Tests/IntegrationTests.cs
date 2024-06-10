@@ -5,6 +5,8 @@
 
 using Xunit;
 
+// ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
+
 namespace GriffinPlus.Lib.Logging;
 
 /// <summary>

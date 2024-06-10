@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging;
 /// </summary>
 public partial class JsonMessageFormatter : ILogMessageFormatter
 {
-	private readonly List<FieldBase>           mFields          = new();
+	private readonly List<FieldBase>           mFields          = [];
 	private readonly StringBuilder             mOutputBuilder   = new();
 	private          LogMessageField           mFormattedFields = LogMessageField.None;
 	private          IFormatProvider           mFormatProvider  = CultureInfo.InvariantCulture;
@@ -34,7 +34,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 
 	/// <summary>
 	/// Gets a formatter that writes the following fields:
-	/// 'Timestamp', 'Log Writer', 'Log Level', 'Tags', 'Application Name', 'Process Name', 'Process Id', 'Text'.
+	/// 'Timestamp', 'Log Writer', 'Log Level', 'Tags', 'Application Name', 'Process Name', 'Process ID', 'Text'.
 	/// </summary>
 	public static JsonMessageFormatter AllFields
 	{
@@ -90,7 +90,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 
 	/// <summary>
 	/// Gets or sets the format provider to use when formatting log messages.
-	/// By default <see cref="CultureInfo.InvariantCulture"/> is used.
+	/// By default, <see cref="CultureInfo.InvariantCulture"/> is used.
 	/// </summary>
 	public IFormatProvider FormatProvider
 	{
@@ -140,7 +140,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 
 	/// <summary>
 	/// Gets or sets the characters used to inject a line break.
-	/// By default it is the system's standard (CRLF on windows, LF on linux).
+	/// By default, it is the system's standard (CRLF on windows, LF on linux).
 	/// </summary>
 	public string Newline
 	{
@@ -239,13 +239,13 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// (default: "u", conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ)
 	/// </summary>
 	/// <param name="format">
-	/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx" for details).
+	/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx for details).
 	/// </param>
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddTimestampField(string format = "u", string jsonKey = null)
 	{
 		if (format == null) throw new ArgumentNullException(nameof(format));
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Timestamp;
+		jsonKey ??= JsonMessageFieldNames.Default.Timestamp;
 
 		// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
 		DateTimeOffset.MinValue.ToString(format); // throws FormatException, if format is invalid
@@ -260,7 +260,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddHighPrecisionTimestampField(string jsonKey = null)
 	{
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.HighPrecisionTimestamp;
+		jsonKey ??= JsonMessageFieldNames.Default.HighPrecisionTimestamp;
 		var field = new HighPrecisionTimestampField(this, jsonKey);
 		AppendField(field);
 	}
@@ -271,7 +271,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddLogWriterField(string jsonKey = null)
 	{
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.LogWriter;
+		jsonKey ??= JsonMessageFieldNames.Default.LogWriter;
 		var field = new LogWriterField(this, jsonKey);
 		AppendField(field);
 	}
@@ -282,7 +282,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddTagsField(string jsonKey = null)
 	{
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Tags;
+		jsonKey ??= JsonMessageFieldNames.Default.Tags;
 		var field = new TagsField(this, jsonKey);
 		AppendField(field);
 	}
@@ -293,7 +293,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddLogLevelField(string jsonKey = null)
 	{
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.LogLevel;
+		jsonKey ??= JsonMessageFieldNames.Default.LogLevel;
 		var field = new LogLevelField(this, jsonKey);
 		AppendField(field);
 	}
@@ -304,7 +304,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddApplicationNameField(string jsonKey = null)
 	{
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ApplicationName;
+		jsonKey ??= JsonMessageFieldNames.Default.ApplicationName;
 		var field = new ApplicationNameField(this, jsonKey);
 		AppendField(field);
 	}
@@ -315,7 +315,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddProcessNameField(string jsonKey = null)
 	{
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ProcessName;
+		jsonKey ??= JsonMessageFieldNames.Default.ProcessName;
 		var field = new ProcessNameField(this, jsonKey);
 		AppendField(field);
 	}
@@ -326,7 +326,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddProcessIdField(string jsonKey = null)
 	{
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.ProcessId;
+		jsonKey ??= JsonMessageFieldNames.Default.ProcessId;
 		var field = new ProcessIdField(this, jsonKey);
 		AppendField(field);
 	}
@@ -337,7 +337,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
 	public void AddTextField(string jsonKey = null)
 	{
-		if (jsonKey == null) jsonKey = JsonMessageFieldNames.Default.Text;
+		jsonKey ??= JsonMessageFieldNames.Default.Text;
 		var field = new TextField(this, jsonKey);
 		AppendField(field);
 	}

@@ -35,11 +35,9 @@ public class FileBackedProcessingPipelineStageConfigurationTests : ProcessingPip
 	public void Create()
 	{
 		// use specific file name to avoid sharing violation when running other tests that use the default constructor of the configuration as well
-		using (var logConfiguration = new FileBackedLogConfiguration())
-		{
-			logConfiguration.Path = "FileBackedProcessingPipelineStageConfigurationTests.gplogconf";
-			var stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, "Stage");
-			Assert.NotNull(stageConfiguration.Sync);
-		}
+		using var logConfiguration = new FileBackedLogConfiguration();
+		logConfiguration.Path = "FileBackedProcessingPipelineStageConfigurationTests.gplogconf";
+		var stageConfiguration = new FileBackedProcessingPipelineStageConfiguration(logConfiguration, "Stage");
+		Assert.NotNull(stageConfiguration.Sync);
 	}
 }

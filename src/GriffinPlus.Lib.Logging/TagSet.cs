@@ -26,7 +26,7 @@ namespace GriffinPlus.Lib.Logging;
 /// </summary>
 public sealed class TagSet : ITagSet
 {
-	private static readonly List<string> sEmpty = new();
+	private static readonly List<string> sEmpty = [];
 	private readonly        List<string> mTags;
 	private readonly        int          mHashCode;
 
@@ -61,7 +61,7 @@ public sealed class TagSet : ITagSet
 	{
 		if (tags == null) throw new ArgumentNullException(nameof(tags));
 		foreach (string tag in tags) LogWriterTag.CheckTag(tag);
-		mTags = new List<string>(new HashSet<string>(tags, StringComparer.Ordinal));
+		mTags = [..new HashSet<string>(tags, StringComparer.Ordinal)];
 		mTags.Sort(StringComparer.OrdinalIgnoreCase);
 		mHashCode = CalculateHashCode(mTags);
 	}
@@ -264,6 +264,7 @@ public sealed class TagSet : ITagSet
 		unchecked
 		{
 			int hash = 17;
+			// ReSharper disable once LoopCanBeConvertedToQuery
 			foreach (string tag in tags) hash = hash * 23 + tag.GetHashCode();
 			return hash;
 		}

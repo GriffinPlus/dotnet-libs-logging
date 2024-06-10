@@ -278,7 +278,7 @@ public class LogWriterConfigurationBuilderTests
 
 		// include the last log level
 		// => log level should automatically be removed from the exclude list
-		Assert.Same(builder, builder.WithLevel(allLevels[allLevels.Length - 1])); // level as LogLevel
+		Assert.Same(builder, builder.WithLevel(allLevels[^1])); // level as LogLevel
 		writer = builder.Build();
 		Assert.Equal(2, writer.Includes.Count());
 		Assert.Equal(allLevels.First().Name, writer.Includes.First());
@@ -315,7 +315,7 @@ public class LogWriterConfigurationBuilderTests
 
 		// include the last log level
 		// => log level should automatically be removed from the exclude list
-		Assert.Same(builder, builder.WithLevel(allLevels[allLevels.Length - 1].Name)); // level as string
+		Assert.Same(builder, builder.WithLevel(allLevels[^1].Name)); // level as string
 		writer = builder.Build();
 		Assert.Equal(2, writer.Includes.Count());
 		Assert.Equal(allLevels.First().Name, writer.Includes.First());
@@ -576,7 +576,7 @@ public class LogWriterConfigurationBuilderTests
 
 		// exclude the last log level
 		// => log level should automatically be removed from the include list
-		Assert.Same(builder, builder.WithoutLevel(allLevels[allLevels.Length - 1])); // level as LogLevel
+		Assert.Same(builder, builder.WithoutLevel(allLevels[^1])); // level as LogLevel
 		writer = builder.Build();
 		Assert.Equal(allLevels.Skip(1).Take(allLevels.Length - 2).Select(x => x.Name), writer.Includes);
 		Assert.Equal(2, writer.Excludes.Count());
@@ -613,7 +613,7 @@ public class LogWriterConfigurationBuilderTests
 
 		// exclude the last log level
 		// => log level should automatically be removed from the include list
-		Assert.Same(builder, builder.WithoutLevel(allLevels[allLevels.Length - 1].Name)); // level as string
+		Assert.Same(builder, builder.WithoutLevel(allLevels[^1].Name)); // level as string
 		writer = builder.Build();
 		Assert.Equal(allLevels.Skip(1).Take(allLevels.Length - 2).Select(x => x.Name), writer.Includes);
 		Assert.Equal(2, writer.Excludes.Count());

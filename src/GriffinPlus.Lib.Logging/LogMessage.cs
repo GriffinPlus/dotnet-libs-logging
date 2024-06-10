@@ -92,7 +92,7 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 	/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 	/// </param>
 	/// <param name="processName">Name of the process emitting the log message.</param>
-	/// <param name="processId">Id of the process emitting the log message.</param>
+	/// <param name="processId">ID of the process emitting the log message.</param>
 	/// <param name="text">The actual text the log message is about.</param>
 	/// <returns>The log message itself.</returns>
 	/// <exception cref="NotSupportedException">The log message is read-only.</exception>
@@ -188,7 +188,7 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 	/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 	/// </param>
 	/// <param name="processName">Name of the process emitting the log message.</param>
-	/// <param name="processId">Id of the process emitting the log message.</param>
+	/// <param name="processId">ID of the process emitting the log message.</param>
 	/// <param name="text">The actual text the log message is about.</param>
 	/// <returns>The initialized log message.</returns>
 	/// <exception cref="InvalidOperationException">The log message has not been prepared for asynchronous initialization.</exception>

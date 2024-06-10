@@ -327,36 +327,6 @@ sealed partial class LocalLogServiceConnection
 	{
 		Debug.Assert(!Monitor.IsEntered(mSync));
 
-		// ReSharper disable once LocalFunctionHidesMethod
-		async Task ShutdownAsync(bool unregister)
-		{
-			if (unregister)
-			{
-				try
-				{
-					// create an 'unregister' request (for error conditions)
-					var unregisterRequest = new Request
-					{
-						Command = Command.UnregisterLogSource,
-						UnregisterLogSourceCommand = { ProcessId = sCurrentProcessId }
-					};
-
-					await SendRequestAsync(unregisterRequest, 0, CancellationToken.None).ConfigureAwait(false);
-				}
-				catch
-				{
-					/* swallow */
-				}
-			}
-
-			lock (mSync)
-			{
-				mEstablishingConnectionInProgress = false;
-				mSharedMemoryQueue.Close();
-				mServiceProcess = null;
-			}
-		}
-
 		Process serviceProcess = null;
 
 		try
@@ -431,7 +401,7 @@ sealed partial class LocalLogServiceConnection
 			Debug.WriteLine($"Getting process id of the local log service succeeded (process id: {serviceProcessId}).");
 
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			// tell the local log service about the to 'write to log file' setting
+			// tell the local log service about the 'write to log file' setting
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			Debug.WriteLine("Sending 'set writing to log file' request to the local log service...");
@@ -508,6 +478,38 @@ sealed partial class LocalLogServiceConnection
 			serviceProcess?.Dispose();
 			await ShutdownAsync(true).ConfigureAwait(false);
 		}
+
+		return;
+
+		// ReSharper disable once LocalFunctionHidesMethod
+		async Task ShutdownAsync(bool unregister)
+		{
+			if (unregister)
+			{
+				try
+				{
+					// create an 'unregister' request (for error conditions)
+					var unregisterRequest = new Request
+					{
+						Command = Command.UnregisterLogSource,
+						UnregisterLogSourceCommand = { ProcessId = sCurrentProcessId }
+					};
+
+					await SendRequestAsync(unregisterRequest, 0, CancellationToken.None).ConfigureAwait(false);
+				}
+				catch
+				{
+					/* swallow */
+				}
+			}
+
+			lock (mSync)
+			{
+				mEstablishingConnectionInProgress = false;
+				mSharedMemoryQueue.Close();
+				mServiceProcess = null;
+			}
+		}
 	}
 
 	/// <summary>
@@ -529,41 +531,39 @@ sealed partial class LocalLogServiceConnection
 					triggerConnectivityMonitorEvent = mTriggerConnectivityMonitorEvent;
 				}
 
-				using (var cancellationTokenSource = new CancellationTokenSource())
-				using (var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, connectivityMonitorCancellationToken))
-				{
-					Task triggerTask = triggerConnectivityMonitorEvent.WaitAsync(linkedCancellationTokenSource.Token);
-					Task delayTask = Task.Delay(timeout, linkedCancellationTokenSource.Token);
-					await Task.WhenAny(triggerTask, delayTask).ConfigureAwait(false); // does not throw!
-					if (triggerTask.Status == TaskStatus.RanToCompletion || delayTask.Status == TaskStatus.RanToCompletion)
-						cancellationTokenSource.Cancel();
+				using var cancellationTokenSource = new CancellationTokenSource();
+				using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token, connectivityMonitorCancellationToken);
+				Task triggerTask = triggerConnectivityMonitorEvent.WaitAsync(linkedCancellationTokenSource.Token);
+				Task delayTask = Task.Delay(timeout, linkedCancellationTokenSource.Token);
+				await Task.WhenAny(triggerTask, delayTask).ConfigureAwait(false); // does not throw!
+				if (triggerTask.Status == TaskStatus.RanToCompletion || delayTask.Status == TaskStatus.RanToCompletion)
+					cancellationTokenSource.Cancel();
 
-					// wait for all tasks to complete
+				// wait for all tasks to complete
+				try
+				{
+					await Task.WhenAll(triggerTask, delayTask).ConfigureAwait(false);
+				}
+				catch (OperationCanceledException)
+				{
+					if (triggerTask.Status != TaskStatus.RanToCompletion && delayTask.Status != TaskStatus.RanToCompletion)
+						return;
+				}
+
+				// try to connect to the local log service if the service process seems to be dead
+				if (!IsLogSinkAlive())
+				{
+					// shut the connection down to clean up resources
+					ShutdownConnection();
+
+					// try to connect to the local log service
 					try
 					{
-						await Task.WhenAll(triggerTask, delayTask).ConfigureAwait(false);
+						await EstablishConnectionAsync(connectivityMonitorCancellationToken).ConfigureAwait(false);
 					}
 					catch (OperationCanceledException)
 					{
-						if (triggerTask.Status != TaskStatus.RanToCompletion && delayTask.Status != TaskStatus.RanToCompletion)
-							return;
-					}
-
-					// try to to connect to the local log service if the service process seems to be dead
-					if (!IsLogSinkAlive())
-					{
-						// shut the connection down to clean up resources
-						ShutdownConnection();
-
-						// try to connect to the local log service
-						try
-						{
-							await EstablishConnectionAsync(connectivityMonitorCancellationToken).ConfigureAwait(false);
-						}
-						catch (OperationCanceledException)
-						{
-							return;
-						}
+						return;
 					}
 				}
 			}
@@ -623,7 +623,7 @@ sealed partial class LocalLogServiceConnection
 			lock (mSync)
 			{
 				mShutdownInProgress = false; // shutdown completed
-				mInitialized = false;        // connection is not initialized any more
+				mInitialized = false;        // connection is not initialized anymore
 			}
 		}
 	}
@@ -728,7 +728,6 @@ sealed partial class LocalLogServiceConnection
 			using var pipe = new NamedPipeClientStream(".", mSinkServerPipeName, PipeDirection.InOut);
 			using var reader = new MemoryReader(pipe);
 			using var writer = new MemoryWriter(pipe);
-
 			// connect to the pipe or wait until the pipe is available
 			// (the local log service has a set of pipes to serve multiple clients, so waiting most likely
 			// indicates that the service is not running)
@@ -765,7 +764,6 @@ sealed partial class LocalLogServiceConnection
 			using var pipe = new NamedPipeClientStream(".", mSinkServerPipeName, PipeDirection.InOut);
 			using var reader = new MemoryReader(pipe);
 			using var writer = new MemoryWriter(pipe);
-
 			// connect to the pipe or wait until the pipe is available
 			// (the local log service has a set of pipes to serve multiple clients, so waiting most likely
 			// indicates that the service is not running)
@@ -1758,7 +1756,7 @@ sealed partial class LocalLogServiceConnection
 	/// Tries to transfer the current message block incl. its extension blocks from the peak buffer queue
 	/// to the shared memory queue.
 	/// </summary>
-	/// <param name="extensionMessageCount">Number of extension message blocks following the message block..</param>
+	/// <param name="extensionMessageCount">Number of extension message blocks following the message block.</param>
 	/// <returns>
 	/// <c>true</c> if the message block and all extension blocks have been sent successfully;<br/>
 	/// <c>false</c> if the queue is full.

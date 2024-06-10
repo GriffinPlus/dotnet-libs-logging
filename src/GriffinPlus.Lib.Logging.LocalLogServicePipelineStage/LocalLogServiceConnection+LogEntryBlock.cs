@@ -130,7 +130,7 @@ partial class LocalLogServiceConnection
 		public long Timestamp;
 
 		/// <summary>
-		/// Id of the process writing the log entry.
+		/// ID of the process writing the log entry.
 		/// </summary>
 		public int ProcessId;
 
@@ -149,7 +149,7 @@ partial class LocalLogServiceConnection
 		public long Timestamp;
 
 		/// <summary>
-		/// Id of the process writing the log entry.
+		/// ID of the process writing the log entry.
 		/// </summary>
 		public int ProcessId;
 
@@ -185,7 +185,7 @@ partial class LocalLogServiceConnection
 		public int LogLevelNameId;
 
 		/// <summary>
-		/// Id of the process writing the log entry.
+		/// ID of the process writing the log entry.
 		/// </summary>
 		public int ProcessId;
 

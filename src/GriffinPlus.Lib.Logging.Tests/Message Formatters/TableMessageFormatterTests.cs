@@ -49,98 +49,98 @@ public class TableMessageFormatterTests
 				Text = "MyText"
 			};
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.None,
 				message,
 				""
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.Timestamp,
 				message,
 				"2000-01-01 00:00:00Z"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.HighPrecisionTimestamp,
 				message,
 				"123"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.LogWriterName,
 				message,
 				"MyWriter"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.LogLevelName,
 				message,
 				"MyLevel"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet() },
 				""
-			};
+			];
 
 			message.Tags = new TagSet("Tag");
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet("Tag") },
 				"Tag"
-			};
+			];
 
 			message.Tags = new TagSet("Tag1", "Tag2");
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
 				"Tag1, Tag2"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.ApplicationName,
 				message,
 				"MyApp"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.ProcessName,
 				message,
 				"MyProcess"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.ProcessId,
 				message,
 				"42"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.Text,
 				message,
 				"MyText"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				LogMessageField.All,
 				message,
 				"2000-01-01 00:00:00Z | 123 | MyWriter | MyLevel | Tag1, Tag2 | MyApp | MyProcess | 42 | MyText"
-			};
+			];
 		}
 	}
 

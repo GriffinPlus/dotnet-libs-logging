@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging;
 /// </summary>
 public class FileWriterPipelineStageTests : TextWriterPipelineStageBaseTests<FileWriterPipelineStage>, IDisposable
 {
-	private readonly List<string> mTemporaryFiles = new();
+	private readonly List<string> mTemporaryFiles = [];
 
 	/// <summary>
 	/// Disposes the test cleaning up temporary files.
@@ -113,11 +113,9 @@ public class FileWriterPipelineStageTests : TextWriterPipelineStageBaseTests<Fil
 		stage.Shutdown();
 
 		// the file should be closed and contain the expected output now
-		using (var fs = new FileStream(stage.Path, FileMode.Open, FileAccess.Read, FileShare.None))
-		using (var reader = new StreamReader(fs))
-		{
-			string content = reader.ReadToEnd();
-			Assert.Equal(expected.ToString(), content);
-		}
+		using var fs = new FileStream(stage.Path, FileMode.Open, FileAccess.Read, FileShare.None);
+		using var reader = new StreamReader(fs);
+		string content = reader.ReadToEnd();
+		Assert.Equal(expected.ToString(), content);
 	}
 }

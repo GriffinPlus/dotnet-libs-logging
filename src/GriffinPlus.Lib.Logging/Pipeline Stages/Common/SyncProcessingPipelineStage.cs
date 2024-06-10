@@ -16,7 +16,7 @@ namespace GriffinPlus.Lib.Logging;
 /// <summary>
 /// Base class for stages in the log message processing pipeline.
 /// Messages are always processed in the context of the thread writing the message.
-/// Therefore only lightweight processing should be done that does not involve any i/o operations that might block.
+/// Therefore, only lightweight processing should be done that does not involve any i/o operations that might block.
 /// </summary>
 public abstract class SyncProcessingPipelineStage : ProcessingPipelineStage
 {
@@ -64,7 +64,7 @@ public abstract class SyncProcessingPipelineStage : ProcessingPipelineStage
 
 	#region Processing Setting Changes
 
-	private readonly HashSet<IUntypedSettingProxy> mChangedSettings         = new();
+	private readonly HashSet<IUntypedSettingProxy> mChangedSettings         = [];
 	private volatile bool                          mSettingChangedScheduled = false;
 
 	/// <summary>
@@ -84,7 +84,7 @@ public abstract class SyncProcessingPipelineStage : ProcessingPipelineStage
 		{
 			mSettingChangedScheduled = true;
 			ThreadPool.QueueUserWorkItem(
-				obj =>
+				_ =>
 				{
 					mSettingChangedScheduled = false;
 					IUntypedProcessingPipelineStageSetting[] settings = null;
@@ -153,7 +153,7 @@ public abstract class SyncProcessingPipelineStage : ProcessingPipelineStage
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 	/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
-	/// need the message any more.
+	/// need the message anymore.
 	/// </remarks>
 	protected virtual bool ProcessSync(LocalLogMessage message)
 	{

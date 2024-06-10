@@ -10,6 +10,8 @@ using System.ComponentModel;
 
 using Xunit;
 
+// ReSharper disable LoopCanBeConvertedToQuery
+
 namespace GriffinPlus.Lib.Logging.Collections;
 
 /// <summary>
@@ -152,8 +154,8 @@ public class LogMessageCollectionEventWatcher : IDisposable
 	#endregion
 
 	private readonly ILogMessageCollectionCommon<LogMessage> mCollection;
-	private readonly List<Tuple<string, EventArgs>>          mWatchedEventInvocations  = new();
-	private readonly List<Tuple<string, EventArgs>>          mExpectedEventInvocations = new();
+	private readonly List<Tuple<string, EventArgs>>          mWatchedEventInvocations  = [];
+	private readonly List<Tuple<string, EventArgs>>          mExpectedEventInvocations = [];
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LogMessageCollectionEventWatcher"/> class.
@@ -201,34 +203,32 @@ public class LogMessageCollectionEventWatcher : IDisposable
 	{
 		Assert.Equal(mExpectedEventInvocations.Count, mWatchedEventInvocations.Count);
 
-		using (List<Tuple<string, EventArgs>>.Enumerator expectedEnumerator = mExpectedEventInvocations.GetEnumerator())
-		using (List<Tuple<string, EventArgs>>.Enumerator watchedEnumerator = mWatchedEventInvocations.GetEnumerator())
+		using List<Tuple<string, EventArgs>>.Enumerator expectedEnumerator = mExpectedEventInvocations.GetEnumerator();
+		using List<Tuple<string, EventArgs>>.Enumerator watchedEnumerator = mWatchedEventInvocations.GetEnumerator();
+		while (expectedEnumerator.MoveNext() && watchedEnumerator.MoveNext())
 		{
-			while (expectedEnumerator.MoveNext() && watchedEnumerator.MoveNext())
+			Tuple<string, EventArgs> expected = expectedEnumerator.Current;
+			Tuple<string, EventArgs> watched = watchedEnumerator.Current;
+			Assert.NotNull(expected);
+			Assert.NotNull(watched);
+
+			Assert.Equal(expected.Item1, watched.Item1);
+
+			switch (expected.Item1)
 			{
-				Tuple<string, EventArgs> expected = expectedEnumerator.Current;
-				Tuple<string, EventArgs> watched = watchedEnumerator.Current;
-				Assert.NotNull(expected);
-				Assert.NotNull(watched);
+				case nameof(INotifyPropertyChanged.PropertyChanged):
+					Assert.Equal(
+						(PropertyChangedEventArgs)expected.Item2,
+						(PropertyChangedEventArgs)watched.Item2,
+						PropertyChangedEventArgsEqualityComparer.Instance);
+					break;
 
-				Assert.Equal(expected.Item1, watched.Item1);
-
-				switch (expected.Item1)
-				{
-					case nameof(INotifyPropertyChanged.PropertyChanged):
-						Assert.Equal(
-							(PropertyChangedEventArgs)expected.Item2,
-							(PropertyChangedEventArgs)watched.Item2,
-							PropertyChangedEventArgsEqualityComparer.Instance);
-						break;
-
-					case nameof(INotifyCollectionChanged.CollectionChanged):
-						Assert.Equal(
-							(NotifyCollectionChangedEventArgs)expected.Item2,
-							(NotifyCollectionChangedEventArgs)watched.Item2,
-							NotifyCollectionChangedEventArgsEqualityComparer.Instance);
-						break;
-				}
+				case nameof(INotifyCollectionChanged.CollectionChanged):
+					Assert.Equal(
+						(NotifyCollectionChangedEventArgs)expected.Item2,
+						(NotifyCollectionChangedEventArgs)watched.Item2,
+						NotifyCollectionChangedEventArgsEqualityComparer.Instance);
+					break;
 			}
 		}
 	}

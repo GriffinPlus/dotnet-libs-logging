@@ -15,7 +15,7 @@ public partial class FileBackedLogMessageCollection
 	internal class CachePage
 	{
 		/// <summary>
-		/// Id of the first message in the cache page.
+		/// ID of the first message in the cache page.
 		/// </summary>
 		public long FirstMessageId;
 
@@ -27,7 +27,7 @@ public partial class FileBackedLogMessageCollection
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CachePage"/> class.
 		/// </summary>
-		/// <param name="firstMessageId">Id of the first message in the cache page.</param>
+		/// <param name="firstMessageId">ID of the first message in the cache page.</param>
 		/// <param name="capacity">Capacity of the cache page.</param>
 		public CachePage(long firstMessageId, int capacity)
 		{

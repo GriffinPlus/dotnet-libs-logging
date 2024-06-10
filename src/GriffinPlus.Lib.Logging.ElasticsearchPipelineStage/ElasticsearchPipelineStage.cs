@@ -56,7 +56,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// The processing queue, passes messages from the logging thread to the processing thread.
 	/// Synchronized via monitor using itself.
 	/// </summary>
-	private readonly Deque<LocalLogMessage> mProcessingQueue = new();
+	private readonly Deque<LocalLogMessage> mProcessingQueue = [];
 
 	/// <summary>
 	/// Event that is signaled to trigger the processing thread.
@@ -110,11 +110,11 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	// members managed by the processing thread
 	private volatile bool                 mReloadConfiguration            = true;          // tells the processing thread to reload the configuration
 	private volatile bool                 mIsShutdownRequested            = false;         // tells the processing thread to shut down
-	private readonly Deque<EndpointInfo>  mEndpoints                      = new();         // elasticsearch endpoints to send requests to
+	private readonly Deque<EndpointInfo>  mEndpoints                      = [];            // elasticsearch endpoints to send requests to
 	private readonly BulkResponsePool     mBulkResponsePool               = new();         // a pool of objects used when deserializing bulk responses
-	private readonly Deque<SendOperation> mFreeSendOperations             = new();         // free send operations
-	private readonly Deque<SendOperation> mScheduledSendOperations        = new();         // send operations ready for sending
-	private readonly List<SendOperation>  mPendingSendOperations          = new();         // send operations on the line
+	private readonly Deque<SendOperation> mFreeSendOperations             = [];            // free send operations
+	private readonly Deque<SendOperation> mScheduledSendOperations        = [];            // send operations ready for sending
+	private readonly List<SendOperation>  mPendingSendOperations          = [];            // send operations on the line
 	private          HttpClient           mHttpClient                     = null;          // http client to use when sending requests to elasticsearch
 	private          string               mIndexName                      = null;          // caches IndexName
 	private          int                  mBulkRequestMaxConcurrencyLevel = 0;             // caches BulkRequestMaxConcurrencyLevel
@@ -126,7 +126,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	private          string               mLastTimezoneOffsetAsString     = "+00:00";      // caches the timezone in its string representation
 
 	// defaults of settings determining the behavior of the stage
-	private static readonly Uri[]                sDefault_ApiBaseUrls                            = { new("http://127.0.0.1:9200/") };
+	private static readonly Uri[]                sDefault_ApiBaseUrls                            = [new Uri("http://127.0.0.1:9200/")];
 	private static readonly AuthenticationScheme sDefault_Server_Authentication_Schemes          = AuthenticationScheme.PasswordBased;
 	private static readonly string               sDefault_Server_Authentication_Username         = "";
 	private static readonly string               sDefault_Server_Authentication_Password         = "";
@@ -192,7 +192,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// Converts an array of <see cref="Uri"/> to a string as used in the configuration.
 	/// </summary>
 	/// <param name="uris">Array of <see cref="Uri"/> to convert to a string.</param>
-	/// <param name="provider">Format provider to use (may be <c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
+	/// <param name="provider">Format provider to use (<c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 	/// <returns>The formatted array of <see cref="Uri"/>.</returns>
 	private static string UriArrayToString(Uri[] uris, IFormatProvider provider = null)
 	{
@@ -204,22 +204,15 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// The string is expected to contain the uris separated by semicolons.
 	/// </summary>
 	/// <param name="s">String to convert to an array of <see cref="Uri"/>.</param>
-	/// <param name="provider">Format provider to use (may be <c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
+	/// <param name="provider">Format provider to use (<c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 	/// <returns>An array of <see cref="Uri"/> corresponding to the specified string.</returns>
 	private static Uri[] StringToUriArray(string s, IFormatProvider provider = null)
 	{
-		var apiEndpoints = new List<Uri>();
-		foreach (string endpointToken in s.Trim().Split(';'))
-		{
-			string apiEndpointString = endpointToken.Trim();
-			if (apiEndpointString.Length > 0)
-			{
-				var uri = new Uri(apiEndpointString);
-				apiEndpoints.Add(uri);
-			}
-		}
-
-		return apiEndpoints.ToArray();
+		return (
+			       from endpointToken in s.Trim().Split(';')
+			       select endpointToken.Trim() into apiEndpointString
+			       where apiEndpointString.Length > 0
+			       select new Uri(apiEndpointString)).ToArray();
 	}
 
 	#endregion
@@ -534,7 +527,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// <summary>
 	/// The entry point of the processing thread that bundles messages and sends them to the Elasticsearch cluster.
 	/// </summary>
-	/// <param name="obj">The cancellation token that is signaled when the stage has exceeded its time to shut down gracefully.</param>
+	/// <param name="obj">The cancellation token that is signaled when the stage has exceeded the time to shut down gracefully.</param>
 	private void ProcessingThreadProc(object obj)
 	{
 		var threadCancellationToken = (CancellationToken)obj;
@@ -751,7 +744,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	{
 		if (mReloadConfiguration)
 		{
-			// reset reload indicator to notice changes just occur just jiffy later
+			// reset reload indicator to notice changes occur just jiffy later
 			mReloadConfiguration = false;
 
 			// recreate the http client to take potential changes to authentication settings into account
@@ -913,7 +906,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 		{
 			// endpoint is not operational
 			// => move it to the tail of the list
-			if (mEndpoints[mEndpoints.Count - 1] != endpoint)
+			if (mEndpoints[^1] != endpoint)
 			{
 				if (mEndpoints.Remove(endpoint))
 				{
@@ -1129,7 +1122,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 		// Type: keyword
 		// ------------------------------------------------------------------------------------------------------------------
 		// Process title.
-		// The process title is some times the same as process name.
+		// The process title is sometimes the same as process name.
 		// Can also be different: for example a browser setting its title to the web page currently opened.
 		// See: https://www.elastic.co/guide/en/ecs/1.10/ecs-process.html#field-process-title
 		// ------------------------------------------------------------------------------------------------------------------

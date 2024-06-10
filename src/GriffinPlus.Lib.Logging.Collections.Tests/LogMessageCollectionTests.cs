@@ -74,31 +74,29 @@ public class LogMessageCollectionTests : LogMessageCollectionBaseTests<ILogMessa
 	/// <param name="expectedCount">Expected number of log messages in the collection.</param>
 	private void TestCollectionPropertyDefaults(ILogMessageCollectionCommon<LogMessage> collection, long expectedCount)
 	{
-		using (LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher())
+		using LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		// check collection specific properties
+		Assert.Equal(expectedCount, collection.Count);
+
+		// check properties exposed by IList implementation
 		{
-			// check collection specific properties
-			Assert.Equal(expectedCount, collection.Count);
-
-			// check properties exposed by IList implementation
-			{
-				var list = collection as IList;
-				Assert.Equal(expectedCount, list.Count);
-				Assert.Equal(CollectionIsReadOnly, list.IsReadOnly);
-				Assert.Equal(CollectionIsFixedSize, list.IsFixedSize);
-				Assert.Equal(CollectionIsSynchronized, list.IsSynchronized);
-				Assert.NotSame(collection, list.SyncRoot); // sync root must not be the same as the collection to avoid deadlocks
-			}
-
-			// check properties exposed by IList<T> implementation
-			{
-				var list = (IList<LogMessage>)collection;
-				Assert.False(list.IsReadOnly);
-				Assert.Equal(expectedCount, list.Count);
-			}
-
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+			var list = collection as IList;
+			Assert.Equal(expectedCount, list.Count);
+			Assert.Equal(CollectionIsReadOnly, list.IsReadOnly);
+			Assert.Equal(CollectionIsFixedSize, list.IsFixedSize);
+			Assert.Equal(CollectionIsSynchronized, list.IsSynchronized);
+			Assert.NotSame(collection, list.SyncRoot); // sync root must not be the same as the collection to avoid deadlocks
 		}
+
+		// check properties exposed by IList<T> implementation
+		{
+			var list = (IList<LogMessage>)collection;
+			Assert.False(list.IsReadOnly);
+			Assert.Equal(expectedCount, list.Count);
+		}
+
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion

@@ -54,7 +54,7 @@ sealed partial class BulkResponse
 
 	/// <summary>
 	/// Returns the response to the pool.
-	/// The response must not be used any more afterwards.
+	/// The response must not be used anymore afterward.
 	/// </summary>
 	public void ReturnToPool()
 	{
@@ -107,24 +107,22 @@ sealed partial class BulkResponse
 				case JsonTokenType.True:
 				case JsonTokenType.False:
 				{
-					switch (propertyName)
+					mErrorsProxy = propertyName switch
 					{
-						case "errors":
-							mErrorsProxy = new BooleanPropertyProxy(data, (int)reader.TokenStartIndex, reader.ValueSpan.Length);
-							break;
-					}
+						"errors" => new BooleanPropertyProxy(data, (int)reader.TokenStartIndex, reader.ValueSpan.Length),
+						var _    => mErrorsProxy
+					};
 
 					break;
 				}
 
 				case JsonTokenType.Number:
 				{
-					switch (propertyName)
+					mTookProxy = propertyName switch
 					{
-						case "took":
-							mTookProxy = new Int32PropertyProxy(data, (int)reader.TokenStartIndex, reader.ValueSpan.Length);
-							break;
-					}
+						"took" => new Int32PropertyProxy(data, (int)reader.TokenStartIndex, reader.ValueSpan.Length),
+						var _  => mTookProxy
+					};
 
 					break;
 				}

@@ -46,7 +46,7 @@ public class FileWriterPipelineStage : TextWriterPipelineStage
 	/// </summary>
 	/// <Value>
 	/// <c>true</c> to append new log messages to an existing log file (default).<br/>
-	/// <c>false</c> to truncate the log file before writing the first message).
+	/// <c>false</c> to truncate the log file before writing the first message.
 	/// </Value>
 	public bool Append
 	{

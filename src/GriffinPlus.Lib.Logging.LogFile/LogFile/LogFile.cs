@@ -155,19 +155,12 @@ public partial class LogFile : IDisposable
 				// check user version
 				// (indicates its purpose, directly corresponds to the database schema)
 				ulong userVersion = DatabaseAccessor.GetSchemaVersion(connection);
-				switch (userVersion)
+				mDatabaseAccessor = userVersion switch
 				{
-					case 1:
-						mDatabaseAccessor = new RecordingDatabaseAccessor(connection, writeMode, isReadOnly, false);
-						break;
-
-					case 2:
-						mDatabaseAccessor = new AnalysisDatabaseAccessor(connection, writeMode, isReadOnly, false);
-						break;
-
-					default:
-						throw new FileVersionNotSupportedException();
-				}
+					1     => new RecordingDatabaseAccessor(connection, writeMode, isReadOnly, false),
+					2     => new AnalysisDatabaseAccessor(connection, writeMode, isReadOnly, false),
+					var _ => throw new FileVersionNotSupportedException()
+				};
 			}
 			else
 			{
@@ -218,7 +211,7 @@ public partial class LogFile : IDisposable
 	/// <param name="path">Log file to create.</param>
 	/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 	/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
-	/// <param name="messages">Messages to populate the new log file with (may be <c>null</c>).</param>
+	/// <param name="messages">Messages to populate the new log file with (<c>null</c> if the log file should be empty).</param>
 	/// <exception cref="LogFileException">Creating the log file failed (see message and inner exception for details).</exception>
 	public static LogFile Create(
 		string                   path,
@@ -586,7 +579,7 @@ public partial class LogFile : IDisposable
 	/// <summary>
 	/// Gets a number of log messages starting at the specified message id.
 	/// </summary>
-	/// <param name="fromId">Id of the message to start at.</param>
+	/// <param name="fromId">ID of the message to start at.</param>
 	/// <param name="count">Number of log messages to get.</param>
 	/// <returns>The requested log messages.</returns>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
@@ -612,7 +605,7 @@ public partial class LogFile : IDisposable
 	/// <summary>
 	/// Gets a number of log messages starting at the specified message id.
 	/// </summary>
-	/// <param name="fromId">Id of the message to start at.</param>
+	/// <param name="fromId">ID of the message to start at.</param>
 	/// <param name="count">Number of log messages to get.</param>
 	/// <param name="callback">Callback to invoke for every read message</param>
 	/// <returns>
@@ -867,7 +860,7 @@ public partial class LogFile : IDisposable
 	#region Helpers
 
 	/// <summary>
-	/// Checks whether the log file has been disposed an throws an exception.
+	/// Checks whether the log file has been disposed and throws an exception.
 	/// </summary>
 	/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 	private void CheckDisposed()

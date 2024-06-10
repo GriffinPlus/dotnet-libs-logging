@@ -49,67 +49,67 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 		{
 			// signed integers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(sbyte), sbyte.MinValue, "-128" };
-			yield return new object[] { typeof(sbyte), sbyte.MaxValue, "127" };
-			yield return new object[] { typeof(sbyte), (sbyte)0, "0" };
+			yield return [typeof(sbyte), sbyte.MinValue, "-128"];
+			yield return [typeof(sbyte), sbyte.MaxValue, "127"];
+			yield return [typeof(sbyte), (sbyte)0, "0"];
 
-			yield return new object[] { typeof(short), short.MinValue, "-32768" };
-			yield return new object[] { typeof(short), short.MaxValue, "32767" };
-			yield return new object[] { typeof(short), (short)0, "0" };
+			yield return [typeof(short), short.MinValue, "-32768"];
+			yield return [typeof(short), short.MaxValue, "32767"];
+			yield return [typeof(short), (short)0, "0"];
 
-			yield return new object[] { typeof(int), int.MinValue, "-2147483648" };
-			yield return new object[] { typeof(int), int.MaxValue, "2147483647" };
-			yield return new object[] { typeof(int), 0, "0" };
+			yield return [typeof(int), int.MinValue, "-2147483648"];
+			yield return [typeof(int), int.MaxValue, "2147483647"];
+			yield return [typeof(int), 0, "0"];
 
-			yield return new object[] { typeof(long), long.MinValue, "-9223372036854775808" };
-			yield return new object[] { typeof(long), long.MaxValue, "9223372036854775807" };
-			yield return new object[] { typeof(long), 0L, "0" };
+			yield return [typeof(long), long.MinValue, "-9223372036854775808"];
+			yield return [typeof(long), long.MaxValue, "9223372036854775807"];
+			yield return [typeof(long), 0L, "0"];
 
 			// unsigned integers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(byte), byte.MinValue, "0" };
-			yield return new object[] { typeof(byte), byte.MaxValue, "255" };
-			yield return new object[] { typeof(byte), (byte)(byte.MaxValue / 2), "127" };
+			yield return [typeof(byte), byte.MinValue, "0"];
+			yield return [typeof(byte), byte.MaxValue, "255"];
+			yield return [typeof(byte), (byte)(byte.MaxValue / 2), "127"];
 
-			yield return new object[] { typeof(ushort), ushort.MinValue, "0" };
-			yield return new object[] { typeof(ushort), ushort.MaxValue, "65535" };
-			yield return new object[] { typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767" };
+			yield return [typeof(ushort), ushort.MinValue, "0"];
+			yield return [typeof(ushort), ushort.MaxValue, "65535"];
+			yield return [typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767"];
 
-			yield return new object[] { typeof(uint), uint.MinValue, "0" };
-			yield return new object[] { typeof(uint), uint.MaxValue, "4294967295" };
-			yield return new object[] { typeof(uint), uint.MaxValue / 2, "2147483647" };
+			yield return [typeof(uint), uint.MinValue, "0"];
+			yield return [typeof(uint), uint.MaxValue, "4294967295"];
+			yield return [typeof(uint), uint.MaxValue / 2, "2147483647"];
 
-			yield return new object[] { typeof(ulong), ulong.MinValue, "0" };
-			yield return new object[] { typeof(ulong), ulong.MaxValue, "18446744073709551615" };
-			yield return new object[] { typeof(ulong), ulong.MaxValue / 2, "9223372036854775807" };
+			yield return [typeof(ulong), ulong.MinValue, "0"];
+			yield return [typeof(ulong), ulong.MaxValue, "18446744073709551615"];
+			yield return [typeof(ulong), ulong.MaxValue / 2, "9223372036854775807"];
 
 			// floating point numbers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(float), float.NegativeInfinity, "-Infinity" };
-			yield return new object[] { typeof(float), float.PositiveInfinity, "Infinity" };
-			yield return new object[] { typeof(float), 0.0f, "0" };
+			yield return [typeof(float), float.NegativeInfinity, "-Infinity"];
+			yield return [typeof(float), float.PositiveInfinity, "Infinity"];
+			yield return [typeof(float), 0.0f, "0"];
 
-			yield return new object[] { typeof(double), double.NegativeInfinity, "-Infinity" };
-			yield return new object[] { typeof(double), double.PositiveInfinity, "Infinity" };
-			yield return new object[] { typeof(double), 0.0, "0" };
+			yield return [typeof(double), double.NegativeInfinity, "-Infinity"];
+			yield return [typeof(double), double.PositiveInfinity, "Infinity"];
+			yield return [typeof(double), 0.0, "0"];
 
 			// decimal numbers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(decimal), decimal.MinValue, "-79228162514264337593543950335" };
-			yield return new object[] { typeof(decimal), decimal.MaxValue, "79228162514264337593543950335" };
-			yield return new object[] { typeof(decimal), 0.0m, "0.0" };
+			yield return [typeof(decimal), decimal.MinValue, "-79228162514264337593543950335"];
+			yield return [typeof(decimal), decimal.MaxValue, "79228162514264337593543950335"];
+			yield return [typeof(decimal), 0.0m, "0.0"];
 
 			// strings
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(string), "Value1", "Value1" };
+			yield return [typeof(string), "Value1", "Value1"];
 
 			// enumerations
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(DateTimeKind), DateTimeKind.Utc, "Utc" };
-			yield return new object[] { typeof(ColorFlags), ColorFlags.None, "None" };
-			yield return new object[] { typeof(ColorFlags), ColorFlags.Red, "Red" };
-			yield return new object[] { typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green, "RedAndGreen" };
-			yield return new object[] { typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green | ColorFlags.Blue, "RedAndGreen, Blue" };
+			yield return [typeof(DateTimeKind), DateTimeKind.Utc, "Utc"];
+			yield return [typeof(ColorFlags), ColorFlags.None, "None"];
+			yield return [typeof(ColorFlags), ColorFlags.Red, "Red"];
+			yield return [typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green, "RedAndGreen"];
+			yield return [typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green | ColorFlags.Blue, "RedAndGreen, Blue"];
 		}
 	}
 
@@ -119,84 +119,84 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 		{
 			// signed integers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(sbyte), sbyte.MinValue, "-128", (sbyte)0, "0" };
-			yield return new object[] { typeof(sbyte), sbyte.MaxValue, "127", (sbyte)0, "0" };
-			yield return new object[] { typeof(sbyte), (sbyte)0, "0", sbyte.MinValue, "-128" };
-			yield return new object[] { typeof(sbyte), (sbyte)0, "0", sbyte.MaxValue, "127" };
+			yield return [typeof(sbyte), sbyte.MinValue, "-128", (sbyte)0, "0"];
+			yield return [typeof(sbyte), sbyte.MaxValue, "127", (sbyte)0, "0"];
+			yield return [typeof(sbyte), (sbyte)0, "0", sbyte.MinValue, "-128"];
+			yield return [typeof(sbyte), (sbyte)0, "0", sbyte.MaxValue, "127"];
 
-			yield return new object[] { typeof(short), short.MinValue, "-32768", (short)0, "0" };
-			yield return new object[] { typeof(short), short.MaxValue, "32767", (short)0, "0" };
-			yield return new object[] { typeof(short), (short)0, "0", short.MinValue, "-32768" };
-			yield return new object[] { typeof(short), (short)0, "0", short.MaxValue, "32767" };
+			yield return [typeof(short), short.MinValue, "-32768", (short)0, "0"];
+			yield return [typeof(short), short.MaxValue, "32767", (short)0, "0"];
+			yield return [typeof(short), (short)0, "0", short.MinValue, "-32768"];
+			yield return [typeof(short), (short)0, "0", short.MaxValue, "32767"];
 
-			yield return new object[] { typeof(int), int.MinValue, "-2147483648", 0, "0" };
-			yield return new object[] { typeof(int), int.MaxValue, "2147483647", 0, "0" };
-			yield return new object[] { typeof(int), 0, "0", int.MinValue, "-2147483648" };
-			yield return new object[] { typeof(int), 0, "0", int.MaxValue, "2147483647" };
+			yield return [typeof(int), int.MinValue, "-2147483648", 0, "0"];
+			yield return [typeof(int), int.MaxValue, "2147483647", 0, "0"];
+			yield return [typeof(int), 0, "0", int.MinValue, "-2147483648"];
+			yield return [typeof(int), 0, "0", int.MaxValue, "2147483647"];
 
-			yield return new object[] { typeof(long), long.MinValue, "-9223372036854775808", 0L, "0" };
-			yield return new object[] { typeof(long), long.MaxValue, "9223372036854775807", 0L, "0" };
-			yield return new object[] { typeof(long), 0L, "0", long.MinValue, "-9223372036854775808" };
-			yield return new object[] { typeof(long), 0L, "0", long.MaxValue, "9223372036854775807" };
+			yield return [typeof(long), long.MinValue, "-9223372036854775808", 0L, "0"];
+			yield return [typeof(long), long.MaxValue, "9223372036854775807", 0L, "0"];
+			yield return [typeof(long), 0L, "0", long.MinValue, "-9223372036854775808"];
+			yield return [typeof(long), 0L, "0", long.MaxValue, "9223372036854775807"];
 
 			// unsigned integers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(byte), byte.MinValue, "0", (byte)(byte.MaxValue / 2), "127" };
-			yield return new object[] { typeof(byte), byte.MaxValue, "255", (byte)(byte.MaxValue / 2), "127" };
-			yield return new object[] { typeof(byte), (byte)(byte.MaxValue / 2), "127", byte.MinValue, "0" };
-			yield return new object[] { typeof(byte), (byte)(byte.MaxValue / 2), "127", byte.MaxValue, "255" };
+			yield return [typeof(byte), byte.MinValue, "0", (byte)(byte.MaxValue / 2), "127"];
+			yield return [typeof(byte), byte.MaxValue, "255", (byte)(byte.MaxValue / 2), "127"];
+			yield return [typeof(byte), (byte)(byte.MaxValue / 2), "127", byte.MinValue, "0"];
+			yield return [typeof(byte), (byte)(byte.MaxValue / 2), "127", byte.MaxValue, "255"];
 
-			yield return new object[] { typeof(ushort), ushort.MinValue, "0", (ushort)(ushort.MaxValue / 2), "32767" };
-			yield return new object[] { typeof(ushort), ushort.MaxValue, "65535", (ushort)(ushort.MaxValue / 2), "32767" };
-			yield return new object[] { typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767", ushort.MinValue, "0" };
-			yield return new object[] { typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767", ushort.MaxValue, "65535" };
+			yield return [typeof(ushort), ushort.MinValue, "0", (ushort)(ushort.MaxValue / 2), "32767"];
+			yield return [typeof(ushort), ushort.MaxValue, "65535", (ushort)(ushort.MaxValue / 2), "32767"];
+			yield return [typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767", ushort.MinValue, "0"];
+			yield return [typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767", ushort.MaxValue, "65535"];
 
-			yield return new object[] { typeof(uint), uint.MinValue, "0", uint.MaxValue / 2, "2147483647" };
-			yield return new object[] { typeof(uint), uint.MaxValue, "4294967295", uint.MaxValue / 2, "2147483647" };
-			yield return new object[] { typeof(uint), uint.MaxValue / 2, "2147483647", uint.MinValue, "0" };
-			yield return new object[] { typeof(uint), uint.MaxValue / 2, "2147483647", uint.MaxValue, "4294967295" };
+			yield return [typeof(uint), uint.MinValue, "0", uint.MaxValue / 2, "2147483647"];
+			yield return [typeof(uint), uint.MaxValue, "4294967295", uint.MaxValue / 2, "2147483647"];
+			yield return [typeof(uint), uint.MaxValue / 2, "2147483647", uint.MinValue, "0"];
+			yield return [typeof(uint), uint.MaxValue / 2, "2147483647", uint.MaxValue, "4294967295"];
 
-			yield return new object[] { typeof(ulong), ulong.MinValue, "0", ulong.MaxValue / 2, "9223372036854775807" };
-			yield return new object[] { typeof(ulong), ulong.MaxValue, "18446744073709551615", ulong.MaxValue / 2, "9223372036854775807" };
-			yield return new object[] { typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MinValue, "0" };
-			yield return new object[] { typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MaxValue, "18446744073709551615" };
+			yield return [typeof(ulong), ulong.MinValue, "0", ulong.MaxValue / 2, "9223372036854775807"];
+			yield return [typeof(ulong), ulong.MaxValue, "18446744073709551615", ulong.MaxValue / 2, "9223372036854775807"];
+			yield return [typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MinValue, "0"];
+			yield return [typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MaxValue, "18446744073709551615"];
 
 			// floating point numbers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(float), float.NegativeInfinity, "-Infinity", 0.0f, "0" };
-			yield return new object[] { typeof(float), float.PositiveInfinity, "Infinity", 0.0f, "0" };
-			yield return new object[] { typeof(float), 0.0f, "0", float.NegativeInfinity, "-Infinity" };
-			yield return new object[] { typeof(float), 0.0f, "0", float.PositiveInfinity, "Infinity" };
+			yield return [typeof(float), float.NegativeInfinity, "-Infinity", 0.0f, "0"];
+			yield return [typeof(float), float.PositiveInfinity, "Infinity", 0.0f, "0"];
+			yield return [typeof(float), 0.0f, "0", float.NegativeInfinity, "-Infinity"];
+			yield return [typeof(float), 0.0f, "0", float.PositiveInfinity, "Infinity"];
 
-			yield return new object[] { typeof(double), double.NegativeInfinity, "-Infinity", 0.0, "0" };
-			yield return new object[] { typeof(double), double.PositiveInfinity, "Infinity", 0.0, "0" };
-			yield return new object[] { typeof(double), 0.0, "0", double.NegativeInfinity, "-Infinity" };
-			yield return new object[] { typeof(double), 0.0, "0", double.PositiveInfinity, "Infinity" };
+			yield return [typeof(double), double.NegativeInfinity, "-Infinity", 0.0, "0"];
+			yield return [typeof(double), double.PositiveInfinity, "Infinity", 0.0, "0"];
+			yield return [typeof(double), 0.0, "0", double.NegativeInfinity, "-Infinity"];
+			yield return [typeof(double), 0.0, "0", double.PositiveInfinity, "Infinity"];
 
 			// decimal numbers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(decimal), decimal.MinValue, "-79228162514264337593543950335", 0.0m, "0.0" };
-			yield return new object[] { typeof(decimal), decimal.MaxValue, "79228162514264337593543950335", 0.0m, "0.0" };
-			yield return new object[] { typeof(decimal), 0.0m, "0.0", decimal.MinValue, "-79228162514264337593543950335" };
-			yield return new object[] { typeof(decimal), 0.0m, "0.0", decimal.MaxValue, "79228162514264337593543950335" };
+			yield return [typeof(decimal), decimal.MinValue, "-79228162514264337593543950335", 0.0m, "0.0"];
+			yield return [typeof(decimal), decimal.MaxValue, "79228162514264337593543950335", 0.0m, "0.0"];
+			yield return [typeof(decimal), 0.0m, "0.0", decimal.MinValue, "-79228162514264337593543950335"];
+			yield return [typeof(decimal), 0.0m, "0.0", decimal.MaxValue, "79228162514264337593543950335"];
 
 			// strings
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(string), "Value1", "Value1", "Value2", "Value2" };
+			yield return [typeof(string), "Value1", "Value1", "Value2", "Value2"];
 
 			// enumerations
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return new object[] { typeof(DateTimeKind), DateTimeKind.Utc, "Utc", DateTimeKind.Local, "Local" };
-			yield return new object[] { typeof(ColorFlags), ColorFlags.None, "None", ColorFlags.Red, "Red" };
-			yield return new object[] { typeof(ColorFlags), ColorFlags.Red, "Red", ColorFlags.None, "None" };
-			yield return new object[]
-			{
+			yield return [typeof(DateTimeKind), DateTimeKind.Utc, "Utc", DateTimeKind.Local, "Local"];
+			yield return [typeof(ColorFlags), ColorFlags.None, "None", ColorFlags.Red, "Red"];
+			yield return [typeof(ColorFlags), ColorFlags.Red, "Red", ColorFlags.None, "None"];
+			yield return
+			[
 				typeof(ColorFlags),
 				ColorFlags.Red | ColorFlags.Green | ColorFlags.Blue,
 				"RedAndGreen, Blue",
 				ColorFlags.Red | ColorFlags.Green,
 				"RedAndGreen"
-			};
+			];
 		}
 	}
 
@@ -222,7 +222,7 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
 				.MakeGenericMethod(type);
 
-			var setting1 = method.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			var setting1 = method.Invoke(configuration, ["Setting", defaultValue]) as IUntypedProcessingPipelineStageSetting;
 
 			// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
 			RegisterSetting_UntypedInterface(setting1, defaultValue, defaultValueAsString);
@@ -231,10 +231,10 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 			MethodInfo typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
 				.GetMethod(nameof(RegisterSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
 				.MakeGenericMethod(type);
-			typedTestMethod.Invoke(this, new[] { setting1, defaultValue, defaultValueAsString });
+			typedTestMethod.Invoke(this, [setting1, defaultValue, defaultValueAsString]);
 
 			// test getting the same setting once again (should succeed, if default value is the same)
-			var setting2 = method.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			var setting2 = method.Invoke(configuration, ["Setting", defaultValue]) as IUntypedProcessingPipelineStageSetting;
 			Assert.Same(setting1, setting2);
 		}
 	}
@@ -289,8 +289,8 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 				.GetMethods()
 				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
 				.MakeGenericMethod(type);
-			method.Invoke(configuration, new[] { "Setting", defaultValue1 });
-			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, new[] { "Setting", defaultValue2 })).InnerException);
+			method.Invoke(configuration, ["Setting", defaultValue1]);
+			Assert.IsType<ArgumentException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(configuration, ["Setting", defaultValue2])).InnerException);
 		}
 	}
 
@@ -323,8 +323,8 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 				.GetMethods()
 				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.RegisterSetting) && x.GetParameters().Length == 2)
 				.MakeGenericMethod(type);
-			var setting11 = method.Invoke(configuration, new[] { "Setting1", defaultValue }) as IUntypedProcessingPipelineStageSetting;
-			var setting21 = method.Invoke(configuration, new[] { "Setting2", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			var setting11 = method.Invoke(configuration, ["Setting1", defaultValue]) as IUntypedProcessingPipelineStageSetting;
+			var setting21 = method.Invoke(configuration, ["Setting2", defaultValue]) as IUntypedProcessingPipelineStageSetting;
 
 			// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
 			RegisterSettingAndSetValue_UntypedInterface(setting11, defaultValue, defaultValueAsString, value, valueAsString);
@@ -333,7 +333,7 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 			MethodInfo typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
 				.GetMethod(nameof(RegisterSettingAndSetValue_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
 				.MakeGenericMethod(type);
-			typedTestMethod.Invoke(this, new[] { setting21, defaultValue, defaultValueAsString, value, valueAsString });
+			typedTestMethod.Invoke(this, [setting21, defaultValue, defaultValueAsString, value, valueAsString]);
 		}
 	}
 
@@ -412,8 +412,8 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 				.GetMethods()
 				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
 				.MakeGenericMethod(type);
-			var registeredSetting = registerSettingsMethod.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
-			var setting = getSettingMethod.Invoke(configuration, new object[] { "Setting" }) as IUntypedProcessingPipelineStageSetting;
+			var registeredSetting = registerSettingsMethod.Invoke(configuration, ["Setting", defaultValue]) as IUntypedProcessingPipelineStageSetting;
+			var setting = getSettingMethod.Invoke(configuration, ["Setting"]) as IUntypedProcessingPipelineStageSetting;
 			Assert.Same(registeredSetting, setting);
 		}
 	}
@@ -452,7 +452,7 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 				.MakeGenericMethod(type);
 
 			// register setting with default value
-			var registeredSetting = registerMethod.Invoke(configuration, new[] { "Setting", defaultValue }) as IUntypedProcessingPipelineStageSetting;
+			var registeredSetting = registerMethod.Invoke(configuration, ["Setting", defaultValue]) as IUntypedProcessingPipelineStageSetting;
 			Assert.True(registeredSetting.HasDefaultValue);
 			Assert.False(registeredSetting.HasValue);
 			Assert.Equal(defaultValue, registeredSetting.DefaultValue);
@@ -461,7 +461,7 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 			Assert.Equal(defaultValueAsString, registeredSetting.ValueAsString);
 
 			// set setting
-			var setSetting = setMethod.Invoke(configuration, new[] { "Setting", value }) as IUntypedProcessingPipelineStageSetting;
+			var setSetting = setMethod.Invoke(configuration, ["Setting", value]) as IUntypedProcessingPipelineStageSetting;
 			Assert.Same(registeredSetting, setSetting);
 			Assert.True(setSetting.HasDefaultValue);
 			Assert.True(setSetting.HasValue);
@@ -481,25 +481,25 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 		get
 		{
 			// signed integers
-			yield return new object[] { typeof(sbyte) };
-			yield return new object[] { typeof(short) };
-			yield return new object[] { typeof(int) };
-			yield return new object[] { typeof(long) };
+			yield return [typeof(sbyte)];
+			yield return [typeof(short)];
+			yield return [typeof(int)];
+			yield return [typeof(long)];
 
 			// unsigned integers
-			yield return new object[] { typeof(byte) };
-			yield return new object[] { typeof(ushort) };
-			yield return new object[] { typeof(uint) };
-			yield return new object[] { typeof(ulong) };
+			yield return [typeof(byte)];
+			yield return [typeof(ushort)];
+			yield return [typeof(uint)];
+			yield return [typeof(ulong)];
 
 			// floating point numbers
-			yield return new object[] { typeof(float) };
-			yield return new object[] { typeof(double) };
+			yield return [typeof(float)];
+			yield return [typeof(double)];
 
 			// other common types
-			yield return new object[] { typeof(decimal) };
-			yield return new object[] { typeof(string) };
-			yield return new object[] { typeof(DateTimeKind) };
+			yield return [typeof(decimal)];
+			yield return [typeof(string)];
+			yield return [typeof(DateTimeKind)];
 		}
 	}
 
@@ -518,7 +518,7 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 				.GetMethods()
 				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.GetSetting) && x.GetParameters().Length == 1)
 				.MakeGenericMethod(type);
-			var setting = method.Invoke(configuration, new object[] { "Setting" }) as IUntypedProcessingPipelineStageSetting;
+			var setting = method.Invoke(configuration, ["Setting"]) as IUntypedProcessingPipelineStageSetting;
 			Assert.Null(setting);
 		}
 	}
@@ -547,8 +547,8 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 				.GetMethods()
 				.Single(x => x.Name == nameof(ProcessingPipelineStageConfigurationBase.SetSetting) && x.GetParameters().Length == 2)
 				.MakeGenericMethod(type);
-			var setting1 = method.Invoke(configuration, new[] { "Setting1", value }) as IUntypedProcessingPipelineStageSetting;
-			var setting2 = method.Invoke(configuration, new[] { "Setting2", value }) as IUntypedProcessingPipelineStageSetting;
+			var setting1 = method.Invoke(configuration, ["Setting1", value]) as IUntypedProcessingPipelineStageSetting;
+			var setting2 = method.Invoke(configuration, ["Setting2", value]) as IUntypedProcessingPipelineStageSetting;
 
 			// test untyped interface to the setting (IUntypedProcessingPipelineStageSetting)
 			SetSetting_UntypedInterface(setting1, value, valueAsString);
@@ -557,7 +557,7 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 			MethodInfo typedTestMethod = typeof(ProcessingPipelineStageConfigurationTests_Base<TStageConfiguration>)
 				.GetMethod(nameof(SetSetting_TypedInterface), BindingFlags.NonPublic | BindingFlags.Static)
 				.MakeGenericMethod(type);
-			typedTestMethod.Invoke(this, new[] { setting2, value, valueAsString });
+			typedTestMethod.Invoke(this, [setting2, value, valueAsString]);
 		}
 	}
 

@@ -57,153 +57,154 @@ public class JsonTokenizerTests
 				foreach (string trailWhite in new[] { "", WhiteSpaceCharacters }) // trailing whitespaces
 				{
 					string input = preWhite + "{" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.LBracket, "{")
-					};
+					];
 
 					input = preWhite + "}" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.RBracket, "}")
-					};
+					];
 
 					input = preWhite + "[" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.LSquareBracket, "[")
-					};
+					];
 
 					input = preWhite + "]" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.RSquareBracket, "]")
-					};
+					];
 
 					input = preWhite + ":" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.Colon, ":")
-					};
+					];
 
 					input = preWhite + "," + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.Comma, ",")
-					};
+					];
 
 					input = preWhite + "\"just a string\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "just a string")
-					};
+					];
 
 					// escaped quotation mark ('"')
 					input = preWhite + "\"\\\"\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "\"")
-					};
+					];
 
 					// escaped solidus ('/')
 					input = preWhite + "\"\\/\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "/")
-					};
+					];
 
-					// escaped back space ('\')
+					// escaped backspace ('\')
 					input = preWhite + "\"\\\\\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "\\")
-					};
+					];
 
 					// escaped tab ('\t')
 					input = preWhite + "\"\\t\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "\t")
-					};
+					];
 
 					// escaped newline ('\n')
 					input = preWhite + "\"\\n\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "\n")
-					};
+					];
 
 					// escaped carriage return ('\r')
 					input = preWhite + "\"\\r\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "\r")
-					};
+					];
 
 					// escaped form feed ('\f')
 					input = preWhite + "\"\\f\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "\f")
-					};
+					];
 
 					// escaped backspace ('\b')
 					input = preWhite + "\"\\b\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "\b")
-					};
+					];
 
 					// control characters
 					for (int i = 0; i <= 0x1F; i++)
 					{
 						// hex value in lower case letters
 						input = preWhite + $"\"\\u{i:x4}\"" + trailWhite;
-						yield return new object[]
-						{
+						yield return
+						[
 							input,
 							new JsonToken(JsonTokenType.String, $"{(char)i}")
-						};
+						];
 
 						// hex value in upper case letters
 						input = preWhite + $"\"\\u{i:X4}\"" + trailWhite;
-						yield return new object[]
-						{
+						yield return
+						[
 							input,
 							new JsonToken(JsonTokenType.String, $"{(char)i}")
-						};
+						];
 					}
 
 					// great escaped code unit
+					// ReSharper disable once StringLiteralTypo
 					input = preWhite + "\"\\uFFFF\"" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.String, "\uFFFF")
-					};
+					];
 
 					// number just zero
 					input = preWhite + "0" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.Number, "0")
-					};
+					];
 
 					// various number formats
 					foreach (string before in new[] { "1", "12", "123" }) // digits before decimal point
@@ -215,11 +216,11 @@ public class JsonTokenizerTests
 
 							// number without exponent
 							input = preWhite + number + trailWhite;
-							yield return new object[]
-							{
+							yield return
+							[
 								input,
 								new JsonToken(JsonTokenType.Number, number)
-							};
+							];
 
 							foreach (string exp in new[] { "1", "12", "123" })
 							{
@@ -231,22 +232,22 @@ public class JsonTokenizerTests
 										{
 											string numberWithExponent = number + e + expSign + exp;
 											input = preWhite + numberWithExponent + trailWhite;
-											yield return new object[]
-											{
+											yield return
+											[
 												input,
 												new JsonToken(JsonTokenType.Number, numberWithExponent)
-											};
+											];
 										}
 									}
 								}
 								else
 								{
 									input = preWhite + number + trailWhite;
-									yield return new object[]
-									{
+									yield return
+									[
 										input,
 										new JsonToken(JsonTokenType.Number, number)
-									};
+									];
 								}
 							}
 						}
@@ -254,27 +255,27 @@ public class JsonTokenizerTests
 
 					// boolean value: true
 					input = preWhite + "true" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.Boolean, "true")
-					};
+					];
 
 					// boolean value: false
 					input = preWhite + "false" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.Boolean, "false")
-					};
+					];
 
 					// json null
 					input = preWhite + "null" + trailWhite;
-					yield return new object[]
-					{
+					yield return
+					[
 						input,
 						new JsonToken(JsonTokenType.Null, "null")
-					};
+					];
 				}
 			}
 		}

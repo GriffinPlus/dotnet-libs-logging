@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging;
 /// </summary>
 public partial class TableMessageFormatter : ILogMessageFormatter
 {
-	private readonly List<ColumnBase> mColumns         = new();
+	private readonly List<ColumnBase> mColumns         = [];
 	private readonly StringBuilder    mOutputBuilder   = new();
 	private          LogMessageField  mFormattedFields = LogMessageField.None;
 	private          IFormatProvider  mFormatProvider  = CultureInfo.InvariantCulture;
@@ -24,14 +24,14 @@ public partial class TableMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Initializes a new instance of the <see cref="TableMessageFormatter"/> class.
 	/// The formatter contains no preconfigured columns.
-	/// The columns must be added explicitly afterwards using the 'Add...Column()' methods.
+	/// The columns must be added explicitly afterward using the 'Add...Column()' methods.
 	/// </summary>
 	public TableMessageFormatter() { }
 
 	/// <summary>
 	/// Gets a formatter writing all columns that are useful for user's eyes.
 	/// The columns are written in the following order:
-	/// 'Timestamp', 'Log Writer', 'Log Level', 'Tags', 'Application Name', 'Process Name', 'Process Id', 'Text'.
+	/// 'Timestamp', 'Log Writer', 'Log Level', 'Tags', 'Application Name', 'Process Name', 'Process ID', 'Text'.
 	/// </summary>
 	public static TableMessageFormatter AllColumns
 	{
@@ -63,7 +63,7 @@ public partial class TableMessageFormatter : ILogMessageFormatter
 
 	/// <summary>
 	/// Gets or sets the format provider to use when formatting log messages.
-	/// By default <see cref="CultureInfo.InvariantCulture"/> is used.
+	/// By default, <see cref="CultureInfo.InvariantCulture"/> is used.
 	/// </summary>
 	public IFormatProvider FormatProvider
 	{
@@ -118,7 +118,7 @@ public partial class TableMessageFormatter : ILogMessageFormatter
 	/// (default: "u", conversion to UTC and output using the format yyyy-MM-dd HH:mm:ssZ)
 	/// </summary>
 	/// <param name="format">
-	/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx" for details).
+	/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx for details).
 	/// </param>
 	public void AddTimestampColumn(string format = "u")
 	{
@@ -211,7 +211,7 @@ public partial class TableMessageFormatter : ILogMessageFormatter
 	{
 		lock (mSync)
 		{
-			if (mColumns.Count > 0) mColumns[mColumns.Count - 1].IsLastColumn = false;
+			if (mColumns.Count > 0) mColumns[^1].IsLastColumn = false;
 			mColumns.Add(column);
 			column.IsLastColumn = true;
 			mFormattedFields |= column.Field;

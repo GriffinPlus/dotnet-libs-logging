@@ -11,6 +11,9 @@ using System.Linq;
 using System.Linq.Expressions;
 
 using Xunit;
+// ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
+
+// ReSharper disable LoopCanBeConvertedToQuery
 
 namespace GriffinPlus.Lib.Logging.Collections;
 
@@ -72,29 +75,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void TimestampFilter_Enabled(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.TimestampFilter.Enabled);
+		Assert.False(filter.TimestampFilter.Enabled);
 
-			Assert.PropertyChanged(
-				filter.TimestampFilter,
-				nameof(filter.TimestampFilter.Enabled),
-				() => filter.TimestampFilter.Enabled = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.TimestampFilter,
+			nameof(filter.TimestampFilter.Enabled),
+			() => filter.TimestampFilter.Enabled = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.TimestampFilter,
-				nameof(filter.TimestampFilter.Enabled),
-				() => filter.TimestampFilter.Enabled = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.TimestampFilter,
+			nameof(filter.TimestampFilter.Enabled),
+			() => filter.TimestampFilter.Enabled = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -109,22 +110,20 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void TimestampFilter_From(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.Equal(new DateTimeOffset(0, TimeSpan.Zero), filter.TimestampFilter.From);
+		Assert.Equal(new DateTimeOffset(0, TimeSpan.Zero), filter.TimestampFilter.From);
 
-			Assert.PropertyChanged(
-				filter.TimestampFilter,
-				nameof(filter.TimestampFilter.From),
-				() => filter.TimestampFilter.From = DateTimeOffset.Now);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.TimestampFilter,
+			nameof(filter.TimestampFilter.From),
+			() => filter.TimestampFilter.From = DateTimeOffset.Now);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -139,22 +138,20 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void TimestampFilter_To(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.Equal(new DateTimeOffset(0, TimeSpan.Zero), filter.TimestampFilter.To);
+		Assert.Equal(new DateTimeOffset(0, TimeSpan.Zero), filter.TimestampFilter.To);
 
-			Assert.PropertyChanged(
-				filter.TimestampFilter,
-				nameof(filter.TimestampFilter.To),
-				() => filter.TimestampFilter.To = DateTimeOffset.Now);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.TimestampFilter,
+			nameof(filter.TimestampFilter.To),
+			() => filter.TimestampFilter.To = DateTimeOffset.Now);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	#endregion
@@ -173,29 +170,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void ApplicationNameFilter_Enabled(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.ApplicationNameFilter.Enabled);
+		Assert.False(filter.ApplicationNameFilter.Enabled);
 
-			Assert.PropertyChanged(
-				filter.ApplicationNameFilter,
-				nameof(filter.ApplicationNameFilter.Enabled),
-				() => filter.ApplicationNameFilter.Enabled = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.ApplicationNameFilter,
+			nameof(filter.ApplicationNameFilter.Enabled),
+			() => filter.ApplicationNameFilter.Enabled = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.ApplicationNameFilter,
-				nameof(filter.ApplicationNameFilter.Enabled),
-				() => filter.ApplicationNameFilter.Enabled = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.ApplicationNameFilter,
+			nameof(filter.ApplicationNameFilter.Enabled),
+			() => filter.ApplicationNameFilter.Enabled = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -210,27 +205,25 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void ApplicationNameFilter_AccumulateItems(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.ApplicationNameFilter.AccumulateItems);
+		Assert.False(filter.ApplicationNameFilter.AccumulateItems);
 
-			Assert.PropertyChanged(
-				filter.ApplicationNameFilter,
-				nameof(filter.ApplicationNameFilter.AccumulateItems),
-				() => filter.ApplicationNameFilter.AccumulateItems = true);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
+		Assert.PropertyChanged(
+			filter.ApplicationNameFilter,
+			nameof(filter.ApplicationNameFilter.AccumulateItems),
+			() => filter.ApplicationNameFilter.AccumulateItems = true);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 
-			Assert.PropertyChanged(
-				filter.ApplicationNameFilter,
-				nameof(filter.ApplicationNameFilter.AccumulateItems),
-				() => filter.ApplicationNameFilter.AccumulateItems = false);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
-		}
+		Assert.PropertyChanged(
+			filter.ApplicationNameFilter,
+			nameof(filter.ApplicationNameFilter.AccumulateItems),
+			() => filter.ApplicationNameFilter.AccumulateItems = false);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 	}
 
 	#endregion
@@ -249,29 +242,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void ProcessNameFilter_Enabled(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.ProcessNameFilter.Enabled);
+		Assert.False(filter.ProcessNameFilter.Enabled);
 
-			Assert.PropertyChanged(
-				filter.ProcessNameFilter,
-				nameof(filter.ProcessNameFilter.Enabled),
-				() => filter.ProcessNameFilter.Enabled = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.ProcessNameFilter,
+			nameof(filter.ProcessNameFilter.Enabled),
+			() => filter.ProcessNameFilter.Enabled = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.ProcessNameFilter,
-				nameof(filter.ProcessNameFilter.Enabled),
-				() => filter.ProcessNameFilter.Enabled = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.ProcessNameFilter,
+			nameof(filter.ProcessNameFilter.Enabled),
+			() => filter.ProcessNameFilter.Enabled = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -286,27 +277,25 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void ProcessNameFilter_AccumulateItems(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.ProcessNameFilter.AccumulateItems);
+		Assert.False(filter.ProcessNameFilter.AccumulateItems);
 
-			Assert.PropertyChanged(
-				filter.ProcessNameFilter,
-				nameof(filter.ProcessNameFilter.AccumulateItems),
-				() => filter.ProcessNameFilter.AccumulateItems = true);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
+		Assert.PropertyChanged(
+			filter.ProcessNameFilter,
+			nameof(filter.ProcessNameFilter.AccumulateItems),
+			() => filter.ProcessNameFilter.AccumulateItems = true);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 
-			Assert.PropertyChanged(
-				filter.ProcessNameFilter,
-				nameof(filter.ProcessNameFilter.AccumulateItems),
-				() => filter.ProcessNameFilter.AccumulateItems = false);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
-		}
+		Assert.PropertyChanged(
+			filter.ProcessNameFilter,
+			nameof(filter.ProcessNameFilter.AccumulateItems),
+			() => filter.ProcessNameFilter.AccumulateItems = false);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 	}
 
 	#endregion
@@ -325,29 +314,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void ProcessIdFilter_Enabled(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.ProcessIdFilter.Enabled);
+		Assert.False(filter.ProcessIdFilter.Enabled);
 
-			Assert.PropertyChanged(
-				filter.ProcessIdFilter,
-				nameof(filter.ProcessIdFilter.Enabled),
-				() => filter.ProcessIdFilter.Enabled = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.ProcessIdFilter,
+			nameof(filter.ProcessIdFilter.Enabled),
+			() => filter.ProcessIdFilter.Enabled = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.ProcessIdFilter,
-				nameof(filter.ProcessIdFilter.Enabled),
-				() => filter.ProcessIdFilter.Enabled = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.ProcessIdFilter,
+			nameof(filter.ProcessIdFilter.Enabled),
+			() => filter.ProcessIdFilter.Enabled = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -362,27 +349,25 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void ProcessIdFilter_AccumulateItems(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.ProcessIdFilter.AccumulateItems);
+		Assert.False(filter.ProcessIdFilter.AccumulateItems);
 
-			Assert.PropertyChanged(
-				filter.ProcessIdFilter,
-				nameof(filter.ProcessIdFilter.AccumulateItems),
-				() => filter.ProcessIdFilter.AccumulateItems = true);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
+		Assert.PropertyChanged(
+			filter.ProcessIdFilter,
+			nameof(filter.ProcessIdFilter.AccumulateItems),
+			() => filter.ProcessIdFilter.AccumulateItems = true);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 
-			Assert.PropertyChanged(
-				filter.ProcessIdFilter,
-				nameof(filter.ProcessIdFilter.AccumulateItems),
-				() => filter.ProcessIdFilter.AccumulateItems = false);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
-		}
+		Assert.PropertyChanged(
+			filter.ProcessIdFilter,
+			nameof(filter.ProcessIdFilter.AccumulateItems),
+			() => filter.ProcessIdFilter.AccumulateItems = false);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 	}
 
 	#endregion
@@ -401,29 +386,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void LogLevelFilter_Enabled(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.LogLevelFilter.Enabled);
+		Assert.False(filter.LogLevelFilter.Enabled);
 
-			Assert.PropertyChanged(
-				filter.LogLevelFilter,
-				nameof(filter.LogLevelFilter.Enabled),
-				() => filter.LogLevelFilter.Enabled = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.LogLevelFilter,
+			nameof(filter.LogLevelFilter.Enabled),
+			() => filter.LogLevelFilter.Enabled = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.LogLevelFilter,
-				nameof(filter.LogLevelFilter.Enabled),
-				() => filter.LogLevelFilter.Enabled = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.LogLevelFilter,
+			nameof(filter.LogLevelFilter.Enabled),
+			() => filter.LogLevelFilter.Enabled = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -438,27 +421,25 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void LogLevelFilter_AccumulateItems(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.LogLevelFilter.AccumulateItems);
+		Assert.False(filter.LogLevelFilter.AccumulateItems);
 
-			Assert.PropertyChanged(
-				filter.LogLevelFilter,
-				nameof(filter.LogLevelFilter.AccumulateItems),
-				() => filter.LogLevelFilter.AccumulateItems = true);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
+		Assert.PropertyChanged(
+			filter.LogLevelFilter,
+			nameof(filter.LogLevelFilter.AccumulateItems),
+			() => filter.LogLevelFilter.AccumulateItems = true);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 
-			Assert.PropertyChanged(
-				filter.LogLevelFilter,
-				nameof(filter.LogLevelFilter.AccumulateItems),
-				() => filter.LogLevelFilter.AccumulateItems = false);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
-		}
+		Assert.PropertyChanged(
+			filter.LogLevelFilter,
+			nameof(filter.LogLevelFilter.AccumulateItems),
+			() => filter.LogLevelFilter.AccumulateItems = false);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 	}
 
 	#endregion
@@ -477,29 +458,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void LogWriterFilter_Enabled(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.LogWriterFilter.Enabled);
+		Assert.False(filter.LogWriterFilter.Enabled);
 
-			Assert.PropertyChanged(
-				filter.LogWriterFilter,
-				nameof(filter.LogWriterFilter.Enabled),
-				() => filter.LogWriterFilter.Enabled = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.LogWriterFilter,
+			nameof(filter.LogWriterFilter.Enabled),
+			() => filter.LogWriterFilter.Enabled = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.LogWriterFilter,
-				nameof(filter.LogWriterFilter.Enabled),
-				() => filter.LogWriterFilter.Enabled = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.LogWriterFilter,
+			nameof(filter.LogWriterFilter.Enabled),
+			() => filter.LogWriterFilter.Enabled = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -514,27 +493,25 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void LogWriterFilter_AccumulateItems(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.LogWriterFilter.AccumulateItems);
+		Assert.False(filter.LogWriterFilter.AccumulateItems);
 
-			Assert.PropertyChanged(
-				filter.LogWriterFilter,
-				nameof(filter.LogWriterFilter.AccumulateItems),
-				() => filter.LogWriterFilter.AccumulateItems = true);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
+		Assert.PropertyChanged(
+			filter.LogWriterFilter,
+			nameof(filter.LogWriterFilter.AccumulateItems),
+			() => filter.LogWriterFilter.AccumulateItems = true);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 
-			Assert.PropertyChanged(
-				filter.LogWriterFilter,
-				nameof(filter.LogWriterFilter.AccumulateItems),
-				() => filter.LogWriterFilter.AccumulateItems = false);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
-		}
+		Assert.PropertyChanged(
+			filter.LogWriterFilter,
+			nameof(filter.LogWriterFilter.AccumulateItems),
+			() => filter.LogWriterFilter.AccumulateItems = false);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 	}
 
 	#endregion
@@ -553,29 +530,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void TagFilter_Enabled(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.TagFilter.Enabled);
+		Assert.False(filter.TagFilter.Enabled);
 
-			Assert.PropertyChanged(
-				filter.TagFilter,
-				nameof(filter.TagFilter.Enabled),
-				() => filter.TagFilter.Enabled = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.TagFilter,
+			nameof(filter.TagFilter.Enabled),
+			() => filter.TagFilter.Enabled = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.TagFilter,
-				nameof(filter.TagFilter.Enabled),
-				() => filter.TagFilter.Enabled = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.TagFilter,
+			nameof(filter.TagFilter.Enabled),
+			() => filter.TagFilter.Enabled = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -590,27 +565,25 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void TagFilter_AccumulateItems(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.TagFilter.AccumulateItems);
+		Assert.False(filter.TagFilter.AccumulateItems);
 
-			Assert.PropertyChanged(
-				filter.TagFilter,
-				nameof(filter.TagFilter.AccumulateItems),
-				() => filter.TagFilter.AccumulateItems = true);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
+		Assert.PropertyChanged(
+			filter.TagFilter,
+			nameof(filter.TagFilter.AccumulateItems),
+			() => filter.TagFilter.AccumulateItems = true);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 
-			Assert.PropertyChanged(
-				filter.TagFilter,
-				nameof(filter.TagFilter.AccumulateItems),
-				() => filter.TagFilter.AccumulateItems = false);
-			Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
-		}
+		Assert.PropertyChanged(
+			filter.TagFilter,
+			nameof(filter.TagFilter.AccumulateItems),
+			() => filter.TagFilter.AccumulateItems = false);
+		Assert.False(filterChanged); // the event is not called as it does not influence the filtering behavior
 	}
 
 	#endregion
@@ -629,29 +602,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void TextFilter_Enabled(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.TextFilter.Enabled);
+		Assert.False(filter.TextFilter.Enabled);
 
-			Assert.PropertyChanged(
-				filter.TextFilter,
-				nameof(filter.TextFilter.Enabled),
-				() => filter.TextFilter.Enabled = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.TextFilter,
+			nameof(filter.TextFilter.Enabled),
+			() => filter.TextFilter.Enabled = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.TextFilter,
-				nameof(filter.TextFilter.Enabled),
-				() => filter.TextFilter.Enabled = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.TextFilter,
+			nameof(filter.TextFilter.Enabled),
+			() => filter.TextFilter.Enabled = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -666,29 +637,27 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void TextFilter_IsCaseSensitive(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.False(filter.TextFilter.IsCaseSensitive);
+		Assert.False(filter.TextFilter.IsCaseSensitive);
 
-			Assert.PropertyChanged(
-				filter.TextFilter,
-				nameof(filter.TextFilter.IsCaseSensitive),
-				() => filter.TextFilter.IsCaseSensitive = true);
-			Assert.True(filterChanged);
-			filterChanged = false;
+		Assert.PropertyChanged(
+			filter.TextFilter,
+			nameof(filter.TextFilter.IsCaseSensitive),
+			() => filter.TextFilter.IsCaseSensitive = true);
+		Assert.True(filterChanged);
+		filterChanged = false;
 
-			Assert.PropertyChanged(
-				filter.TextFilter,
-				nameof(filter.TextFilter.IsCaseSensitive),
-				() => filter.TextFilter.IsCaseSensitive = false);
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.TextFilter,
+			nameof(filter.TextFilter.IsCaseSensitive),
+			() => filter.TextFilter.IsCaseSensitive = false);
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	/// <summary>
@@ -703,22 +672,20 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(true)]
 	public void TextFilter_SearchText(bool attach)
 	{
-		using (TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _))
-		using (var filter = new TSelectableLogMessageFilter())
-		{
-			if (attach) filter.AttachToCollection(collection);
-			bool filterChanged = false;
-			filter.FilterChanged += (sender, args) => filterChanged = true;
+		using TLogMessageCollection collection = CreateCollection(DefaultTestMessageCount, out LogMessage[] _);
+		using var filter = new TSelectableLogMessageFilter();
+		if (attach) filter.AttachToCollection(collection);
+		bool filterChanged = false;
+		filter.FilterChanged += (_, _) => filterChanged = true;
 
-			Assert.Equal("", filter.TextFilter.SearchText);
+		Assert.Equal("", filter.TextFilter.SearchText);
 
-			Assert.PropertyChanged(
-				filter.TextFilter,
-				nameof(filter.TextFilter.SearchText),
-				() => filter.TextFilter.SearchText = "XXX");
-			Assert.True(filterChanged);
-			filterChanged = false;
-		}
+		Assert.PropertyChanged(
+			filter.TextFilter,
+			nameof(filter.TextFilter.SearchText),
+			() => filter.TextFilter.SearchText = "XXX");
+		Assert.True(filterChanged);
+		filterChanged = false;
 	}
 
 	#endregion
@@ -734,15 +701,13 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(1000)]
 	public void AttachToCollection(int count)
 	{
-		using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
-		{
-			// create a new filter
-			var filter = new TSelectableLogMessageFilter();
+		using TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages);
+		// create a new filter
+		var filter = new TSelectableLogMessageFilter();
 
-			// attach filter to the collection and check whether the filter presents the settings as expected
-			filter.AttachToCollection(collection);
-			TestInitialFilterSettings(filter, messages);
-		}
+		// attach filter to the collection and check whether the filter presents the settings as expected
+		filter.AttachToCollection(collection);
+		TestInitialFilterSettings(filter, messages);
 	}
 
 	#endregion
@@ -750,7 +715,7 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	#region DetachFromCollection()
 
 	/// <summary>
-	/// Tests creating a log message filter, attaching it to a populated collection and detaching it afterwards.
+	/// Tests creating a log message filter, attaching it to a populated collection and detaching it afterward.
 	/// </summary>
 	[Theory]
 	[InlineData(0)]
@@ -758,20 +723,18 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	[InlineData(1000)]
 	public void DetachFromCollection(int count)
 	{
-		using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
-		{
-			// create a new filter
-			var filter = new TSelectableLogMessageFilter();
+		using TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages);
+		// create a new filter
+		var filter = new TSelectableLogMessageFilter();
 
-			// attach filter to the collection and check whether the filter presents the settings as expected
-			filter.AttachToCollection(collection);
-			TestInitialFilterSettings(filter, messages);
+		// attach filter to the collection and check whether the filter presents the settings as expected
+		filter.AttachToCollection(collection);
+		TestInitialFilterSettings(filter, messages);
 
-			// detach filter from the collection, the filter should remain in the same state as it is not reset
-			// as part of the detaching procedure
-			filter.DetachFromCollection();
-			TestInitialFilterSettings(filter, messages);
-		}
+		// detach filter from the collection, the filter should remain in the same state as it is not reset
+		// as part of the detaching procedure
+		filter.DetachFromCollection();
+		TestInitialFilterSettings(filter, messages);
 	}
 
 	#endregion
@@ -785,22 +748,23 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	{
 		get
 		{
+			// ReSharper disable once InlineTemporaryVariable
 			const int count = DefaultTestMessageCount;
 
 			foreach (bool enableGlobalFilter in new[] { false, true })
 			foreach (bool enableSpecificFilter in new[] { false, true })
 			{
 				// empty collection
-				yield return new object[] { 0, enableGlobalFilter, enableSpecificFilter, -1, -1 };
+				yield return [0, enableGlobalFilter, enableSpecificFilter, -1, -1];
 
 				// entire interval
-				yield return new object[] { count, enableGlobalFilter, enableSpecificFilter, 0, count - 1 };
+				yield return [count, enableGlobalFilter, enableSpecificFilter, 0, count - 1];
 
 				// interval in between
-				yield return new object[] { count, enableGlobalFilter, enableSpecificFilter, 0, count - 2 };         // all messages, but not the right-most
-				yield return new object[] { count, enableGlobalFilter, enableSpecificFilter, 1, count - 1 };         // all messages, but not the left-most
-				yield return new object[] { count, enableGlobalFilter, enableSpecificFilter, 1, count - 2 };         // all messages, but not the left-most and the right-most
-				yield return new object[] { count, enableGlobalFilter, enableSpecificFilter, count / 2, count / 2 }; // one message in the middle
+				yield return [count, enableGlobalFilter, enableSpecificFilter, 0, count - 2];         // all messages, but not the right-most
+				yield return [count, enableGlobalFilter, enableSpecificFilter, 1, count - 1];         // all messages, but not the left-most
+				yield return [count, enableGlobalFilter, enableSpecificFilter, 1, count - 2];         // all messages, but not the left-most and the right-most
+				yield return [count, enableGlobalFilter, enableSpecificFilter, count / 2, count / 2]; // one message in the middle
 			}
 		}
 	}
@@ -828,43 +792,41 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 		int  firstMatchingMessageIndex,
 		int  lastMatchingMessageIndex)
 	{
-		using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
-		using (var filter = new TSelectableLogMessageFilter())
+		using TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages);
+		using var filter = new TSelectableLogMessageFilter();
+		// attach filter to the collection
+		filter.AttachToCollection(collection);
+		TestInitialFilterSettings(filter, messages);
+
+		// enable/disable the global filter
+		filter.Enabled = enableGlobalFilter;
+
+		// configure the filter
+		filter.TimestampFilter.Enabled = enableSpecificFilter;
+		var from = DateTimeOffset.MinValue;
+		var to = DateTimeOffset.MaxValue;
+		if (count > 0)
 		{
-			// attach filter to the collection
-			filter.AttachToCollection(collection);
-			TestInitialFilterSettings(filter, messages);
-
-			// enable/disable the global filter
-			filter.Enabled = enableGlobalFilter;
-
-			// configure the filter
-			filter.TimestampFilter.Enabled = enableSpecificFilter;
-			var from = DateTimeOffset.MinValue;
-			var to = DateTimeOffset.MaxValue;
-			if (count > 0)
-			{
-				filter.TimestampFilter.From = from = messages[firstMatchingMessageIndex].Timestamp;
-				filter.TimestampFilter.To = to = messages[lastMatchingMessageIndex].Timestamp;
-			}
-
-			// determine the log message set that is expected to pass the filter
-			var expected = new List<LogMessage>();
-			var matching = new List<LogMessage>();
-			foreach (LogMessage message in messages)
-			{
-				// pass the message to filter and check whether it matches
-				if (filter.Matches(message))
-					matching.Add(message);
-
-				// adjust the set of messages that are expected to pass the filter
-				if (!enableGlobalFilter || !enableSpecificFilter || (message.Timestamp >= from && message.Timestamp <= to))
-					expected.Add(message);
-			}
-
-			// check whether the expected messages have passed the filter
-			Assert.Equal(expected, matching);
+			filter.TimestampFilter.From = from = messages[firstMatchingMessageIndex].Timestamp;
+			filter.TimestampFilter.To = to = messages[lastMatchingMessageIndex].Timestamp;
 		}
+
+		// determine the log message set that is expected to pass the filter
+		var expected = new List<LogMessage>();
+		var matching = new List<LogMessage>();
+		foreach (LogMessage message in messages)
+		{
+			// pass the message to filter and check whether it matches
+			if (filter.Matches(message))
+				matching.Add(message);
+
+			// adjust the set of messages that are expected to pass the filter
+			if (!enableGlobalFilter || !enableSpecificFilter || (message.Timestamp >= from && message.Timestamp <= to))
+				expected.Add(message);
+		}
+
+		// check whether the expected messages have passed the filter
+		Assert.Equal(expected, matching);
 	}
 
 	#endregion
@@ -1060,7 +1022,7 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 
 	/// <summary>
 	/// Test data for test method that test <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> for item filters
-	/// (application name, process name, )
+	/// (application name, process name, ...)
 	/// </summary>
 	public static IEnumerable<object[]> MatchesTestData_ItemFilters
 	{
@@ -1071,13 +1033,13 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 			foreach (bool enablePerItem in new[] { false, true })
 			foreach (bool accumulateItems in new[] { false })
 			{
-				yield return new object[]
-				{
+				yield return
+				[
 					count,
 					enableGlobally,
 					enablePerItem,
 					accumulateItems
-				};
+				];
 			}
 		}
 	}
@@ -1085,7 +1047,7 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// <summary>
 	/// Common test logic for tests targeting <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/>.
 	/// </summary>
-	/// <typeparam name="T">Type of an item value (same as the type of the corresponding property of the log message).</typeparam>
+	/// <typeparam name="T">Type of item value (same as the type of the corresponding property of the log message).</typeparam>
 	/// <param name="propertySelectorExpression">Expression that selects the property to filter for from a log message.</param>
 	/// <param name="itemFilterSelectorExpression">Expression that selects the item filter corresponding to the selected log message property.</param>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
@@ -1112,58 +1074,54 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 		Func<LogMessage, T> propertySelector = propertySelectorExpression.Compile();
 		Func<ISelectableLogMessageFilter<LogMessage>, ISelectableLogMessageFilter_ItemFilter<T>> itemFilterSelector = itemFilterSelectorExpression.Compile();
 
-		using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
+		using TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages);
+		// determine the different items one can filter
+		List<T> itemsToFilterFor = messages.Select(propertySelector).OrderBy(x => x).Distinct().ToList();
+
+		// try to filter the message set selecting one item at a time
+		foreach (T itemToFilterFor in itemsToFilterFor)
 		{
-			// determine the different items one can filter
-			List<T> itemsToFilterFor = messages.Select(propertySelector).OrderBy(x => x).Distinct().ToList();
+			// create a new filter
+			using var filter = new TSelectableLogMessageFilter();
+			// attach filter to the collection
+			// (it is automatically detached as part of its disposal procedure)
+			filter.AttachToCollection(collection);
+			TestInitialFilterSettings(filter, messages);
 
-			// try to filter the message set selecting one item at a time
-			foreach (T itemToFilterFor in itemsToFilterFor)
+			// enable/disable the global filter
+			filter.Enabled = enableGlobalFilter;
+
+			// configure the filter
+			ISelectableLogMessageFilter_ItemFilter<T> itemFilter = itemFilterSelector(filter);
+			itemFilter.Enabled = enableSpecificFilter;
+			itemFilter.AccumulateItems = accumulateItems;
+			ISelectableLogMessageFilter_Item<T> itemFilterItem = itemFilter.Items.First(x => x.Value.Equals(itemToFilterFor));
+			itemFilterItem.Selected = true;
+
+			// determine the log message set that is expected to pass the filter
+			var expected = new List<LogMessage>();
+			var matching = new List<LogMessage>();
+			foreach (LogMessage message in messages)
 			{
-				// create a new filter
-				using (var filter = new TSelectableLogMessageFilter())
+				// pass the message to filter and check whether it matches
+				if (filter.Matches(message))
+					matching.Add(message);
+
+				if (!enableGlobalFilter || !enableSpecificFilter)
 				{
-					// attach filter to the collection
-					// (it is automatically detached as part of its disposal procedure)
-					filter.AttachToCollection(collection);
-					TestInitialFilterSettings(filter, messages);
-
-					// enable/disable the global filter
-					filter.Enabled = enableGlobalFilter;
-
-					// configure the filter
-					ISelectableLogMessageFilter_ItemFilter<T> itemFilter = itemFilterSelector(filter);
-					itemFilter.Enabled = enableSpecificFilter;
-					itemFilter.AccumulateItems = accumulateItems;
-					ISelectableLogMessageFilter_Item<T> itemFilterItem = itemFilter.Items.First(x => x.Value.Equals(itemToFilterFor));
-					itemFilterItem.Selected = true;
-
-					// determine the log message set that is expected to pass the filter
-					var expected = new List<LogMessage>();
-					var matching = new List<LogMessage>();
-					foreach (LogMessage message in messages)
-					{
-						// pass the message to filter and check whether it matches
-						if (filter.Matches(message))
-							matching.Add(message);
-
-						if (!enableGlobalFilter || !enableSpecificFilter)
-						{
-							// global or specific filter is disabled
-							// => the message passes the filter
-							expected.Add(message);
-							continue;
-						}
-
-						// add message to the set of messages expected to pass the filter
-						if (propertySelector(message).Equals(itemToFilterFor))
-							expected.Add(message);
-					}
-
-					// check whether the expected messages have passed the filter
-					Assert.Equal(expected, matching);
+					// global or specific filter is disabled
+					// => the message passes the filter
+					expected.Add(message);
+					continue;
 				}
+
+				// add message to the set of messages expected to pass the filter
+				if (propertySelector(message).Equals(itemToFilterFor))
+					expected.Add(message);
 			}
+
+			// check whether the expected messages have passed the filter
+			Assert.Equal(expected, matching);
 		}
 	}
 
@@ -1197,51 +1155,47 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 		bool enableSpecificFilter,
 		bool accumulateItems)
 	{
-		using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
+		using TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages);
+		// determine the different tag sets one can filter
+		List<string> tags = messages.SelectMany(x => x.Tags).OrderBy(x => x).Distinct().ToList();
+
+		// try to filter the message set selecting one item at a time
+		foreach (string tag in tags)
 		{
-			// determine the different tag sets one can filter
-			List<string> tags = messages.SelectMany(x => x.Tags).OrderBy(x => x).Distinct().ToList();
+			// create a new filter
+			using var filter = new TSelectableLogMessageFilter();
+			// attach filter to the collection
+			filter.AttachToCollection(collection);
+			TestInitialFilterSettings(filter, messages);
 
-			// try to filter the message set selecting one item at a time
-			foreach (string tag in tags)
+			// enable/disable the global filter
+			filter.Enabled = enableGlobalFilter;
+
+			// configure the filter
+			filter.TagFilter.Enabled = enableSpecificFilter;
+			filter.TagFilter.AccumulateItems = accumulateItems;
+			ISelectableLogMessageFilter_Item<string> itemFilterItem = filter.TagFilter.Items.First(x => x.Value.Equals(tag));
+			itemFilterItem.Selected = true;
+
+			// determine the log message set that is expected to pass the filter
+			var expected = new List<LogMessage>();
+			var matching = new List<LogMessage>();
+			foreach (LogMessage message in messages)
 			{
-				// create a new filter
-				using (var filter = new TSelectableLogMessageFilter())
+				// pass the message to filter and check whether it matches
+				if (filter.Matches(message))
+					matching.Add(message);
+
+				if (!enableGlobalFilter || !enableSpecificFilter || message.Tags.Contains(tag))
 				{
-					// attach filter to the collection
-					filter.AttachToCollection(collection);
-					TestInitialFilterSettings(filter, messages);
-
-					// enable/disable the global filter
-					filter.Enabled = enableGlobalFilter;
-
-					// configure the filter
-					filter.TagFilter.Enabled = enableSpecificFilter;
-					filter.TagFilter.AccumulateItems = accumulateItems;
-					ISelectableLogMessageFilter_Item<string> itemFilterItem = filter.TagFilter.Items.First(x => x.Value.Equals(tag));
-					itemFilterItem.Selected = true;
-
-					// determine the log message set that is expected to pass the filter
-					var expected = new List<LogMessage>();
-					var matching = new List<LogMessage>();
-					foreach (LogMessage message in messages)
-					{
-						// pass the message to filter and check whether it matches
-						if (filter.Matches(message))
-							matching.Add(message);
-
-						if (!enableGlobalFilter || !enableSpecificFilter || message.Tags.Contains(tag))
-						{
-							// global or specific filter is disabled
-							// => the message passes the filter
-							expected.Add(message);
-						}
-					}
-
-					// check whether the expected messages have passed the filter
-					Assert.Equal(expected, matching);
+					// global or specific filter is disabled
+					// => the message passes the filter
+					expected.Add(message);
 				}
 			}
+
+			// check whether the expected messages have passed the filter
+			Assert.Equal(expected, matching);
 		}
 	}
 
@@ -1263,23 +1217,23 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 			foreach (bool isFilterCaseSensitive in new[] { false, true })
 			foreach (bool isSearchTextExact in new[] { false, true })
 			{
-				yield return new object[]
-				{
+				yield return
+				[
 					0,
 					enableGlobalFilter,
 					enableSpecificFilter,
 					isFilterCaseSensitive,
 					isSearchTextExact
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					count,
 					enableGlobalFilter,
 					enableSpecificFilter,
 					isFilterCaseSensitive,
 					isSearchTextExact
-				};
+				];
 			}
 		}
 	}
@@ -1315,61 +1269,57 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 		bool isFilterCaseSensitive,
 		bool isSearchTextExact)
 	{
-		using (TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages))
+		using TLogMessageCollection collection = CreateCollection(count, out LogMessage[] messages);
+		// checking that at least one message passes the filter
+		// => search for '000000/a' which is always part of the text of the first message in the message set
+		string searchText = "000000/a";
+		if (!isSearchTextExact) searchText = searchText.ToUpper();
+
+		// create a new filter
+		using var filter = new TSelectableLogMessageFilter();
+		// attach filter to the collection
+		filter.AttachToCollection(collection);
+		TestInitialFilterSettings(filter, messages);
+
+		// enable/disable the global filter
+		filter.Enabled = enableGlobalFilter;
+
+		// configure the text filter
+		filter.TextFilter.Enabled = enableSpecificFilter;
+		filter.TextFilter.IsCaseSensitive = isFilterCaseSensitive;
+		filter.TextFilter.SearchText = searchText;
+
+		// determine the log message set that is expected to pass the filter
+		var expected = new List<LogMessage>();
+		var matching = new List<LogMessage>();
+		foreach (LogMessage message in messages)
 		{
-			// checking that at least one message passes the filter
-			// => search for '000000/a' which is always part of the text of the first message in the message set
-			string searchText = "000000/a";
-			if (!isSearchTextExact) searchText = searchText.ToUpper();
+			// pass the message to filter and check whether it matches
+			bool matches = filter.Matches(message);
+			if (matches) matching.Add(message);
 
-			// create a new filter
-			using (var filter = new TSelectableLogMessageFilter())
+			// if the global filter and the specific filter is enabled,
+			// filtering is done case-sensitive and the search text does not match exactly
+			// => no message should pass the filter at all
+			if (enableGlobalFilter && enableSpecificFilter && isFilterCaseSensitive && !isSearchTextExact)
+				Assert.False(matches);
+
+			if (!enableGlobalFilter ||
+			    !enableSpecificFilter ||
+			    CultureInfo.InvariantCulture.CompareInfo.IndexOf(
+				    message.Text,
+				    searchText,
+				    isFilterCaseSensitive ? CompareOptions.None : CompareOptions.IgnoreCase) >=
+			    0)
 			{
-				// attach filter to the collection
-				filter.AttachToCollection(collection);
-				TestInitialFilterSettings(filter, messages);
-
-				// enable/disable the global filter
-				filter.Enabled = enableGlobalFilter;
-
-				// configure the text filter
-				filter.TextFilter.Enabled = enableSpecificFilter;
-				filter.TextFilter.IsCaseSensitive = isFilterCaseSensitive;
-				filter.TextFilter.SearchText = searchText;
-
-				// determine the log message set that is expected to pass the filter
-				var expected = new List<LogMessage>();
-				var matching = new List<LogMessage>();
-				foreach (LogMessage message in messages)
-				{
-					// pass the message to filter and check whether it matches
-					bool matches = filter.Matches(message);
-					if (matches) matching.Add(message);
-
-					// if the global filter and the specific filter is enabled,
-					// filtering is done case-sensitive and the search text does not match exactly
-					// => no message should pass the filter at all
-					if (enableGlobalFilter && enableSpecificFilter && isFilterCaseSensitive && !isSearchTextExact)
-						Assert.False(matches);
-
-					if (!enableGlobalFilter ||
-					    !enableSpecificFilter ||
-					    CultureInfo.InvariantCulture.CompareInfo.IndexOf(
-						    message.Text,
-						    searchText,
-						    isFilterCaseSensitive ? CompareOptions.None : CompareOptions.IgnoreCase) >=
-					    0)
-					{
-						// global or specific filter is disabled
-						// => the message passes the filter
-						expected.Add(message);
-					}
-				}
-
-				// check whether the expected messages have passed the filter
-				Assert.Equal(expected, matching);
+				// global or specific filter is disabled
+				// => the message passes the filter
+				expected.Add(message);
 			}
 		}
+
+		// check whether the expected messages have passed the filter
+		Assert.Equal(expected, matching);
 	}
 
 	#endregion
@@ -1392,7 +1342,7 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	{
 		// determine the oldest/newest message
 		LogMessage oldestMessage = messages.Length > 0 ? messages[0] : null;
-		LogMessage newestMessage = messages.Length > 0 ? messages[messages.Length - 1] : null;
+		LogMessage newestMessage = messages.Length > 0 ? messages[^1] : null;
 
 		// Enabled
 		Assert.True(filter.Enabled);

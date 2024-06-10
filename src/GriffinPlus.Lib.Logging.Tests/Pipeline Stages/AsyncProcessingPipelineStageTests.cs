@@ -38,7 +38,7 @@ public class AsyncProcessingPipelineStageTests : AsyncProcessingPipelineStageBas
 
 	/// <summary>
 	/// Tests whether initializing the pipeline stage using <see cref="ProcessingPipelineStage.Initialize"/> succeeds,
-	/// if the stage does not have following stages. The stage should have called <see cref="AsyncProcessingPipelineStage.OnInitialize"/>
+	/// if the stage does not have any following stages. The stage should have called <see cref="AsyncProcessingPipelineStage.OnInitialize"/>
 	/// after this.
 	/// </summary>
 	[Fact]
@@ -75,7 +75,7 @@ public class AsyncProcessingPipelineStageTests : AsyncProcessingPipelineStageBas
 
 	/// <summary>
 	/// Tests whether shutting the pipeline stage down using <see cref="ProcessingPipelineStage.Shutdown"/> succeeds,
-	/// if the stage does not have following stages. The stage should have called <see cref="AsyncProcessingPipelineStage.OnShutdown"/>
+	/// if the stage does not have any following stages. The stage should have called <see cref="AsyncProcessingPipelineStage.OnShutdown"/>
 	/// after this.
 	/// </summary>
 	[Fact]
@@ -127,7 +127,7 @@ public class AsyncProcessingPipelineStageTests : AsyncProcessingPipelineStageBas
 
 	/// <summary>
 	/// Tests whether processing a log message using <see cref="ProcessingPipelineStage.ProcessMessage"/> succeeds,
-	/// if the stage does not have following stages. The stage should have called <see cref="AsyncProcessingPipelineStage.ProcessSync"/>
+	/// if the stage does not have any following stages. The stage should have called <see cref="AsyncProcessingPipelineStage.ProcessSync"/>
 	/// after this.
 	/// </summary>
 	[Fact]

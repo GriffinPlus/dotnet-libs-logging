@@ -56,7 +56,7 @@ public class CallbackPipelineStageTests : ProcessingPipelineStageBaseTests<Callb
 	}
 
 	/// <summary>
-	/// Tests whether processing a log message succeeds, if the stage does not have following stages.
+	/// Tests whether processing a log message succeeds, if the stage does not have any following stages.
 	/// </summary>
 	[Theory]
 	[InlineData(false)]

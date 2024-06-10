@@ -21,10 +21,10 @@ public sealed partial class LogWriterConfiguration
 	internal static readonly WildcardNamePattern DefaultPattern = new("*");
 	internal static readonly INamePattern[]      NoPatterns     = Array.Empty<INamePattern>();
 	internal                 string              mBaseLevel     = LogLevel.Notice.Name;
-	internal readonly        List<INamePattern>  mNamePatterns  = new();
-	internal readonly        List<INamePattern>  mTagPatterns   = new();
-	internal readonly        List<string>        mIncludes      = new();
-	internal readonly        List<string>        mExcludes      = new();
+	internal readonly        List<INamePattern>  mNamePatterns  = [];
+	internal readonly        List<INamePattern>  mTagPatterns   = [];
+	internal readonly        List<string>        mIncludes      = [];
+	internal readonly        List<string>        mExcludes      = [];
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LogWriterConfiguration"/> class (for internal use only).

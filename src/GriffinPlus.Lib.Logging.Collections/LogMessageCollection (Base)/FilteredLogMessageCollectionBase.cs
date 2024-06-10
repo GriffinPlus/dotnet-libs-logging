@@ -36,17 +36,17 @@ public abstract class FilteredLogMessageCollectionBase<TMessage, TUnfilteredColl
 	protected FilteredLogMessageCollectionBase(TUnfilteredCollection unfiltered)
 	{
 		Unfiltered = unfiltered;
-		UsedLogWritersWritable = new ObservableCollection<string>();
+		UsedLogWritersWritable = [];
 		UsedLogWriters = new ReadOnlyObservableCollection<string>(UsedLogWritersWritable);
-		UsedLogLevelsWritable = new ObservableCollection<string>();
+		UsedLogLevelsWritable = [];
 		UsedLogLevels = new ReadOnlyObservableCollection<string>(UsedLogLevelsWritable);
-		UsedTagsWritable = new ObservableCollection<string>();
+		UsedTagsWritable = [];
 		UsedTags = new ReadOnlyObservableCollection<string>(UsedTagsWritable);
-		UsedApplicationNamesWritable = new ObservableCollection<string>();
+		UsedApplicationNamesWritable = [];
 		UsedApplicationNames = new ReadOnlyObservableCollection<string>(UsedApplicationNamesWritable);
-		UsedProcessNamesWritable = new ObservableCollection<string>();
+		UsedProcessNamesWritable = [];
 		UsedProcessNames = new ReadOnlyObservableCollection<string>(UsedProcessNamesWritable);
-		UsedProcessIdsWritable = new ObservableCollection<int>();
+		UsedProcessIdsWritable = [];
 		UsedProcessIds = new ReadOnlyObservableCollection<int>(UsedProcessIdsWritable);
 	}
 
@@ -577,12 +577,10 @@ public abstract class FilteredLogMessageCollectionBase<TMessage, TUnfilteredColl
 		if (arrayIndex > array.Length) throw new ArgumentOutOfRangeException(nameof(arrayIndex), "The array index is outside the specified array.");
 		if (Count > array.Length - arrayIndex) throw new ArgumentException("The specified array is too small to receive all log messages.");
 
-		using (IEnumerator<TMessage> enumerator = GetEnumerator())
+		using IEnumerator<TMessage> enumerator = GetEnumerator();
+		while (enumerator.MoveNext())
 		{
-			while (enumerator.MoveNext())
-			{
-				array[arrayIndex++] = enumerator.Current;
-			}
+			array[arrayIndex++] = enumerator.Current;
 		}
 	}
 

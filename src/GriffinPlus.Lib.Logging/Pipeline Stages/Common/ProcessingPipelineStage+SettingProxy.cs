@@ -15,7 +15,7 @@ partial class ProcessingPipelineStage
 	/// <summary>
 	/// A proxy for a pipeline stage specific setting.
 	/// Used by derived classes from <see cref="ProcessingPipelineStage"/> to bind a setting to a pipeline stage
-	/// configuration that could be exchanged afterwards. The proxy is adjusted by <see cref="ProcessingPipelineStage"/>
+	/// configuration that could be exchanged afterward. The proxy is adjusted by <see cref="ProcessingPipelineStage"/>
 	/// when a pipeline stage configuration is set. This avoids breaking the link between a pipeline stage and its
 	/// configuration.
 	/// </summary>

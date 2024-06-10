@@ -21,7 +21,7 @@ public class LocalLogMessagePool
 	/// </summary>
 	public LocalLogMessagePool()
 	{
-		mMessages = new ConcurrentBag<LocalLogMessage>();
+		mMessages = [];
 	}
 
 	/// <summary>
@@ -64,7 +64,7 @@ public class LocalLogMessagePool
 	/// (can differ from the process name, if the application is using an interpreter (the actual process)).
 	/// </param>
 	/// <param name="processName">Name of the process emitting the log message.</param>
-	/// <param name="processId">Id of the process emitting the log message.</param>
+	/// <param name="processId">ID of the process emitting the log message.</param>
 	/// <param name="text">The actual text the log message is about.</param>
 	/// <returns>The requested log message.</returns>
 	public LocalLogMessage GetMessage(

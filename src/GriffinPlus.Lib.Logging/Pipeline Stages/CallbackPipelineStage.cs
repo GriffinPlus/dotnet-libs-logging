@@ -26,7 +26,7 @@ public class CallbackPipelineStage : SyncProcessingPipelineStage
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 	/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
-	/// need the message any more.
+	/// need the message anymore.
 	/// </remarks>
 	public ProcessingCallback ProcessingCallback
 	{
@@ -45,7 +45,7 @@ public class CallbackPipelineStage : SyncProcessingPipelineStage
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 	/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
-	/// need the message any more.
+	/// need the message anymore.
 	/// </remarks>
 	protected override bool ProcessSync(LocalLogMessage message)
 	{

@@ -68,7 +68,7 @@ public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilter
 
 	#region PropertyChanged Event
 
-	private readonly HashSet<string> mChangedProperties = new();
+	private readonly HashSet<string> mChangedProperties = [];
 	private          int             mPropertyChangedSuspendedCounter;
 
 	/// <summary>
@@ -333,7 +333,7 @@ public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilter
 		if (collection == null)
 			throw new ArgumentNullException(nameof(collection));
 
-		if (!(collection is TUnfilteredCollection collectionToAttach))
+		if (collection is not TUnfilteredCollection collectionToAttach)
 			throw new ArgumentException($"The collection must be of type '{typeof(TUnfilteredCollection)}'");
 
 		// detach old collection, if necessary
@@ -474,7 +474,7 @@ public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilter
 		if (e.Action == NotifyCollectionChangedAction.Add)
 		{
 			// messages in the collection are always added to the end, inserting is not supported
-			// => timestamps should be increase monotonically
+			// => timestamps should be increased monotonically
 			foreach (LogMessage message in e.NewItems)
 			{
 				TimestampFilter.UpdateOnAdd(message.Timestamp);

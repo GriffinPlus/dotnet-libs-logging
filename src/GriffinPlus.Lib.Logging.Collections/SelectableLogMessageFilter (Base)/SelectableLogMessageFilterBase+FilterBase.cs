@@ -30,7 +30,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 
 		#region PropertyChanged Event
 
-		private readonly HashSet<string> mChangedProperties = new();
+		private readonly HashSet<string> mChangedProperties = [];
 		private          int             mPropertyChangedSuspendedCounter;
 
 		/// <summary>

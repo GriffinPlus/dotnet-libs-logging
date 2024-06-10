@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
@@ -19,7 +20,11 @@ using static GriffinPlus.Lib.Expressions.LambdaExpressionInliners;
 
 // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
 // ReSharper disable UnusedParameter.Local
+// ReSharper disable UseCollectionExpression
 // ReSharper disable SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+
+#pragma warning disable CA1861  // Avoid constant arrays as arguments
+#pragma warning disable IDE0300 // Simplify collection initialization
 
 namespace GriffinPlus.Lib.Logging;
 
@@ -92,12 +97,16 @@ public class LogMessageTests : IDisposable
 	{
 		get
 		{
-			foreach (bool readOnly in new[] { false, true })
-			foreach (bool initInSameThread in new[] { false, true })
-			foreach (bool withPropertyChanged in new[] { false, true })
-			{
-				yield return new object[] { readOnly, initInSameThread, withPropertyChanged };
-			}
+			return
+				from readOnly in new[] { false, true }
+				from initInSameThread in new[] { false, true }
+				from withPropertyChanged in new[] { false, true }
+				select (object[])
+				[
+					readOnly,
+					initInSameThread,
+					withPropertyChanged
+				];
 		}
 	}
 
@@ -132,14 +141,6 @@ public class LogMessageTests : IDisposable
 		var changedPropertyNames = new List<string>();
 		var handlerCalledEvent = new ManualResetEventSlim(false);
 
-		// the handler that is expected to be called on changes
-		void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
-		{
-			handlerThreadSynchronizationContext = SynchronizationContext.Current;
-			changedPropertyNames.Add(e.PropertyName);
-			handlerCalledEvent.Set();
-		}
-
 		// run test in a separate thread that provides a synchronization context that allows to
 		// marshal calls into that thread
 		await mThread.Factory.Run(() => { Assert.NotNull(SynchronizationContext.Current); });
@@ -149,6 +150,30 @@ public class LogMessageTests : IDisposable
 		{
 			await mThread.Factory.Run(() => { message.PropertyChanged += PropertyChangedHandler; });
 		}
+
+		// initialize the message either in the context of the thread that registered the handler
+		// or in a different - the current - thread
+		if (initInSameThread) await mThread.Factory.Run(InitializeTest);
+		else InitializeTest();
+
+		if (!initInSameThread)
+		{
+			// the thread registering the event and the thread initializing the message are different
+			if (withPropertyChanged)
+			{
+				// event handler should run in the context of the thread that registered it
+				Assert.True(handlerCalledEvent.Wait(1000));
+				Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
+				Assert.Equal([null], changedPropertyNames.ToArray());
+			}
+			else
+			{
+				// the event handler should not have been called
+				Assert.False(handlerCalledEvent.Wait(1000));
+			}
+		}
+
+		return;
 
 		// callback that initializes the message
 		void InitializeTest()
@@ -188,7 +213,7 @@ public class LogMessageTests : IDisposable
 					// the event handler should have been called only once in the same thread
 					// (the event handler is called directly as the registering thread is the same as the thread raising the event)
 					Assert.True(handlerCalledEvent.IsSet);
-					Assert.Equal(new string[] { null }, changedPropertyNames.ToArray()); // null => all properties
+					Assert.Equal([null], changedPropertyNames.ToArray()); // null => all properties
 				}
 				else
 				{
@@ -198,26 +223,12 @@ public class LogMessageTests : IDisposable
 			}
 		}
 
-		// initialize the message either in the context of the thread that registered the handler
-		// or in a different - the current - thread
-		if (initInSameThread) await mThread.Factory.Run(InitializeTest);
-		else InitializeTest();
-
-		if (!initInSameThread)
+		// the handler that is expected to be called on changes
+		void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
 		{
-			// the thread registering the event and the thread initializing the message are different
-			if (withPropertyChanged)
-			{
-				// event handler should run in the context of the thread that registered it
-				Assert.True(handlerCalledEvent.Wait(1000));
-				Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
-				Assert.Equal(new string[] { null }, changedPropertyNames.ToArray());
-			}
-			else
-			{
-				// the event handler should not have been called
-				Assert.False(handlerCalledEvent.Wait(1000));
-			}
+			handlerThreadSynchronizationContext = SynchronizationContext.Current;
+			changedPropertyNames.Add(e.PropertyName);
+			handlerCalledEvent.Set();
 		}
 	}
 
@@ -232,11 +243,14 @@ public class LogMessageTests : IDisposable
 	{
 		get
 		{
-			foreach (bool initInSameThread in new[] { false, true })
-			foreach (bool withPropertyChanged in new[] { false, true })
-			{
-				yield return new object[] { initInSameThread, withPropertyChanged };
-			}
+			return
+				from initInSameThread in new[] { false, true }
+				from withPropertyChanged in new[] { false, true }
+				select (object[])
+				[
+					initInSameThread,
+					withPropertyChanged
+				];
 		}
 	}
 
@@ -268,14 +282,6 @@ public class LogMessageTests : IDisposable
 		var changedPropertyNames = new List<string>();
 		var handlerCalledEvent = new ManualResetEventSlim(false);
 
-		// the handler that is expected to be called on changes
-		void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
-		{
-			handlerThreadSynchronizationContext = SynchronizationContext.Current;
-			changedPropertyNames.Add(e.PropertyName);
-			handlerCalledEvent.Set();
-		}
-
 		// run test in a separate thread that provides a synchronization context that allows to
 		// marshal calls into that thread
 		await mThread.Factory.Run(() => { Assert.NotNull(SynchronizationContext.Current); });
@@ -285,6 +291,30 @@ public class LogMessageTests : IDisposable
 		{
 			await mThread.Factory.Run(() => { message.PropertyChanged += PropertyChangedHandler; });
 		}
+
+		// initialize the message either in the context of the thread that registered the handler
+		// or in a different - the current - thread
+		if (initInSameThread) await mThread.Factory.Run(InitializeTest);
+		else InitializeTest();
+
+		if (!initInSameThread)
+		{
+			// the thread registering the event and the thread initializing the message are different
+			if (withPropertyChanged)
+			{
+				// event handler should run in the context of the thread that registered it
+				Assert.True(handlerCalledEvent.Wait(1000));
+				Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
+				Assert.Equal([null], changedPropertyNames.ToArray());
+			}
+			else
+			{
+				// the event handler should not have been called
+				Assert.False(handlerCalledEvent.Wait(1000));
+			}
+		}
+
+		return;
 
 		// callback that initializes the message
 		void InitializeTest()
@@ -325,7 +355,7 @@ public class LogMessageTests : IDisposable
 					// the event handler should have been called only once in the same thread
 					// (the event handler is called directly as the registering thread is the same as the thread raising the event)
 					Assert.True(handlerCalledEvent.IsSet);
-					Assert.Equal(new string[] { null }, changedPropertyNames.ToArray()); // null => all properties
+					Assert.Equal([null], changedPropertyNames.ToArray()); // null => all properties
 				}
 				else
 				{
@@ -335,26 +365,12 @@ public class LogMessageTests : IDisposable
 			}
 		}
 
-		// initialize the message either in the context of the thread that registered the handler
-		// or in a different - the current - thread
-		if (initInSameThread) await mThread.Factory.Run(InitializeTest);
-		else InitializeTest();
-
-		if (!initInSameThread)
+		// the handler that is expected to be called on changes
+		void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
 		{
-			// the thread registering the event and the thread initializing the message are different
-			if (withPropertyChanged)
-			{
-				// event handler should run in the context of the thread that registered it
-				Assert.True(handlerCalledEvent.Wait(1000));
-				Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
-				Assert.Equal(new string[] { null }, changedPropertyNames.ToArray());
-			}
-			else
-			{
-				// the event handler should not have been called
-				Assert.False(handlerCalledEvent.Wait(1000));
-			}
+			handlerThreadSynchronizationContext = SynchronizationContext.Current;
+			changedPropertyNames.Add(e.PropertyName);
+			handlerCalledEvent.Set();
 		}
 	}
 
@@ -368,16 +384,16 @@ public class LogMessageTests : IDisposable
 		{
 			foreach (bool protect in new[] { false, true })
 			{
-				yield return new object[] { EXPR<LogMessage, object>(x => x.LostMessageCount), 0, 1, protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.Timestamp), default(DateTimeOffset), DateTimeOffset.Now, protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 0L, 1L, protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.LogWriterName), null, "A Log Writer", protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.LogLevelName), null, "A Log Level", protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.Tags), null, new TagSet("Tag"), protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.ApplicationName), null, "Application Name", protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.ProcessName), null, "Process Name", protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.ProcessId), -1, 1, protect };
-				yield return new object[] { EXPR<LogMessage, object>(x => x.Text), null, "Some Text", protect };
+				yield return [EXPR<LogMessage, object>(x => x.LostMessageCount), 0, 1, protect];
+				yield return [EXPR<LogMessage, object>(x => x.Timestamp), default(DateTimeOffset), DateTimeOffset.Now, protect];
+				yield return [EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 0L, 1L, protect];
+				yield return [EXPR<LogMessage, object>(x => x.LogWriterName), null, "A Log Writer", protect];
+				yield return [EXPR<LogMessage, object>(x => x.LogLevelName), null, "A Log Level", protect];
+				yield return [EXPR<LogMessage, object>(x => x.Tags), null, new TagSet("Tag"), protect];
+				yield return [EXPR<LogMessage, object>(x => x.ApplicationName), null, "Application Name", protect];
+				yield return [EXPR<LogMessage, object>(x => x.ProcessName), null, "Process Name", protect];
+				yield return [EXPR<LogMessage, object>(x => x.ProcessId), -1, 1, protect];
+				yield return [EXPR<LogMessage, object>(x => x.Text), null, "Some Text", protect];
 			}
 
 			// the IsReadOnly property is tested as part of the other test cases with protect = true
@@ -458,20 +474,13 @@ public class LogMessageTests : IDisposable
 		var message = new LogMessage();
 
 		// extract information about the property to work with
-		PropertyInfo propertyInfo;
-		switch (property.Body.NodeType)
+		// ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+		PropertyInfo propertyInfo = property.Body.NodeType switch
 		{
-			case ExpressionType.MemberAccess:
-				propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
-				break;
-
-			case ExpressionType.Convert:
-				propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
-				break;
-
-			default:
-				throw new NotImplementedException();
-		}
+			ExpressionType.MemberAccess => (PropertyInfo)((MemberExpression)property.Body).Member,
+			ExpressionType.Convert      => (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member,
+			var _                       => throw new NotImplementedException()
+		};
 
 		// invoke the getter of the property and compare to the expected default value
 		object value = propertyInfo.GetValue(message);
@@ -497,20 +506,13 @@ public class LogMessageTests : IDisposable
 		var message = new LogMessage();
 
 		// extract information about the property to work with
-		PropertyInfo propertyInfo;
-		switch (property.Body.NodeType)
+		// ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+		PropertyInfo propertyInfo = property.Body.NodeType switch
 		{
-			case ExpressionType.MemberAccess:
-				propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
-				break;
-
-			case ExpressionType.Convert:
-				propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
-				break;
-
-			default:
-				throw new NotImplementedException();
-		}
+			ExpressionType.MemberAccess => (PropertyInfo)((MemberExpression)property.Body).Member,
+			ExpressionType.Convert      => (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member,
+			var _                       => throw new NotImplementedException()
+		};
 
 		object value = propertyInfo.GetValue(message);
 		Assert.Equal(expectedDefaultValue, value);
@@ -557,20 +559,13 @@ public class LogMessageTests : IDisposable
 		var message = new LogMessage();
 
 		// extract information about the property to work with
-		PropertyInfo propertyInfo;
-		switch (property.Body.NodeType)
+		// ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+		PropertyInfo propertyInfo = property.Body.NodeType switch
 		{
-			case ExpressionType.MemberAccess:
-				propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
-				break;
-
-			case ExpressionType.Convert:
-				propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
-				break;
-
-			default:
-				throw new NotImplementedException();
-		}
+			ExpressionType.MemberAccess => (PropertyInfo)((MemberExpression)property.Body).Member,
+			ExpressionType.Convert      => (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member,
+			var _                       => throw new NotImplementedException()
+		};
 
 		// check default value of the property
 		object value = propertyInfo.GetValue(message);
@@ -580,14 +575,6 @@ public class LogMessageTests : IDisposable
 		SynchronizationContext handlerThreadSynchronizationContext = null;
 		var changedPropertyNames = new List<string>();
 		var handlerCalledEvent = new ManualResetEventSlim(false);
-
-		// the handler that is expected to be called on changes
-		void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
-		{
-			handlerThreadSynchronizationContext = SynchronizationContext.Current;
-			changedPropertyNames.Add(e.PropertyName);
-			handlerCalledEvent.Set();
-		}
 
 		// run test in a separate thread that provides a synchronization context that allows to
 		// marshal calls into that thread
@@ -690,6 +677,16 @@ public class LogMessageTests : IDisposable
 
 		// unregister the PropertyChanged event
 		await mThread.Factory.Run(() => { message.PropertyChanged -= PropertyChangedHandler; });
+
+		return;
+
+		// the handler that is expected to be called on changes
+		void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+		{
+			handlerThreadSynchronizationContext = SynchronizationContext.Current;
+			changedPropertyNames.Add(e.PropertyName);
+			handlerCalledEvent.Set();
+		}
 	}
 
 	#endregion
@@ -703,11 +700,14 @@ public class LogMessageTests : IDisposable
 	{
 		get
 		{
-			foreach (bool initInSameThread in new[] { false, true })
-			foreach (bool withPropertyChanged in new[] { false, true })
-			{
-				yield return new object[] { initInSameThread, withPropertyChanged };
-			}
+			return
+				from initInSameThread in new[] { false, true }
+				from withPropertyChanged in new[] { false, true }
+				select (object[])
+				[
+					initInSameThread,
+					withPropertyChanged
+				];
 		}
 	}
 
@@ -739,14 +739,6 @@ public class LogMessageTests : IDisposable
 		var changedPropertyNames = new List<string>();
 		var handlerCalledEvent = new ManualResetEventSlim(false);
 
-		// the handler that is expected to be called on changes
-		void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
-		{
-			handlerThreadSynchronizationContext = SynchronizationContext.Current;
-			changedPropertyNames.Add(e.PropertyName);
-			handlerCalledEvent.Set();
-		}
-
 		// run test in a separate thread that provides a synchronization context that allows to
 		// marshal calls into that thread
 		await mThread.Factory.Run(() => { Assert.NotNull(SynchronizationContext.Current); });
@@ -756,6 +748,30 @@ public class LogMessageTests : IDisposable
 		{
 			await mThread.Factory.Run(() => { message.PropertyChanged += PropertyChangedHandler; });
 		}
+
+		// protect the message either in the context of the thread that registered the handler
+		// or in a different - the current - thread
+		if (protectInSameThread) await mThread.Factory.Run(ProtectTest);
+		else ProtectTest();
+
+		if (!protectInSameThread)
+		{
+			// the thread registering the event and the thread protecting the message are different
+			if (withPropertyChanged)
+			{
+				// event handler should run in the context of the thread that registered it
+				Assert.True(handlerCalledEvent.Wait(1000));
+				Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
+				Assert.Equal(new[] { "IsReadOnly" }, changedPropertyNames.ToArray());
+			}
+			else
+			{
+				// the event handler should not have been called
+				Assert.False(handlerCalledEvent.Wait(1000));
+			}
+		}
+
+		return;
 
 		// callback that initializes the message
 		void ProtectTest()
@@ -785,26 +801,12 @@ public class LogMessageTests : IDisposable
 			}
 		}
 
-		// protect the message either in the context of the thread that registered the handler
-		// or in a different - the current - thread
-		if (protectInSameThread) await mThread.Factory.Run(ProtectTest);
-		else ProtectTest();
-
-		if (!protectInSameThread)
+		// the handler that is expected to be called on changes
+		void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
 		{
-			// the thread registering the event and the thread protecting the message are different
-			if (withPropertyChanged)
-			{
-				// event handler should run in the context of the thread that registered it
-				Assert.True(handlerCalledEvent.Wait(1000));
-				Assert.Same(mThread.Context.SynchronizationContext, handlerThreadSynchronizationContext);
-				Assert.Equal(new[] { "IsReadOnly" }, changedPropertyNames.ToArray());
-			}
-			else
-			{
-				// the event handler should not have been called
-				Assert.False(handlerCalledEvent.Wait(1000));
-			}
+			handlerThreadSynchronizationContext = SynchronizationContext.Current;
+			changedPropertyNames.Add(e.PropertyName);
+			handlerCalledEvent.Set();
 		}
 	}
 
@@ -832,25 +834,25 @@ public class LogMessageTests : IDisposable
 				Text = "Text"
 			};
 
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.LostMessageCount), -10 };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.LostMessageCount), 10 };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.Timestamp), DateTimeOffset.Parse("2020-01-02T12:00:00+01:00") };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), -10L };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 10L };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.LogWriterName), "Another Log Writer" };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.LogWriterName), null };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.LogLevelName), "Another Log Level" };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.LogLevelName), null };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.Tags), new TagSet("AnotherTag") };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.Tags), null };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.ApplicationName), "Another Application" };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.ApplicationName), null };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.ProcessName), "Another Process Name" };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.ProcessName), null };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.ProcessId), -10 };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.ProcessId), 10 };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.Text), "Some other Text" };
-			yield return new object[] { message, EXPR<LogMessage, object>(x => x.Text), null };
+			yield return [message, EXPR<LogMessage, object>(x => x.LostMessageCount), -10];
+			yield return [message, EXPR<LogMessage, object>(x => x.LostMessageCount), 10];
+			yield return [message, EXPR<LogMessage, object>(x => x.Timestamp), DateTimeOffset.Parse("2020-01-02T12:00:00+01:00")];
+			yield return [message, EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), -10L];
+			yield return [message, EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 10L];
+			yield return [message, EXPR<LogMessage, object>(x => x.LogWriterName), "Another Log Writer"];
+			yield return [message, EXPR<LogMessage, object>(x => x.LogWriterName), null];
+			yield return [message, EXPR<LogMessage, object>(x => x.LogLevelName), "Another Log Level"];
+			yield return [message, EXPR<LogMessage, object>(x => x.LogLevelName), null];
+			yield return [message, EXPR<LogMessage, object>(x => x.Tags), new TagSet("AnotherTag")];
+			yield return [message, EXPR<LogMessage, object>(x => x.Tags), null];
+			yield return [message, EXPR<LogMessage, object>(x => x.ApplicationName), "Another Application"];
+			yield return [message, EXPR<LogMessage, object>(x => x.ApplicationName), null];
+			yield return [message, EXPR<LogMessage, object>(x => x.ProcessName), "Another Process Name"];
+			yield return [message, EXPR<LogMessage, object>(x => x.ProcessName), null];
+			yield return [message, EXPR<LogMessage, object>(x => x.ProcessId), -10];
+			yield return [message, EXPR<LogMessage, object>(x => x.ProcessId), 10];
+			yield return [message, EXPR<LogMessage, object>(x => x.Text), "Some other Text"];
+			yield return [message, EXPR<LogMessage, object>(x => x.Text), null];
 		}
 	}
 
@@ -967,20 +969,13 @@ public class LogMessageTests : IDisposable
 		object                               valueToSet)
 	{
 		// extract information about the property to work with
-		PropertyInfo propertyInfo;
-		switch (property.Body.NodeType)
+		// ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+		PropertyInfo propertyInfo = property.Body.NodeType switch
 		{
-			case ExpressionType.MemberAccess:
-				propertyInfo = (PropertyInfo)((MemberExpression)property.Body).Member;
-				break;
-
-			case ExpressionType.Convert:
-				propertyInfo = (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member;
-				break;
-
-			default:
-				throw new NotImplementedException();
-		}
+			ExpressionType.MemberAccess => (PropertyInfo)((MemberExpression)property.Body).Member,
+			ExpressionType.Convert      => (PropertyInfo)((MemberExpression)((UnaryExpression)property.Body).Operand).Member,
+			var _                       => throw new NotImplementedException()
+		};
 
 		// set property
 		propertyInfo.SetValue(message, valueToSet, null);

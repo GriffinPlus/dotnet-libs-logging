@@ -27,7 +27,7 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 	/// </summary>
 	public LogMessageCollection()
 	{
-		Messages = new List<TMessage>();
+		Messages = [];
 	}
 
 	/// <summary>
@@ -37,7 +37,7 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 	public LogMessageCollection(IEnumerable<TMessage> messages)
 	{
 		if (messages == null) throw new ArgumentNullException(nameof(messages));
-		Messages = new List<TMessage>(messages);
+		Messages = [..messages];
 		foreach (TMessage message in Messages) UpdateOverviewCollectionsOnAdd(message);
 	}
 
@@ -359,7 +359,7 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 
 	#region GetFilteredCollection() + Interaction with Filtered Collections
 
-	private readonly List<WeakReference<FilteredLogMessageCollection<TMessage>>> mFilteredCollections = new();
+	private readonly List<WeakReference<FilteredLogMessageCollection<TMessage>>> mFilteredCollections = [];
 
 	/// <summary>
 	/// Gets a collection providing the message set that pass the specified filter.

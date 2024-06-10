@@ -11,7 +11,7 @@ namespace GriffinPlus.Lib.Logging.Collections;
 partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 {
 	/// <summary>
-	/// Base class for more specific filters filtering for names.
+	/// Base class for more specific filters that are filtering for names.
 	/// </summary>
 	partial class ItemFilter<T>
 	{

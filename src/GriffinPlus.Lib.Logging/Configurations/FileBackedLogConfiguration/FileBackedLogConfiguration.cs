@@ -194,21 +194,16 @@ public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfigur
 		lock (Sync)
 		{
 			// get the first matching log writer settings
-			LogWriterConfiguration settings = null;
-			foreach (LogWriterConfiguration configuration in File.LogWriterSettings)
-			{
-				if (configuration.NamePatterns.Any(x => x.Regex.IsMatch(writer.Name)))
-				{
-					// found match by log writer name, check tags now
-					// - if no tags are configured => match always
-					// - if tags are configured => match, if at least one tag matches
-					if (!configuration.TagPatterns.Any() || configuration.TagPatterns.Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))))
-					{
-						settings = configuration;
-						break;
-					}
-				}
-			}
+			LogWriterConfiguration settings = File
+				.LogWriterSettings
+				.Where(
+					configuration => configuration
+						.NamePatterns
+						.Any(x => x.Regex.IsMatch(writer.Name)))
+				.FirstOrDefault(
+					configuration => !configuration.TagPatterns.Any() || configuration
+						                 .TagPatterns
+						                 .Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))));
 
 			if (settings != null)
 			{
@@ -320,7 +315,7 @@ public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfigur
 
 	/// <summary>
 	/// Checks whether the specified file name is the name of the configuration file of the log
-	/// (the comparison is case insensitive).
+	/// (the comparison is case-insensitive).
 	/// </summary>
 	/// <param name="fileName">File name to check.</param>
 	/// <returns>

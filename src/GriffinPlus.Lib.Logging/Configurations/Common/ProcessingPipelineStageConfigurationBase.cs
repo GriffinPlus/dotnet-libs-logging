@@ -21,7 +21,7 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// <summary>
 	/// Regex matching valid setting names.
 	/// </summary>
-	private static readonly Regex sValidSettingNameRegex = new("^[a-zA-Z0-9\\[\\]\\.]+$", RegexOptions.Compiled);
+	private static readonly Regex sValidSettingNameRegex = new(@"^[a-zA-Z0-9\[\]\.]+$", RegexOptions.Compiled);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ProcessingPipelineStageConfigurationBase"/> class.

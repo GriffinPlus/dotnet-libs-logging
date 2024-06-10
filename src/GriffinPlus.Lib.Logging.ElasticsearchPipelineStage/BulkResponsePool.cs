@@ -58,7 +58,7 @@ class BulkResponsePool
 	{
 		return mBulkResponseItemListInstances.Count > 0
 			       ? mBulkResponseItemListInstances.Pop()
-			       : new List<BulkResponse.Item>();
+			       : [];
 	}
 
 	/// <summary>

@@ -35,7 +35,7 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// <summary>
 	/// Occurs when the log configuration changes.
 	/// The event handler is invoked in the synchronization context of the registering thread, if the thread
-	/// has a synchronization context. Otherwise the event handler is invoked by a worker thread. The execution
+	/// has a synchronization context. Otherwise, the event handler is invoked by a worker thread. The execution
 	/// of the event handler is always scheduled to avoid deadlocks that might be caused by lock inversion.
 	/// </summary>
 	public event EventHandler<EventArgs> Changed

@@ -31,7 +31,7 @@ public class LogConfigurationFile
 	private const string Property_Name_LogWriter_Exclude          = "Exclude";
 
 	private static readonly string[] sHeaderComment =
-	{
+	[
 		"; ------------------------------------------------------------------------------",
 		"; Configuration of the Logging Subsystem",
 		"; ------------------------------------------------------------------------------",
@@ -40,24 +40,24 @@ public class LogConfigurationFile
 		"; i.e. it consists of sections and properties. A section defines a configuration",
 		"; scope while properties contain the actual settings within a section.",
 		"; ------------------------------------------------------------------------------"
-	};
+	];
 
 	private static readonly string[] sGlobalSettingsComment =
-	{
+	[
 		"; ------------------------------------------------------------------------------",
 		"; Global Settings",
 		"; ------------------------------------------------------------------------------"
-	};
+	];
 
 	private static readonly string[] sProcessingPipelineStageSettingsComment =
-	{
+	[
 		"; ------------------------------------------------------------------------------",
 		"; Processing Pipeline Stage Settings",
 		"; ------------------------------------------------------------------------------"
-	};
+	];
 
 	private static readonly string[] sLogWriterConfigurationComment =
-	{
+	[
 		"; ------------------------------------------------------------------------------",
 		"; Log Writer Settings",
 		"; ------------------------------------------------------------------------------",
@@ -116,7 +116,7 @@ public class LogConfigurationFile
 		"; levels can be separated by commas. Alternatively multiple 'Exclude' properties",
 		"; can be used.",
 		"; ------------------------------------------------------------------------------"
-	};
+	];
 
 	private static readonly Regex sCommentRegex = new(
 		@"^\s*;(.*)",
@@ -181,7 +181,7 @@ public class LogConfigurationFile
 	/// <summary>
 	/// Gets the list of log writer settings.
 	/// </summary>
-	public List<LogWriterConfiguration> LogWriterSettings { get; } = new();
+	public List<LogWriterConfiguration> LogWriterSettings { get; } = [];
 
 	/// <summary>
 	/// Gets processing pipeline stage settings by their name.
@@ -206,11 +206,9 @@ public class LogConfigurationFile
 		var file = new LogConfigurationFile();
 		file.Clear();
 
-		using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-		using (var reader = new StreamReader(fs, true))
-		{
-			file.Read(reader);
-		}
+		using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+		using var reader = new StreamReader(fs, true);
+		file.Read(reader);
 
 		return file;
 	}
@@ -302,11 +300,11 @@ public class LogConfigurationFile
 						// setting belongs to a log writer configuration
 						// (Name, WildcardPattern, RegexPattern, Tag, Level, Include, Exclude)
 						case Property_Name_LogWriter_Name:
-							if (value.StartsWith("="))
+							if (value.StartsWith("=", StringComparison.Ordinal))
 							{
-								logWriter.mNamePatterns.Add(new LogWriterConfiguration.ExactNamePattern(value.Substring(1)));
+								logWriter.mNamePatterns.Add(new LogWriterConfiguration.ExactNamePattern(value[1..]));
 							}
-							else if (value.StartsWith("^") && value.EndsWith("$"))
+							else if (value.StartsWith("^", StringComparison.Ordinal) && value.EndsWith("$", StringComparison.Ordinal))
 							{
 								logWriter.mNamePatterns.Add(new LogWriterConfiguration.RegexNamePattern(value));
 							}
@@ -328,11 +326,11 @@ public class LogConfigurationFile
 							continue;
 
 						case Property_Name_LogWriter_Tag:
-							if (value.StartsWith("="))
+							if (value.StartsWith("=", StringComparison.Ordinal))
 							{
-								logWriter.mTagPatterns.Add(new LogWriterConfiguration.ExactNamePattern(value.Substring(1)));
+								logWriter.mTagPatterns.Add(new LogWriterConfiguration.ExactNamePattern(value[1..]));
 							}
-							else if (value.StartsWith("^") && value.EndsWith("$"))
+							else if (value.StartsWith("^", StringComparison.Ordinal) && value.EndsWith("$", StringComparison.Ordinal))
 							{
 								logWriter.mTagPatterns.Add(new LogWriterConfiguration.RegexNamePattern(value));
 							}
@@ -405,11 +403,9 @@ public class LogConfigurationFile
 	/// <param name="path">Path of the configuration file to save.</param>
 	public void Save(string path)
 	{
-		using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
-		using (var writer = new StreamWriter(fs, new UTF8Encoding(true)))
-		{
-			Write(writer);
-		}
+		using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+		using var writer = new StreamWriter(fs, new UTF8Encoding(true));
+		Write(writer);
 	}
 
 	/// <summary>
@@ -472,12 +468,12 @@ public class LogConfigurationFile
 				{
 					switch (pattern)
 					{
-						case LogWriterConfiguration.ExactNamePattern _:
+						case LogWriterConfiguration.ExactNamePattern:
 							writer.WriteLine("{0} = ={1}", Property_Name_LogWriter_Name, pattern.Pattern);
 							break;
 
-						case LogWriterConfiguration.WildcardNamePattern _:
-						case LogWriterConfiguration.RegexNamePattern _:
+						case LogWriterConfiguration.WildcardNamePattern:
+						case LogWriterConfiguration.RegexNamePattern:
 							// regex patterns are enclosed by anchors (^regex$),
 							// everything else is interpreted as wildcard patterns
 							writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Name, pattern.Pattern);
@@ -489,12 +485,12 @@ public class LogConfigurationFile
 				{
 					switch (pattern)
 					{
-						case LogWriterConfiguration.ExactNamePattern _:
+						case LogWriterConfiguration.ExactNamePattern:
 							writer.WriteLine("{0} = ={1}", Property_Name_LogWriter_Tag, pattern.Pattern);
 							break;
 
-						case LogWriterConfiguration.WildcardNamePattern _:
-						case LogWriterConfiguration.RegexNamePattern _:
+						case LogWriterConfiguration.WildcardNamePattern:
+						case LogWriterConfiguration.RegexNamePattern:
 							// regex patterns are enclosed by anchors (^regex$),
 							// everything else is interpreted as wildcard patterns
 							writer.WriteLine("{0} = {1}", Property_Name_LogWriter_Tag, pattern.Pattern);

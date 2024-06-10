@@ -336,7 +336,7 @@ public abstract partial class ProcessingPipelineStage
 	/// <summary>
 	/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
 	/// its <see cref="ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
-	/// The pipeline stage must use the same log configuration as the current stage and it must not be initialized, yet.
+	/// The pipeline stage must use the same log configuration as the current stage and must not be initialized, yet.
 	/// </summary>
 	/// <param name="stage">The pipeline stage that should follow the current stage.</param>
 	/// <exception cref="ArgumentNullException">
@@ -357,7 +357,7 @@ public abstract partial class ProcessingPipelineStage
 			ProcessingPipelineStage[] oldNextStages = mNextStages;
 			var copy = new ProcessingPipelineStage[mNextStages.Length + 1];
 			Array.Copy(mNextStages, copy, mNextStages.Length);
-			copy[copy.Length - 1] = stage;
+			copy[^1] = stage;
 			mNextStages = copy;
 
 			// initialize the added stage, if this stage is initialized
@@ -450,7 +450,7 @@ public abstract partial class ProcessingPipelineStage
 	// all members below are synchronized using mSettingsSync
 	private readonly ILogConfiguration                     mConfiguration;
 	private          IProcessingPipelineStageConfiguration mSettings;
-	private readonly List<IUntypedSettingProxy>            mSettingProxies = new();
+	private readonly List<IUntypedSettingProxy>            mSettingProxies = [];
 	private readonly object                                mSettingsSync   = new();
 
 	/// <summary>

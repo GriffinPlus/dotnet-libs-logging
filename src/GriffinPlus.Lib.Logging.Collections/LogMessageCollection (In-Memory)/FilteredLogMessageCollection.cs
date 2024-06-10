@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 
 // ReSharper disable ExplicitCallerInfoArgument
+// ReSharper disable InlineTemporaryVariable
 
 namespace GriffinPlus.Lib.Logging.Collections;
 
@@ -22,7 +23,7 @@ public class FilteredLogMessageCollection<TMessage> :
 	FilteredLogMessageCollectionBase<TMessage, LogMessageCollection<TMessage>, ILogMessageCollectionFilter<TMessage>>
 	where TMessage : class, ILogMessage
 {
-	private readonly List<TMessage> mMessages = new();
+	private readonly List<TMessage> mMessages = [];
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="LogMessageCollection{TMessage}"/> class.
@@ -152,7 +153,7 @@ public class FilteredLogMessageCollection<TMessage> :
 	internal void ProcessUnfilteredCollectionChange_AfterAdd(int startIndex, int count)
 	{
 		List<TMessage> newMessages = IsCollectionChangedRegistered && UseMultiItemNotifications
-			                             ? new List<TMessage>()
+			                             ? []
 			                             : null;
 
 		int newMessagesIndex = mMessages.Count;
@@ -196,7 +197,7 @@ public class FilteredLogMessageCollection<TMessage> :
 	}
 
 	/// <summary>
-	/// Is called just before log messages are are removed from the unfiltered collection.
+	/// Is called just before log messages are removed from the unfiltered collection.
 	/// </summary>
 	/// <param name="startIndex">The index of the first message in the unfiltered collection that is about to be removed.</param>
 	/// <param name="count">The number of messages that are about to be removed.</param>

@@ -53,36 +53,46 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 			// test adding log levels to the same stream
 			foreach (ConsoleOutputStream stream in new[] { ConsoleOutputStream.Stdout, ConsoleOutputStream.Stdout })
 			{
-				mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
-				yield return new object[] { mappings };
+				mappings =
+				[
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream)
+				];
+				yield return [mappings];
 
-				mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream));
-				yield return new object[] { mappings };
+				mappings =
+				[
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream),
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream)
+				];
+				yield return [mappings];
 
-				mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, stream));
-				yield return new object[] { mappings };
+				mappings =
+				[
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream),
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream),
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, stream)
+				];
+				yield return [mappings];
 
-				mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, stream));
-				mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Error, stream));
-				yield return new object[] { mappings };
+				mappings =
+				[
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream),
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream),
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, stream),
+					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Error, stream)
+				];
+				yield return [mappings];
 			}
 
 			// now test whether overwriting existing mappings work
-			mappings = new List<Tuple<LogLevel, ConsoleOutputStream>>();
-			mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, ConsoleOutputStream.Stdout));
-			mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stdout));
-			mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, ConsoleOutputStream.Stdout));
-			mappings.Add(new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stderr)); // overwrite (!)
-			yield return new object[] { mappings };
+			mappings =
+			[
+				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, ConsoleOutputStream.Stdout),
+				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stdout),
+				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, ConsoleOutputStream.Stdout),
+				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stderr) // overwrite (!)
+			];
+			yield return [mappings];
 		}
 	}
 
@@ -243,6 +253,7 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 		{
 			stage.ProcessMessage(message);
 
+			// ReSharper disable once CanSimplifyDictionaryTryGetValueWithGetValueOrDefault
 			if (!levelToStreamMap.TryGetValue(message.LogLevel, out ConsoleOutputStream stream))
 				stream = defaultStream;
 

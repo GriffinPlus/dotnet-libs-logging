@@ -82,7 +82,7 @@ public static class LoggingTestHelpers
 		if (count <= 0)
 			return messages.ToArray();
 
-		// the first an the last message should have different field values to allow the tests to match properly
+		// the first and the last message should have different field values to allow the tests to match properly
 
 		TMessage firstMessage = messages[0];
 		firstMessage.LogWriterName = "log writer of first message";

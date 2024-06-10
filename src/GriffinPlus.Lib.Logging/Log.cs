@@ -90,7 +90,7 @@ public class Log
 
 	/// <summary>
 	/// Gets an id that is valid for the entire asynchronous control flow.
-	/// It should be queried the first time where the asynchronous path starts.
+	/// It should be queried the first time when the asynchronous path starts.
 	/// It starts with 1. When wrapping around it skips 0, so 0 can be safely used to indicate an invalid/unassigned id.
 	/// </summary>
 	[Obsolete("Deprecated, please use AsyncId.Current instead. Will be removed with the next major release.")]
@@ -152,7 +152,7 @@ public class Log
 				// initialize the configuration
 				configurationInitializer?.Invoke(configuration);
 
-				// build and configure the processing pipeline pipeline using a builder (if specified)
+				// build and configure the processing pipeline using a builder (if specified)
 				ProcessingPipelineStage stage = null;
 				if (processingPipelineInitializer != null)
 				{
@@ -336,7 +336,7 @@ public class Log
 	{
 		lock (Sync)
 		{
-			if (sProcessingPipeline != null && sProcessingPipeline.IsInitialized)
+			if (sProcessingPipeline is { IsInitialized: true })
 			{
 				// report the incident using the system logger
 				var builder = new StringBuilder();
@@ -455,7 +455,7 @@ public class Log
 		LogLevel  level,
 		string    text)
 	{
-		if (level.Id < 0 || level.Id == int.MaxValue)
+		if (level.Id is < 0 or int.MaxValue)
 		{
 			level = LogLevel.Error;
 			text = "##### Message was written using log level 'None' or 'All'. Falling back to 'Error'. Don't do that!!!! #####" +

@@ -575,7 +575,7 @@ sealed unsafe partial class UnsafeSharedMemoryQueue : IDisposable
 	#region Internal Management
 
 	/// <summary>
-	/// Initializes the the queue structure in shared memory.
+	/// Initializes the queue structure in shared memory.
 	/// </summary>
 	private void InitQueue()
 	{

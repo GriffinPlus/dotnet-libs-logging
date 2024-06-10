@@ -122,7 +122,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 				base.Reset();
 
 				TUnfilteredCollection collection = Parent.Collection;
-				if (collection != null && collection.Count > 0)
+				if (collection is { Count: > 0 })
 				{
 					mMinTimestamp = collection[0].Timestamp;
 					mMaxTimestamp = collection[collection.Count - 1].Timestamp;

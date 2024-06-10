@@ -146,116 +146,116 @@ public class JsonMessageFormatterTests
 			// style: compact
 			// ------------------------------------------------------------------------
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.None,
 				message,
 				null, // newline sequence is not relevant
 				"{}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.Timestamp,
 				message,
 				null, // newline sequence is not relevant
 				"{\"Timestamp\":\"2000-01-01 00:00:00Z\"}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.HighPrecisionTimestamp,
 				message,
 				null, // newline sequence is not relevant
 				"{\"HighPrecisionTimestamp\":123}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.LogWriterName,
 				message,
 				null, // newline sequence is not relevant
 				"{\"LogWriter\":\"MyWriter\"}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.LogLevelName,
 				message,
 				null, // newline sequence is not relevant
 				"{\"LogLevel\":\"MyLevel\"}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet() },
 				null, // newline sequence is not relevant
 				"{\"Tags\":[]}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet("Tag") },
 				null, // newline sequence is not relevant
 				"{\"Tags\":[\"Tag\"]}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
 				null, // newline sequence is not relevant
 				"{\"Tags\":[\"Tag1\",\"Tag2\"]}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.ApplicationName,
 				message,
 				null, // newline sequence is not relevant
 				"{\"ApplicationName\":\"MyApp\"}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.ProcessName,
 				message,
 				null, // newline sequence is not relevant
 				"{\"ProcessName\":\"MyProcess\"}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.ProcessId,
 				message,
 				null, // newline sequence is not relevant
 				"{\"ProcessId\":42}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.Text,
 				message,
 				null, // newline sequence is not relevant
 				"{\"Text\":\"MyText\"}"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.All,
 				message,
@@ -271,122 +271,122 @@ public class JsonMessageFormatterTests
 				"\"ProcessId\":42," +
 				"\"Text\":\"MyText\"" +
 				"}"
-			};
+			];
 
 			// ------------------------------------------------------------------------
 			// style: one line
 			// ------------------------------------------------------------------------
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.None,
 				message,
 				null, // newline sequence is not relevant
 				"{ }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.Timestamp,
 				message,
 				null, // newline sequence is not relevant
 				"{ \"Timestamp\" : \"2000-01-01 00:00:00Z\" }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.HighPrecisionTimestamp,
 				message,
 				null, // newline sequence is not relevant
 				"{ \"HighPrecisionTimestamp\" : 123 }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.LogWriterName,
 				message,
 				null, // newline sequence is not relevant
 				"{ \"LogWriter\" : \"MyWriter\" }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.LogLevelName,
 				message,
 				null, // newline sequence is not relevant
 				"{ \"LogLevel\" : \"MyLevel\" }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet() },
 				null, // newline sequence is not relevant
 				"{ \"Tags\" : [] }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet("Tag") },
 				null, // newline sequence is not relevant
 				"{ \"Tags\" : [ \"Tag\" ] }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.Tags,
 				new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
 				null, // newline sequence is not relevant
 				"{ \"Tags\" : [ \"Tag1\", \"Tag2\" ] }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.ApplicationName,
 				message,
 				null, // newline sequence is not relevant
 				"{ \"ApplicationName\" : \"MyApp\" }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.ProcessName,
 				message,
 				null, // newline sequence is not relevant
 				"{ \"ProcessName\" : \"MyProcess\" }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.ProcessId,
 				message,
 				null, // newline sequence is not relevant
 				"{ \"ProcessId\" : 42 }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.Text,
 				message,
 				null, // newline sequence is not relevant
 				"{ \"Text\" : \"MyText\" }"
-			};
+			];
 
-			yield return new object[]
-			{
+			yield return
+			[
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.All,
 				message,
@@ -402,7 +402,7 @@ public class JsonMessageFormatterTests
 				" \"ProcessId\" : 42," +
 				" \"Text\" : \"MyText\"" +
 				" }"
-			};
+			];
 
 			// ------------------------------------------------------------------------
 			// style: beautified
@@ -410,18 +410,18 @@ public class JsonMessageFormatterTests
 
 			foreach (string newline in new[] { "\n", "\r\n" })
 			{
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.None,
 					message,
 					newline,
 					$"{{{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Timestamp,
 					message,
@@ -429,10 +429,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"Timestamp\" : \"2000-01-01 00:00:00Z\"{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.HighPrecisionTimestamp,
 					message,
@@ -440,10 +440,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"HighPrecisionTimestamp\" : 123{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.LogWriterName,
 					message,
@@ -451,10 +451,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"LogWriter\" : \"MyWriter\"{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.LogLevelName,
 					message,
@@ -462,10 +462,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"LogLevel\" : \"MyLevel\"{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet() },
@@ -473,10 +473,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"Tags\" : []{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
@@ -484,10 +484,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"Tags\" : [ \"Tag\" ]{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
@@ -495,10 +495,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"Tags\" : [ \"Tag1\", \"Tag2\" ]{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.ApplicationName,
 					message,
@@ -506,10 +506,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"ApplicationName\" : \"MyApp\"{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.ProcessName,
 					message,
@@ -517,10 +517,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"ProcessName\" : \"MyProcess\"{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.ProcessId,
 					message,
@@ -528,10 +528,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"ProcessId\" : 42{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Text,
 					message,
@@ -539,10 +539,10 @@ public class JsonMessageFormatterTests
 					$"{{{newline}" +
 					$"    \"Text\" : \"MyText\"{newline}" +
 					"}"
-				};
+				];
 
-				yield return new object[]
-				{
+				yield return
+				[
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.All,
 					message,
@@ -558,7 +558,7 @@ public class JsonMessageFormatterTests
 					$"    \"ProcessId\"              : 42,{newline}" +
 					$"    \"Text\"                   : \"MyText\"{newline}" +
 					"}"
-				};
+				];
 			}
 		}
 	}
@@ -577,7 +577,7 @@ public class JsonMessageFormatterTests
 	{
 		// test set knows that the newline character sequence is not relevant, if newline == null
 		// => set it explicitly to satisfy the formatter
-		if (newline == null) newline = "\n";
+		newline ??= "\n";
 
 		var formatter = new JsonMessageFormatter { Style = style, Newline = newline };
 
@@ -618,7 +618,7 @@ public class JsonMessageFormatterTests
 
 
 	/// <summary>
-	/// Tests whether keys are are escaped properly.
+	/// Tests whether keys are escaped properly.
 	/// </summary>
 	[Theory]
 	[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.Timestamp)]
@@ -702,7 +702,7 @@ public class JsonMessageFormatterTests
 
 
 	/// <summary>
-	/// Tests whether values are are escaped properly.
+	/// Tests whether values are escaped properly.
 	/// </summary>
 	[Theory]
 	[InlineData(JsonMessageFormatterStyle.Compact, LogMessageField.LogWriterName)]

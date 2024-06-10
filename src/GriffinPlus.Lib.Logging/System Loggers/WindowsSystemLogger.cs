@@ -38,7 +38,7 @@ public class WindowsSystemLogger : ISystemLogger
 		}
 		catch (SecurityException)
 		{
-			// the log source does not exist and it could not be created
+			// the log source does not exist and could not be created
 			// => use "Application" as fallback
 			source = "Application";
 			usingFallback = true;
@@ -62,8 +62,11 @@ public class WindowsSystemLogger : ISystemLogger
 			builder.AppendLine();
 			builder.AppendLine("--- FILE START -------------------------------------------------------------------------------------------------");
 			builder.AppendLine("Windows Registry Editor Version 5.00");
-			builder.AppendLine($"[HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\{desiredSource}]");
-			builder.AppendLine("\"EventMessageFile\" = \"C:\\\\Windows\\\\Microsoft.NET\\\\Framework64\\\\v4.0.30319\\\\EventLogMessages.dll\"");
+			builder.AppendLine($@"[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Application\{desiredSource}]");
+			builder.AppendLine(
+				"""
+				"EventMessageFile" = "C:\\Windows\Microsoft.NET\Framework64\v4.0.30319\EventLogMessages.dll"
+				""");
 			builder.AppendLine("--- FILE END ---------------------------------------------------------------------------------------------------");
 			mEventLog.WriteEntry(builder.ToString(), EventLogEntryType.Warning);
 		}

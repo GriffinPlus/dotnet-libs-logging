@@ -47,7 +47,7 @@ public class TokenizingException : Exception
 	public int LineNumber { get; }
 
 	/// <summary>
-	/// Gets the position in the line where the tokenizing error occurred (starts at 1).
+	/// Gets the character in the line where the tokenizing error occurred (starts at 1).
 	/// </summary>
 	public int Position { get; }
 }

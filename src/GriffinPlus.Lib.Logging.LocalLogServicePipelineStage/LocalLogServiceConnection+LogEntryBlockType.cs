@@ -8,7 +8,7 @@ namespace GriffinPlus.Lib.Logging;
 partial class LocalLogServiceConnection
 {
 	/// <summary>
-	/// Types a log entry block in a the shared memory queue can contain.
+	/// Types a log entry block in the shared memory queue can contain.
 	/// </summary>
 	internal enum LogEntryBlockType
 	{

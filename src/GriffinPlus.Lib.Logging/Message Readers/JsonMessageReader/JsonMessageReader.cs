@@ -38,7 +38,7 @@ public class JsonMessageReader
 	private readonly Stack<State>          mStateStack = new();
 	private          State                 mState      = State.Start;
 	private          State                 mReadingValueState;
-	private readonly List<ILogMessage>     mCompletedLogMessages = new();
+	private readonly List<ILogMessage>     mCompletedLogMessages = [];
 	private          LogMessage            mLogMessage;
 	private readonly JsonMessageFieldNames mFieldNames;
 

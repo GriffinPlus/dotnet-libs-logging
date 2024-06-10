@@ -60,7 +60,7 @@ public class JsonMessageReaderTests
 				if (field.HasFlag(LogMessageField.ProcessId)) expected.ProcessId = message.ProcessId;
 				if (field.HasFlag(LogMessageField.Text)) expected.Text = message.Text;
 
-				yield return new object[] { json, newline, expected };
+				yield return [json, newline, expected];
 			}
 		}
 	}
@@ -108,7 +108,7 @@ public class JsonMessageReaderTests
 		}
 
 		// pass the last character into the reader completing the message
-		messages = reader.Process(json[json.Length - 1].ToString());
+		messages = reader.Process(json[^1].ToString());
 		Assert.Single(messages);
 		Assert.Equal(expected, messages[0]);
 	}

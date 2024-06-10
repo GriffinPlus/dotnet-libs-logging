@@ -71,7 +71,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	ILogMessageCollectionFilterBase<LogMessage> ILogMessageCollectionFilteringAccessor<LogMessage>.Filter => Filter;
 
 	/// <summary>
-	/// Gets or sets a the maximum number of messages to cache before least recently used messages are removed (must be at least 1).
+	/// Gets or sets the maximum number of messages to cache before least recently used messages are removed (must be at least 1).
 	/// </summary>
 	public int CacheCapacity
 	{
@@ -222,7 +222,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 
 			// the request was served completely from the cache, if the desired number of messages has been collected
 			// or the start of the filtered set is reached
-			if (messages.Count == count || messages[messages.Count - 1].Id == mFirstMatchingMessageId)
+			if (messages.Count == count || messages[^1].Id == mFirstMatchingMessageId)
 			{
 				matchIndices = messages.Select(x => x.Id - offset).ToArray();
 				return messages.Cast<LogMessage>().ToArray();
@@ -365,7 +365,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 
 			// the request was served completely from the cache, if the desired number of messages has been collected
 			// or the end of the filtered set is reached
-			if (messages.Count == count || messages[messages.Count - 1].Id == mLastMatchingMessageId)
+			if (messages.Count == count || messages[^1].Id == mLastMatchingMessageId)
 			{
 				matchIndices = messages.Select(x => x.Id - offset).ToArray();
 				return messages.Cast<LogMessage>().ToArray();
@@ -445,7 +445,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 			int firstMessageCacheIndex = GetMessageFromCacheById_AdjustForward(fromMessageId, out LogFileMessage message);
 			if (firstMessageCacheIndex >= 0)
 			{
-				// abort, if the the first matching message is behind the end of the requested range
+				// abort, if the first matching message is behind the end of the requested range
 				if (message.Id > lastMessage.Id)
 				{
 					matchIndices = Array.Empty<long>();
@@ -475,7 +475,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 				}
 
 				// the request was served completely from the cache, if the end of the filtered set is reached
-				if (messages[messages.Count - 1].Id == lastMessage.Id)
+				if (messages[^1].Id == lastMessage.Id)
 				{
 					matchIndices = messages.Select(x => x.Id - offset).ToArray();
 					return messages.Cast<LogMessage>().ToArray();
@@ -568,8 +568,8 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 		}
 	}
 
-	private readonly List<CacheItem>                       mCachedMessagesSortedById = new();
-	private readonly LinkedList<LinkedListNode<CacheItem>> mCacheLruList             = new(); // front = oldest message, back = newest message
+	private readonly List<CacheItem>                       mCachedMessagesSortedById = [];
+	private readonly LinkedList<LinkedListNode<CacheItem>> mCacheLruList             = []; // front = oldest message, back = newest message
 	private readonly Queue<CacheItem>                      mEmptyCacheItems          = new();
 	private          int                                   mCacheCapacity            = 10000;
 	private          long                                  mFirstMatchingMessageId   = -1;
@@ -725,7 +725,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// Fetches the log message with the specified message id.
 	/// Adjusts the specified id, if it does not belong to a message matching the filter.
 	/// </summary>
-	/// <param name="messageId">Id of the message to fetch.</param>
+	/// <param name="messageId">ID of the message to fetch.</param>
 	/// <param name="adjustForward">
 	/// <c>true</c> to adjust forward, if the specified id does not belong to a message matching the filter;<br/>
 	/// <c>false</c> to adjust backwards, if the specified id does not belong to a message matching the filter.
@@ -803,7 +803,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// Fetches multiple log messages starting with the specified message id.
 	/// Adjusts the specified id, if it does not belong to a message matching the filter.
 	/// </summary>
-	/// <param name="messageId">Id of the message to fetch.</param>
+	/// <param name="messageId">ID of the message to fetch.</param>
 	/// <param name="count">Maximum number of messages to fetch.</param>
 	/// <param name="adjustForward">
 	/// <c>true</c> to adjust forward, if the specified id does not belong to a message matching the filter;<br/>
@@ -827,7 +827,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 
 		// abort, if the start message was not found
 		if (firstMessage == null)
-			return new List<LogFileMessage>();
+			return [];
 
 		var messages = new List<LogFileMessage> { firstMessage };
 		long previousMatchMessageId = -1;
@@ -900,8 +900,8 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// <summary>
 	/// Fetches all matching log messages in the specified message id interval.
 	/// </summary>
-	/// <param name="fromMessageId">Id of the message to start at (incl. the message).</param>
-	/// <param name="toMessageId">Id of the message to stop at (incl. the message).</param>
+	/// <param name="fromMessageId">ID of the message to start at (incl. the message).</param>
+	/// <param name="toMessageId">ID of the message to stop at (incl. the message).</param>
 	/// <returns>The retrieved messages.</returns>
 	private List<LogFileMessage> FetchAndAddMessageRangeToCache(long fromMessageId, long toMessageId)
 	{
@@ -912,7 +912,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 
 		// abort, if the start message was not found
 		if (firstMessage == null)
-			return new List<LogFileMessage>();
+			return [];
 
 		// the range contains at least the first message
 		var messages = new List<LogFileMessage> { firstMessage };
@@ -935,7 +935,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 
 		// fetch the successor of the last message
 		long nextMatchMessageId = -1;
-		LogFileMessage lastMessage = messages[messages.Count - 1];
+		LogFileMessage lastMessage = messages[^1];
 		if (lastMessage.Id < Collection.LogFile.NewestMessageId)
 		{
 			LogFileMessage nextMessage = Filter.GetNextMessage(lastMessage.Id + 1);
@@ -955,8 +955,8 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// Adds the specified messages to the cache.
 	/// </summary>
 	/// <param name="messages">Messages to add to the cache (must not contain any gaps!).</param>
-	/// <param name="predecessorMessageId">Id of the message preceding the first message in the sequence.</param>
-	/// <param name="successorMessageId">Id of the message following the last message in the sequence.</param>
+	/// <param name="predecessorMessageId">ID of the message preceding the first message in the sequence.</param>
+	/// <param name="successorMessageId">ID of the message following the last message in the sequence.</param>
 	private void AddMessagesToCache(
 		IReadOnlyList<LogFileMessage> messages,
 		long                          predecessorMessageId,
@@ -1029,7 +1029,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	}
 
 	/// <summary>
-	/// Consolidates the cache by removing messages that are not in the log file any more.
+	/// Consolidates the cache by removing messages that are not in the log file anymore.
 	/// </summary>
 	private void Consolidate()
 	{

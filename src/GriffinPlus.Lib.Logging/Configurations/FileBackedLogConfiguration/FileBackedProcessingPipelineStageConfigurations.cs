@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging;
 public class FileBackedProcessingPipelineStageConfigurations : IProcessingPipelineStageConfigurations
 {
 	private readonly FileBackedLogConfiguration                  mLogConfiguration;
-	private readonly List<IProcessingPipelineStageConfiguration> mStageConfigurations = new();
+	private readonly List<IProcessingPipelineStageConfiguration> mStageConfigurations = [];
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class.

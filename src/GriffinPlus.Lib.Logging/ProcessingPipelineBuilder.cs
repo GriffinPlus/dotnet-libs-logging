@@ -31,7 +31,7 @@ public class ProcessingPipelineBuilder
 
 	/// <summary>
 	/// Adds the specified pipeline stage to the processing pipeline.
-	/// If there another pipeline stage was added before, a splitter is inserted to run both pipeline stages in parallel.
+	/// If another pipeline stage was added before, a splitter is inserted to run both pipeline stages in parallel.
 	/// </summary>
 	/// <typeparam name="TPipelineStage">Type of the pipeline stage to add.</typeparam>
 	/// <param name="name">Name of the pipeline stage to add.</param>

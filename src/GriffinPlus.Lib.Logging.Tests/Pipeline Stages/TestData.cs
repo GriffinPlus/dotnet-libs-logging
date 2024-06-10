@@ -22,7 +22,7 @@ public static class TestData
 	{
 		get
 		{
-			string[][] tagSets = { null, new[] { "Tag" }, new[] { "Tag1", "Tag2" } };
+			string[][] tagSets = [null, ["Tag"], ["Tag1", "Tag2"]];
 
 			foreach (string[] tags in tagSets)
 			{

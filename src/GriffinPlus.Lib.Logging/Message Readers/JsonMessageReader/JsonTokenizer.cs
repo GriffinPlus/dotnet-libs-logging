@@ -244,7 +244,7 @@ class JsonTokenizer
 
 			if (mState == State.ReadingUnicodeEscapeSequence)
 			{
-				if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+				if (c is >= '0' and <= '9' or >= 'a' and <= 'f' or >= 'A' and <= 'F')
 				{
 					mEscapeSequenceBuilder.Append(c);
 					if (mEscapeSequenceBuilder.Length < 4) continue; // no enough characters to interpret the code unit
@@ -331,7 +331,7 @@ class JsonTokenizer
 				$"Missing closing quotes of string at ({mStartLineNumberOfAssembledToken},{mStartPositionOfAssembledToken}).");
 		}
 
-		if (mState == State.ReadingEscapeSequence || mState == State.ReadingUnicodeEscapeSequence)
+		if (mState is State.ReadingEscapeSequence or State.ReadingUnicodeEscapeSequence)
 		{
 			// incomplete escape sequence
 			throw new TokenizingException(
@@ -376,7 +376,7 @@ class JsonTokenizer
 	/// <exception cref="TokenizingException">The token could not be translated, because it does not seem to be a valid number, boolean or null token.</exception>
 	private void TranslateIdentifier(ref JsonToken token)
 	{
-		// check whether the token is one of the key words
+		// check whether the token is one of the keywords
 		switch (token.Token)
 		{
 			case "true":

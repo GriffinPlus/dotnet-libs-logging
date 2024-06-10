@@ -31,7 +31,7 @@ partial class ElasticsearchPipelineStage
 	{
 		private readonly ElasticsearchPipelineStage mStage;
 		private readonly JsonWriterOptions          mJsonWriterOptions      = new() { SkipValidation = true };
-		private readonly Deque<LocalLogMessage>     mMessagesPreparedToSend = new();
+		private readonly Deque<LocalLogMessage>     mMessagesPreparedToSend = [];
 		private          MemoryBlockStream          mContentStream;
 		private          Utf8JsonWriter             mRequestContentWriter;
 		private          HttpRequestMessage         mSendBulkRequestMessage;
@@ -63,7 +63,7 @@ partial class ElasticsearchPipelineStage
 		/// <summary>
 		/// Gets a value indicating whether sending has completed (can be successful or error).
 		/// </summary>
-		public bool HasCompletedSending => mSendBulkRequestTask != null && mSendBulkRequestTask.IsCompleted;
+		public bool HasCompletedSending => mSendBulkRequestTask is { IsCompleted: true };
 
 		/// <summary>
 		/// Gets the bulk request endpoint of the Elasticsearch cluster the request was sent to.
@@ -126,7 +126,7 @@ partial class ElasticsearchPipelineStage
 		/// (<see cref="LocalLogMessage.Release"/> is called automatically when sending completes).
 		/// </param>
 		/// <returns>
-		/// <c>true</c> if the the request was successfully added to the request;<br/>
+		/// <c>true</c> if the request was successfully added to the request;<br/>
 		/// <c>false</c> if the request is full.
 		/// </returns>
 		public bool AddMessage(LocalLogMessage message)
@@ -237,7 +237,7 @@ partial class ElasticsearchPipelineStage
 		/// <summary>
 		/// Starts sending the prepared request.
 		/// </summary>
-		/// <param name="endpoint">Endpoint the request is send to.</param>
+		/// <param name="endpoint">Endpoint the request is sent to.</param>
 		/// <param name="cancellationToken">Cancellation token that can be signaled to abort the send operation.</param>
 		/// <returns>
 		/// <c>true</c> if sending was started successfully;<br/>
@@ -288,7 +288,7 @@ partial class ElasticsearchPipelineStage
 		}
 
 		/// <summary>
-		/// Processes a completed send operation (may be successful or not).
+		/// Processes a completed send operation (may have succeeded or failed).
 		/// </summary>
 		/// <returns>
 		/// <c>true</c> if the endpoint is considered operational;<br/>
@@ -317,12 +317,12 @@ partial class ElasticsearchPipelineStage
 					if (bulkResponse.Errors)
 					{
 						// there are messages that were not indexed successfully
-						// => evaluate the the response
+						// => evaluate the response
 						List<BulkResponse.Item> bulkResponseItems = bulkResponse.Items;
 						for (int i = bulkResponseItems.Count - 1; i >= 0; i--)
 						{
 							int status = bulkResponseItems[i].Create.Status;
-							if (status >= 200 && status <= 299) // usually 201 (created)
+							if (status is >= 200 and <= 299) // usually 201 (created)
 							{
 								// message was indexed successfully
 								mMessagesPreparedToSend[i].Release();

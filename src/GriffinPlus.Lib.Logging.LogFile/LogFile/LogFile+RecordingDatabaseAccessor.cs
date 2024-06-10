@@ -52,26 +52,26 @@ partial class LogFile
 		/// SQL commands that create the database structure specific for the 'recording' format.
 		/// </summary>
 		private static readonly string[] sCreateDatabaseCommands_SpecificStructure =
-		{
+		[
 			"PRAGMA user_version = 1;", // <- 'recording' format
 			"CREATE TABLE messages (id INTEGER PRIMARY KEY, timestamp INTEGER, timezone_offset INTEGER, high_precision_timestamp INTEGER, lost_message_count INTEGER, process_id INTEGER, process_name_id INTEGER, application_name_id INTEGER, writer_name_id INTEGER, level_name_id INTEGER, has_tags BOOLEAN, text TEXT);"
-		};
+		];
 
 		/// <summary>
 		/// SQL commands that add indices specific for the 'recording' format to a database.
 		/// </summary>
 		private static readonly string[] sCreateDatabaseCommands_SpecificIndices =
-		{
+		[
 			"CREATE INDEX messages_timestamp_index ON messages (timestamp);"
-		};
+		];
 
 		/// <summary>
 		/// SQL commands that drop the specific database structure for the 'recording' format.
 		/// </summary>
 		private static readonly string[] sDropIndicesAndTables_Specific =
-		{
+		[
 			"DROP TABLE messages;"
-		};
+		];
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RecordingDatabaseAccessor"/> class.
@@ -201,7 +201,7 @@ partial class LogFile
 		/// Gets the id of the oldest message.
 		/// </summary>
 		/// <returns>
-		/// Id of the oldest message;<br/>
+		/// ID of the oldest message;<br/>
 		/// -1, if the database is empty.
 		/// </returns>
 		private long GetOldestMessageId()
@@ -214,7 +214,7 @@ partial class LogFile
 		/// Gets the id of the newest message.
 		/// </summary>
 		/// <returns>
-		/// Id of the newest message;<br/>
+		/// ID of the newest message;<br/>
 		/// -1, if the database is empty.
 		/// </returns>
 		private long GetNewestMessageId()
@@ -294,7 +294,7 @@ partial class LogFile
 		/// <summary>
 		/// Gets a number of log messages starting at the specified message id.
 		/// </summary>
-		/// <param name="fromId">Id of the message to start at.</param>
+		/// <param name="fromId">ID of the message to start at.</param>
 		/// <param name="count">Number of log messages to get.</param>
 		/// <param name="callback">Callback to invoke for every read message</param>
 		/// <returns>
@@ -312,15 +312,13 @@ partial class LogFile
 			mSelectContinuousMessagesCommand.Reset();
 			mSelectContinuousMessagesCommand_FromIdParameter.Value = fromId;
 			mSelectContinuousMessagesCommand_CountParameter.Value = count;
-			using (SQLiteDataReader reader = mSelectContinuousMessagesCommand.ExecuteReader())
+			using SQLiteDataReader reader = mSelectContinuousMessagesCommand.ExecuteReader();
+			while (reader.Read())
 			{
-				while (reader.Read())
-				{
-					// read message and invoke processing callback
-					LogFileMessage message = ReadLogMessage(reader);
-					if (!callback(message))
-						return false;
-				}
+				// read message and invoke processing callback
+				LogFileMessage message = ReadLogMessage(reader);
+				if (!callback(message))
+					return false;
 			}
 
 			return true;
@@ -385,7 +383,7 @@ partial class LogFile
 		/// Writes a single log message (must run in a transaction for consistency).
 		/// </summary>
 		/// <param name="message">Message to write.</param>
-		/// <param name="messageId">Id of the message in the log file.</param>
+		/// <param name="messageId">ID of the message in the log file.</param>
 		protected override void WriteLogMessage(ILogMessage message, long messageId)
 		{
 			// insert common data
@@ -449,6 +447,16 @@ partial class LogFile
 
 			int removeCount = 0;
 
+			// execute the operation in a transaction
+			ExecuteInTransaction(Operation);
+
+			// update the id of the oldest and the newest log message
+			OldestMessageId = GetOldestMessageId();
+			NewestMessageId = GetNewestMessageId();
+
+			// return the number of removed messages
+			return removeCount;
+
 			void Operation()
 			{
 				// determine the id of the first message older than the specified timestamp
@@ -496,16 +504,6 @@ partial class LogFile
 					RemoveTagAssociations(messageId);
 				}
 			}
-
-			// execute the operation in a transaction
-			ExecuteInTransaction(Operation);
-
-			// update the id of the oldest and the newest log message
-			OldestMessageId = GetOldestMessageId();
-			NewestMessageId = GetNewestMessageId();
-
-			// return the number of removed messages
-			return removeCount;
 		}
 
 		/// <summary>
@@ -542,6 +540,19 @@ partial class LogFile
 
 			List<LogFileMessage> messages = null;
 			int removeCount = 0;
+
+			// execute the operation in a transaction
+			ExecuteInTransaction(Operation);
+
+			// update the id of the oldest and the newest log message
+			OldestMessageId = GetOldestMessageId();
+			NewestMessageId = GetNewestMessageId();
+
+			// assign list of removed messages
+			removedMessages = messages?.ToArray() ?? Array.Empty<LogFileMessage>();
+
+			// return the number of removed messages
+			return removeCount;
 
 			void Operation()
 			{
@@ -604,19 +615,6 @@ partial class LogFile
 					RemoveTagAssociations(messageId);
 				}
 			}
-
-			// execute the operation in a transaction
-			ExecuteInTransaction(Operation);
-
-			// update the id of the oldest and the newest log message
-			OldestMessageId = GetOldestMessageId();
-			NewestMessageId = GetNewestMessageId();
-
-			// assign list of removed messages
-			removedMessages = messages?.ToArray() ?? Array.Empty<LogFileMessage>();
-
-			// return the number of removed messages
-			return removeCount;
 		}
 	}
 }

@@ -18,7 +18,7 @@ namespace GriffinPlus.Lib.Logging.Collections;
 partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 {
 	/// <summary>
-	/// Base class for more specific filters filtering for names.
+	/// Base class for more specific filters that are filtering for names.
 	/// </summary>
 	public partial class ItemFilter<T> : FilterBase, ISelectableLogMessageFilter_ItemFilter<T>
 		where T : IEquatable<T>
@@ -43,12 +43,12 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 		/// <param name="comparer">Comparer to use for sorting items.</param>
 		internal ItemFilter(SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection> parent, string defaultGroup, IComparer<T> comparer) : base(parent)
 		{
-			mStaticItems = new List<ISelectableLogMessageFilter_ItemInternal<T>>();
-			mSortedItems = new List<ISelectableLogMessageFilter_ItemInternal<T>>();
-			mCombinedItems = new ObservableCollection<ISelectableLogMessageFilter_Item<T>>();
+			mStaticItems = [];
+			mSortedItems = [];
+			mCombinedItems = [];
 			mAllItemsByValue = new Dictionary<T, ISelectableLogMessageFilter_ItemInternal<T>>();
 			Items = new ReadOnlyObservableCollection<ISelectableLogMessageFilter_Item<T>>(mCombinedItems);
-			mEnabledValues = new HashSet<T>();
+			mEnabledValues = [];
 			mDefaultGroup = defaultGroup;
 			mComparer = new ItemValueComparer(comparer);
 		}
@@ -264,7 +264,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 				{
 					// filter should accumulate items
 					// => unselect all items, if requested, but do not remove anything
-					foreach (ISelectableLogMessageFilter_ItemInternal<T> item in mAllItemsByValue.Values.Where(item => mUnselectItemsOnReset))
+					foreach (ISelectableLogMessageFilter_ItemInternal<T> item in mAllItemsByValue.Values.Where(_ => mUnselectItemsOnReset))
 					{
 						item.Selected = false;
 					}

@@ -69,13 +69,11 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	{
 		void Handler(object sender, NotifyCollectionChangedEventArgs args) { }
 
-		using (TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _))
-		{
-			// register and unregister the event
-			// (firing event is tested as part of the methods modifying the collection)
-			collection.CollectionChanged += Handler;
-			collection.CollectionChanged -= Handler;
-		}
+		using TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _);
+		// register and unregister the event
+		// (firing event is tested as part of the methods modifying the collection)
+		collection.CollectionChanged += Handler;
+		collection.CollectionChanged -= Handler;
 	}
 
 	#endregion
@@ -90,13 +88,11 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	{
 		void Handler(object sender, PropertyChangedEventArgs args) { }
 
-		using (TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _))
-		{
-			// register and unregister the event
-			// (firing event is tested as part of the methods modifying the collection)
-			collection.PropertyChanged += Handler;
-			collection.PropertyChanged -= Handler;
-		}
+		using TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _);
+		// register and unregister the event
+		// (firing event is tested as part of the methods modifying the collection)
+		collection.PropertyChanged += Handler;
+		collection.PropertyChanged -= Handler;
 	}
 
 	#endregion
@@ -160,17 +156,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                 initialCollectionSize,
 		Func<ILogMessageCollectionCommon<LogMessage>, long> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and compare with the expected count
-			long count = operation(collection);
-			Assert.Equal(initialCollectionSize, count);
+		// run operation and compare with the expected count
+		long count = operation(collection);
+		Assert.Equal(initialCollectionSize, count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -218,17 +212,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                 initialCollectionSize,
 		Func<ILogMessageCollectionCommon<LogMessage>, bool> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and compare with the expected state
-			bool isReadOnly = operation(collection);
-			Assert.Equal(CollectionIsReadOnly, isReadOnly);
+		// run operation and compare with the expected state
+		bool isReadOnly = operation(collection);
+		Assert.Equal(CollectionIsReadOnly, isReadOnly);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -244,16 +236,14 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	[InlineData(1)]
 	protected virtual void IList_IsFixedSize(int initialCollectionSize)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// check whether the actual state of the property matches the expected state
-			Assert.Equal(CollectionIsFixedSize, ((IList)collection).IsFixedSize);
+		// check whether the actual state of the property matches the expected state
+		Assert.Equal(CollectionIsFixedSize, ((IList)collection).IsFixedSize);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -267,19 +257,17 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	[Fact]
 	protected virtual void ICollection_SyncRoot()
 	{
-		using (TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// check whether the sync root is not a null reference and whether it is not the same as the collection itself
-			// (can cause deadlocks, if the collection itself is used for synchronization as well)
-			object syncRoot = ((ICollection)collection).SyncRoot;
-			Assert.NotNull(syncRoot);
-			Assert.NotSame(collection, syncRoot);
+		// check whether the sync root is not a null reference and whether it is not the same as the collection itself
+		// (can cause deadlocks, if the collection itself is used for synchronization as well)
+		object syncRoot = ((ICollection)collection).SyncRoot;
+		Assert.NotNull(syncRoot);
+		Assert.NotSame(collection, syncRoot);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -292,16 +280,14 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	[Fact]
 	protected virtual void ICollection_IsSynchronized()
 	{
-		using (TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// check whether the actual state of the property matches the expected state
-			Assert.Equal(CollectionIsSynchronized, ((ICollection)collection).IsSynchronized);
+		// check whether the actual state of the property matches the expected state
+		Assert.Equal(CollectionIsSynchronized, ((ICollection)collection).IsSynchronized);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -424,18 +410,16 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                        indexOfMessageToGet,
 		Func<ILogMessageCollectionCommon<LogMessage>, int, object> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run the operation and check whether the returned message equals the expected one
-			var message = (LogMessage)operation(collection, indexOfMessageToGet);
-			Assert.Equal(messages[indexOfMessageToGet], message); // does not take IsReadOnly into account
-			Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly);
+		// run the operation and check whether the returned message equals the expected one
+		var message = (LogMessage)operation(collection, indexOfMessageToGet);
+		Assert.Equal(messages[indexOfMessageToGet], message); // does not take IsReadOnly into account
+		Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	/// <summary>
@@ -450,16 +434,14 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                        indexOfMessageToGet,
 		Func<ILogMessageCollectionCommon<LogMessage>, int, object> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run the operation and ensure that the appropriate exception is thrown
-			Assert.Throws<ArgumentOutOfRangeException>(() => operation(collection, indexOfMessageToGet));
+		// run the operation and ensure that the appropriate exception is thrown
+		Assert.Throws<ArgumentOutOfRangeException>(() => operation(collection, indexOfMessageToGet));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -520,17 +502,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                              indexOfMessageToSet,
 		Action<ILogMessageCollectionCommon<LogMessage>, int, LogMessage> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0];
-			Assert.Throws<NotSupportedException>(() => operation(collection, indexOfMessageToSet, newMessage));
+		// run operation and ensure that the appropriate exception is thrown
+		LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0];
+		Assert.Throws<NotSupportedException>(() => operation(collection, indexOfMessageToSet, newMessage));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -580,26 +560,24 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                        initialCollectionSize,
 		Func<ILogMessageCollectionCommon<LogMessage>, IEnumerator> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] expectedMessages))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] expectedMessages);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// iterate over all messages in the collection and collect them in a list
-			var messagesInCollection = new List<LogMessage>();
-			IEnumerator enumerator = operation(collection);
-			while (enumerator.MoveNext()) messagesInCollection.Add((LogMessage)enumerator.Current);
+		// iterate over all messages in the collection and collect them in a list
+		var messagesInCollection = new List<LogMessage>();
+		IEnumerator enumerator = operation(collection);
+		while (enumerator.MoveNext()) messagesInCollection.Add((LogMessage)enumerator.Current);
 
-			// dispose the enumerator, if it is IEnumerator<T>
-			// (the IEnumerator interface dos not support disposing)
-			if (enumerator is IEnumerator<LogMessage> genericEnumerator) genericEnumerator.Dispose();
+		// dispose the enumerator, if it is IEnumerator<T>
+		// (the IEnumerator interface dos not support disposing)
+		if (enumerator is IEnumerator<LogMessage> genericEnumerator) genericEnumerator.Dispose();
 
-			// the enumerator should have iterated over all messages
-			Assert.Equal(expectedMessages, messagesInCollection.ToArray()); // does not take IsReadOnly into account
-			Assert.All(messagesInCollection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
+		// the enumerator should have iterated over all messages
+		Assert.Equal(expectedMessages, messagesInCollection.ToArray()); // does not take IsReadOnly into account
+		Assert.All(messagesInCollection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -607,7 +585,7 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	#region Add()
 
 	/// <summary>
-	/// Tests adding a log message the the collection using <see cref="IList.Add"/>.
+	/// Tests adding a log message the collection using <see cref="IList.Add"/>.
 	/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
 	/// </summary>
 	/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -622,7 +600,7 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	}
 
 	/// <summary>
-	/// Tests adding a log message the the collection using <see cref="IList.Add"/>.
+	/// Tests adding a log message the collection using <see cref="IList.Add"/>.
 	/// Should throw <see cref="ArgumentNullException"/>.
 	/// </summary>
 	/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -639,7 +617,7 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	// ------------------------------------------------------------------------------------------------------------------
 
 	/// <summary>
-	/// Tests adding a log message the the collection using <see cref="ICollection{T}.Add"/>.
+	/// Tests adding a log message the collection using <see cref="ICollection{T}.Add"/>.
 	/// Should throw <see cref="NotSupportedException"/>, if the collection is read-only.
 	/// </summary>
 	/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -654,7 +632,7 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	}
 
 	/// <summary>
-	/// Tests adding a log message the the collection using <see cref="ICollection{T}.Add"/>.
+	/// Tests adding a log message the collection using <see cref="ICollection{T}.Add"/>.
 	/// Should throw <see cref="ArgumentNullException"/>.
 	/// </summary>
 	/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
@@ -681,40 +659,38 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		Action<ILogMessageCollectionCommon<LogMessage>, LogMessage> operation)
 	{
 		// create collection to test
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages))
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+
+		// create new message that is not in the collection, yet
+		// (use seed 1 to generate a message that differs from the messages generated by default)
+		LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0];
+
+		if (CollectionIsReadOnly)
 		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
-
-			// create new message that is not in the collection, yet
-			// (use seed 1 to generate a message that differs from the messages generated by default)
-			LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0];
-
-			if (CollectionIsReadOnly)
-			{
-				// collection is read-only and should throw exception
-				Assert.Throws<NotSupportedException>(() => operation(collection, newMessage));
-				Assert.Equal(initialCollectionSize, collection.Count);
-			}
-			else
-			{
-				// add message to the collection
-				operation(collection, newMessage);
-
-				// check whether the collection contains the new message now
-				Assert.Equal(initialCollectionSize + 1, collection.Count);
-				var expectedMessages = new List<LogMessage>(messages) { newMessage };
-				Assert.Equal(expectedMessages.ToArray(), collection.ToArray()); // does not take IsReadOnly into account
-				Assert.All(collection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
-
-				// add expected events that should have been raised
-				eventWatcher.ExpectCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new[] { newMessage }, initialCollectionSize));
-				eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
-				eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-			}
-
-			// check events that should have been raised
-			eventWatcher.CheckInvocations();
+			// collection is read-only and should throw exception
+			Assert.Throws<NotSupportedException>(() => operation(collection, newMessage));
+			Assert.Equal(initialCollectionSize, collection.Count);
 		}
+		else
+		{
+			// add message to the collection
+			operation(collection, newMessage);
+
+			// check whether the collection contains the new message now
+			Assert.Equal(initialCollectionSize + 1, collection.Count);
+			var expectedMessages = new List<LogMessage>(messages) { newMessage };
+			Assert.Equal(expectedMessages.ToArray(), collection.ToArray()); // does not take IsReadOnly into account
+			Assert.All(collection, message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
+
+			// add expected events that should have been raised
+			eventWatcher.ExpectCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new[] { newMessage }, initialCollectionSize));
+			eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
+			eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+		}
+
+		// check events that should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	/// <summary>
@@ -727,17 +703,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                             initialCollectionSize,
 		Action<ILogMessageCollectionCommon<LogMessage>> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			Assert.Throws<ArgumentNullException>(() => operation(collection));
-			Assert.Equal(initialCollectionSize, collection.Count);
+		// run operation and ensure that the appropriate exception is thrown
+		Assert.Throws<ArgumentNullException>(() => operation(collection));
+		Assert.Equal(initialCollectionSize, collection.Count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -794,18 +768,16 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                         initialCollectionSize,
 		Action<ILogMessageCollectionCommon<LogMessage>, LogMessage> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0];
-			Assert.Throws<NotSupportedException>(() => operation(collection, newMessage));
-			Assert.Equal(initialCollectionSize, collection.Count);
+		// run operation and ensure that the appropriate exception is thrown
+		LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0];
+		Assert.Throws<NotSupportedException>(() => operation(collection, newMessage));
+		Assert.Equal(initialCollectionSize, collection.Count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -856,37 +828,35 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                             initialCollectionSize,
 		Action<ILogMessageCollectionCommon<LogMessage>> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+
+		Assert.Equal(initialCollectionSize, collection.Count);
+
+		if (CollectionIsReadOnly)
 		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
-
+			// run operation and ensure that the appropriate exception is thrown
+			Assert.Throws<NotSupportedException>(() => operation(collection));
 			Assert.Equal(initialCollectionSize, collection.Count);
-
-			if (CollectionIsReadOnly)
-			{
-				// run operation and ensure that the appropriate exception is thrown
-				Assert.Throws<NotSupportedException>(() => operation(collection));
-				Assert.Equal(initialCollectionSize, collection.Count);
-			}
-			else
-			{
-				// run operation and ensure that the collection is empty afterwards
-				operation(collection);
-				Assert.Equal(0, collection.Count);
-				Assert.Empty(collection);
-
-				// add events that should have been raised
-				if (initialCollectionSize > 0)
-				{
-					eventWatcher.ExpectCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-					eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
-					eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
-				}
-			}
-
-			// check events that should have been raised
-			eventWatcher.CheckInvocations();
 		}
+		else
+		{
+			// run operation and ensure that the collection is empty afterward
+			operation(collection);
+			Assert.Equal(0, collection.Count);
+			Assert.Empty(collection);
+
+			// add events that should have been raised
+			if (initialCollectionSize > 0)
+			{
+				eventWatcher.ExpectCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+				eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Count"));
+				eventWatcher.ExpectPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+			}
+		}
+
+		// check events that should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -1007,17 +977,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                             indexOfMessageToCheck,
 		Func<ILogMessageCollectionCommon<LogMessage>, LogMessage, bool> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the message was found
-			LogMessage messageCopy = CopyMessage(messages[indexOfMessageToCheck]); // use copy of log message to check whether equality check works
-			Assert.True(operation(collection, messageCopy));
+		// run operation and ensure that the message was found
+		LogMessage messageCopy = CopyMessage(messages[indexOfMessageToCheck]); // use copy of log message to check whether equality check works
+		Assert.True(operation(collection, messageCopy));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	/// <summary>
@@ -1030,17 +998,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                             initialCollectionSize,
 		Func<ILogMessageCollectionCommon<LogMessage>, LogMessage, bool> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the message was not found
-			LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0]; // use seed 1 to generate messages different from the default set
-			Assert.False(operation(collection, newMessage));
+		// run operation and ensure that the message was not found
+		LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0]; // use seed 1 to generate messages different from the default set
+		Assert.False(operation(collection, newMessage));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	/// <summary>
@@ -1053,17 +1019,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                 initialCollectionSize,
 		Func<ILogMessageCollectionCommon<LogMessage>, bool> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that false is returned
-			bool result = operation(collection);
-			Assert.False(result);
+		// run operation and ensure that false is returned
+		bool result = operation(collection);
+		Assert.False(result);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -1184,17 +1148,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                            indexOfMessageToCheck,
 		Func<ILogMessageCollectionCommon<LogMessage>, LogMessage, int> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the message was found
-			LogMessage messageCopy = CopyMessage(messages[indexOfMessageToCheck]); // use copy of log message to check whether equality check works
-			Assert.Equal(indexOfMessageToCheck, operation(collection, messageCopy));
+		// run operation and ensure that the message was found
+		LogMessage messageCopy = CopyMessage(messages[indexOfMessageToCheck]); // use copy of log message to check whether equality check works
+		Assert.Equal(indexOfMessageToCheck, operation(collection, messageCopy));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	/// <summary>
@@ -1207,17 +1169,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                            initialCollectionSize,
 		Func<ILogMessageCollectionCommon<LogMessage>, LogMessage, int> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the message was not found
-			LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0]; // use seed 1 to generate messages different from the default set
-			Assert.Equal(-1, operation(collection, newMessage));
+		// run operation and ensure that the message was not found
+		LogMessage newMessage = LoggingTestHelpers.GetTestMessages<LogMessage>(1, 1)[0]; // use seed 1 to generate messages different from the default set
+		Assert.Equal(-1, operation(collection, newMessage));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	/// <summary>
@@ -1230,17 +1190,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                initialCollectionSize,
 		Func<ILogMessageCollectionCommon<LogMessage>, int> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that -1 is returned
-			int result = operation(collection);
-			Assert.Equal(-1, result);
+		// run operation and ensure that -1 is returned
+		int result = operation(collection);
+		Assert.Equal(-1, result);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -1381,24 +1339,22 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		Action<ILogMessageCollectionCommon<LogMessage>, LogMessage[]> operation)
 	{
 		// create collection with the specified number of messages
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// create destination array and copy messages into it
-			var destination = new LogMessage[destinationBufferSize];
-			operation(collection, destination);
+		// create destination array and copy messages into it
+		var destination = new LogMessage[destinationBufferSize];
+		operation(collection, destination);
 
-			// check whether the destination array contains the expected messages
-			var expectedMessages = new List<LogMessage>();
-			for (int i = 0; i < startIndex; i++) expectedMessages.Add(null);
-			expectedMessages.AddRange(messages);
-			Assert.Equal(expectedMessages, destination); // does not take IsReadOnly into account
-			Assert.All(destination.Skip(startIndex), message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
+		// check whether the destination array contains the expected messages
+		var expectedMessages = new List<LogMessage>();
+		for (int i = 0; i < startIndex; i++) expectedMessages.Add(null);
+		expectedMessages.AddRange(messages);
+		Assert.Equal(expectedMessages, destination); // does not take IsReadOnly into account
+		Assert.All(destination.Skip(startIndex), message => Assert.Equal(CollectionProvidesProtectedMessages, message.IsReadOnly));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	/// <summary>
@@ -1415,17 +1371,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                                startIndex,
 		Action<ILogMessageCollectionCommon<LogMessage>, LogMessage[], int> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			var destination = new LogMessage[destinationBufferSize];
-			Assert.Throws<ArgumentOutOfRangeException>(() => operation(collection, destination, startIndex));
+		// run operation and ensure that the appropriate exception is thrown
+		var destination = new LogMessage[destinationBufferSize];
+		Assert.Throws<ArgumentOutOfRangeException>(() => operation(collection, destination, startIndex));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	/// <summary>
@@ -1442,17 +1396,15 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                                startIndex,
 		Action<ILogMessageCollectionCommon<LogMessage>, LogMessage[], int> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			var destination = new LogMessage[destinationBufferSize];
-			Assert.Throws<ArgumentException>(() => operation(collection, destination, startIndex));
+		// run operation and ensure that the appropriate exception is thrown
+		var destination = new LogMessage[destinationBufferSize];
+		Assert.Throws<ArgumentException>(() => operation(collection, destination, startIndex));
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -1509,19 +1461,17 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                         indexOfMessageToRemove,
 		Action<ILogMessageCollectionCommon<LogMessage>, LogMessage> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] messages);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			var messageToRemove = new LogMessage(messages[indexOfMessageToRemove]);
-			Assert.Equal(initialCollectionSize, collection.Count);
-			Assert.Throws<NotSupportedException>(() => operation(collection, messageToRemove));
-			Assert.Equal(initialCollectionSize, collection.Count);
+		// run operation and ensure that the appropriate exception is thrown
+		var messageToRemove = new LogMessage(messages[indexOfMessageToRemove]);
+		Assert.Equal(initialCollectionSize, collection.Count);
+		Assert.Throws<NotSupportedException>(() => operation(collection, messageToRemove));
+		Assert.Equal(initialCollectionSize, collection.Count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -1582,18 +1532,16 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 		int                                                  indexOfMessageToRemove,
 		Action<ILogMessageCollectionCommon<LogMessage>, int> operation)
 	{
-		using (TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using TLogMessageCollection collection = CreateCollection(initialCollectionSize, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// run operation and ensure that the appropriate exception is thrown
-			Assert.Equal(initialCollectionSize, collection.Count);
-			Assert.Throws<NotSupportedException>(() => operation(collection, indexOfMessageToRemove));
-			Assert.Equal(initialCollectionSize, collection.Count);
+		// run operation and ensure that the appropriate exception is thrown
+		Assert.Equal(initialCollectionSize, collection.Count);
+		Assert.Throws<NotSupportedException>(() => operation(collection, indexOfMessageToRemove));
+		Assert.Equal(initialCollectionSize, collection.Count);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion

@@ -25,7 +25,7 @@ public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguratio
 	public VolatileLogConfiguration()
 	{
 		mProcessingPipelineConfiguration = new VolatileProcessingPipelineConfiguration(this);
-		mLogWriterSettings = new List<LogWriterConfiguration>();
+		mLogWriterSettings = [];
 		var writer = LogWriterConfiguration.Default;
 		writer.IsDefault = true;
 		mLogWriterSettings.Add(writer);
@@ -77,21 +77,15 @@ public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguratio
 		lock (Sync)
 		{
 			// get the first matching log writer settings
-			LogWriterConfiguration settings = null;
-			foreach (LogWriterConfiguration configuration in mLogWriterSettings)
-			{
-				if (configuration.NamePatterns.Any(x => x.Regex.IsMatch(writer.Name)))
-				{
-					// found match by log writer name, check tags now
-					// - if no tags are configured => match always
-					// - if tags are configured => match, if at least one tag matches
-					if (!configuration.TagPatterns.Any() || configuration.TagPatterns.Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))))
-					{
-						settings = configuration;
-						break;
-					}
-				}
-			}
+			LogWriterConfiguration settings = mLogWriterSettings
+				.Where(
+					configuration => configuration
+						.NamePatterns
+						.Any(x => x.Regex.IsMatch(writer.Name)))
+				.FirstOrDefault(
+					configuration => !configuration.TagPatterns.Any() || configuration
+						                 .TagPatterns
+						                 .Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))));
 
 			if (settings != null)
 			{
@@ -155,7 +149,7 @@ public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguratio
 		lock (Sync)
 		{
 			// log writer settings are immutable after creation, so copying the collection is sufficient
-			mLogWriterSettings = new List<LogWriterConfiguration>(settings);
+			mLogWriterSettings = [..settings];
 			OnChanged();
 		}
 	}

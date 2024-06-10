@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Xunit;
 
@@ -19,8 +20,8 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	LogMessageCollectionBaseTests<FileBackedLogMessageCollection>,
 	IClassFixture<LogFileTestsFixture>
 {
-	protected static readonly LogFilePurpose[]    LogFilePurposes   = { LogFilePurpose.Recording, LogFilePurpose.Analysis };
-	protected static readonly LogFileWriteMode[]  LogFileWriteModes = { LogFileWriteMode.Robust, LogFileWriteMode.Fast };
+	protected static readonly LogFilePurpose[]    LogFilePurposes   = [LogFilePurpose.Recording, LogFilePurpose.Analysis];
+	protected static readonly LogFileWriteMode[]  LogFileWriteModes = [LogFileWriteMode.Robust, LogFileWriteMode.Fast];
 	protected readonly        LogFileTestsFixture Fixture;
 
 	/// <summary>
@@ -42,12 +43,11 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	{
 		get
 		{
-			foreach (LogFilePurpose purpose in LogFilePurposes)
-			foreach (LogFileWriteMode writeMode in LogFileWriteModes)
-			foreach (bool populate in new[] { false, true })
-			{
-				yield return new object[] { purpose, writeMode, populate };
-			}
+			return
+				from purpose in LogFilePurposes
+				from writeMode in LogFileWriteModes
+				from populate in new[] { false, true }
+				select (object[]) [purpose, writeMode, populate];
 		}
 	}
 
@@ -137,11 +137,9 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	{
 		get
 		{
-			foreach (LogFilePurpose purpose in LogFilePurposes)
-			foreach (LogFileWriteMode writeMode in LogFileWriteModes)
-			{
-				yield return new object[] { purpose, writeMode };
-			}
+			return from purpose in LogFilePurposes
+			       from writeMode in LogFileWriteModes
+			       select (object[])[purpose, writeMode];
 		}
 	}
 
@@ -219,11 +217,9 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	{
 		get
 		{
-			foreach (LogFilePurpose purpose in LogFilePurposes)
-			foreach (LogFileWriteMode writeMode in LogFileWriteModes)
-			{
-				yield return new object[] { purpose, writeMode };
-			}
+			return from purpose in LogFilePurposes
+			       from writeMode in LogFileWriteModes
+			       select (object[])[purpose, writeMode];
 		}
 	}
 
@@ -310,8 +306,8 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 			foreach (LogFilePurpose purpose in LogFilePurposes)
 			foreach (LogFileWriteMode writeMode in LogFileWriteModes)
 			{
-				yield return new object[] { null, deleteAutomatically, purpose, writeMode };                         // default temporary folder
-				yield return new object[] { Environment.CurrentDirectory, deleteAutomatically, purpose, writeMode }; // specific temporary folder
+				yield return [null, deleteAutomatically, purpose, writeMode];                         // default temporary folder
+				yield return [Environment.CurrentDirectory, deleteAutomatically, purpose, writeMode]; // specific temporary folder
 			}
 		}
 	}
@@ -370,16 +366,14 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	[Fact]
 	protected virtual void LogFileAndFilePath()
 	{
-		using (FileBackedLogMessageCollection collection = CreateCollection(0, out LogMessage[] _))
-		{
-			LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		using FileBackedLogMessageCollection collection = CreateCollection(0, out LogMessage[] _);
+		LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
 
-			// check whether the actual state of the property matches the expected state
-			Assert.Equal(100, collection.CachePageCapacity);
+		// check whether the actual state of the property matches the expected state
+		Assert.Equal(100, collection.CachePageCapacity);
 
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
-		}
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion
@@ -412,38 +406,36 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// </param>
 	protected void TestCollectionPropertyDefaults(FileBackedLogMessageCollection collection, long expectedCount, bool isReadOnly)
 	{
-		using (LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher())
+		using LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
+		// check collection specific properties
+		Assert.Equal(expectedCount, collection.Count);
+		Assert.Equal(20, collection.MaxCachePageCount);
+		Assert.Equal(100, collection.CachePageCapacity);
+
+		// check log file specific properties
+		Assert.NotNull(collection.LogFile);
+		Assert.NotNull(collection.FilePath);
+		Assert.Equal(collection.LogFile.FilePath, collection.FilePath);
+
+		// check properties exposed by IList implementation
 		{
-			// check collection specific properties
-			Assert.Equal(expectedCount, collection.Count);
-			Assert.Equal(20, collection.MaxCachePageCount);
-			Assert.Equal(100, collection.CachePageCapacity);
-
-			// check log file specific properties
-			Assert.NotNull(collection.LogFile);
-			Assert.NotNull(collection.FilePath);
-			Assert.Equal(collection.LogFile.FilePath, collection.FilePath);
-
-			// check properties exposed by IList implementation
-			{
-				var list = collection as IList;
-				Assert.Equal(expectedCount, list.Count);
-				Assert.Equal(isReadOnly, list.IsReadOnly);
-				Assert.Equal(CollectionIsFixedSize, list.IsFixedSize);
-				Assert.Equal(CollectionIsSynchronized, list.IsSynchronized);
-				Assert.NotSame(collection, list.SyncRoot); // sync root must not be the same as the collection to avoid deadlocks
-			}
-
-			// check properties exposed by IList<T> implementation
-			{
-				var list = collection as IList<LogMessage>;
-				Assert.Equal(isReadOnly, list.IsReadOnly);
-				Assert.Equal(expectedCount, list.Count);
-			}
-
-			// no events should have been raised
-			eventWatcher.CheckInvocations();
+			var list = collection as IList;
+			Assert.Equal(expectedCount, list.Count);
+			Assert.Equal(isReadOnly, list.IsReadOnly);
+			Assert.Equal(CollectionIsFixedSize, list.IsFixedSize);
+			Assert.Equal(CollectionIsSynchronized, list.IsSynchronized);
+			Assert.NotSame(collection, list.SyncRoot); // sync root must not be the same as the collection to avoid deadlocks
 		}
+
+		// check properties exposed by IList<T> implementation
+		{
+			var list = collection as IList<LogMessage>;
+			Assert.Equal(isReadOnly, list.IsReadOnly);
+			Assert.Equal(expectedCount, list.Count);
+		}
+
+		// no events should have been raised
+		eventWatcher.CheckInvocations();
 	}
 
 	#endregion

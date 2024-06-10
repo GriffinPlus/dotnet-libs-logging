@@ -30,7 +30,7 @@ public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 	/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
-	/// need the message any more.
+	/// need the message anymore.
 	/// </remarks>
 	public SynchronousProcessingCallback SynchronousProcessingCallback
 	{
@@ -49,7 +49,7 @@ public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 	/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
-	/// need the message any more.
+	/// need the message anymore.
 	/// </remarks>
 	public AsynchronousProcessingCallback AsynchronousProcessingCallback
 	{
@@ -71,7 +71,7 @@ public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 	/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
-	/// need the message any more.
+	/// need the message anymore.
 	/// </remarks>
 	protected override bool ProcessSync(LocalLogMessage message, out bool queueForAsyncProcessing)
 	{
@@ -90,7 +90,7 @@ public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 	/// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
-	/// need the message any more.
+	/// need the message anymore.
 	/// </remarks>
 	protected override Task ProcessAsync(LocalLogMessage[] messages, CancellationToken cancellationToken)
 	{
@@ -121,6 +121,6 @@ public delegate bool SynchronousProcessingCallback(LocalLogMessage message, out 
 /// <remarks>
 /// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from
 /// returning to the log message pool too early. Call <see cref="LocalLogMessage.Release"/> as soon as you don't
-/// need the message any more.
+/// need the message anymore.
 /// </remarks>
 public delegate Task AsynchronousProcessingCallback(LocalLogMessage[] messages, CancellationToken cancellationToken);

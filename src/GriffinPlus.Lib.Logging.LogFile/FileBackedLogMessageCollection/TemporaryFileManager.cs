@@ -15,7 +15,7 @@ namespace GriffinPlus.Lib.Logging.Collections;
 static class TemporaryFileManager
 {
 	/// <summary>
-	/// Regex matching the name of a temporary log file that should be deleted automatically when not used any more.
+	/// Regex matching the name of a temporary log file that should be deleted automatically when not used anymore.
 	/// </summary>
 	private static readonly Regex sAutoDeleteFileRegex = new(
 		@"^\[LOG-BUFFER\] (?<guid>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}) \[AUTO DELETE\]$",
@@ -38,7 +38,7 @@ static class TemporaryFileManager
 	public static string GetTemporaryFileName(bool deleteAutomatically, string temporaryDirectoryPath = null)
 	{
 		// init temporary directory path, if not specified explicitly
-		if (temporaryDirectoryPath == null) temporaryDirectoryPath = Path.GetTempPath();
+		temporaryDirectoryPath ??= Path.GetTempPath();
 
 		// delete temporary files that are not needed any more
 		CleanupTemporaryDirectory(temporaryDirectoryPath);

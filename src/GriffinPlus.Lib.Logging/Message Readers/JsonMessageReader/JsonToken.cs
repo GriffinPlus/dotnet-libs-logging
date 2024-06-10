@@ -49,7 +49,7 @@ struct JsonToken : IEquatable<JsonToken>
 	public int LineNumber;
 
 	/// <summary>
-	/// Gets the position in the line at which the the token starts (starts at 1).
+	/// Gets the character in the line at which the token starts (starts at 1).
 	/// </summary>
 	public int Position;
 

@@ -11,21 +11,16 @@ namespace GriffinPlus.Lib.Logging.Collections;
 partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 {
 	/// <summary>
-	/// Base class for more specific filters filtering for names.
+	/// Base class for more specific filters that are filtering for names.
 	/// </summary>
 	partial class ItemFilter<T>
 	{
 		/// <summary>
-		/// An comparer for items of an <see cref="ItemFilter{T}"/>.
+		/// A comparer for items of an <see cref="ItemFilter{T}"/>.
 		/// </summary>
-		internal class ItemValueComparer : IComparer<ISelectableLogMessageFilter_Item<T>>, IComparer
+		internal class ItemValueComparer(IComparer<T> valueComparer) : IComparer<ISelectableLogMessageFilter_Item<T>>, IComparer
 		{
-			public readonly IComparer<T> ValueComparer;
-
-			public ItemValueComparer(IComparer<T> valueComparer)
-			{
-				ValueComparer = valueComparer;
-			}
+			public readonly IComparer<T> ValueComparer = valueComparer;
 
 			public int Compare(ISelectableLogMessageFilter_Item<T> x, ISelectableLogMessageFilter_Item<T> y)
 			{

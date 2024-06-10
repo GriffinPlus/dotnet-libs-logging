@@ -8,6 +8,7 @@
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable ConvertToConstant.Local
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
+// ReSharper disable InconsistentNaming
 // ReSharper disable UnusedVariable
 // ReSharper disable UseObjectOrCollectionInitializer
 
@@ -19,17 +20,17 @@ using GriffinPlus.Lib.Logging.Elasticsearch;
 
 namespace GriffinPlus.Lib.Logging.Demo;
 
-class MyClass1 { }
+class MyClass1;
 
-class MyClass2 { }
+class MyClass2;
 
-class MyClass3 { }
+class MyClass3;
 
-class MyClass4 { }
+class MyClass4;
 
-class MyClassA { }
+class MyClassA;
 
-class MyClassB { }
+class MyClassB;
 
 class Program
 {
@@ -282,7 +283,7 @@ class Program
 		}
 
 		// Use a timing logger to determine how long an operation takes. It uses log level 'Timing' and log writer
-		// 'Timing' by default, so you need to ensure that the configuration lets these messages pass).
+		// 'Timing' by default, so you need to ensure that the configuration lets these messages pass.
 		sLog1.Write(LogLevel.Notice, "Presenting a timing logger with default settings...");
 		using (TimingLogger.Measure())
 		{

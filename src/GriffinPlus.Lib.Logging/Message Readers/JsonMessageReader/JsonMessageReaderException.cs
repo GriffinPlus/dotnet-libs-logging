@@ -49,7 +49,7 @@ public class JsonMessageReaderException : Exception
 	public int LineNumber { get; }
 
 	/// <summary>
-	/// Gets the position in the line where reading failed (starts at 1).
+	/// Gets the character in the line where reading failed (starts at 1).
 	/// </summary>
 	public int Position { get; }
 }

@@ -11,5 +11,5 @@ partial class ProcessingPipelineStage
 	/// Typed interface for a setting proxy (must be implemented thread-safe).
 	/// </summary>
 	/// <typeparam name="T">Type of the setting value (can be a primitive type or string).</typeparam>
-	internal interface ISettingProxy<T> : IProcessingPipelineStageSetting<T>, IUntypedSettingProxy { }
+	internal interface ISettingProxy<T> : IProcessingPipelineStageSetting<T>, IUntypedSettingProxy;
 }

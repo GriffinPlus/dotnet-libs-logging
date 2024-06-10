@@ -226,11 +226,6 @@ public partial class ProcessIntegration : IDisposable
 	{
 		var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-		void ProcessExited(object sender, EventArgs e)
-		{
-			tcs.TrySetResult(true);
-		}
-
 		try
 		{
 			Process.EnableRaisingEvents = true;
@@ -249,6 +244,13 @@ public partial class ProcessIntegration : IDisposable
 		finally
 		{
 			Process.Exited -= ProcessExited;
+		}
+
+		return;
+
+		void ProcessExited(object sender, EventArgs e)
+		{
+			tcs.TrySetResult(true);
 		}
 	}
 
@@ -392,7 +394,7 @@ public partial class ProcessIntegration : IDisposable
 			builder.AppendLine($"Log Level:   {message.LogLevelName}");
 		}
 
-		if (message.Tags != null && message.Tags.Count > 0)
+		if (message.Tags is { Count: > 0 })
 		{
 			builder.AppendLine($"Tags:        {string.Join(", ", message.Tags)}");
 		}

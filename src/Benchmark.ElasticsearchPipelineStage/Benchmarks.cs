@@ -24,7 +24,7 @@ public class Benchmarks
 {
 	private const           int                        MaxTestMessageCount = 1000000;
 	private static readonly LogWriter                  sTaggingLogWriter   = LogWriter.Get<Benchmarks>().WithTags("Tag-1", "Tag-2");
-	private static readonly List<LocalLogMessage>      sMessages           = new();
+	private static readonly List<LocalLogMessage>      sMessages           = [];
 	private                 ElasticsearchPipelineStage mStage;
 
 	static Benchmarks()

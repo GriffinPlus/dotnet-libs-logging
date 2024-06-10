@@ -62,7 +62,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 
 	#region Member Variables
 
-	private readonly LinkedList<CachePage> mCachePages = new();
+	private readonly LinkedList<CachePage> mCachePages = [];
 	private          long                  mCacheStartMessageId;
 	private          int                   mMaxCachePageCount = DefaultMaxCachePageCount;
 	private          int                   mCachePageCapacity = DefaultCachePageCapacity;
@@ -127,7 +127,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// <param name="path">Path of the log file to create.</param>
 	/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 	/// <param name="mode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
-	/// <param name="messages">Messages to populate the log file with (may be <c>null</c>).</param>
+	/// <param name="messages">Messages to populate the log file with (<c>null</c> if the collection should be empty).</param>
 	/// <exception cref="LogFileException">Creating the log file failed (see message and inner exception for details).</exception>
 	public static FileBackedLogMessageCollection Create(
 		string                   path,
@@ -205,7 +205,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// <param name="mode">
 	/// Write mode determining whether to open the log file in 'robust' or 'fast' mode (default).
 	/// </param>
-	/// <param name="messages">Messages to populate the temporary collection with (may be <c>null</c>).</param>
+	/// <param name="messages">Messages to populate the temporary collection with (<c>null</c> if the collection should be empty).</param>
 	/// <returns>The created collection.</returns>
 	public static FileBackedLogMessageCollection CreateTemporaryCollection(
 		bool                     deleteAutomatically,
@@ -408,7 +408,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// Gets the index of the specified log message
 	/// (the specified message must be associated with the collection as the check works with message ids).
 	/// </summary>
-	/// <param name="message">Log message to locate in the collection (may be <c>null</c>).</param>
+	/// <param name="message">Log message to locate in the collection.</param>
 	/// <returns>
 	/// Index of the log message;<br/>
 	/// -1, if the specified message is not in the collection.
@@ -603,7 +603,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// Is called when the underlying file removes messages.
 	/// </summary>
 	/// <param name="count">Number of messages that has been removed.</param>
-	/// <param name="removedMessages">The messages that have been removed (may be <c>null</c>).</param>
+	/// <param name="removedMessages">The messages that have been removed (<c>null</c> if all messages have been removed).</param>
 	internal void ProcessMessagesRemoved(long count, LogFileMessage[] removedMessages)
 	{
 		Debug.Assert(removedMessages == null || removedMessages.Length == count);
@@ -749,12 +749,11 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 		}
 
 		// add new items that are not in the collection, yet
-		itemSet = new HashSet<T>(collection);
+		itemSet = [..collection];
 		foreach (T item in items)
 		{
-			if (!itemSet.Contains(item))
+			if (itemSet.Add(item))
 			{
-				itemSet.Add(item);
 				collection.Add(item);
 			}
 		}
@@ -772,9 +771,8 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 		var itemSet = new HashSet<T>(collection);
 		foreach (T item in items)
 		{
-			if (!itemSet.Contains(item))
+			if (itemSet.Add(item))
 			{
-				itemSet.Add(item);
 				collection.Add(item);
 			}
 		}
@@ -787,7 +785,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// <summary>
 	/// Loads the page containing the message with the specified id into the cache.
 	/// </summary>
-	/// <param name="id">Id of the message to load.</param>
+	/// <param name="id">ID of the message to load.</param>
 	private LogFileMessage GetMessage(long id)
 	{
 		// Debug.WriteLine("Fetching message: {0}", id);
@@ -830,7 +828,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 		if (mCachePages.Count >= mMaxCachePageCount)
 		{
 			// cache is full
-			// => remove least requested page, keep specified page instead.
+			// => remove the least requested page, keep specified page instead.
 			messages = LogFile.Read(firstMessageId >= LogFile.OldestMessageId ? firstMessageId : LogFile.OldestMessageId, mCachePageCapacity);
 			node = mCachePages.Last;
 			node.Value.FirstMessageId = firstMessageId;

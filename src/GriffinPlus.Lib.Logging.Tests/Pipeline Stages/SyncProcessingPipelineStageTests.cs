@@ -31,7 +31,7 @@ public class SyncProcessingPipelineStageTests : ProcessingPipelineStageBaseTests
 
 	/// <summary>
 	/// Tests whether initializing the pipeline stage using <see cref="ProcessingPipelineStage.Initialize"/> succeeds,
-	/// if the stage does not have following stages. The stage should have called <see cref="SyncProcessingPipelineStage.OnInitialize"/>
+	/// if the stage does not have any following stages. The stage should have called <see cref="SyncProcessingPipelineStage.OnInitialize"/>
 	/// after this.
 	/// </summary>
 	[Fact]
@@ -69,7 +69,7 @@ public class SyncProcessingPipelineStageTests : ProcessingPipelineStageBaseTests
 
 	/// <summary>
 	/// Tests whether shutting the pipeline stage down using <see cref="ProcessingPipelineStage.Shutdown"/> succeeds,
-	/// if the stage does not have following stages. The stage should have called <see cref="SyncProcessingPipelineStage.OnShutdown"/>
+	/// if the stage does not have any following stages. The stage should have called <see cref="SyncProcessingPipelineStage.OnShutdown"/>
 	/// after this.
 	/// </summary>
 	[Fact]
@@ -121,7 +121,7 @@ public class SyncProcessingPipelineStageTests : ProcessingPipelineStageBaseTests
 
 	/// <summary>
 	/// Tests whether processing a log message using <see cref="ProcessingPipelineStage.ProcessMessage"/> succeeds,
-	/// if the stage does not have following stages. The stage should have called <see cref="SyncProcessingPipelineStage.ProcessSync"/>
+	/// if the stage does not have any following stages. The stage should have called <see cref="SyncProcessingPipelineStage.ProcessSync"/>
 	/// after this.
 	/// </summary>
 	[Fact]

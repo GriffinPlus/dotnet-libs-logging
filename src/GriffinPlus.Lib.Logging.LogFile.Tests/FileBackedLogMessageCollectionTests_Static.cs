@@ -21,8 +21,8 @@ namespace GriffinPlus.Lib.Logging.Collections;
 [Collection("LogFileTests")]
 public class FileBackedLogMessageCollectionTests_Static : IClassFixture<LogFileTestsFixture>
 {
-	private static readonly LogFilePurpose[]    sLogFilePurposes   = { LogFilePurpose.Recording, LogFilePurpose.Analysis };
-	private static readonly LogFileWriteMode[]  sLogFileWriteModes = { LogFileWriteMode.Robust, LogFileWriteMode.Fast };
+	private static readonly LogFilePurpose[]    sLogFilePurposes   = [LogFilePurpose.Recording, LogFilePurpose.Analysis];
+	private static readonly LogFileWriteMode[]  sLogFileWriteModes = [LogFileWriteMode.Robust, LogFileWriteMode.Fast];
 	private readonly        LogFileTestsFixture mFixture;
 
 	/// <summary>
@@ -48,8 +48,8 @@ public class FileBackedLogMessageCollectionTests_Static : IClassFixture<LogFileT
 			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 			foreach (bool populate in new[] { false, true })
 			{
-				yield return new object[] { null, deleteAutomatically, purpose, writeMode, populate };                         // default temporary folder
-				yield return new object[] { Environment.CurrentDirectory, deleteAutomatically, purpose, writeMode, populate }; // specific temporary folder
+				yield return [null, deleteAutomatically, purpose, writeMode, populate];                         // default temporary folder
+				yield return [Environment.CurrentDirectory, deleteAutomatically, purpose, writeMode, populate]; // specific temporary folder
 			}
 		}
 	}

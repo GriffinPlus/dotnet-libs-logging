@@ -23,32 +23,32 @@ public class TagSetTests
 		get
 		{
 			// empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				Array.Empty<string>(),
 				Array.Empty<string>()
-			};
+			];
 
 			// single element in the tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "Tag" },
 				new[] { "Tag" }
-			};
+			];
 
 			// mixed set of unordered elements
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "A", "C", "D", "B", "E", "e", "d", "c", "b", "a" },
 				new[] { "A", "a", "B", "b", "C", "c", "D", "d", "E", "e" }
-			};
+			];
 
 			// mixed set with duplicates
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "A", "B", "C", "D", "E", "A", "B", "C", "D", "E" },
 				new[] { "A", "B", "C", "D", "E" }
-			};
+			];
 		}
 	}
 
@@ -115,12 +115,10 @@ public class TagSetTests
 	{
 		var tagSet = new TagSet(tags);
 		int i = 0;
-		using (IEnumerator<string> enumerator = tagSet.GetEnumerator())
+		using IEnumerator<string> enumerator = tagSet.GetEnumerator();
+		while (enumerator.MoveNext())
 		{
-			while (enumerator.MoveNext())
-			{
-				Assert.Equal(tags[i++], enumerator.Current);
-			}
+			Assert.Equal(tags[i++], enumerator.Current);
 		}
 	}
 
@@ -133,19 +131,19 @@ public class TagSetTests
 		get
 		{
 			// equal
-			yield return new object[] { true, null, null };
-			yield return new object[] { true, TagSet.Empty, TagSet.Empty };
-			yield return new object[] { true, new TagSet("A"), new TagSet("A") };
-			yield return new object[] { true, new TagSet("A", "B"), new TagSet("A", "B") };
+			yield return [true, null, null];
+			yield return [true, TagSet.Empty, TagSet.Empty];
+			yield return [true, new TagSet("A"), new TagSet("A")];
+			yield return [true, new TagSet("A", "B"), new TagSet("A", "B")];
 
 			// not equal
-			yield return new object[] { false, new TagSet("A"), null };
-			yield return new object[] { false, new TagSet("A"), TagSet.Empty };
-			yield return new object[] { false, null, new TagSet("A") };
-			yield return new object[] { false, TagSet.Empty, new TagSet("A") };
-			yield return new object[] { false, new TagSet("A"), new TagSet("B") };
-			yield return new object[] { false, new TagSet("A"), new TagSet("A", "B") };
-			yield return new object[] { false, new TagSet("A", "B"), new TagSet("A") };
+			yield return [false, new TagSet("A"), null];
+			yield return [false, new TagSet("A"), TagSet.Empty];
+			yield return [false, null, new TagSet("A")];
+			yield return [false, TagSet.Empty, new TagSet("A")];
+			yield return [false, new TagSet("A"), new TagSet("B")];
+			yield return [false, new TagSet("A"), new TagSet("A", "B")];
+			yield return [false, new TagSet("A", "B"), new TagSet("A")];
 		}
 	}
 
@@ -168,10 +166,13 @@ public class TagSetTests
 	{
 		get
 		{
-			foreach (object[] data in OperatorEquality_TestData)
-			{
-				yield return new[] { !(bool)data[0], data[1], data[2] };
-			}
+			return OperatorEquality_TestData.Select(
+				data => (object[])
+				[
+					!(bool)data[0],
+					data[1],
+					data[2]
+				]);
 		}
 	}
 
@@ -195,20 +196,20 @@ public class TagSetTests
 		get
 		{
 			// add tag to empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				Array.Empty<string>(),
 				"Tag",
 				new[] { "Tag" }
-			};
+			];
 
 			// add tag to non-empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "A", "B", "C", "E", "F", "G" },
 				"D",
 				new[] { "A", "B", "C", "D", "E", "F", "G" }
-			};
+			];
 		}
 	}
 
@@ -240,41 +241,41 @@ public class TagSetTests
 		get
 		{
 			// add no tags to empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				Array.Empty<string>(),
 				Array.Empty<string>(),
 				Array.Empty<string>()
-			};
+			];
 
 			// add tag to empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				Array.Empty<string>(),
 				new[] { "Tag" },
 				new[] { "Tag" }
-			};
+			];
 
 			// add tag to non-empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "A", "B", "C", "E", "F", "G" },
 				new[] { "D" },
 				new[] { "A", "B", "C", "D", "E", "F", "G" }
-			};
+			];
 
 			// add tags to non-empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "A", "B", "C", "E", "F", "G" },
 				new[] { "D", "H" },
 				new[] { "A", "B", "C", "D", "E", "F", "G", "H" }
-			};
+			];
 		}
 	}
 
 	/// <summary>
-	/// Tests whether operator+ works properly with a a tag set on the right side.
+	/// Tests whether operator+ works properly with a tag set on the right side.
 	/// </summary>
 	[Theory]
 	[MemberData(nameof(OperatorPlus_WithMultipleTags_TestData))]
@@ -305,25 +306,25 @@ public class TagSetTests
 		get
 		{
 			// remove tag from empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				Array.Empty<string>(),
 				"Tag",
 				Array.Empty<string>()
-			};
+			];
 
 			// remove tag from non-empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "A", "B", "C", "D", "E", "F" },
 				"C",
 				new[] { "A", "B", "D", "E", "F" }
-			};
+			];
 		}
 	}
 
 	/// <summary>
-	/// Tests whether operator- works properly with a single tag on the right side.
+	/// Tests whether 'operator-' works properly with a single tag on the right side.
 	/// </summary>
 	[Theory]
 	[MemberData(nameof(OperatorMinus_WithSingleTag_TestData))]
@@ -335,7 +336,7 @@ public class TagSetTests
 	}
 
 	/// <summary>
-	/// Tests whether operator- fails, if the right operand is <c>null</c>.
+	/// Tests whether 'operator-' fails, if the right operand is <c>null</c>.
 	/// </summary>
 	[Fact]
 	public void OperatorMinus_WithSingleTag_TagIsNull()
@@ -350,41 +351,41 @@ public class TagSetTests
 		get
 		{
 			// remove no tags from empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				Array.Empty<string>(),
 				Array.Empty<string>(),
 				Array.Empty<string>()
-			};
+			];
 
 			// remove tag from empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				Array.Empty<string>(),
 				new[] { "Tag" },
 				Array.Empty<string>()
-			};
+			];
 
 			// remove tag from non-empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "A", "B", "C", "E", "F", "G" },
 				new[] { "D" },
 				new[] { "A", "B", "C", "E", "F", "G" }
-			};
+			];
 
 			// remove multiple tags from non-empty tag set
-			yield return new object[]
-			{
+			yield return
+			[
 				new[] { "A", "B", "C", "D", "E", "F", "G" },
 				new[] { "C", "D" },
 				new[] { "A", "B", "E", "F", "G" }
-			};
+			];
 		}
 	}
 
 	/// <summary>
-	/// Tests whether operator- works properly with a a tag set on the right side.
+	/// Tests whether 'operator-' works properly with a tag set on the right side.
 	/// </summary>
 	[Theory]
 	[MemberData(nameof(OperatorMinus_WithMultipleTags_TestData))]
@@ -396,7 +397,7 @@ public class TagSetTests
 	}
 
 	/// <summary>
-	/// Tests whether operator- fails, if the right operand is <c>null</c>.
+	/// Tests whether 'operator-' fails, if the right operand is <c>null</c>.
 	/// </summary>
 	[Fact]
 	public void OperatorMinus_WithMultipleTags_TagsIsNull()

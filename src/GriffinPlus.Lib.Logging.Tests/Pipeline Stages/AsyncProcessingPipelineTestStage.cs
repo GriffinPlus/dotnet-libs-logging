@@ -45,7 +45,7 @@ public class AsyncProcessingPipelineTestStage : AsyncProcessingPipelineStage
 	/// Gets the messages that were passed to <see cref="AsyncProcessingPipelineStage.ProcessAsync(LocalLogMessage[], CancellationToken)"/>
 	/// with the last call.
 	/// </summary>
-	public List<LocalLogMessage> MessagesPassedToProcessAsync { get; } = new();
+	public List<LocalLogMessage> MessagesPassedToProcessAsync { get; } = [];
 
 	/// <summary>
 	/// Gets a value indicating whether <see cref="ProcessAsync(LocalLogMessage[], CancellationToken)"/> was called.

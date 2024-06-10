@@ -46,7 +46,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 		}
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the search is done case sensitive (<c>true</c>) or case insensitive (<c>false</c>).
+		/// Gets or sets a value indicating whether the search is done case-sensitive (<c>true</c>) or case-insensitive (<c>false</c>).
 		/// </summary>
 		public bool IsCaseSensitive
 		{

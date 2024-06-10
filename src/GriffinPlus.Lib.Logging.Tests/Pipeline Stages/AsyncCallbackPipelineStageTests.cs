@@ -59,7 +59,7 @@ public class AsyncCallbackPipelineStageTests : AsyncProcessingPipelineStageBaseT
 		/// <summary>
 		/// Gets the log message passed to <see cref="ProcessAsyncCallback(LocalLogMessage[], CancellationToken)"/>.
 		/// </summary>
-		public List<LocalLogMessage> MessagesPassedToProcessAsyncCallback { get; } = new();
+		public List<LocalLogMessage> MessagesPassedToProcessAsyncCallback { get; } = [];
 
 		public Task ProcessAsyncCallback(LocalLogMessage[] messages, CancellationToken cancellationToken)
 		{
@@ -88,7 +88,7 @@ public class AsyncCallbackPipelineStageTests : AsyncProcessingPipelineStageBaseT
 	}
 
 	/// <summary>
-	/// Tests whether processing a log message succeeds, if the stage does not have following stages.
+	/// Tests whether processing a log message succeeds, if the stage does not have any following stages.
 	/// </summary>
 	[Theory]
 	[InlineData(false, false)]

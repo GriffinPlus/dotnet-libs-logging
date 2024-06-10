@@ -78,7 +78,7 @@ public abstract class ProcessingPipelineStageBaseTests<TStage> where TStage : Pr
 
 	/// <summary>
 	/// Tests whether initializing the pipeline stage using <see cref="ProcessingPipelineStage.Initialize"/> succeeds,
-	/// if the stage does not have following stages. The stage should be initialized after this.
+	/// if the stage does not have any following stages. The stage should be initialized after this.
 	/// </summary>
 	[Fact]
 	public void Initialize_Standalone()
@@ -127,7 +127,7 @@ public abstract class ProcessingPipelineStageBaseTests<TStage> where TStage : Pr
 
 	/// <summary>
 	/// Tests whether shutting down the pipeline stage using <see cref="ProcessingPipelineStage.Shutdown"/> succeeds,
-	/// if the stage does not have following stages. The stage should not be initialized after this.
+	/// if the stage does not have any following stages. The stage should not be initialized after this.
 	/// </summary>
 	[Fact]
 	public void Shutdown_Standalone()

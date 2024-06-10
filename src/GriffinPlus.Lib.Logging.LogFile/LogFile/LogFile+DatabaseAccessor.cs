@@ -79,7 +79,7 @@ partial class LogFile
 		/// SQL commands that create the database structure common to all file formats.
 		/// </summary>
 		protected static readonly string[] CreateDatabaseCommands_CommonStructure =
-		{
+		[
 			$"PRAGMA application_id = {LogFileApplicationId};",
 			"PRAGMA encoding = 'UTF-8';",
 			"PRAGMA page_size = 65536;",
@@ -89,13 +89,13 @@ partial class LogFile
 			"CREATE TABLE levels (id INTEGER PRIMARY KEY, name TEXT);",
 			"CREATE TABLE tags (id INTEGER PRIMARY KEY, name TEXT);",
 			"CREATE TABLE tag2msg (id INTEGER PRIMARY KEY, tag_id INTEGER, message_id INTEGER);"
-		};
+		];
 
 		/// <summary>
 		/// SQL commands that add common indices to the database.
 		/// </summary>
 		protected static readonly string[] CreateDatabaseCommands_CommonIndices =
-		{
+		[
 			"CREATE UNIQUE INDEX processes_name_index ON processes (name);",
 			"CREATE UNIQUE INDEX applications_name_index ON applications (name);",
 			"CREATE UNIQUE INDEX writers_name_index ON writers (name);",
@@ -103,20 +103,20 @@ partial class LogFile
 			"CREATE UNIQUE INDEX tags_name_index ON tags (name);",
 			"CREATE INDEX tag2msg_tag_id_index ON tag2msg (tag_id);",
 			"CREATE INDEX tag2msg_message_id_index ON tag2msg (message_id);"
-		};
+		];
 
 		/// <summary>
 		/// SQL commands that delete all data from all common tables.
 		/// </summary>
 		private static readonly string[] sDropCommonTablesCommands =
-		{
+		[
 			"DROP TABLE processes;",
 			"DROP TABLE applications;",
 			"DROP TABLE writers;",
 			"DROP TABLE levels;",
 			"DROP TABLE tags;",
 			"DROP TABLE tag2msg;"
-		};
+		];
 
 		/// <summary>
 		/// Initializes the <see cref="DatabaseAccessor"/> class.
@@ -124,14 +124,10 @@ partial class LogFile
 		static DatabaseAccessor()
 		{
 			// retrieve the version of the sqlite implementation
-			using (var connection = new SQLiteConnection("Data Source=:memory:"))
-			{
-				connection.Open();
-				using (var command = new SQLiteCommand("SELECT SQLITE_VERSION();", connection))
-				{
-					SqliteVersion = command.ExecuteScalar().ToString();
-				}
-			}
+			using var connection = new SQLiteConnection("Data Source=:memory:");
+			connection.Open();
+			using var command = new SQLiteCommand("SELECT SQLITE_VERSION();", connection);
+			SqliteVersion = command.ExecuteScalar().ToString();
 		}
 
 		/// <summary>
@@ -149,7 +145,7 @@ partial class LogFile
 			bool             isReadOnly)
 		{
 			Connection = connection;
-			mCommands = new List<SQLiteCommand>();
+			mCommands = [];
 			IsReadOnly = isReadOnly;
 			WriteMode = writeMode;
 
@@ -527,6 +523,13 @@ partial class LogFile
 		{
 			CheckReadOnly();
 
+			ExecuteInTransaction(Operation);
+
+			OldestMessageId = -1;
+			NewestMessageId = -1;
+
+			return;
+
 			void Operation()
 			{
 				if (!messagesOnly)
@@ -546,11 +549,6 @@ partial class LogFile
 
 				ClearSpecific(messagesOnly);
 			}
-
-			ExecuteInTransaction(Operation);
-
-			OldestMessageId = -1;
-			NewestMessageId = -1;
 		}
 
 		/// <summary>
@@ -569,7 +567,7 @@ partial class LogFile
 		/// <summary>
 		/// Gets a number of log messages starting at the specified message id.
 		/// </summary>
-		/// <param name="fromId">Id of the message to start at.</param>
+		/// <param name="fromId">ID of the message to start at.</param>
 		/// <param name="count">Maximum number of log messages to get.</param>
 		/// <returns>The requested log messages.</returns>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
@@ -582,21 +580,21 @@ partial class LogFile
 
 			var messages = new List<LogFileMessage>(count);
 
+			Read(fromId, count, Callback);
+
+			return messages.ToArray();
+
 			bool Callback(LogFileMessage message)
 			{
 				messages.Add(message);
 				return true;
 			}
-
-			Read(fromId, count, Callback);
-
-			return messages.ToArray();
 		}
 
 		/// <summary>
 		/// Gets a number of log messages starting at the specified message id.
 		/// </summary>
-		/// <param name="fromId">Id of the message to start at.</param>
+		/// <param name="fromId">ID of the message to start at.</param>
 		/// <param name="count">Number of log messages to get.</param>
 		/// <param name="callback">Callback to invoke for every read message</param>
 		/// <returns>
@@ -622,15 +620,17 @@ partial class LogFile
 
 			long messageId = NewestMessageId;
 
-			void Operation()
-			{
-				WriteLogMessage(message, ++messageId);
-			}
-
 			ExecuteInTransaction(Operation);
 
 			if (OldestMessageId < 0) OldestMessageId = messageId;
 			NewestMessageId = messageId;
+
+			return;
+
+			void Operation()
+			{
+				WriteLogMessage(message, ++messageId);
+			}
 		}
 
 		/// <summary>
@@ -645,6 +645,12 @@ partial class LogFile
 
 			long count = 0;
 
+			ExecuteInTransaction(Operation);
+
+			NewestMessageId += count;
+			if (OldestMessageId < 0) OldestMessageId = NewestMessageId - count + 1;
+			return count;
+
 			void Operation()
 			{
 				// ReSharper disable once PossibleMultipleEnumeration
@@ -654,19 +660,13 @@ partial class LogFile
 					count++;
 				}
 			}
-
-			ExecuteInTransaction(Operation);
-
-			NewestMessageId += count;
-			if (OldestMessageId < 0) OldestMessageId = NewestMessageId - count + 1;
-			return count;
 		}
 
 		/// <summary>
 		/// Writes a single log message (must run in transaction for consistency).
 		/// </summary>
 		/// <param name="message">Message to write.</param>
-		/// <param name="messageId">Id of the message in the log file.</param>
+		/// <param name="messageId">ID of the message in the log file.</param>
 		protected abstract void WriteLogMessage(ILogMessage message, long messageId);
 
 		#endregion
@@ -879,7 +879,7 @@ partial class LogFile
 		/// Adds the specified process name to the database.
 		/// </summary>
 		/// <param name="name">Name of the process to add.</param>
-		/// <returns>Id associated with the process name.</returns>
+		/// <returns>ID associated with the process name.</returns>
 		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
 		protected long AddProcessName(string name)
 		{
@@ -906,7 +906,7 @@ partial class LogFile
 		/// Adds the specified application name to the database.
 		/// </summary>
 		/// <param name="name">Name of the application to add.</param>
-		/// <returns>Id associated with the application name.</returns>
+		/// <returns>ID associated with the application name.</returns>
 		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
 		protected long AddApplicationName(string name)
 		{
@@ -933,7 +933,7 @@ partial class LogFile
 		/// Adds the specified log writer name to the database.
 		/// </summary>
 		/// <param name="name">Name of the log writer to add.</param>
-		/// <returns>Id associated with the log writer name.</returns>
+		/// <returns>ID associated with the log writer name.</returns>
 		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
 		protected long AddLogWriterName(string name)
 		{
@@ -960,7 +960,7 @@ partial class LogFile
 		/// Adds the specified log level name to the database.
 		/// </summary>
 		/// <param name="name">Name of the log level to add.</param>
-		/// <returns>Id associated with the log level name.</returns>
+		/// <returns>ID associated with the log level name.</returns>
 		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
 		protected long AddLogLevelName(string name)
 		{
@@ -987,7 +987,7 @@ partial class LogFile
 		/// Adds the specified tag to the database.
 		/// </summary>
 		/// <param name="tag">Tag to add.</param>
-		/// <returns>Id associated with the tag.</returns>
+		/// <returns>ID associated with the tag.</returns>
 		/// <exception cref="ArgumentNullException">The <paramref name="tag"/> parameter must not be <c>null</c>.</exception>
 		protected long AddTag(string tag)
 		{
@@ -1013,7 +1013,7 @@ partial class LogFile
 		/// <summary>
 		/// Gets the set of tags associated with the message with the specified id.
 		/// </summary>
-		/// <param name="messageId">Id of the message to get the tags for.</param>
+		/// <param name="messageId">ID of the message to get the tags for.</param>
 		/// <returns>Tag set containing all tags associated with the specified message.</returns>
 		public TagSet GetTagsOfMessage(long messageId)
 		{
@@ -1024,8 +1024,8 @@ partial class LogFile
 		/// <summary>
 		/// Attaches the tag with the specified id to the message with the specified id.
 		/// </summary>
-		/// <param name="tagId">Id of the tag attach.</param>
-		/// <param name="messageId">Id of the message to attach the tag to.</param>
+		/// <param name="tagId">ID of the tag attach.</param>
+		/// <param name="messageId">ID of the message to attach the tag to.</param>
 		protected void AttachTagToMessage(long tagId, long messageId)
 		{
 			mInsertTagToMessageMappingCommand_TagIdParameter.Value = tagId;
@@ -1036,7 +1036,7 @@ partial class LogFile
 		/// <summary>
 		/// Removes tag associations for messages up to the specified id (including the message with the specified id).
 		/// </summary>
-		/// <param name="messageId">Id of the message to remove tags up to.</param>
+		/// <param name="messageId">ID of the message to remove tags up to.</param>
 		protected void RemoveTagAssociations(long messageId)
 		{
 			mDeleteTagToMessageMappingsUpToIdCommand_MessageIdParameter.Value = messageId;
@@ -1127,10 +1127,8 @@ partial class LogFile
 		/// </returns>
 		public static object ExecuteScalarCommand(SQLiteConnection connection, string commandText)
 		{
-			using (var command = new SQLiteCommand(commandText, connection))
-			{
-				return command.ExecuteScalar();
-			}
+			using var command = new SQLiteCommand(commandText, connection);
+			return command.ExecuteScalar();
 		}
 
 		/// <summary>
@@ -1140,10 +1138,8 @@ partial class LogFile
 		/// <param name="commandText">Command text to execute.</param>
 		public static void ExecuteNonQueryCommand(SQLiteConnection connection, string commandText)
 		{
-			using (var command = new SQLiteCommand(commandText, connection))
-			{
-				command.ExecuteNonQuery();
-			}
+			using var command = new SQLiteCommand(commandText, connection);
+			command.ExecuteNonQuery();
 		}
 
 		/// <summary>
@@ -1179,10 +1175,8 @@ partial class LogFile
 		{
 			foreach (string commandText in commandTexts)
 			{
-				using (var command = new SQLiteCommand(commandText, Connection))
-				{
-					command.ExecuteNonQuery();
-				}
+				using var command = new SQLiteCommand(commandText, Connection);
+				command.ExecuteNonQuery();
 			}
 		}
 
