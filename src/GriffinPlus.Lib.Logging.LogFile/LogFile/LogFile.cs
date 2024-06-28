@@ -78,6 +78,7 @@ public partial class LogFile : IDisposable
 	/// </summary>
 	/// <param name="path">Log file to open.</param>
 	/// <exception cref="FileNotFoundException">The specified file does not exist.</exception>
+	/// <exception cref="MigrationNeededException">The log file is opened read-only. Cannot perform necessary migration.</exception>
 	/// <exception cref="LogFileException">Opening the log file failed (see message and inner exception for details).</exception>
 	private LogFile(string path) : this(path, false, false, LogFilePurpose.NotSpecified, LogFileWriteMode.Fast, true, null, null)
 	{
@@ -105,6 +106,7 @@ public partial class LogFile : IDisposable
 	/// <param name="collection">Collection that works upon the log file.</param>
 	/// <param name="messages">Messages to put into the log file (should only be used for new files).</param>
 	/// <exception cref="FileNotFoundException"><paramref name="createIfNotExist"/> is <c>false</c> and the specified file does not exist.</exception>
+	/// <exception cref="MigrationNeededException">The log file is opened read-only. Cannot perform necessary migration.</exception>
 	/// <exception cref="LogFileException">Opening/Creating the log file failed.</exception>
 	internal LogFile(
 		string                         path,

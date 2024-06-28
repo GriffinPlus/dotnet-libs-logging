@@ -59,7 +59,7 @@ partial class LogFile
 		[
 			"PRAGMA user_version = 2;", // <- 'analysis' format
 			"CREATE TABLE messages (id INTEGER PRIMARY KEY, timestamp INTEGER, timezone_offset INTEGER, high_precision_timestamp INTEGER, lost_message_count INTEGER, process_id INTEGER, process_name_id INTEGER, application_name_id INTEGER, writer_name_id INTEGER, level_name_id INTEGER, has_tags BOOLEAN);",
-			"CREATE TABLE texts (id INTEGER PRIMARY KEY, text STRING);"
+			"CREATE TABLE texts (id INTEGER PRIMARY KEY, text TEXT);"
 		];
 
 		/// <summary>
@@ -98,6 +98,7 @@ partial class LogFile
 		/// <c>false</c> to just use it.
 		/// </param>
 		/// <param name="messages">Messages to populate the file with (works for new files only).</param>
+		/// <exception cref="MigrationNeededException">The opened log file is read-only. Cannot perform necessary migration.</exception>
 		public AnalysisDatabaseAccessor(
 			SQLiteConnection         connection,
 			LogFileWriteMode         writeMode,
@@ -105,6 +106,9 @@ partial class LogFile
 			bool                     create,
 			IEnumerable<ILogMessage> messages = null) : base(connection, writeMode, isReadOnly)
 		{
+			// migrate database schema, if necessary
+			MigrateSchemaIfNecessary(connection);
+
 			// commands to get the lowest and the highest message id
 			mGetOldestMessageIdCommand = PrepareCommand("SELECT id FROM messages ORDER BY id ASC  LIMIT 1;");
 			mGetNewestMessageIdCommand = PrepareCommand("SELECT id FROM messages ORDER BY id DESC LIMIT 1;");
@@ -644,6 +648,65 @@ partial class LogFile
 
 					// remove tags associated with the messages
 					RemoveTagAssociations(messageId);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Migrates the schema of the database to fix query issues.
+		/// </summary>
+		/// <exception cref="MigrationNeededException">The log file is opened read-only. Cannot perform necessary migration.</exception>
+		private void MigrateSchemaIfNecessary(SQLiteConnection connection)
+		{
+			/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			// Migration:
+			// Change type of 'text' column in table 'texts' from 'STRING' to 'TEXT'
+			// to avoid type affinity issues, e.g. a string looking as a number is stored as a number
+			// effectively changing the stored text
+			/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			string type = (string)ExecuteScalarCommand(connection, "SELECT type FROM PRAGMA_TABLE_INFO('texts') WHERE name = 'text'");
+
+			if (type == "STRING")
+			{
+				if (IsReadOnly)
+				{
+					// database is read-only
+					// => migration cannot be performed on a read-only database
+					throw new MigrationNeededException("The log file is opened read-only. Cannot perform necessary migration.");
+				}
+
+				// database is read/write
+				// => migrate the database
+				using var oldTableExistsCommand = new SQLiteCommand("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'texts_old';", connection);
+				bool oldTableExists = ExecuteSingleColumnIntQuery(oldTableExistsCommand).Length > 0;
+
+				using var newTableExistsCommand = new SQLiteCommand("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'texts_new';", connection);
+				bool newTableExists = ExecuteSingleColumnIntQuery(newTableExistsCommand).Length > 0;
+
+				if (oldTableExists)
+				{
+					// 'texts_old' exists
+					// => 'texts_new' has been initialized completely
+					// => rename 'texts_new' to 'texts' to complete the migration, then drop 'texts_old'
+					if (newTableExists)
+					{
+						ExecuteNonQueryCommand(connection, "ALTER TABLE texts_new RENAME TO texts;");
+					}
+
+					ExecuteNonQueryCommand(connection, "DROP TABLE texts_old;");
+				}
+				else
+				{
+					// 'texts_old' does not exist
+					// => unsure whether 'texts_new' has been initialized completely
+					// => start migration anew
+					ExecuteNonQueryCommand(connection, "DROP TABLE IF EXISTS texts_new;");
+					ExecuteNonQueryCommand(connection, "CREATE TABLE texts_new (id INTEGER PRIMARY KEY, text TEXT);");
+					ExecuteNonQueryCommand(connection, "INSERT INTO texts_new (id, text) SELECT id, CAST(text AS TEXT) FROM texts;");
+					ExecuteNonQueryCommand(connection, "ALTER TABLE texts RENAME TO texts_old;");
+					ExecuteNonQueryCommand(connection, "ALTER TABLE texts_new RENAME TO texts;");
+					ExecuteNonQueryCommand(connection, "DROP TABLE texts_old;");
 				}
 			}
 		}
