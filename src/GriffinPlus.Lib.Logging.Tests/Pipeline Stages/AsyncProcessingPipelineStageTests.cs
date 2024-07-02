@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -155,7 +156,7 @@ public class AsyncProcessingPipelineStageTests : AsyncProcessingPipelineStageBas
 	/// Both stages should have called <see cref="AsyncProcessingPipelineStage.ProcessSync"/> after this.
 	/// </summary>
 	[Fact]
-	public void Process_WithFollowingStage()
+	public async Task Process_WithFollowingStage()
 	{
 		var stage1 = ProcessingPipelineStage.Create<AsyncProcessingPipelineTestStage>("Stage1", null);
 		var stage2 = stage1.AddNextStage<AsyncProcessingPipelineTestStage>("Stage2");
@@ -180,7 +181,7 @@ public class AsyncProcessingPipelineStageTests : AsyncProcessingPipelineStageBas
 		Assert.Same(message, stage2.MessagePassedToProcessSync);
 
 		// give the processing threads time to call ProcessAsync()
-		Thread.Sleep(500);
+		await Task.Delay(500);
 
 		Assert.True(stage1.ProcessAsyncWasCalled);
 		Assert.True(stage2.ProcessAsyncWasCalled);

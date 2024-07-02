@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Xunit;
 
@@ -218,7 +219,7 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 	/// <param name="messages">Messages that are passed to the stage.</param>
 	[Theory]
 	[MemberData(nameof(Process_TestData))]
-	public void Process(ConsoleOutputStream defaultStream, List<Tuple<LogLevel, ConsoleOutputStream>> mappings, IEnumerable<LocalLogMessage> messages)
+	public async Task Process(ConsoleOutputStream defaultStream, List<Tuple<LogLevel, ConsoleOutputStream>> mappings, IEnumerable<LocalLogMessage> messages)
 	{
 		// create a new pipeline stage
 		var formatter = new TestFormatter();
@@ -267,7 +268,7 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 		// give the messages some time (500ms) to travel through the pipeline
 		for (int i = 0; i < 10; i++)
 		{
-			Thread.Sleep(50);
+			await Task.Delay(50);
 			if (stdoutStream.Length >= expectedStdout.Length && stderrStream.Length >= expectedStderr.Length)
 				break;
 		}
@@ -277,14 +278,14 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 		stderrStream.Position = 0;
 		byte[] stdoutData = new byte[stdoutStream.Length];
 		byte[] stderrData = new byte[stderrStream.Length];
-		int stdoutBytesReadCount = stdoutStream.Read(stdoutData, 0, stdoutData.Length);
-		int stderrBytesReadCount = stderrStream.Read(stderrData, 0, stderrData.Length);
+		int stdoutBytesReadCount = await stdoutStream.ReadAsync(stdoutData, 0, stdoutData.Length);
+		int stderrBytesReadCount = await stderrStream.ReadAsync(stderrData, 0, stderrData.Length);
 		Assert.Equal(stdoutData.Length, stdoutBytesReadCount);
 		Assert.Equal(stderrData.Length, stderrBytesReadCount);
 		var stdoutReader = new StreamReader(new MemoryStream(stdoutData));
 		var stderrReader = new StreamReader(new MemoryStream(stderrData));
-		string stdoutOutput = stdoutReader.ReadToEnd();
-		string stderrOutput = stderrReader.ReadToEnd();
+		string stdoutOutput = await stdoutReader.ReadToEndAsync();
+		string stderrOutput = await stderrReader.ReadToEndAsync();
 		Assert.Equal(expectedStdout.ToString(), stdoutOutput);
 		Assert.Equal(expectedStderr.ToString(), stderrOutput);
 

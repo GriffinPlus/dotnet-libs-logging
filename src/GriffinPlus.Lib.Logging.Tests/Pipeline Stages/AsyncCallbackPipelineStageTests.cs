@@ -95,7 +95,7 @@ public class AsyncCallbackPipelineStageTests : AsyncProcessingPipelineStageBaseT
 	[InlineData(false, true)]
 	[InlineData(true, false)]
 	[InlineData(true, true)]
-	public void Process_Standalone(bool processSyncReturnValue, bool queueForAsyncProcessing)
+	public async Task Process_Standalone(bool processSyncReturnValue, bool queueForAsyncProcessing)
 	{
 		var callback = new Callback
 		{
@@ -118,7 +118,7 @@ public class AsyncCallbackPipelineStageTests : AsyncProcessingPipelineStageBaseT
 		stage.ProcessMessage(message);
 
 		// wait for the message to travel through asynchronous processing
-		Thread.Sleep(500);
+		await Task.Delay(500);
 
 		// check synchronous processing
 		Assert.True(callback.ProcessSyncCallbackWasCalled);
@@ -150,7 +150,7 @@ public class AsyncCallbackPipelineStageTests : AsyncProcessingPipelineStageBaseT
 	[InlineData(false, true)]
 	[InlineData(true, false)]
 	[InlineData(true, true)]
-	public void Process_WithFollowingStage(bool processSyncReturnValue, bool queueForAsyncProcessing)
+	public async Task Process_WithFollowingStage(bool processSyncReturnValue, bool queueForAsyncProcessing)
 	{
 		var callback1 = new Callback
 		{
@@ -184,7 +184,7 @@ public class AsyncCallbackPipelineStageTests : AsyncProcessingPipelineStageBaseT
 		stage1.ProcessMessage(message);
 
 		// wait for the message to travel through asynchronous processing
-		Thread.Sleep(500);
+		await Task.Delay(500);
 
 		// check where the message went to
 		if (processSyncReturnValue)
