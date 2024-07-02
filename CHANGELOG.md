@@ -1,6 +1,22 @@
 # Changelog
 ---
 
+## Release 7.0.1
+
+### Bugfixes
+
+#### Fix type affinity issue in log file
+
+The log file is a sqlite database and in analysis mode message texts were stored as STRING.
+This allowed the database engine to store numbers as INTEGER or REAL, if they look like a number.
+This lead to cast exceptions when reading message text from the database as string.
+The fix is the introduction of a migration step that alters the type of the text column from STRING to TEXT.
+
+The migration is applied automatically when opening a log file read/write.
+When opening a log file read-only, a ´MigrationNeededException´ is thrown to notify the user of the necessary migration.
+
+---
+
 ## Release 7.0.0
 
 ### Other Changes
