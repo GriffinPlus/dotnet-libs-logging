@@ -1,6 +1,18 @@
 # Changelog
 ---
 
+## Release 7.0.2
+
+### Bugfixes
+
+#### Add missing support for unwrapping aggregate exceptions when writing log messages
+
+Added support for unwrapping `System.AggregateException` objects when writing log messages.
+Improved formatting of inner exceptions in general by indenting exceptions by their level in the hierarchy.
+The fix comes with the `GriffinPlus.Lib.Logging.Interface` package (version 1.1.2) that is referenced now.
+
+---
+
 ## Release 7.0.1
 
 ### Bugfixes
