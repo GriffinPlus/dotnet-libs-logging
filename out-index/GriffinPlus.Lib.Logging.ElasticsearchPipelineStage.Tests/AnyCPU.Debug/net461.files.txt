@@ -12,7 +12,6 @@
 .\Microsoft.Bcl.AsyncInterfaces.dll
 .\Microsoft.VisualStudio.CodeCoverage.Shim.dll
 .\System.Buffers.dll
-.\System.Collections.Immutable.dll
 .\System.Diagnostics.EventLog.dll
 .\System.Memory.dll
 .\System.Numerics.Vectors.dll

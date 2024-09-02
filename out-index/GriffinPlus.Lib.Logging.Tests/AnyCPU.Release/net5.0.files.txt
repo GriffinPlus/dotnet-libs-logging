@@ -1,4 +1,5 @@
-﻿.\ConsolePrinter.deps.json
+﻿.msCoverageSourceRootsMapping_GriffinPlus.Lib.Logging.Tests
+.\ConsolePrinter.deps.json
 .\ConsolePrinter.dll
 .\ConsolePrinter.dll.config
 .\ConsolePrinter.exe
@@ -26,7 +27,6 @@
 .\Microsoft.VisualStudio.TestPlatform.Common.dll
 .\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
 .\Newtonsoft.Json.dll
-.\NuGet.Frameworks.dll
 .\System.Diagnostics.EventLog.dll
 .\testhost.dll
 .\testhost.exe

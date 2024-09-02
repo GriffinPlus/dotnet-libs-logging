@@ -1,0 +1,13 @@
+﻿.\GriffinPlus.Lib.Logging.Demo.deps.json
+.\GriffinPlus.Lib.Logging.Demo.dll
+.\GriffinPlus.Lib.Logging.Demo.dll.config
+.\GriffinPlus.Lib.Logging.Demo.pdb
+.\GriffinPlus.Lib.Logging.Demo.runtimeconfig.dev.json
+.\GriffinPlus.Lib.Logging.Demo.runtimeconfig.json
+.\GriffinPlus.Lib.Logging.Demo.xml
+.\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll
+.\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb
+.\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.xml
+.\GriffinPlus.Lib.Logging.pdb
+.\GriffinPlus.Lib.Logging.xml

@@ -15,9 +15,5 @@
 .\GriffinPlus.Lib.Logging.pdb
 .\GriffinPlus.Lib.Logging.xml
 .\System.Diagnostics.EventLog.dll
-.\System.Runtime.CompilerServices.Unsafe.dll
-.\System.Text.Encodings.Web.dll
-.\System.Text.Json.dll
-.\ref\GriffinPlus.Lib.Logging.Demo.dll
 .\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.dll
 .\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.Messages.dll

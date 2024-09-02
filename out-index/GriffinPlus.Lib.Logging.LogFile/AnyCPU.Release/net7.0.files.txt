@@ -1,0 +1,10 @@
+﻿.\GriffinPlus.Lib.Logging.Collections.dll
+.\GriffinPlus.Lib.Logging.Collections.pdb
+.\GriffinPlus.Lib.Logging.Collections.xml
+.\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.LogFile.deps.json
+.\GriffinPlus.Lib.Logging.LogFile.dll
+.\GriffinPlus.Lib.Logging.LogFile.pdb
+.\GriffinPlus.Lib.Logging.LogFile.xml
+.\GriffinPlus.Lib.Logging.pdb
+.\GriffinPlus.Lib.Logging.xml

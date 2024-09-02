@@ -1,0 +1,4 @@
+﻿.\GriffinPlus.Lib.Logging.deps.json
+.\GriffinPlus.Lib.Logging.dll
+.\GriffinPlus.Lib.Logging.pdb
+.\GriffinPlus.Lib.Logging.xml

@@ -1,9 +1,13 @@
-﻿.\GriffinPlus.Lib.Common.dll
+﻿.msCoverageSourceRootsMapping_GriffinPlus.Lib.Logging.LogFile.Tests
+.\GriffinPlus.Lib.Common.dll
 .\GriffinPlus.Lib.Expressions.dll
 .\GriffinPlus.Lib.Logging.Collections.dll
 .\GriffinPlus.Lib.Logging.Collections.pdb
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.deps.json
 .\GriffinPlus.Lib.Logging.Collections.TestCommon.dll
 .\GriffinPlus.Lib.Logging.Collections.TestCommon.pdb
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.runtimeconfig.dev.json
+.\GriffinPlus.Lib.Logging.Collections.TestCommon.runtimeconfig.json
 .\GriffinPlus.Lib.Logging.Collections.TestCommon.xml
 .\GriffinPlus.Lib.Logging.Collections.xml
 .\GriffinPlus.Lib.Logging.dll
@@ -27,7 +31,6 @@
 .\Microsoft.VisualStudio.TestPlatform.Common.dll
 .\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
 .\Newtonsoft.Json.dll
-.\NuGet.Frameworks.dll
 .\System.Data.SQLite.dll
 .\System.Diagnostics.EventLog.dll
 .\testhost.dll

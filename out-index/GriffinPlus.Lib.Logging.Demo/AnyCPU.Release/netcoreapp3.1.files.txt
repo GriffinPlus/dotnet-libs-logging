@@ -22,8 +22,8 @@
 .\System.Text.Encodings.Web.dll
 .\System.Text.Json.dll
 .\runtimes\unix\lib\netcoreapp2.1\System.Security.Principal.Windows.dll
+.\runtimes\win\lib\netcoreapp2.0\System.Diagnostics.EventLog.dll
+.\runtimes\win\lib\netcoreapp2.0\System.Diagnostics.EventLog.Messages.dll
 .\runtimes\win\lib\netcoreapp2.0\System.Security.AccessControl.dll
 .\runtimes\win\lib\netcoreapp2.1\System.Security.Principal.Windows.dll
-.\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.dll
-.\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.Messages.dll
 .\runtimes\win\lib\netstandard2.0\Microsoft.Win32.Registry.dll

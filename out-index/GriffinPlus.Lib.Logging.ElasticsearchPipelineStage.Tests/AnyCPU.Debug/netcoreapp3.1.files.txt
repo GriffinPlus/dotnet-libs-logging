@@ -1,4 +1,5 @@
-﻿.\GriffinPlus.Lib.Common.dll
+﻿.msCoverageSourceRootsMapping_GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.Tests
+.\GriffinPlus.Lib.Common.dll
 .\GriffinPlus.Lib.Logging.dll
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.pdb
@@ -21,7 +22,6 @@
 .\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
 .\Microsoft.Win32.Registry.dll
 .\Newtonsoft.Json.dll
-.\NuGet.Frameworks.dll
 .\System.Diagnostics.EventLog.dll
 .\System.Runtime.CompilerServices.Unsafe.dll
 .\System.Security.AccessControl.dll
@@ -88,10 +88,10 @@
 .\ru\Microsoft.VisualStudio.TestPlatform.Common.resources.dll
 .\ru\Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
 .\runtimes\unix\lib\netcoreapp2.1\System.Security.Principal.Windows.dll
+.\runtimes\win\lib\netcoreapp2.0\System.Diagnostics.EventLog.dll
+.\runtimes\win\lib\netcoreapp2.0\System.Diagnostics.EventLog.Messages.dll
 .\runtimes\win\lib\netcoreapp2.0\System.Security.AccessControl.dll
 .\runtimes\win\lib\netcoreapp2.1\System.Security.Principal.Windows.dll
-.\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.dll
-.\runtimes\win\lib\netcoreapp3.1\System.Diagnostics.EventLog.Messages.dll
 .\runtimes\win\lib\netstandard2.0\Microsoft.Win32.Registry.dll
 .\tr\Microsoft.TestPlatform.CommunicationUtilities.resources.dll
 .\tr\Microsoft.TestPlatform.CoreUtilities.resources.dll

@@ -19,7 +19,6 @@
 .\GriffinPlus.Lib.Logging.xml
 .\Microsoft.VisualStudio.CodeCoverage.Shim.dll
 .\System.Buffers.dll
-.\System.Collections.Immutable.dll
 .\System.Data.SQLite.dll
 .\System.Diagnostics.EventLog.dll
 .\System.Memory.dll
@@ -27,6 +26,7 @@
 .\System.Runtime.CompilerServices.Unsafe.dll
 .\System.Security.Principal.Windows.dll
 .\System.Threading.Tasks.Extensions.dll
+.\System.ValueTuple.dll
 .\xunit.abstractions.dll
 .\xunit.assert.dll
 .\xunit.core.dll

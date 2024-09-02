@@ -6,6 +6,7 @@
 .\BenchmarkDotNet.dll
 .\CommandLine.dll
 .\Dia2Lib.dll
+.\Gee.External.Capstone.dll
 .\GriffinPlus.Lib.Common.dll
 .\GriffinPlus.Lib.Logging.dll
 .\GriffinPlus.Lib.Logging.ElasticsearchPipelineStage.dll
@@ -23,6 +24,14 @@
 .\Microsoft.Diagnostics.Runtime.dll
 .\Microsoft.Diagnostics.Tracing.TraceEvent.dll
 .\Microsoft.DotNet.PlatformAbstractions.dll
+.\Microsoft.Extensions.Configuration.Abstractions.dll
+.\Microsoft.Extensions.Configuration.Binder.dll
+.\Microsoft.Extensions.Configuration.dll
+.\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+.\Microsoft.Extensions.Logging.Abstractions.dll
+.\Microsoft.Extensions.Logging.dll
+.\Microsoft.Extensions.Options.dll
+.\Microsoft.Extensions.Primitives.dll
 .\Microsoft.Win32.Primitives.dll
 .\Microsoft.Win32.Registry.dll
 .\netstandard.dll
@@ -30,7 +39,6 @@
 .\Perfolizer.dll
 .\System.AppContext.dll
 .\System.Buffers.dll
-.\System.CodeDom.dll
 .\System.Collections.Concurrent.dll
 .\System.Collections.dll
 .\System.Collections.Immutable.dll
@@ -142,6 +150,11 @@
 .\amd64\msvcp140.dll
 .\amd64\vcruntime140.dll
 .\amd64\vcruntime140_1.dll
+.\arm64\KernelTraceControl.dll
+.\arm64\msdia140.dll
+.\arm64\msvcp140.dll
+.\arm64\vcruntime140.dll
+.\arm64\vcruntime140_1.dll
 .\cs\Microsoft.CodeAnalysis.CSharp.resources.dll
 .\cs\Microsoft.CodeAnalysis.resources.dll
 .\de\Microsoft.CodeAnalysis.CSharp.resources.dll
