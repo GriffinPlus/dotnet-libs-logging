@@ -666,6 +666,10 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 					{
 						while (mScheduledSendOperations.Count > 0 && mPendingSendOperations.Count < mBulkRequestMaxConcurrencyLevel)
 						{
+							// abort if the endpoint should be tested with a single request only before sending multiple requests concurrently
+							if (endpoint.ProbingConnection && mPendingSendOperations.Count > 0)
+								break;
+
 							SendOperation operation = mScheduledSendOperations[0];
 
 							// start sending the request
@@ -894,6 +898,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	{
 		endpoint.HasTriedToConnect = true;
 		endpoint.IsOperational = isOperational;
+		endpoint.ProbingConnection = !isOperational;
 		mIsOperational = mEndpoints.Any(x => x.IsOperational);
 
 		if (isOperational)

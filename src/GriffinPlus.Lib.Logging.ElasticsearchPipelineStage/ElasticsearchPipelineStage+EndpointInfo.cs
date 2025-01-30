@@ -28,6 +28,7 @@ partial class ElasticsearchPipelineStage
 			// (put the error tick count into the past, so the stage will try connecting immediately)
 			mIsOperational = false;
 			ErrorTickCount = Environment.TickCount - RetryEndpointAfterErrorTimeMs - 1;
+			ProbingConnection = true;
 		}
 
 		/// <summary>
@@ -45,6 +46,12 @@ partial class ElasticsearchPipelineStage
 		/// Gets or sets a value indicating whether the endpoint has been tried at least once.
 		/// </summary>
 		public bool HasTriedToConnect { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the endpoint should be probed to determine whether the
+		/// server is reachable (avoids sending too many requests that will fail eventually spamming the system log).
+		/// </summary>
+		public bool ProbingConnection { get; set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the endpoint accepts new messages to index.
