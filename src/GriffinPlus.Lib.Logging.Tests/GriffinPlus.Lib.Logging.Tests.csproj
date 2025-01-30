@@ -37,7 +37,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="GriffinPlus.Lib.Common" Version="4.1.4" />
+		<PackageReference Include="GriffinPlus.Lib.Common" Version="4.3.0" />
 		<PackageReference Include="GriffinPlus.Lib.Expressions" Version="1.0.2" />
 		<PackageReference Include="PolySharp" Version="1.14.1">
 			<PrivateAssets>all</PrivateAssets>
