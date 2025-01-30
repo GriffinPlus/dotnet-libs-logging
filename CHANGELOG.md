@@ -1,6 +1,33 @@
 # Changelog
 ---
 
+## Release 7.0.4
+
+### Bugfixes
+
+#### Fix `ElasticsearchPipelineStage` stopping to retry on connection failure
+
+The `ElasticsearchPipelineStage` stopped retrying if sending requests to the Elasticsearch server failed with the
+send queue being full. As no additional messages could be queued the processing thread could was not awaked by
+incoming new messages. Furthermore the retry check interval was not correctly evaluated causing that no new requests
+were kicked off after a connection error.
+
+#### Let `ElasticsearchPipelineStage` probe the connection before sending multiple requests concurrently
+
+In case that the send queue was sufficiently filled to send multiple bulk requests to the Elasticsearch server,
+the `ElasticsearchPipelineStage` kicked off these requests without knowing whether the connection to the server
+is fine. This led to multiple (by default up to 5) error messages in the system log every 30 seconds.
+
+#### Update Package Dependencies
+
+The following package dependencies have been updated to work the highest version that is available for a certain target framework:
+
+- `GriffinPlus.Lib.Common`: 4.3.0 (all frameworks)
+- `System.Text.Json`: 6.0.11 (.NET Framework 4.6.1 only), 9.0.1 (.NET Framework 4.8 only)
+- 
+
+---
+
 ## Release 7.0.3
 
 ### Other Changes
