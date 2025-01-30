@@ -32,15 +32,15 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-		<PackageReference Include="System.Text.Json" Version="5.0.2" />
+		<PackageReference Include="System.Text.Json" Version="5.0.2" /> <!-- needed for support of .NET Core 2.2 -->
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net461'">
-		<PackageReference Include="System.Text.Json" Version="6.0.9" />
+		<PackageReference Include="System.Text.Json" Version="6.0.11" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net48'">
-		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+		<PackageReference Include="System.Text.Json" Version="9.0.1" />
 	</ItemGroup>
 
 </Project>
