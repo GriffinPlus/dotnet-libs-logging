@@ -126,7 +126,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	private          string               mLastTimezoneOffsetAsString     = "+00:00";      // caches the timezone in its string representation
 
 	// defaults of settings determining the behavior of the stage
-	private static readonly Uri[]                sDefault_ApiBaseUrls                            = [new Uri("http://127.0.0.1:9200/")];
+	private static readonly Uri[]                sDefault_ApiBaseUrls                            = [new("http://127.0.0.1:9200/")];
 	private static readonly AuthenticationScheme sDefault_Server_Authentication_Schemes          = AuthenticationScheme.PasswordBased;
 	private static readonly string               sDefault_Server_Authentication_Username         = "";
 	private static readonly string               sDefault_Server_Authentication_Password         = "";
@@ -548,10 +548,16 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 				{
 					// wait for something to do
 					// --------------------------------------------------------------------------------------------------------------
-					if (forcedWait == 0) mProcessingNeededEvent.Wait(threadCancellationToken);
-					else Task.Delay(forcedWait, threadCancellationToken).WaitAndUnwrapException(threadCancellationToken);
-					mProcessingNeededEvent.Reset();
-					forcedWait = 0;
+					if (forcedWait == 0)
+					{
+						mProcessingNeededEvent.Wait(threadCancellationToken);
+						mProcessingNeededEvent.Reset();
+					}
+					else
+					{
+						Task.Delay(forcedWait, threadCancellationToken).WaitAndUnwrapException(threadCancellationToken);
+						forcedWait = 0;
+					}
 
 					// reload configuration and prepare the http client, if necessary
 					// (ensure there are no send pending operations to avoid mixing up send operations)
@@ -656,7 +662,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 
 					// start scheduled send operations
 					// --------------------------------------------------------------------------------------------------------------
-					if (endpoint.IsOperational || !endpoint.HasTriedToConnect || Environment.TickCount - endpoint.ErrorTickCount > RetryEndpointAfterErrorTimeMs)
+					if (endpoint.IsOperational || !endpoint.HasTriedToConnect || Environment.TickCount - endpoint.ErrorTickCount >= RetryEndpointAfterErrorTimeMs)
 					{
 						while (mScheduledSendOperations.Count > 0 && mPendingSendOperations.Count < mBulkRequestMaxConcurrencyLevel)
 						{
