@@ -30,7 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net48'">
-		<PackageReference Include="System.Diagnostics.EventLog" Version="8.0.0" />
+		<PackageReference Include="System.Diagnostics.EventLog" Version="9.0.2" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net5.0'">
@@ -38,15 +38,15 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net6.0'">
-		<PackageReference Include="System.Diagnostics.EventLog" Version="8.0.0" />
+		<PackageReference Include="System.Diagnostics.EventLog" Version="8.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net7.0'">
-		<PackageReference Include="System.Diagnostics.EventLog" Version="8.0.0" />
+		<PackageReference Include="System.Diagnostics.EventLog" Version="8.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
-		<PackageReference Include="System.Diagnostics.EventLog" Version="8.0.0" />
+		<PackageReference Include="System.Diagnostics.EventLog" Version="9.0.2" />
 	</ItemGroup>
 
 </Project>
