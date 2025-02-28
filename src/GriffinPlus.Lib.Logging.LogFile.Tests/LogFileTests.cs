@@ -45,7 +45,7 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	[Fact]
 	private void GetSqliteVersion()
 	{
-		Assert.Equal("3.42.0", LogFile.SqliteVersion);
+		Assert.Equal("3.46.1", LogFile.SqliteVersion);
 	}
 
 	#endregion
