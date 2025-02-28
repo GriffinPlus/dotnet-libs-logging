@@ -1,6 +1,20 @@
 # Changelog
 ---
 
+## Release 7.0.5
+
+### Other Changes
+
+#### Update Package Dependencies
+
+The following package dependencies have been updated to work the highest version that is available for a certain target framework:
+
+- `GriffinPlus.Lib.Logging.Interface`: 1.2.0 (all frameworks), for support of the `FailFast` class
+- `Update System.Diagnostics.EventLog`: 8.0.1 (.NET 6/7 only), 9.0.2 (.NET Framework 4.8, .NET 8 only)
+- `System.Data.SQLite.Core`: 1.0.119
+
+---
+
 ## Release 7.0.4
 
 ### Bugfixes
@@ -24,7 +38,6 @@ The following package dependencies have been updated to work the highest version
 
 - `GriffinPlus.Lib.Common`: 4.3.0 (all frameworks)
 - `System.Text.Json`: 6.0.11 (.NET Framework 4.6.1 only), 9.0.1 (.NET Framework 4.8 only)
-- 
 
 ---
 
