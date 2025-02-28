@@ -41,6 +41,8 @@ public class Log
 		LogWriter.NewLogWriterRegistered += ProcessLogWriterAdded;
 		LogWriter.NewLogWriterTagRegistered += ProcessLogWriterTagAdded;
 		LogWriter.LogMessageWritten += ProcessLogMessageWritten;
+		FailFast.TerminationRequestedWithMessage += ProcessTerminationRequested;
+		FailFast.TerminationRequestedWithException += ProcessTerminationRequested;
 
 		// register handler for unhandled exceptions and process exit
 		AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
@@ -354,52 +356,7 @@ public class Log
 	/// <param name="e">An <see cref="UnhandledExceptionEventArgs"/> that contains the event data.</param>
 	private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
 	{
-		var exception = e.ExceptionObject as Exception;
-
-		var builder = new StringBuilder();
-		builder.AppendLine("An unhandled exception occurred!");
-		builder.AppendLine();
-		builder.AppendLine($"Runtime terminating: {e.IsTerminating}");
-		builder.AppendLine();
-		builder.AppendLine("Environment:");
-		builder.AppendLine($"  Operating System: {Environment.OSVersion} ({(Environment.Is64BitOperatingSystem ? 64 : 32)} bit)");
-		builder.AppendLine($"  Command Line: {Environment.CommandLine}");
-		builder.AppendLine($"  User Interactive: {Environment.UserInteractive}");
-
-		if (sender is AppDomain appDomain)
-		{
-			builder.AppendLine();
-			builder.AppendLine("AppDomain Information:");
-			builder.AppendLine($"  Is Default AppDomain: {appDomain.IsDefaultAppDomain()}");
-			builder.AppendLine($"  Base Directory: {appDomain.BaseDirectory}");
-			builder.AppendLine($"  Friendly Name: {appDomain.FriendlyName}");
-			builder.AppendLine($"  Relative Search Path: {appDomain.RelativeSearchPath ?? "<not set>"}");
-			builder.AppendLine($"  Shadow Copy Files: {appDomain.ShadowCopyFiles}");
-		}
-
-		if (exception != null)
-		{
-			builder.AppendLine();
-			builder.AppendLine("Exception:");
-			builder.AppendLine(LogWriter.UnwrapException(exception));
-		}
-
-		// log to system log
-		SystemLogger.WriteError(builder.ToString());
-
-		// try to put the message into the regular log as well
-		sLog.ForceWrite(LogLevel.Alert, builder.ToString());
-
-		// terminate the application immediately
-		if (TerminateProcessOnUnhandledException)
-		{
-			// shut the logging subsystem down to ensure that any buffered messages are processed properly
-			// to avoid loosing messages that might contain information about the incident
-			Shutdown();
-
-			// terminate the application immediately (use windows error reporting, if available)
-			Environment.FailFast("An unhandled exception occurred.", exception);
-		}
+		ProcessUnhandledException(e.ExceptionObject as Exception, e.IsTerminating);
 	}
 
 	/// <summary>
@@ -509,6 +466,96 @@ public class Log
 				// (pipeline stages may have incremented the reference counter to delay this)
 				message?.Release();
 			}
+		}
+	}
+
+	/// <summary>
+	/// Is called when the <see cref="FailFast.TerminateApplication(string)"/> method is called.
+	/// </summary>
+	/// <param name="message">The message text describing the reason why application termination is requested.</param>
+	private static void ProcessTerminationRequested(string message)
+	{
+		// the global logging lock should not have been acquired
+		Debug.Assert(!Monitor.IsEntered(LogGlobals.Sync));
+
+		// log to system log
+		SystemLogger.WriteError(message);
+
+		// try to put the message into the regular log as well
+		sLog.ForceWrite(LogLevel.Alert, message);
+
+		// shut the logging subsystem down to ensure that any buffered messages are processed properly
+		// to avoid loosing messages that might contain information about the incident
+		Shutdown();
+
+		// terminate the application immediately (use windows error reporting, if available)
+		Environment.FailFast(message);
+	}
+
+	/// <summary>
+	/// Is called when the <see cref="FailFast.TerminateApplication(Exception)"/> method is called.
+	/// </summary>
+	/// <param name="exception">An exception describing the reason why application termination is requested.</param>
+	private static void ProcessTerminationRequested(Exception exception)
+	{
+		// the global logging lock should not have been acquired
+		Debug.Assert(!Monitor.IsEntered(LogGlobals.Sync));
+
+		// log the exception and terminate the process (always!)
+		TerminateProcessOnUnhandledException = true;
+		ProcessUnhandledException(exception, isRuntimeTerminating: false);
+	}
+
+	/// <summary>
+	/// Processes an unhandled/unexpected exception that occurred in the application.
+	/// </summary>
+	/// <param name="exception">The unhandled/unexpected exception.</param>
+	/// <param name="isRuntimeTerminating">
+	/// <see langword="true"/> if the runtime is terminating;<br/>
+	/// otherwise <see langword="false"/>.
+	/// </param>
+	private static void ProcessUnhandledException(Exception exception, bool isRuntimeTerminating)
+	{
+		var builder = new StringBuilder();
+		builder.AppendLine("An unhandled/unexpected exception occurred!");
+		builder.AppendLine();
+		builder.AppendLine($"Runtime terminating: {isRuntimeTerminating}");
+		builder.AppendLine();
+		builder.AppendLine("Environment:");
+		builder.AppendLine($"  Operating System: {Environment.OSVersion} ({(Environment.Is64BitOperatingSystem ? 64 : 32)} bit)");
+		builder.AppendLine($"  Command Line: {Environment.CommandLine}");
+		builder.AppendLine($"  User Interactive: {Environment.UserInteractive}");
+
+		builder.AppendLine();
+		builder.AppendLine("AppDomain Information:");
+		builder.AppendLine($"  Is Default AppDomain: {AppDomain.CurrentDomain.IsDefaultAppDomain()}");
+		builder.AppendLine($"  Base Directory: {AppDomain.CurrentDomain.BaseDirectory}");
+		builder.AppendLine($"  Friendly Name: {AppDomain.CurrentDomain.FriendlyName}");
+		builder.AppendLine($"  Relative Search Path: {AppDomain.CurrentDomain.RelativeSearchPath ?? "<not set>"}");
+		builder.AppendLine($"  Shadow Copy Files: {AppDomain.CurrentDomain.ShadowCopyFiles}");
+
+		if (exception != null)
+		{
+			builder.AppendLine();
+			builder.AppendLine("Exception:");
+			builder.AppendLine(LogWriter.UnwrapException(exception));
+		}
+
+		// log to system log
+		SystemLogger.WriteError(builder.ToString());
+
+		// try to put the message into the regular log as well
+		sLog.ForceWrite(LogLevel.Alert, builder.ToString());
+
+		// terminate the application immediately
+		if (TerminateProcessOnUnhandledException)
+		{
+			// shut the logging subsystem down to ensure that any buffered messages are processed properly
+			// to avoid loosing messages that might contain information about the incident
+			Shutdown();
+
+			// terminate the application immediately (use windows error reporting, if available)
+			Environment.FailFast("An unhandled exception occurred.", exception);
 		}
 	}
 }
