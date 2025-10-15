@@ -196,6 +196,8 @@ public class ProcessIntegrationTests
 			var thread = new AsyncContextThread();
 			thread.Factory.Run(async () =>
 				{
+					SynchronizationContext ctx = SynchronizationContext.Current;
+
 					integration.OutputStreamReceivedText += (_, args) =>
 					{
 						// abort, if the process has exited
@@ -260,6 +262,10 @@ public class ProcessIntegrationTests
 					await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
 					await stderrTextFinishedEvent.WaitAsync(cts.Token);
 					await stderrMessageFinishedEvent.WaitAsync(cts.Token);
+
+					// drain context deterministically to ensure all events have been processed
+					Debug.Assert(ctx == SynchronizationContext.Current);
+					await AwaitContextDrain(ctx, cts.Token);
 				})
 				.WaitAndUnwrapException();
 
@@ -298,6 +304,16 @@ public class ProcessIntegrationTests
 			{
 				File.Delete(testDataFile);
 			}
+		}
+		return;
+
+		// Awaits until all work posted to the specified synchronization context has been processed.
+		static Task AwaitContextDrain(SynchronizationContext ctx, CancellationToken ct = default)
+		{
+			var tcs = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+			if (ct.CanBeCanceled) ct.Register(() => tcs.TrySetCanceled(ct));
+			ctx.Post(_ => tcs.TrySetResult(0), state: null);
+			return tcs.Task;
 		}
 	}
 
