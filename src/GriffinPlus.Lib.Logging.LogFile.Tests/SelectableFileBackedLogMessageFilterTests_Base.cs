@@ -169,10 +169,10 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 			foreach (LogMessageField enabledFilter in allFilters)
 			{
 				data.Add(
-					true,                   // enable global filter switch
-					enabledFilter,          // enable specific filter
-					LogMessageField.None,   // configure no specific filters to match
-					MatchBehavior.MatchAll);// not in effect as no field is selected
+					true,                    // enable global filter switch
+					enabledFilter,           // enable specific filter
+					LogMessageField.None,    // configure no specific filters to match
+					MatchBehavior.MatchAll); // not in effect as no field is selected
 			}
 
 			// global filter switch is enabled, matching specific filters are enabled one at a time

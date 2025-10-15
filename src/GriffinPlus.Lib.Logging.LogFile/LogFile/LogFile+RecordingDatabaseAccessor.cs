@@ -421,6 +421,16 @@ partial class LogFile
 		}
 
 		/// <summary>
+		/// Represents the state and parameters required to perform a prune operation on a database.
+		/// </summary>
+		private readonly struct PruneOperationState1
+		{
+			public required long                      MaximumMessageCount     { get; init; }
+			public required DateTime                  MinimumMessageTimestamp { get; init; }
+			public required RecordingDatabaseAccessor Accessor                { get; init; }
+		}
+
+		/// <summary>
 		/// Removes log messages that are above the specified message limit -or- have a timestamp before the specified point in time.
 		/// </summary>
 		/// <param name="maximumMessageCount">
@@ -445,37 +455,42 @@ partial class LogFile
 			if (OldestMessageId < 0)
 				return 0;
 
-			int removeCount = 0;
-
 			// execute the operation in a transaction
-			ExecuteInTransaction(Operation);
+			var state = new PruneOperationState1
+			{
+				MaximumMessageCount = maximumMessageCount,
+				MinimumMessageTimestamp = minimumMessageTimestamp,
+				Accessor = this
+			};
+			int count = ExecuteInTransaction(Operation, state);
 
 			// update the id of the oldest and the newest log message
 			OldestMessageId = GetOldestMessageId();
 			NewestMessageId = GetNewestMessageId();
 
-			// return the number of removed messages
-			return removeCount;
+			return count;
 
-			void Operation()
+			static int Operation(PruneOperationState1 state)
 			{
+				long removeCount = 0;
+
 				// determine the id of the first message older than the specified timestamp
 				long deleteByTimestampMessageId = -1;
-				if (minimumMessageTimestamp > DateTime.MinValue)
+				if (state.MinimumMessageTimestamp > DateTime.MinValue)
 				{
-					mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter.Value = minimumMessageTimestamp.Ticks;
-					object result = ExecuteScalarCommand(mSelectMessageIdByTimestampForDeleteMessagesCommand);
+					state.Accessor.mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter.Value = state.MinimumMessageTimestamp.Ticks;
+					object result = ExecuteScalarCommand(state.Accessor.mSelectMessageIdByTimestampForDeleteMessagesCommand);
 					deleteByTimestampMessageId = result != null ? Convert.ToInt64(result) : -1;
 				}
 
 				// determine the id of the first message to delete due to the maximum message count limit
 				// (determined row is included)
-				long totalMessageCount = NewestMessageId - OldestMessageId + 1;
+				long totalMessageCount = state.Accessor.NewestMessageId - state.Accessor.OldestMessageId + 1;
 				long deleteByMaxMessageCountMessageId = -1;
-				if (maximumMessageCount >= 0)
+				if (state.MaximumMessageCount >= 0)
 				{
-					long messagesToDeleteCount = Math.Max(totalMessageCount - maximumMessageCount, 0);
-					deleteByMaxMessageCountMessageId = messagesToDeleteCount > 0 ? OldestMessageId + messagesToDeleteCount - 1 : -1;
+					long messagesToDeleteCount = Math.Max(totalMessageCount - state.MaximumMessageCount, 0);
+					deleteByMaxMessageCountMessageId = messagesToDeleteCount > 0 ? state.Accessor.OldestMessageId + messagesToDeleteCount - 1 : -1;
 				}
 
 				// combine selection conditions
@@ -488,22 +503,35 @@ partial class LogFile
 				if (messageId >= 0)
 				{
 					// limit the number of messages to int.MaxValue to ensure that clients have a chance to put the messages into an array
-					messageId = messageId - OldestMessageId + 1 > int.MaxValue
-						            ? OldestMessageId + int.MaxValue - 1
+					messageId = messageId - state.Accessor.OldestMessageId + 1 > int.MaxValue
+						            ? state.Accessor.OldestMessageId + int.MaxValue - 1
 						            : messageId;
 
 					// calculate the number of messages to remove
-					Debug.Assert(messageId - OldestMessageId + 1 <= int.MaxValue);
-					removeCount = (int)(messageId - OldestMessageId + 1);
+					Debug.Assert(messageId - state.Accessor.OldestMessageId + 1 <= int.MaxValue);
+					removeCount = (int)(messageId - state.Accessor.OldestMessageId + 1);
 
 					// delete old messages
-					mDeleteMessagesUpToIdCommand_IdParameter.Value = messageId;
-					ExecuteNonQueryCommand(mDeleteMessagesUpToIdCommand);
+					state.Accessor.mDeleteMessagesUpToIdCommand_IdParameter.Value = messageId;
+					ExecuteNonQueryCommand(state.Accessor.mDeleteMessagesUpToIdCommand);
 
 					// remove tags associated with the messages
-					RemoveTagAssociations(messageId);
+					state.Accessor.RemoveTagAssociations(messageId);
 				}
+
+				Debug.Assert(removeCount <= int.MaxValue);
+				return (int)removeCount;
 			}
+		}
+
+		/// <summary>
+		/// Represents the state and associated commands required to perform a prune operation on a message database.
+		/// </summary>
+		private readonly struct PruneOperationState2
+		{
+			public required long                      MaximumMessageCount     { get; init; }
+			public required DateTime                  MinimumMessageTimestamp { get; init; }
+			public required RecordingDatabaseAccessor Accessor                { get; init; }
 		}
 
 		/// <summary>
@@ -538,41 +566,45 @@ partial class LogFile
 				return 0;
 			}
 
-			List<LogFileMessage> messages = null;
-			int removeCount = 0;
-
 			// execute the operation in a transaction
-			ExecuteInTransaction(Operation);
+			var state = new PruneOperationState2
+			{
+				MaximumMessageCount = maximumMessageCount,
+				MinimumMessageTimestamp = minimumMessageTimestamp,
+				Accessor = this
+			};
+
+			// assign list of removed messages
+			LogFileMessage[] messages = ExecuteInTransaction(Operation, state);
 
 			// update the id of the oldest and the newest log message
 			OldestMessageId = GetOldestMessageId();
 			NewestMessageId = GetNewestMessageId();
 
 			// assign list of removed messages
-			removedMessages = messages?.ToArray() ?? [];
+			removedMessages = messages;
 
-			// return the number of removed messages
-			return removeCount;
+			return removedMessages.Length;
 
-			void Operation()
+			static LogFileMessage[] Operation(PruneOperationState2 state)
 			{
 				// determine the id of the first message older than the specified timestamp
 				long deleteByTimestampMessageId = -1;
-				if (minimumMessageTimestamp > DateTime.MinValue)
+				if (state.MinimumMessageTimestamp > DateTime.MinValue)
 				{
-					mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter.Value = minimumMessageTimestamp.Ticks;
-					object result = ExecuteScalarCommand(mSelectMessageIdByTimestampForDeleteMessagesCommand);
+					state.Accessor.mSelectMessageIdByTimestampForDeleteMessagesCommand_TimestampParameter.Value = state.MinimumMessageTimestamp.Ticks;
+					object result = ExecuteScalarCommand(state.Accessor.mSelectMessageIdByTimestampForDeleteMessagesCommand);
 					deleteByTimestampMessageId = result != null ? Convert.ToInt64(result) : -1;
 				}
 
 				// determine the id of the first message to delete due to the maximum message count limit
 				// (determined row is included)
-				long totalMessageCount = NewestMessageId - OldestMessageId + 1;
+				long totalMessageCount = state.Accessor.NewestMessageId - state.Accessor.OldestMessageId + 1;
 				long deleteByMaxMessageCountMessageId = -1;
-				if (maximumMessageCount >= 0)
+				if (state.MaximumMessageCount >= 0)
 				{
-					long messagesToDeleteCount = Math.Max(totalMessageCount - maximumMessageCount, 0);
-					deleteByMaxMessageCountMessageId = messagesToDeleteCount > 0 ? OldestMessageId + messagesToDeleteCount - 1 : -1;
+					long messagesToDeleteCount = Math.Max(totalMessageCount - state.MaximumMessageCount, 0);
+					deleteByMaxMessageCountMessageId = messagesToDeleteCount > 0 ? state.Accessor.OldestMessageId + messagesToDeleteCount - 1 : -1;
 				}
 
 				// combine selection conditions
@@ -580,27 +612,28 @@ partial class LogFile
 				if (deleteByTimestampMessageId >= 0) messageId = deleteByTimestampMessageId;
 				if (deleteByMaxMessageCountMessageId >= 0) messageId = Math.Max(messageId, deleteByMaxMessageCountMessageId);
 
+				List<LogFileMessage> messages = null;
 				if (messageId >= 0)
 				{
 					// limit the number of messages to int.MaxValue to ensure that clients have a chance to put the messages into an array
-					messageId = messageId - OldestMessageId + 1 > int.MaxValue
-						            ? OldestMessageId + int.MaxValue - 1
+					messageId = messageId - state.Accessor.OldestMessageId + 1 > int.MaxValue
+						            ? state.Accessor.OldestMessageId + int.MaxValue - 1
 						            : messageId;
 
 					// calculate the number of messages to remove
-					Debug.Assert(messageId - OldestMessageId + 1 <= int.MaxValue);
-					removeCount = (int)(messageId - OldestMessageId + 1);
+					Debug.Assert(messageId - state.Accessor.OldestMessageId + 1 <= int.MaxValue);
+					int removeCount = (int)(messageId - state.Accessor.OldestMessageId + 1);
 
 					// read messages that are about to be removed
 					messages = new List<LogFileMessage>(removeCount);
-					mSelectContinuousMessagesCommand.Reset();
-					mSelectContinuousMessagesCommand_FromIdParameter.Value = OldestMessageId;
-					mSelectContinuousMessagesCommand_CountParameter.Value = removeCount;
-					using (SQLiteDataReader reader = mSelectContinuousMessagesCommand.ExecuteReader())
+					state.Accessor.mSelectContinuousMessagesCommand.Reset();
+					state.Accessor.mSelectContinuousMessagesCommand_FromIdParameter.Value = state.Accessor.OldestMessageId;
+					state.Accessor.mSelectContinuousMessagesCommand_CountParameter.Value = removeCount;
+					using (SQLiteDataReader reader = state.Accessor.mSelectContinuousMessagesCommand.ExecuteReader())
 					{
 						while (reader.Read())
 						{
-							messages.Add(ReadLogMessage(reader));
+							messages.Add(state.Accessor.ReadLogMessage(reader));
 						}
 					}
 
@@ -608,12 +641,14 @@ partial class LogFile
 					// (including the message with the determined id)
 
 					// delete old messages
-					mDeleteMessagesUpToIdCommand_IdParameter.Value = messageId;
-					ExecuteNonQueryCommand(mDeleteMessagesUpToIdCommand);
+					state.Accessor.mDeleteMessagesUpToIdCommand_IdParameter.Value = messageId;
+					ExecuteNonQueryCommand(state.Accessor.mDeleteMessagesUpToIdCommand);
 
 					// remove tags associated with the messages
-					RemoveTagAssociations(messageId);
+					state.Accessor.RemoveTagAssociations(messageId);
 				}
+
+				return messages?.ToArray() ?? [];
 			}
 		}
 	}

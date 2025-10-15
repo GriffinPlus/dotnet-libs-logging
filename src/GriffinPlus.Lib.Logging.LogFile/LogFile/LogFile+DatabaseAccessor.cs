@@ -513,6 +513,20 @@ partial class LogFile
 		#region Clear()
 
 		/// <summary>
+		/// Represents the state required to perform a clear operation, including options for clearing messages only and the
+		/// associated database accessor.
+		/// </summary>
+		/// <remarks>
+		/// This struct encapsulates the configuration and dependencies needed for a clear operation. It includes a flag to
+		/// specify whether only messages should be cleared and a reference to the database accessor used to perform the operation.
+		/// </remarks>
+		private readonly struct ClearOperationState
+		{
+			public required bool             MessagesOnly { get; init; }
+			public required DatabaseAccessor Accessor     { get; init; }
+		}
+
+		/// <summary>
 		/// Removes all data from the log file.
 		/// </summary>
 		/// <param name="messagesOnly">
@@ -524,31 +538,35 @@ partial class LogFile
 		{
 			CheckReadOnly();
 
-			ExecuteInTransaction(Operation);
+			var state = new ClearOperationState
+			{
+				MessagesOnly = messagesOnly,
+				Accessor = this
+			};
+			ExecuteInTransaction(Operation, state);
 
 			OldestMessageId = -1;
 			NewestMessageId = -1;
-
 			return;
 
-			void Operation()
+			static void Operation(ClearOperationState state)
 			{
-				if (!messagesOnly)
+				if (!state.MessagesOnly)
 				{
 					// drop all common tables in the database and create new ones
-					ExecuteNonQueryCommands(sDropCommonTablesCommands);
-					ExecuteNonQueryCommands(CreateDatabaseCommands_CommonStructure);
-					ExecuteNonQueryCommands(CreateDatabaseCommands_CommonIndices);
+					state.Accessor.ExecuteNonQueryCommands(sDropCommonTablesCommands);
+					state.Accessor.ExecuteNonQueryCommands(CreateDatabaseCommands_CommonStructure);
+					state.Accessor.ExecuteNonQueryCommands(CreateDatabaseCommands_CommonIndices);
 
 					// clear cache dictionaries
-					mProcessNameToId.Clear();
-					mApplicationNameToId.Clear();
-					mLogWriterNameToId.Clear();
-					mLogLevelNameToId.Clear();
-					mTagToId.Clear();
+					state.Accessor.mProcessNameToId.Clear();
+					state.Accessor.mApplicationNameToId.Clear();
+					state.Accessor.mLogWriterNameToId.Clear();
+					state.Accessor.mLogLevelNameToId.Clear();
+					state.Accessor.mTagToId.Clear();
 				}
 
-				ClearSpecific(messagesOnly);
+				state.Accessor.ClearSpecific(state.MessagesOnly);
 			}
 		}
 
@@ -611,6 +629,19 @@ partial class LogFile
 		#region Write()
 
 		/// <summary>
+		/// Represents the state of a write operation, including the log message, its identifier, and the associated database accessor.
+		/// </summary>
+		/// <remarks>
+		/// This struct is used to encapsulate the necessary data for performing a write operation.
+		/// </remarks>
+		private readonly struct WriteOperationState1
+		{
+			public required ILogMessage      Message   { get; init; }
+			public required long             MessageId { get; init; }
+			public required DatabaseAccessor Accessor  { get; init; }
+		}
+
+		/// <summary>
 		/// Writes a log message into the log file.
 		/// </summary>
 		/// <param name="message">Log message to write.</param>
@@ -619,19 +650,38 @@ partial class LogFile
 		{
 			CheckReadOnly();
 
-			long messageId = NewestMessageId;
-
-			ExecuteInTransaction(Operation);
+			long messageId = NewestMessageId + 1;
+			var state = new WriteOperationState1
+			{
+				Message = message,
+				MessageId = messageId,
+				Accessor = this
+			};
+			ExecuteInTransaction(Operation, state);
 
 			if (OldestMessageId < 0) OldestMessageId = messageId;
 			NewestMessageId = messageId;
 
 			return;
 
-			void Operation()
+			static void Operation(WriteOperationState1 state)
 			{
-				WriteLogMessage(message, ++messageId);
+				state.Accessor.WriteLogMessage(state.Message, state.MessageId);
 			}
+		}
+
+		/// <summary>
+		/// Represents the state of a write operation, including the log messages to process and the database accessor to use.
+		/// </summary>
+		/// <remarks>
+		/// This structure encapsulates the necessary data for performing a write operation, such as the
+		/// messages to be logged and the database accessor responsible for interacting with the database.
+		/// </remarks>
+		private readonly struct WriteOperationState2
+		{
+			public required IEnumerable<ILogMessage> Messages       { get; init; }
+			public required long                     FirstMessageId { get; init; }
+			public required DatabaseAccessor         Accessor       { get; init; }
 		}
 
 		/// <summary>
@@ -644,21 +694,30 @@ partial class LogFile
 		{
 			CheckReadOnly();
 
-			long count = 0;
-			ExecuteInTransaction(Operation);
+			long firstMessageId = NewestMessageId + 1;
+			var state = new WriteOperationState2
+			{
+				Messages = messages,
+				FirstMessageId = firstMessageId,
+				Accessor = this
+			};
+
+			long count = ExecuteInTransaction(Operation, state);
+			if (count == 0)	return 0;
+			if (OldestMessageId < 0) OldestMessageId = firstMessageId;
+			NewestMessageId = firstMessageId + count - 1;
 			return count;
 
-			void Operation()
+			static long Operation(WriteOperationState2 state)
 			{
-				// ReSharper disable once PossibleMultipleEnumeration
-				foreach (ILogMessage message in messages)
+				long count = 0;
+				long messageId = state.FirstMessageId;
+				foreach (ILogMessage message in state.Messages)
 				{
-					long messageId = NewestMessageId + 1;
-					WriteLogMessage(message, messageId);
-					if (OldestMessageId < 0) OldestMessageId = messageId;
-					NewestMessageId = messageId;
+					state.Accessor.WriteLogMessage(message, messageId++);
 					count++;
 				}
+				return count;
 			}
 		}
 
@@ -1037,7 +1096,7 @@ partial class LogFile
 		/// Removes tag associations for messages up to the specified id (including the message with the specified id).
 		/// </summary>
 		/// <param name="messageId">ID of the message to remove tags up to.</param>
-		protected void RemoveTagAssociations(long messageId)
+		protected internal void RemoveTagAssociations(long messageId)
 		{
 			mDeleteTagToMessageMappingsUpToIdCommand_MessageIdParameter.Value = messageId;
 			ExecuteNonQueryCommand(mDeleteTagToMessageMappingsUpToIdCommand);
@@ -1075,7 +1134,7 @@ partial class LogFile
 		}
 
 		/// <summary>
-		/// Executes the specified action in a sqlite transaction.
+		/// Executes the specified action in a sqlite transaction (without return value and state argument).
 		/// </summary>
 		/// <param name="action">Action to execute.</param>
 		public void ExecuteInTransaction(Action action)
@@ -1098,6 +1157,139 @@ partial class LogFile
 				mLogWriterNameToId.Commit();
 				mLogLevelNameToId.Commit();
 				mTagToId.Commit();
+			}
+			catch
+			{
+				// discard changes to cache dictionaries
+				mProcessNameToId.Discard();
+				mApplicationNameToId.Discard();
+				mLogWriterNameToId.Discard();
+				mLogLevelNameToId.Discard();
+				mTagToId.Discard();
+
+				// roll back changes to the database
+				if (mCanRollback) ExecuteNonQueryCommand(mRollbackTransactionCommand);
+
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Executes the specified action in a sqlite transaction (without return value, with state argument).
+		/// </summary>
+		/// <typeparam name="TState">State type of the action.</typeparam>
+		/// <param name="action">Action to execute.</param>
+		/// <param name="state">Object to pass to the action.</param>
+		public void ExecuteInTransaction<TState>(Action<TState> action, TState state)
+		{
+			// begin transaction
+			ExecuteNonQueryCommand(mBeginTransactionCommand);
+
+			try
+			{
+				// execute the action
+				action(state);
+
+				// commit changes to the database
+				ExecuteNonQueryCommand(mCommitTransactionCommand);
+
+				// the database has successfully committed changes
+				// => commit changes to cache dictionaries as well
+				mProcessNameToId.Commit();
+				mApplicationNameToId.Commit();
+				mLogWriterNameToId.Commit();
+				mLogLevelNameToId.Commit();
+				mTagToId.Commit();
+			}
+			catch
+			{
+				// discard changes to cache dictionaries
+				mProcessNameToId.Discard();
+				mApplicationNameToId.Discard();
+				mLogWriterNameToId.Discard();
+				mLogLevelNameToId.Discard();
+				mTagToId.Discard();
+
+				// roll back changes to the database
+				if (mCanRollback) ExecuteNonQueryCommand(mRollbackTransactionCommand);
+
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Executes the specified action in a sqlite transaction (with return value, without state argument).
+		/// </summary>
+		/// <typeparam name="TResult">Result type of the action.</typeparam>
+		/// <param name="action">Action to execute.</param>
+		public TResult ExecuteInTransaction<TResult>(Func<TResult> action)
+		{
+			// begin transaction
+			ExecuteNonQueryCommand(mBeginTransactionCommand);
+
+			try
+			{
+				// execute the action
+				TResult result = action();
+
+				// commit changes to the database
+				ExecuteNonQueryCommand(mCommitTransactionCommand);
+
+				// the database has successfully committed changes
+				// => commit changes to cache dictionaries as well
+				mProcessNameToId.Commit();
+				mApplicationNameToId.Commit();
+				mLogWriterNameToId.Commit();
+				mLogLevelNameToId.Commit();
+				mTagToId.Commit();
+
+				return result;
+			}
+			catch
+			{
+				// discard changes to cache dictionaries
+				mProcessNameToId.Discard();
+				mApplicationNameToId.Discard();
+				mLogWriterNameToId.Discard();
+				mLogLevelNameToId.Discard();
+				mTagToId.Discard();
+
+				// roll back changes to the database
+				if (mCanRollback) ExecuteNonQueryCommand(mRollbackTransactionCommand);
+
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Executes the specified action in a sqlite transaction (with return value and state argument).
+		/// </summary>
+		/// <typeparam name="TState">State type of the action.</typeparam>
+		/// <typeparam name="TResult">Result type of the action.</typeparam>
+		/// <param name="action">Action to execute.</param>
+		/// <param name="state">Object to pass to the action.</param>
+		public TResult ExecuteInTransaction<TState, TResult>(Func<TState, TResult> action, TState state)
+		{
+			// begin transaction
+			ExecuteNonQueryCommand(mBeginTransactionCommand);
+
+			try
+			{
+				// execute the action
+				TResult result = action(state);
+
+				// commit changes to the database
+				ExecuteNonQueryCommand(mCommitTransactionCommand);
+
+				// the database has successfully committed changes
+				// => commit changes to cache dictionaries as well
+				mProcessNameToId.Commit();
+				mApplicationNameToId.Commit();
+				mLogWriterNameToId.Commit();
+				mLogLevelNameToId.Commit();
+				mTagToId.Commit();
+
+				return result;
 			}
 			catch
 			{
