@@ -27,7 +27,7 @@
 			<group targetFramework="net48">
 				<dependency id="GriffinPlus.Lib.Common" version="[4.3.0,5)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.2.0,2)" include="all" />
-				<dependency id="System.Diagnostics.EventLog" version="9.0.2" include="all" />
+				<dependency id="System.Diagnostics.EventLog" version="9.0.10" include="all" />
 			</group>
 			<group targetFramework="net5.0">
 				<dependency id="GriffinPlus.Lib.Common" version="[4.3.0,5)" include="all" />
@@ -47,7 +47,7 @@
 			<group targetFramework="net8.0">
 				<dependency id="GriffinPlus.Lib.Common" version="[4.3.0,5)" include="all" />
 				<dependency id="GriffinPlus.Lib.Logging.Interface" version="[1.2.0,2)" include="all" />
-				<dependency id="System.Diagnostics.EventLog" version="9.0.2" include="all" />
+				<dependency id="System.Diagnostics.EventLog" version="9.0.10" include="all" />
 			</group>
 		</dependencies>
 	</metadata>
