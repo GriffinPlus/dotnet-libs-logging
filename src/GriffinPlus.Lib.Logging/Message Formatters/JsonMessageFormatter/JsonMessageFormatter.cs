@@ -65,7 +65,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	}
 
 	/// <summary>
-	/// Gets or sets a value indicating whether the solidus character ('/') is escaped (default <c>false</c>).
+	/// Gets or sets a value indicating whether the solidus character ('/') is escaped (default <see langword="false"/>).
 	/// </summary>
 	public bool EscapeSolidus
 	{
@@ -241,7 +241,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="format">
 	/// The timestamp format (see https://msdn.microsoft.com/en-us/library/bb351892(v=vs.110).aspx for details).
 	/// </param>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddTimestampField(string format = "u", string jsonKey = null)
 	{
 		if (format == null) throw new ArgumentNullException(nameof(format));
@@ -257,7 +257,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Adds the high precision timestamp field.
 	/// </summary>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddHighPrecisionTimestampField(string jsonKey = null)
 	{
 		jsonKey ??= JsonMessageFieldNames.Default.HighPrecisionTimestamp;
@@ -268,7 +268,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Adds a field with the name of the log writer that was used to write a log message.
 	/// </summary>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddLogWriterField(string jsonKey = null)
 	{
 		jsonKey ??= JsonMessageFieldNames.Default.LogWriter;
@@ -279,7 +279,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Adds a field with the tags the log writer attached when writing the log message.
 	/// </summary>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddTagsField(string jsonKey = null)
 	{
 		jsonKey ??= JsonMessageFieldNames.Default.Tags;
@@ -290,7 +290,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Adds a field with the name of the log level that was used to write a log message.
 	/// </summary>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddLogLevelField(string jsonKey = null)
 	{
 		jsonKey ??= JsonMessageFieldNames.Default.LogLevel;
@@ -301,7 +301,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Adds a field with the name of the application that has written a log message.
 	/// </summary>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddApplicationNameField(string jsonKey = null)
 	{
 		jsonKey ??= JsonMessageFieldNames.Default.ApplicationName;
@@ -312,7 +312,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Adds a field with the name of the process that has written a log message.
 	/// </summary>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddProcessNameField(string jsonKey = null)
 	{
 		jsonKey ??= JsonMessageFieldNames.Default.ProcessName;
@@ -323,7 +323,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Adds a field with the id of the process that has written a log message.
 	/// </summary>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddProcessIdField(string jsonKey = null)
 	{
 		jsonKey ??= JsonMessageFieldNames.Default.ProcessId;
@@ -334,7 +334,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <summary>
 	/// Adds a field with the message text.
 	/// </summary>
-	/// <param name="jsonKey">Key of the field in the JSON document (<c>null</c> to use the default key).</param>
+	/// <param name="jsonKey">Key of the field in the JSON document (<see langword="null"/> to use the default key).</param>
 	public void AddTextField(string jsonKey = null)
 	{
 		jsonKey ??= JsonMessageFieldNames.Default.Text;
@@ -371,8 +371,8 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 	/// <param name="builder">String builder to append the escaped string to.</param>
 	/// <param name="s">String to escape and append to the string builder.</param>
 	/// <param name="escapeSolidus">
-	/// <c>true</c> to escape the solidus ('/');<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to escape the solidus ('/');<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	internal static void AppendEscapedStringToBuilder(StringBuilder builder, string s, bool escapeSolidus)
 	{

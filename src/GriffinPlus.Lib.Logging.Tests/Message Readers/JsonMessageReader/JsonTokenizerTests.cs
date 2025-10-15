@@ -48,236 +48,106 @@ public class JsonTokenizerTests
 
 	#region Process()
 
-	public static IEnumerable<object[]> ProcessTestData_SingleTokens
+	/// <summary>
+	/// Test data for verifying that single JSON tokens (brackets, punctuation, strings,
+	/// escaped characters, numbers, booleans, null, etc.) are parsed correctly,
+	/// including optional surrounding whitespace.
+	/// </summary>
+	public static TheoryData<string, object> ProcessTestData_SingleTokens
 	{
 		get
 		{
+			var data = new TheoryData<string, object>();
+
+			// Iterate over combinations of leading and trailing whitespace
 			foreach (string preWhite in new[] { "", WhiteSpaceCharacters }) // preceding whitespaces
 			{
 				foreach (string trailWhite in new[] { "", WhiteSpaceCharacters }) // trailing whitespaces
 				{
-					string input = preWhite + "{" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.LBracket, "{")
-					];
+					// --- Structural characters ---
+					data.Add(preWhite + "{" + trailWhite, new JsonToken(JsonTokenType.LBracket, "{"));
+					data.Add(preWhite + "}" + trailWhite, new JsonToken(JsonTokenType.RBracket, "}"));
+					data.Add(preWhite + "[" + trailWhite, new JsonToken(JsonTokenType.LSquareBracket, "["));
+					data.Add(preWhite + "]" + trailWhite, new JsonToken(JsonTokenType.RSquareBracket, "]"));
+					data.Add(preWhite + ":" + trailWhite, new JsonToken(JsonTokenType.Colon, ":"));
+					data.Add(preWhite + "," + trailWhite, new JsonToken(JsonTokenType.Comma, ","));
 
-					input = preWhite + "}" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.RBracket, "}")
-					];
+					// --- Basic string ---
+					data.Add(
+						preWhite + "\"just a string\"" + trailWhite,
+						new JsonToken(JsonTokenType.String, "just a string"));
 
-					input = preWhite + "[" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.LSquareBracket, "[")
-					];
+					// --- Escaped characters inside strings ---
+					data.Add(preWhite + "\"\\\"\"" + trailWhite, new JsonToken(JsonTokenType.String, "\"")); // escaped quotation mark
+					data.Add(preWhite + "\"\\/\"" + trailWhite, new JsonToken(JsonTokenType.String, "/"));   // escaped solidus
+					data.Add(preWhite + "\"\\\\\"" + trailWhite, new JsonToken(JsonTokenType.String, "\\")); // escaped backslash
+					data.Add(preWhite + "\"\\t\"" + trailWhite, new JsonToken(JsonTokenType.String, "\t"));  // escaped tab
+					data.Add(preWhite + "\"\\n\"" + trailWhite, new JsonToken(JsonTokenType.String, "\n"));  // escaped newline
+					data.Add(preWhite + "\"\\r\"" + trailWhite, new JsonToken(JsonTokenType.String, "\r"));  // escaped carriage return
+					data.Add(preWhite + "\"\\f\"" + trailWhite, new JsonToken(JsonTokenType.String, "\f"));  // escaped form feed
+					data.Add(preWhite + "\"\\b\"" + trailWhite, new JsonToken(JsonTokenType.String, "\b"));  // escaped backspace
 
-					input = preWhite + "]" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.RSquareBracket, "]")
-					];
-
-					input = preWhite + ":" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.Colon, ":")
-					];
-
-					input = preWhite + "," + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.Comma, ",")
-					];
-
-					input = preWhite + "\"just a string\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "just a string")
-					];
-
-					// escaped quotation mark ('"')
-					input = preWhite + "\"\\\"\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "\"")
-					];
-
-					// escaped solidus ('/')
-					input = preWhite + "\"\\/\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "/")
-					];
-
-					// escaped backspace ('\')
-					input = preWhite + "\"\\\\\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "\\")
-					];
-
-					// escaped tab ('\t')
-					input = preWhite + "\"\\t\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "\t")
-					];
-
-					// escaped newline ('\n')
-					input = preWhite + "\"\\n\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "\n")
-					];
-
-					// escaped carriage return ('\r')
-					input = preWhite + "\"\\r\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "\r")
-					];
-
-					// escaped form feed ('\f')
-					input = preWhite + "\"\\f\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "\f")
-					];
-
-					// escaped backspace ('\b')
-					input = preWhite + "\"\\b\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "\b")
-					];
-
-					// control characters
+					// --- Unicode escape sequences for control characters ---
 					for (int i = 0; i <= 0x1F; i++)
 					{
-						// hex value in lower case letters
-						input = preWhite + $"\"\\u{i:x4}\"" + trailWhite;
-						yield return
-						[
-							input,
-							new JsonToken(JsonTokenType.String, $"{(char)i}")
-						];
+						// lower case hex
+						data.Add(
+							preWhite + $"\"\\u{i:x4}\"" + trailWhite,
+							new JsonToken(JsonTokenType.String, $"{(char)i}"));
 
-						// hex value in upper case letters
-						input = preWhite + $"\"\\u{i:X4}\"" + trailWhite;
-						yield return
-						[
-							input,
-							new JsonToken(JsonTokenType.String, $"{(char)i}")
-						];
+						// upper case hex
+						data.Add(
+							preWhite + $"\"\\u{i:X4}\"" + trailWhite,
+							new JsonToken(JsonTokenType.String, $"{(char)i}"));
 					}
 
-					// great escaped code unit
-					// ReSharper disable once StringLiteralTypo
-					input = preWhite + "\"\\uFFFF\"" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.String, "\uFFFF")
-					];
+					// Escaped code unit: \uFFFF
+					data.Add(
+						preWhite + "\"\\uFFFF\"" + trailWhite,
+						new JsonToken(JsonTokenType.String, "\uFFFF"));
 
-					// number just zero
-					input = preWhite + "0" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.Number, "0")
-					];
+					// --- Numbers ---
+					data.Add(preWhite + "0" + trailWhite, new JsonToken(JsonTokenType.Number, "0"));
 
-					// various number formats
 					foreach (string before in new[] { "1", "12", "123" }) // digits before decimal point
 					{
 						foreach (string after in new[] { null, "1", "12", "123" }) // digits after decimal point
 						{
 							string number = before;
-							if (after != null) number += "." + after;
+							if (after != null)
+								number += "." + after;
 
-							// number without exponent
-							input = preWhite + number + trailWhite;
-							yield return
-							[
-								input,
-								new JsonToken(JsonTokenType.Number, number)
-							];
+							// Number without exponent
+							data.Add(
+								preWhite + number + trailWhite,
+								new JsonToken(JsonTokenType.Number, number));
 
 							foreach (string exp in new[] { "1", "12", "123" })
 							{
-								if (exp != null)
+								foreach (string e in new[] { "e", "E" })
 								{
-									foreach (string e in new[] { "e", "E" })
+									foreach (string expSign in new[] { "", "+", "-" })
 									{
-										foreach (string expSign in new[] { "", "+", "-" })
-										{
-											string numberWithExponent = number + e + expSign + exp;
-											input = preWhite + numberWithExponent + trailWhite;
-											yield return
-											[
-												input,
-												new JsonToken(JsonTokenType.Number, numberWithExponent)
-											];
-										}
+										string numberWithExponent = number + e + expSign + exp;
+										data.Add(
+											preWhite + numberWithExponent + trailWhite,
+											new JsonToken(JsonTokenType.Number, numberWithExponent));
 									}
-								}
-								else
-								{
-									input = preWhite + number + trailWhite;
-									yield return
-									[
-										input,
-										new JsonToken(JsonTokenType.Number, number)
-									];
 								}
 							}
 						}
 					}
 
-					// boolean value: true
-					input = preWhite + "true" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.Boolean, "true")
-					];
+					// --- Boolean values ---
+					data.Add(preWhite + "true" + trailWhite, new JsonToken(JsonTokenType.Boolean, "true"));
+					data.Add(preWhite + "false" + trailWhite, new JsonToken(JsonTokenType.Boolean, "false"));
 
-					// boolean value: false
-					input = preWhite + "false" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.Boolean, "false")
-					];
-
-					// json null
-					input = preWhite + "null" + trailWhite;
-					yield return
-					[
-						input,
-						new JsonToken(JsonTokenType.Null, "null")
-					];
+					// --- Null literal ---
+					data.Add(preWhite + "null" + trailWhite, new JsonToken(JsonTokenType.Null, "null"));
 				}
 			}
+
+			return data;
 		}
 	}
 
@@ -286,8 +156,9 @@ public class JsonTokenizerTests
 	/// </summary>
 	[Theory]
 	[MemberData(nameof(ProcessTestData_SingleTokens))]
-	private void Process_SingleTokens(string json, JsonToken expected)
+	private void Process_SingleTokens(string json, object boxedExpected)
 	{
+		var expected = (JsonToken)boxedExpected;
 		var tokenizer = new JsonTokenizer();
 		int tokenCount = tokenizer.Process(json);
 		Assert.Equal(1, tokenCount);

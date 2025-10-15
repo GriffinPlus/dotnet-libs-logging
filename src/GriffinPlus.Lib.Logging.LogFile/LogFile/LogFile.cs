@@ -90,22 +90,22 @@ public partial class LogFile : IDisposable
 	/// </summary>
 	/// <param name="path">Log file to open/create.</param>
 	/// <param name="createIfNotExist">
-	/// <c>true</c> to create the specified log file, if it does not exist, yet;<br/>
-	/// <c>false</c> to throw an exception, if the file does not exist.
+	/// <see langword="true"/> to create the specified log file, if it does not exist, yet;<br/>
+	/// <see langword="false"/> to throw an exception, if the file does not exist.
 	/// </param>
 	/// <param name="fileMustNotExist">
-	/// <c>true</c> if the specified file must not exist;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified file must not exist;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 	/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
 	/// <param name="isReadOnly">
-	/// <c>true</c> to open the log file in read-only mode;<br/>
-	/// <c>false</c> to open the log file in read/write mode.
+	/// <see langword="true"/> to open the log file in read-only mode;<br/>
+	/// <see langword="false"/> to open the log file in read/write mode.
 	/// </param>
 	/// <param name="collection">Collection that works upon the log file.</param>
 	/// <param name="messages">Messages to put into the log file (should only be used for new files).</param>
-	/// <exception cref="FileNotFoundException"><paramref name="createIfNotExist"/> is <c>false</c> and the specified file does not exist.</exception>
+	/// <exception cref="FileNotFoundException"><paramref name="createIfNotExist"/> is <see langword="false"/> and the specified file does not exist.</exception>
 	/// <exception cref="MigrationNeededException">The log file is opened read-only. Cannot perform necessary migration.</exception>
 	/// <exception cref="LogFileException">Opening/Creating the log file failed.</exception>
 	internal LogFile(
@@ -213,7 +213,7 @@ public partial class LogFile : IDisposable
 	/// <param name="path">Log file to create.</param>
 	/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 	/// <param name="writeMode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
-	/// <param name="messages">Messages to populate the new log file with (<c>null</c> if the log file should be empty).</param>
+	/// <param name="messages">Messages to populate the new log file with (<see langword="null"/> if the log file should be empty).</param>
 	/// <exception cref="LogFileException">Creating the log file failed (see message and inner exception for details).</exception>
 	public static LogFile Create(
 		string                   path,
@@ -295,7 +295,8 @@ public partial class LogFile : IDisposable
 	}
 
 	/// <summary>
-	/// Gets a value determining whether the log file is opened for reading and writing (<c>false</c>) or for reading only (<c>true</c>).
+	/// Gets a value determining whether the log file is opened for reading and writing (<see langword="false"/>) or
+	/// for reading only (<see langword="true"/>).
 	/// </summary>
 	public bool IsReadOnly
 	{
@@ -405,8 +406,8 @@ public partial class LogFile : IDisposable
 	/// Gets the name of processes that are/were associated with log messages.
 	/// </summary>
 	/// <param name="usedOnly">
-	/// <c>true</c> to get the name of processes that are referenced by messages in the log file only;<br/>
-	/// <c>false</c> to get all process names (even if referencing log messages have been removed after clearing/pruning).
+	/// <see langword="true"/> to get the name of processes that are referenced by messages in the log file only;<br/>
+	/// <see langword="false"/> to get all process names (even if referencing log messages have been removed after clearing/pruning).
 	/// </param>
 	/// <returns>A list of process names.</returns>
 	public string[] GetProcessNames(bool usedOnly)
@@ -449,8 +450,8 @@ public partial class LogFile : IDisposable
 	/// Gets the name of applications that are/were associated with log messages.
 	/// </summary>
 	/// <param name="usedOnly">
-	/// <c>true</c> to get the name of applications that are referenced by messages in the log file only;<br/>
-	/// <c>false</c> to get all application names (even if referencing log messages have been removed after clearing/pruning).
+	/// <see langword="true"/> to get the name of applications that are referenced by messages in the log file only;<br/>
+	/// <see langword="false"/> to get all application names (even if referencing log messages have been removed after clearing/pruning).
 	/// </param>
 	/// <returns>A list of application names.</returns>
 	public string[] GetApplicationNames(bool usedOnly)
@@ -473,8 +474,8 @@ public partial class LogFile : IDisposable
 	/// Gets the name of log writers that are/were associated with log messages.
 	/// </summary>
 	/// <param name="usedOnly">
-	/// <c>true</c> to get the name of log writers that are referenced by messages in the log file only;<br/>
-	/// <c>false</c> to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+	/// <see langword="true"/> to get the name of log writers that are referenced by messages in the log file only;<br/>
+	/// <see langword="false"/> to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
 	/// </param>
 	/// <returns>A list of log writer names.</returns>
 	public string[] GetLogWriterNames(bool usedOnly)
@@ -497,8 +498,8 @@ public partial class LogFile : IDisposable
 	/// Gets the name of log levels that are/were associated with log messages.
 	/// </summary>
 	/// <param name="usedOnly">
-	/// <c>true</c> to get the name of log levels that are referenced by messages in the log file only;<br/>
-	/// <c>false</c> to get all log level names (even if referencing log messages have been removed after clearing/pruning).
+	/// <see langword="true"/> to get the name of log levels that are referenced by messages in the log file only;<br/>
+	/// <see langword="false"/> to get all log level names (even if referencing log messages have been removed after clearing/pruning).
 	/// </param>
 	/// <returns>A list of log level names.</returns>
 	public string[] GetLogLevelNames(bool usedOnly)
@@ -521,8 +522,8 @@ public partial class LogFile : IDisposable
 	/// Gets the tags that are/were associated with log messages.
 	/// </summary>
 	/// <param name="usedOnly">
-	/// <c>true</c> to get the tags that are referenced by messages in the log file only;<br/>
-	/// <c>false</c> to get all tags (even if referencing log messages have been removed after clearing/pruning).
+	/// <see langword="true"/> to get the tags that are referenced by messages in the log file only;<br/>
+	/// <see langword="false"/> to get all tags (even if referencing log messages have been removed after clearing/pruning).
 	/// </param>
 	/// <returns>A list of tags.</returns>
 	public string[] GetTags(bool usedOnly)
@@ -545,12 +546,12 @@ public partial class LogFile : IDisposable
 	/// Removes all log messages from the log file.
 	/// </summary>
 	/// <param name="messagesOnly">
-	/// <c>true</c> to remove messages only;<br/>
-	/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well (default).
+	/// <see langword="true"/> to remove messages only;<br/>
+	/// <see langword="false"/> to remove processes, applications, log writers, log levels and tags as well (default).
 	/// </param>
 	/// <param name="compact">
-	/// <c>true</c> to compact the log file after clearing (default);<br/>
-	/// <c>false</c> to clear the log file, but do not compact it.
+	/// <see langword="true"/> to compact the log file after clearing (default);<br/>
+	/// <see langword="false"/> to clear the log file, but do not compact it.
 	/// </param>
 	/// <exception cref="ObjectDisposedException">The log file has been disposed.</exception>
 	/// <exception cref="LogFileException">Clearing the log file failed (see inner exception for details).</exception>
@@ -611,8 +612,8 @@ public partial class LogFile : IDisposable
 	/// <param name="count">Number of log messages to get.</param>
 	/// <param name="callback">Callback to invoke for every read message</param>
 	/// <returns>
-	/// <c>true</c> if reading ran to completion;<br/>
-	/// <c>false</c> if reading was cancelled.
+	/// <see langword="true"/> if reading ran to completion;<br/>
+	/// <see langword="false"/> if reading was cancelled.
 	/// </returns>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
@@ -699,8 +700,8 @@ public partial class LogFile : IDisposable
 	/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
 	/// </param>
 	/// <param name="compact">
-	/// <c>true</c> to compact the log file after removing log messages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to compact the log file after removing log messages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <returns>
 	/// Number of removed messages.
@@ -764,8 +765,8 @@ public partial class LogFile : IDisposable
 	/// <seealso cref="DateTime.MinValue"/> to disable removing messages by age.
 	/// </param>
 	/// <param name="compact">
-	/// <c>true</c> to compact the log file after removing log messages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to compact the log file after removing log messages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <param name="removedMessages">Receives the log messages that have been removed.</param>
 	/// <returns>

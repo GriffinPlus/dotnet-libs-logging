@@ -12,15 +12,15 @@ namespace GriffinPlus.Lib.Logging.Collections;
 interface ISelectableLogMessageFilter_ItemInternal<out T> : ISelectableLogMessageFilter_Item<T>
 {
 	/// <summary>
-	/// Gets a value indicating whether the item stays in the collection of selectable items (<c>true</c>)
-	/// or whether the item can be removed (<c>false</c>).
+	/// Gets a value indicating whether the item stays in the collection of selectable items (<see langword="true"/>)
+	/// or whether the item can be removed (<see langword="false"/>).
 	/// </summary>
 	bool IsStatic { get; }
 
 	/// <summary>
 	/// Gets or sets a value indicating whether the item value is used in at least one message in the unfiltered message set.
-	/// If <see cref="ISelectableLogMessageFilter_ItemFilter{T}.AccumulateItems"/> is <c>true</c>, this property remains
-	/// <c>true</c> once it is <c>true</c> for static items.
+	/// If <see cref="ISelectableLogMessageFilter_ItemFilter{T}.AccumulateItems"/> is <see langword="true"/>, this property remains
+	/// <see langword="true"/> once it is <see langword="true"/> for static items.
 	/// </summary>
 	new bool ValueUsed { get; set; }
 }

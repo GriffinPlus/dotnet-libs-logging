@@ -18,37 +18,32 @@ public class TagSetTests
 {
 	#region Construction
 
-	public static IEnumerable<object[]> CreateTestData
+	/// <summary>
+	/// Test data for creating TagSet instances (input tags => expected normalized tags).
+	/// </summary>
+	public static TheoryData<string[], string[]> CreateTestData
 	{
 		get
 		{
+			var data = new TheoryData<string[], string[]>();
+
 			// empty tag set
-			yield return
-			[
-				Array.Empty<string>(),
-				Array.Empty<string>()
-			];
+			data.Add([], []);
 
 			// single element in the tag set
-			yield return
-			[
-				new[] { "Tag" },
-				new[] { "Tag" }
-			];
+			data.Add(["Tag"], ["Tag"]);
 
 			// mixed set of unordered elements
-			yield return
-			[
-				new[] { "A", "C", "D", "B", "E", "e", "d", "c", "b", "a" },
-				new[] { "A", "a", "B", "b", "C", "c", "D", "d", "E", "e" }
-			];
+			data.Add(
+				["A", "C", "D", "B", "E", "e", "d", "c", "b", "a"],
+				["A", "a", "B", "b", "C", "c", "D", "d", "E", "e"]);
 
 			// mixed set with duplicates
-			yield return
-			[
-				new[] { "A", "B", "C", "D", "E", "A", "B", "C", "D", "E" },
-				new[] { "A", "B", "C", "D", "E" }
-			];
+			data.Add(
+				["A", "B", "C", "D", "E", "A", "B", "C", "D", "E"],
+				["A", "B", "C", "D", "E"]);
+
+			return data;
 		}
 	}
 
@@ -126,24 +121,31 @@ public class TagSetTests
 
 	#region Operator==
 
-	public static IEnumerable<object[]> OperatorEquality_TestData
+	/// <summary>
+	/// Test data for TagSet equality operator (==).
+	/// </summary>
+	public static TheoryData<bool, TagSet, TagSet> OperatorEquality_TestData
 	{
 		get
 		{
+			var data = new TheoryData<bool, TagSet, TagSet>();
+
 			// equal
-			yield return [true, null, null];
-			yield return [true, TagSet.Empty, TagSet.Empty];
-			yield return [true, new TagSet("A"), new TagSet("A")];
-			yield return [true, new TagSet("A", "B"), new TagSet("A", "B")];
+			data.Add(true, null, null);
+			data.Add(true, TagSet.Empty, TagSet.Empty);
+			data.Add(true, new TagSet("A"), new TagSet("A"));
+			data.Add(true, new TagSet("A", "B"), new TagSet("A", "B"));
 
 			// not equal
-			yield return [false, new TagSet("A"), null];
-			yield return [false, new TagSet("A"), TagSet.Empty];
-			yield return [false, null, new TagSet("A")];
-			yield return [false, TagSet.Empty, new TagSet("A")];
-			yield return [false, new TagSet("A"), new TagSet("B")];
-			yield return [false, new TagSet("A"), new TagSet("A", "B")];
-			yield return [false, new TagSet("A", "B"), new TagSet("A")];
+			data.Add(false, new TagSet("A"), null);
+			data.Add(false, new TagSet("A"), TagSet.Empty);
+			data.Add(false, null, new TagSet("A"));
+			data.Add(false, TagSet.Empty, new TagSet("A"));
+			data.Add(false, new TagSet("A"), new TagSet("B"));
+			data.Add(false, new TagSet("A"), new TagSet("A", "B"));
+			data.Add(false, new TagSet("A", "B"), new TagSet("A"));
+
+			return data;
 		}
 	}
 
@@ -162,17 +164,26 @@ public class TagSetTests
 
 	#region Operator!=
 
-	public static IEnumerable<object[]> OperatorInequality_TestData
+	/// <summary>
+	/// Test data for TagSet inequality operator (!=) derived from equality cases.
+	/// </summary>
+	public static TheoryData<bool, TagSet, TagSet> OperatorInequality_TestData
 	{
 		get
 		{
-			return OperatorEquality_TestData.Select(
-				data => (object[])
-				[
-					!(bool)data[0],
-					data[1],
-					data[2]
-				]);
+			var data = new TheoryData<bool, TagSet, TagSet>();
+
+			// OperatorEquality_TestData enumerates as object[]; keep the original pattern but with strong output types.
+			foreach (object[] entry in OperatorEquality_TestData)
+			{
+				bool areEqual = (bool)entry[0]!;
+				var left = (TagSet)entry[1];
+				var right = (TagSet)entry[2];
+
+				data.Add(!areEqual, left, right);
+			}
+
+			return data;
 		}
 	}
 
@@ -191,25 +202,22 @@ public class TagSetTests
 
 	#region Operator+
 
-	public static IEnumerable<object[]> OperatorPlus_WithSingleTag_TestData
+	/// <summary>
+	/// Test data for TagSet plus operator with a single tag (base + tagToAdd = expected).
+	/// </summary>
+	public static TheoryData<string[], string, string[]> OperatorPlus_WithSingleTag_TestData
 	{
 		get
 		{
+			var data = new TheoryData<string[], string, string[]>();
+
 			// add tag to empty tag set
-			yield return
-			[
-				Array.Empty<string>(),
-				"Tag",
-				new[] { "Tag" }
-			];
+			data.Add([], "Tag", ["Tag"]);
 
 			// add tag to non-empty tag set
-			yield return
-			[
-				new[] { "A", "B", "C", "E", "F", "G" },
-				"D",
-				new[] { "A", "B", "C", "D", "E", "F", "G" }
-			];
+			data.Add(["A", "B", "C", "E", "F", "G"], "D", ["A", "B", "C", "D", "E", "F", "G"]);
+
+			return data;
 		}
 	}
 
@@ -226,7 +234,7 @@ public class TagSetTests
 	}
 
 	/// <summary>
-	/// Tests whether operator+ fails, if the right operand is <c>null</c>.
+	/// Tests whether operator+ fails, if the right operand is <see langword="null"/>.
 	/// </summary>
 	[Fact]
 	public void OperatorPlus_WithSingleTag_TagIsNull()
@@ -236,43 +244,31 @@ public class TagSetTests
 		Assert.Throws<ArgumentNullException>(() => left + right);
 	}
 
-	public static IEnumerable<object[]> OperatorPlus_WithMultipleTags_TestData
+	/// <summary>
+	/// Test data for TagSet plus operator with multiple tags (base + tagsToAdd = expected).
+	/// </summary>
+	public static TheoryData<string[], string[], string[]> OperatorPlus_WithMultipleTags_TestData
 	{
 		get
 		{
+			var data = new TheoryData<string[], string[], string[]>();
+
 			// add no tags to empty tag set
-			yield return
-			[
-				Array.Empty<string>(),
-				Array.Empty<string>(),
-				Array.Empty<string>()
-			];
+			data.Add([], [], []);
 
 			// add tag to empty tag set
-			yield return
-			[
-				Array.Empty<string>(),
-				new[] { "Tag" },
-				new[] { "Tag" }
-			];
+			data.Add([], ["Tag"], ["Tag"]);
 
 			// add tag to non-empty tag set
-			yield return
-			[
-				new[] { "A", "B", "C", "E", "F", "G" },
-				new[] { "D" },
-				new[] { "A", "B", "C", "D", "E", "F", "G" }
-			];
+			data.Add(["A", "B", "C", "E", "F", "G"], ["D"], ["A", "B", "C", "D", "E", "F", "G"]);
 
 			// add tags to non-empty tag set
-			yield return
-			[
-				new[] { "A", "B", "C", "E", "F", "G" },
-				new[] { "D", "H" },
-				new[] { "A", "B", "C", "D", "E", "F", "G", "H" }
-			];
+			data.Add(["A", "B", "C", "E", "F", "G"], ["D", "H"], ["A", "B", "C", "D", "E", "F", "G", "H"]);
+
+			return data;
 		}
 	}
+
 
 	/// <summary>
 	/// Tests whether operator+ works properly with a tag set on the right side.
@@ -287,7 +283,7 @@ public class TagSetTests
 	}
 
 	/// <summary>
-	/// Tests whether operator+ fails, if the right operand is <c>null</c>.
+	/// Tests whether operator+ fails, if the right operand is <see langword="null"/>.
 	/// </summary>
 	[Fact]
 	public void OperatorPlus_WithMultipleTags_TagsIsNull()
@@ -301,25 +297,22 @@ public class TagSetTests
 
 	#region Operator-
 
-	public static IEnumerable<object[]> OperatorMinus_WithSingleTag_TestData
+	/// <summary>
+	/// Test data for TagSet minus operator with a single tag (base - tagToRemove = expected).
+	/// </summary>
+	public static TheoryData<string[], string, string[]> OperatorMinus_WithSingleTag_TestData
 	{
 		get
 		{
+			var data = new TheoryData<string[], string, string[]>();
+
 			// remove tag from empty tag set
-			yield return
-			[
-				Array.Empty<string>(),
-				"Tag",
-				Array.Empty<string>()
-			];
+			data.Add([], "Tag", []);
 
 			// remove tag from non-empty tag set
-			yield return
-			[
-				new[] { "A", "B", "C", "D", "E", "F" },
-				"C",
-				new[] { "A", "B", "D", "E", "F" }
-			];
+			data.Add(["A", "B", "C", "D", "E", "F"], "C", ["A", "B", "D", "E", "F"]);
+
+			return data;
 		}
 	}
 
@@ -336,7 +329,7 @@ public class TagSetTests
 	}
 
 	/// <summary>
-	/// Tests whether 'operator-' fails, if the right operand is <c>null</c>.
+	/// Tests whether 'operator-' fails, if the right operand is <see langword="null"/>.
 	/// </summary>
 	[Fact]
 	public void OperatorMinus_WithSingleTag_TagIsNull()
@@ -346,41 +339,28 @@ public class TagSetTests
 		Assert.Throws<ArgumentNullException>(() => left - right);
 	}
 
-	public static IEnumerable<object[]> OperatorMinus_WithMultipleTags_TestData
+	/// <summary>
+	/// Test data for TagSet minus operator with multiple tags (base - tagsToRemove = expected).
+	/// </summary>
+	public static TheoryData<string[], string[], string[]> OperatorMinus_WithMultipleTags_TestData
 	{
 		get
 		{
+			var data = new TheoryData<string[], string[], string[]>();
+
 			// remove no tags from empty tag set
-			yield return
-			[
-				Array.Empty<string>(),
-				Array.Empty<string>(),
-				Array.Empty<string>()
-			];
+			data.Add([], [], []);
 
 			// remove tag from empty tag set
-			yield return
-			[
-				Array.Empty<string>(),
-				new[] { "Tag" },
-				Array.Empty<string>()
-			];
+			data.Add([], ["Tag"], []);
 
 			// remove tag from non-empty tag set
-			yield return
-			[
-				new[] { "A", "B", "C", "E", "F", "G" },
-				new[] { "D" },
-				new[] { "A", "B", "C", "E", "F", "G" }
-			];
+			data.Add(["A", "B", "C", "E", "F", "G"], ["D"], ["A", "B", "C", "E", "F", "G"]);
 
 			// remove multiple tags from non-empty tag set
-			yield return
-			[
-				new[] { "A", "B", "C", "D", "E", "F", "G" },
-				new[] { "C", "D" },
-				new[] { "A", "B", "E", "F", "G" }
-			];
+			data.Add(["A", "B", "C", "D", "E", "F", "G"], ["C", "D"], ["A", "B", "E", "F", "G"]);
+
+			return data;
 		}
 	}
 
@@ -397,7 +377,7 @@ public class TagSetTests
 	}
 
 	/// <summary>
-	/// Tests whether 'operator-' fails, if the right operand is <c>null</c>.
+	/// Tests whether 'operator-' fails, if the right operand is <see langword="null"/>.
 	/// </summary>
 	[Fact]
 	public void OperatorMinus_WithMultipleTags_TagsIsNull()

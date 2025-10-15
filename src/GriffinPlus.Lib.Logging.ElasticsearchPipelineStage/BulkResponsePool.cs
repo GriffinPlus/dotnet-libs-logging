@@ -189,7 +189,7 @@ class BulkResponsePool
 
 	#region String Caching
 
-	private readonly ByteSequenceKeyedDictionary<string> mUtf8ToStringMap = new();
+	private readonly ByteSequenceKeyedDictionary<string> mUtf8ToStringMap = [];
 
 	/// <summary>
 	/// Converts the specified UTF-8 byte sequence to a string and caches it to speed up following queries and
@@ -197,7 +197,7 @@ class BulkResponsePool
 	/// </summary>
 	/// <param name="data">UTF-8 bytes sequence to convert.</param>
 	/// <returns>The string corresponding to the UTF-8 byte sequence.</returns>
-	/// <exception cref="ArgumentNullException">The specified byte sequence is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException">The specified byte sequence is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException">The byte sequence contains invalid Unicode code points.</exception>
 	public unsafe string GetStringFromUtf8(ReadOnlySpan<byte> data)
 	{

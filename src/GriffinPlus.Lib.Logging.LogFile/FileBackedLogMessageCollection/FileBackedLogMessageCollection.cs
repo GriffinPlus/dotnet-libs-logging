@@ -42,7 +42,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 
 	/// <summary>
 	/// A dummy message that is used as a placeholder for real messages, if <see cref="ReturnDummyMessagesWhenPruning"/>
-	/// is set to <c>true</c> when pruning old log messages.
+	/// is set to <see langword="true"/> when pruning old log messages.
 	/// </summary>
 	private static readonly LogFileMessage sDummyMessage = (LogFileMessage)new LogFileMessage().InitWith(
 			-1,
@@ -77,7 +77,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// a <see cref="LogFile"/>.
 	/// </summary>
 	/// <param name="file">Log file to work on.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="file"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="file"/> is <see langword="null"/>.</exception>
 	internal FileBackedLogMessageCollection(LogFile file)
 	{
 		LogFile = file ?? throw new ArgumentNullException(nameof(file));
@@ -97,8 +97,8 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// Disposes the collection closing the underlying file.
 	/// </summary>
 	/// <param name="disposing">
-	/// <c>true</c> if the object is being disposed;<br/>
-	/// <c>false</c> if it is being finalized.
+	/// <see langword="true"/> if the object is being disposed;<br/>
+	/// <see langword="false"/> if it is being finalized.
 	/// </param>
 	protected override void Dispose(bool disposing)
 	{
@@ -127,7 +127,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// <param name="path">Path of the log file to create.</param>
 	/// <param name="purpose">Purpose of the log file determining whether the log file is primarily used for recording or for analysis.</param>
 	/// <param name="mode">Write mode determining whether to open the log file in 'robust' or 'fast' mode.</param>
-	/// <param name="messages">Messages to populate the log file with (<c>null</c> if the collection should be empty).</param>
+	/// <param name="messages">Messages to populate the log file with (<see langword="null"/> if the collection should be empty).</param>
 	/// <exception cref="LogFileException">Creating the log file failed (see message and inner exception for details).</exception>
 	public static FileBackedLogMessageCollection Create(
 		string                   path,
@@ -191,9 +191,9 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// optionally marking the file for auto-deletion.
 	/// </summary>
 	/// <param name="deleteAutomatically">
-	/// <c>true</c> to delete the file automatically when the collection is disposed
+	/// <see langword="true"/> to delete the file automatically when the collection is disposed
 	/// (or the next time, a temporary collection is created in the same directory);<br/>
-	/// <c>false</c> to keep it after the collection is disposed.
+	/// <see langword="false"/> to keep it after the collection is disposed.
 	/// </param>
 	/// <param name="temporaryDirectoryPath">
 	/// Path of the temporary directory to use;
@@ -205,7 +205,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// <param name="mode">
 	/// Write mode determining whether to open the log file in 'robust' or 'fast' mode (default).
 	/// </param>
-	/// <param name="messages">Messages to populate the temporary collection with (<c>null</c> if the collection should be empty).</param>
+	/// <param name="messages">Messages to populate the temporary collection with (<see langword="null"/> if the collection should be empty).</param>
 	/// <returns>The created collection.</returns>
 	public static FileBackedLogMessageCollection CreateTemporaryCollection(
 		bool                     deleteAutomatically,
@@ -329,8 +329,8 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 
 	/// <summary>
 	/// Gets or sets a value determining whether the collection returns dummy messages when pruning the backing log file.
-	/// This is <c>false</c> by default to provide the behavior expected by users of the <see cref="INotifyCollectionChanged"/> interface.
-	/// It can be set to <c>true</c> to avoid reading messages that are about to be removed anyway.
+	/// This is <see langword="false"/> by default to provide the behavior expected by users of the <see cref="INotifyCollectionChanged"/> interface.
+	/// It can be set to <see langword="true"/> to avoid reading messages that are about to be removed anyway.
 	/// </summary>
 	public bool ReturnDummyMessagesWhenPruning { get; set; } = false;
 
@@ -377,8 +377,8 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// </summary>
 	/// <param name="message">Log message to check for.</param>
 	/// <returns>
-	/// <c>true</c> if the collection contains the log message;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the collection contains the log message;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool Contains(LogMessage message)
 	{
@@ -443,7 +443,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// (does not add the message itself, it simply writes the message into the underlying file; a following read will return a new instance)
 	/// </summary>
 	/// <param name="message">Log message to add.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="message"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="message"/> is <see langword="null"/>.</exception>
 	/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 	public override void Add(LogMessage message)
 	{
@@ -461,7 +461,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// (does not add the messages themselves, it simply writes the messages into the underlying file; a following read will return a new instance)
 	/// </summary>
 	/// <param name="messages">Log messages to add.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="messages"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="messages"/> is <see langword="null"/>.</exception>
 	/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 	public override void AddRange(IEnumerable<LogMessage> messages)
 	{
@@ -523,7 +523,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// </summary>
 	/// <param name="array">Array to copy the log messages into.</param>
 	/// <param name="arrayIndex">Index in the array to start copying to.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="array"/> is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException"><paramref name="array"/> is no a one-dimensional array or the array is too small to store all messages.</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="arrayIndex"/> is out of bounds.</exception>
 	public override void CopyTo(LogMessage[] array, int arrayIndex)
@@ -553,7 +553,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// <param name="destination">Collection to copy log messages into.</param>
 	/// <param name="firstIndex">Index of the first message to copy.</param>
 	/// <param name="count">Number of messages to copy.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="destination"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="destination"/> is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentOutOfRangeException">
 	/// <paramref name="firstIndex"/> or <paramref name="firstIndex"/> + <paramref name="count"/> is out of bounds.
 	/// </exception>
@@ -561,8 +561,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	{
 		if (destination == null) throw new ArgumentNullException(nameof(destination));
 		if (firstIndex < 0 || firstIndex >= Count) throw new ArgumentOutOfRangeException(nameof(firstIndex));
-		if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
-		if ((long)firstIndex + count > Count) throw new ArgumentOutOfRangeException(nameof(count));
+		if (count < 0 || (long)firstIndex + count > Count) throw new ArgumentOutOfRangeException(nameof(count));
 
 		int index = firstIndex;
 		int remaining = count;
@@ -603,7 +602,7 @@ public partial class FileBackedLogMessageCollection : LogMessageCollectionBase<L
 	/// Is called when the underlying file removes messages.
 	/// </summary>
 	/// <param name="count">Number of messages that has been removed.</param>
-	/// <param name="removedMessages">The messages that have been removed (<c>null</c> if all messages have been removed).</param>
+	/// <param name="removedMessages">The messages that have been removed (<see langword="null"/> if all messages have been removed).</param>
 	internal void ProcessMessagesRemoved(long count, LogFileMessage[] removedMessages)
 	{
 		Debug.Assert(removedMessages == null || removedMessages.Length == count);

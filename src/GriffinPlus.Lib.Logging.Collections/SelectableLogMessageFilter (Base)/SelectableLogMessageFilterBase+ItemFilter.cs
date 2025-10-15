@@ -46,7 +46,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 			mStaticItems = [];
 			mSortedItems = [];
 			mCombinedItems = [];
-			mAllItemsByValue = new Dictionary<T, ISelectableLogMessageFilter_ItemInternal<T>>();
+			mAllItemsByValue = [];
 			Items = new ReadOnlyObservableCollection<ISelectableLogMessageFilter_Item<T>>(mCombinedItems);
 			mEnabledValues = [];
 			mDefaultGroup = defaultGroup;
@@ -60,8 +60,8 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 
 		/// <summary>
 		/// Gets or sets a value indicating whether <see cref="Items"/> contains items only that belong to at
-		/// least one message in the collection (<c>false</c>false) or whether all items are kept even when log
-		/// messages are removed from the collection (<c>true</c>). Default is <c>false</c>.
+		/// least one message in the collection (<see langword="false"/>false) or whether all items are kept even when log
+		/// messages are removed from the collection (<see langword="true"/>). Default is <see langword="false"/>.
 		/// </summary>
 		public bool AccumulateItems
 		{
@@ -82,7 +82,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the filter is disabled when it is reset.
-		/// Default is <c>false</c>.
+		/// Default is <see langword="false"/>.
 		/// </summary>
 		public bool DisableFilterOnReset
 		{
@@ -99,7 +99,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 
 		/// <summary>
 		/// Gets or sets a value indicating whether items are unselected when the filter is reset.
-		/// Default is <c>false</c>.
+		/// Default is <see langword="false"/>.
 		/// </summary>
 		public bool UnselectItemsOnReset
 		{
@@ -241,8 +241,8 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 		/// </summary>
 		/// <param name="value">Item to check.</param>
 		/// <returns>
-		/// <c>true</c> if the item passes the filter;<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> if the item passes the filter;<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </returns>
 		internal bool Matches(T value)
 		{
@@ -250,7 +250,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 		}
 
 		/// <summary>
-		/// Resets the filter (keeps items, if <see cref="AccumulateItems"/> is <c>true</c>).
+		/// Resets the filter (keeps items, if <see cref="AccumulateItems"/> is <see langword="true"/>).
 		/// </summary>
 		protected internal override void Reset()
 		{

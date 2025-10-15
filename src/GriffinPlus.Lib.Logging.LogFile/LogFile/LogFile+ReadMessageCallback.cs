@@ -12,8 +12,8 @@ partial class LogFile
 	/// </summary>
 	/// <param name="message">Log message that was read from the log file.</param>
 	/// <returns>
-	/// <c>true</c> to continue reading;<br/>
-	/// <c>false</c> to stop reading.
+	/// <see langword="true"/> to continue reading;<br/>
+	/// <see langword="false"/> to stop reading.
 	/// </returns>
 	public delegate bool ReadMessageCallback(LogFileMessage message);
 }

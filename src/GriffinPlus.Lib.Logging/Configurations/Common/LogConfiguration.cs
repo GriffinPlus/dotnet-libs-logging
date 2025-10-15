@@ -52,8 +52,8 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// </summary>
 	/// <param name="handler">Event handler to register.</param>
 	/// <param name="invokeInCurrentSynchronizationContext">
-	/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;<br/>
-	/// <c>false</c> to invoke the event handler in a worker thread.
+	/// <see langword="true"/> to invoke the event handler in the synchronization context of the current thread;<br/>
+	/// <see langword="false"/> to invoke the event handler in a worker thread.
 	/// </param>
 	public void RegisterChangedEventHandler(
 		EventHandler<EventArgs> handler,
@@ -88,16 +88,15 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	public IDisposable SuspendChangedEvent()
 	{
 		lock (mChangedEventSync) mSuspendChangeEventCounter++;
-		return new AnonymousDisposable(
-			() =>
+		return new AnonymousDisposable(() =>
+		{
+			lock (mChangedEventSync)
 			{
-				lock (mChangedEventSync)
-				{
-					Debug.Assert(mSuspendChangeEventCounter > 0);
-					if (--mSuspendChangeEventCounter == 0 && mChangedEventPending)
-						OnChanged();
-				}
-			});
+				Debug.Assert(mSuspendChangeEventCounter > 0);
+				if (--mSuspendChangeEventCounter == 0 && mChangedEventPending)
+					OnChanged();
+			}
+		});
 	}
 
 	/// <summary>
@@ -148,8 +147,8 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// Disposes the configuration cleaning up unmanaged resources
 	/// </summary>
 	/// <param name="disposing">
-	/// <c>true</c> if called explicitly;<br/>
-	/// <c>false</c> if called due to finalization.
+	/// <see langword="true"/> if called explicitly;<br/>
+	/// <see langword="false"/> if called due to finalization.
 	/// </param>
 	protected abstract void Dispose(bool disposing);
 
@@ -198,8 +197,8 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// Saves the configuration.
 	/// </summary>
 	/// <param name="includeDefaults">
-	/// <c>true</c> to include the default value of settings that have not been explicitly set;<br/>
-	/// <c>false</c> to save only settings that have not been explicitly set.
+	/// <see langword="true"/> to include the default value of settings that have not been explicitly set;<br/>
+	/// <see langword="false"/> to save only settings that have not been explicitly set.
 	/// </param>
 	public abstract void Save(bool includeDefaults = false);
 
@@ -208,7 +207,7 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// The configuration will match exactly the log writer with this name.
 	/// </summary>
 	/// <typeparam name="T">The type whose full name should serve as the log writer name the configuration should apply to.</typeparam>
-	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
+	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <see langword="null"/>).</param>
 	public void AddLogWriter<T>(LogWriterConfigurationCallback configuration = null)
 	{
 		AddLogWriter(typeof(T).FullName, configuration);
@@ -219,7 +218,7 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// The configuration will match exactly the log writer with this name.
 	/// </summary>
 	/// <param name="type">The type whose full name should serve as the log writer name the configuration should apply to.</param>
-	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
+	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <see langword="null"/>).</param>
 	public void AddLogWriter(Type type, LogWriterConfigurationCallback configuration = null)
 	{
 		AddLogWriter(type.FullName, configuration);
@@ -230,7 +229,7 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// The configuration will match exactly the log writer with this name.
 	/// </summary>
 	/// <param name="name">Name of the log writer the configuration should apply to.</param>
-	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
+	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <see langword="null"/>).</param>
 	public void AddLogWriter(string name, LogWriterConfigurationCallback configuration = null)
 	{
 		LogWriterConfigurationBuilder writer = LogWriterConfigurationBuilder.New.MatchingExactly(name);
@@ -242,7 +241,7 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// Adds a log writer configuration, using the specified wildcard pattern to match the name of log writers the configuration should apply to.
 	/// </summary>
 	/// <param name="pattern">A wildcard pattern matching the name of log writers the configuration should apply to.</param>
-	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
+	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <see langword="null"/>).</param>
 	public void AddLogWritersByWildcard(string pattern, LogWriterConfigurationCallback configuration = null)
 	{
 		LogWriterConfigurationBuilder writer = LogWriterConfigurationBuilder.New.MatchingWildcardPattern(pattern);
@@ -254,7 +253,7 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// Adds a log writer configuration using the specified regular expression to match the name of log writers the configuration should apply to.
 	/// </summary>
 	/// <param name="regex">A regular expression matching the name of log writers the configuration should apply to.</param>
-	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
+	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <see langword="null"/>).</param>
 	public void AddLogWritersByRegex(string regex, LogWriterConfigurationCallback configuration = null)
 	{
 		LogWriterConfigurationBuilder writer = LogWriterConfigurationBuilder.New.MatchingRegex(regex);
@@ -275,7 +274,7 @@ public abstract class LogConfiguration<TConfiguration> : ILogConfiguration
 	/// Adds a log writer configuration which matches any log writer name catching all log writers that were not handled in
 	/// a preceding step. This log writer configuration should be added last.
 	/// </summary>
-	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <c>null</c>).</param>
+	/// <param name="configuration">Callback that adjusts the log writer configuration (may be <see langword="null"/>).</param>
 	/// <returns>The updated log configuration.</returns>
 	public void AddLogWriterDefault(LogWriterConfigurationCallback configuration = null)
 	{

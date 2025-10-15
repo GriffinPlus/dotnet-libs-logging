@@ -58,7 +58,7 @@ public class Log
 	/// <summary>
 	/// Gets or sets a value indicating whether the logging subsystem terminates the process after an unhandled exception
 	/// is caught and logged. This is usually the best way to deal with such a condition to avoid executing a program
-	/// that is in an undetermined state. Default: <c>true</c>.
+	/// that is in an undetermined state. Default: <see langword="true"/>.
 	/// </summary>
 	public static bool TerminateProcessOnUnhandledException
 	{
@@ -128,11 +128,11 @@ public class Log
 	/// </summary>
 	/// <typeparam name="TConfiguration">The type of the configuration to use.</typeparam>
 	/// <param name="configurationInitializer">
-	/// Initializer for the configuration (may be <c>null</c>).
+	/// Initializer for the configuration (may be <see langword="null"/>).
 	/// </param>
 	/// <param name="processingPipelineInitializer">
 	/// Initializer for the processing pipeline
-	/// (may be <c>null</c> to set up a <see cref="ConsoleWriterPipelineStage"/> with default settings).
+	/// (may be <see langword="null"/> to set up a <see cref="ConsoleWriterPipelineStage"/> with default settings).
 	/// </param>
 	public static void Initialize<TConfiguration>(
 		LogConfigurationInitializer<TConfiguration> configurationInitializer,
@@ -246,14 +246,20 @@ public class Log
 	/// </summary>
 	/// <returns>The current timestamp.</returns>
 	[Obsolete("Deprecated, please use LogWriter.GetTimestamp() instead. Will be removed with the next major release.")]
-	public static DateTimeOffset GetTimestamp() => LogWriter.GetTimestamp();
+	public static DateTimeOffset GetTimestamp()
+	{
+		return LogWriter.GetTimestamp();
+	}
 
 	/// <summary>
 	/// Gets the current high precision timestamp as used by the logging subsystem (in ns).
 	/// </summary>
 	/// <returns>The current high precision timestamp.</returns>
 	[Obsolete("Deprecated, please use LogWriter.GetHighPrecisionTimestamp() instead. Will be removed with the next major release.")]
-	public static long GetHighPrecisionTimestamp() => LogWriter.GetHighPrecisionTimestamp();
+	public static long GetHighPrecisionTimestamp()
+	{
+		return LogWriter.GetHighPrecisionTimestamp();
+	}
 
 	/// <summary>
 	/// Writes a message using an internal log writer bypassing configured source filters
@@ -271,7 +277,7 @@ public class Log
 	/// </summary>
 	/// <param name="name">Name of the log writer to get.</param>
 	/// <returns>The requested log writer.</returns>
-	/// <exception cref="ArgumentNullException">The specified name is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException">The specified name is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException">The specified name is invalid.</exception>
 	[Obsolete("Deprecated, please use LogWriter.Get(string) instead. Will be removed with the next major release.")]
 	public static LogWriter GetWriter(string name)
@@ -352,7 +358,7 @@ public class Log
 	/// <summary>
 	/// Is called when an exception is not caught.
 	/// </summary>
-	/// <param name="sender">The source of the unhandled exception event (may be <c>null</c> on some frameworks).</param>
+	/// <param name="sender">The source of the unhandled exception event (may be <see langword="null"/> on some frameworks).</param>
 	/// <param name="e">An <see cref="UnhandledExceptionEventArgs"/> that contains the event data.</param>
 	private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
 	{
@@ -512,7 +518,7 @@ public class Log
 	/// <param name="exception">The unhandled/unexpected exception.</param>
 	/// <param name="isRuntimeTerminating">
 	/// <see langword="true"/> if the runtime is terminating;<br/>
-	/// otherwise <see langword="false"/>.
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	private static void ProcessUnhandledException(Exception exception, bool isRuntimeTerminating)
 	{

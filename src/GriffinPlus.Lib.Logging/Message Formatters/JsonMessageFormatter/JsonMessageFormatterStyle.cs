@@ -11,19 +11,19 @@ namespace GriffinPlus.Lib.Logging;
 public enum JsonMessageFormatterStyle
 {
 	/// <summary>
-	/// Entire JSON document on a single line without any non-significant whitespaces (best space efficiency).
+	/// Entire JSON document on a single line without any non-significant whitespaces (for best space efficiency).
 	/// Example: {'A':1,'B':2}
 	/// </summary>
 	Compact,
 
 	/// <summary>
-	/// Entire JSON document on a single line with some whitespaces (improved readability).
+	/// Entire JSON document on a single line with some whitespaces (for improved readability).
 	/// Example: { 'A' : 1, 'B' : 2 }
 	/// </summary>
 	OneLine,
 
 	/// <summary>
-	/// Entire JSON document on multiple lines with indentation for nested objects (best readability).
+	/// Entire JSON document on multiple lines with indentation for nested objects (for best readability).
 	/// Example:
 	/// {
 	/// 'A' : 1,

@@ -45,8 +45,8 @@ public class FileWriterPipelineStage : TextWriterPipelineStage
 	/// Gets or sets a value determining whether log messages are appended to an existing log file.
 	/// </summary>
 	/// <Value>
-	/// <c>true</c> to append new log messages to an existing log file (default).<br/>
-	/// <c>false</c> to truncate the log file before writing the first message.
+	/// <see langword="true"/> to append new log messages to an existing log file (default).<br/>
+	/// <see langword="false"/> to truncate the log file before writing the first message.
 	/// </Value>
 	public bool Append
 	{

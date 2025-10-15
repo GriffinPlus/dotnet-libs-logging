@@ -101,11 +101,10 @@ class Program
 					// - exclude log level 'Warning'
 					// - tags are not evaluated
 					// => enabled log levels: 'Emergency', 'Alert', 'Critical', 'Error', 'Notice', 'Trace'
-					config.AddLogWriter<MyClass1>(
-						x => x
-							.WithBaseLevel(LogLevel.Notice)
-							.WithLevel(LogLevel.Trace)
-							.WithoutLevel("Warning"));
+					config.AddLogWriter<MyClass1>(x => x
+						.WithBaseLevel(LogLevel.Notice)
+						.WithLevel(LogLevel.Trace)
+						.WithoutLevel("Warning"));
 
 					// Add configuration for log writer 'GriffinPlus.Lib.Logging.Demo.MyClass2' only
 					// - set base log level to 'None' effectively silencing the log writer
@@ -239,7 +238,7 @@ class Program
 					"Elasticsearch",
 					stage =>
 					{
-						stage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };  // use local elasticsearch server
+						stage.ApiBaseUrls = [new Uri("http://127.0.0.1:9200/")];          // use local elasticsearch server
 						stage.AuthenticationSchemes = AuthenticationScheme.PasswordBased; // support all password based authentication schemes
 						stage.Username = "";                                              // username to use when authenticating (empty to use login user)
 						stage.Password = "";                                              // password to use when authenticating (empty to use login user)

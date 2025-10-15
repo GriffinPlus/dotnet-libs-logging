@@ -36,7 +36,7 @@ public abstract partial class ProcessingPipelineStage
 	/// <summary>
 	/// Processing pipeline stages that are called after the current stage has completed processing.
 	/// </summary>
-	protected ProcessingPipelineStage[] mNextStages = Array.Empty<ProcessingPipelineStage>();
+	protected ProcessingPipelineStage[] mNextStages = [];
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="SyncProcessingPipelineStage"/> class.
@@ -103,7 +103,7 @@ public abstract partial class ProcessingPipelineStage
 	/// </summary>
 	/// <typeparam name="TPipelineStage">Type of the pipeline stage to create.</typeparam>
 	/// <param name="name">Name of the pipeline stage to create.</param>
-	/// <param name="configuration">The logging configuration (<c>null</c> to set up a volatile configuration with defaults).</param>
+	/// <param name="configuration">The logging configuration (<see langword="null"/> to set up a volatile configuration with defaults).</param>
 	/// <returns>The created pipeline stage.</returns>
 	public static TPipelineStage Create<TPipelineStage>(
 		string            name,
@@ -315,12 +315,12 @@ public abstract partial class ProcessingPipelineStage
 
 	/// <summary>
 	/// Creates, configures and adds a pipeline stage of the specified type to receive log messages, when the current stage has
-	/// completed running its <see cref="ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
+	/// completed running its <see cref="ProcessMessage"/> method. The method must return <see langword="true"/> to call the following stage.
 	/// The configuration associated with the current pipeline stage is also associated with the new pipeline stage.
 	/// </summary>
 	/// <typeparam name="TProcessingPipelineStage">The pipeline stage that should follow the current stage.</typeparam>
 	/// <param name="name">Name of the pipeline stage to add.</param>
-	/// <param name="initializer">Callback that configures the pipeline stage (may be <c>null</c>).</param>
+	/// <param name="initializer">Callback that configures the pipeline stage (may be <see langword="null"/>).</param>
 	/// <returns>The added pipeline stage.</returns>
 	public TProcessingPipelineStage AddNextStage<TProcessingPipelineStage>(
 		string                                                       name,
@@ -335,12 +335,12 @@ public abstract partial class ProcessingPipelineStage
 
 	/// <summary>
 	/// Configures the specified pipeline stage to receive log messages, when the current stage has completed running
-	/// its <see cref="ProcessMessage"/> method. The method must return <c>true</c> to call the following stage.
+	/// its <see cref="ProcessMessage"/> method. The method must return <see langword="true"/> to call the following stage.
 	/// The pipeline stage must use the same log configuration as the current stage and must not be initialized, yet.
 	/// </summary>
 	/// <param name="stage">The pipeline stage that should follow the current stage.</param>
 	/// <exception cref="ArgumentNullException">
-	/// <paramref name="stage"/> is <c>null</c>.
+	/// <paramref name="stage"/> is <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// <paramref name="stage"/> is already initialized or its configuration is not the same as the configuration of the current state.
@@ -391,8 +391,8 @@ public abstract partial class ProcessingPipelineStage
 	/// </summary>
 	/// <param name="stage">Pipeline stage to remove.</param>
 	/// <returns>
-	/// <c>true</c> if the specified pipeline stage was removed successfully;<br/>
-	/// <c>false</c> if the specified pipeline stage is not one of the following pipeline stages of the current stage.
+	/// <see langword="true"/> if the specified pipeline stage was removed successfully;<br/>
+	/// <see langword="false"/> if the specified pipeline stage is not one of the following pipeline stages of the current stage.
 	/// </returns>
 	public bool RemoveNextStage(ProcessingPipelineStage stage)
 	{
@@ -456,7 +456,7 @@ public abstract partial class ProcessingPipelineStage
 	/// <summary>
 	/// Gets the logging configuration.
 	/// </summary>
-	/// <exception cref="ArgumentNullException">The specified configuration is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException">The specified configuration is <see langword="null"/>.</exception>
 	public ILogConfiguration Configuration
 	{
 		get
@@ -766,8 +766,8 @@ public abstract partial class ProcessingPipelineStage
 	/// </summary>
 	/// <param name="message">Message to process.</param>
 	/// <returns>
-	/// <c>true</c> to pass the message to the following stages;<br/>
-	/// <c>false</c> to stop processing the message.
+	/// <see langword="true"/> to pass the message to the following stages;<br/>
+	/// <see langword="false"/> to stop processing the message.
 	/// </returns>
 	internal abstract bool OnProcessMessageBase(LocalLogMessage message);
 

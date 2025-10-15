@@ -10,6 +10,8 @@ using Xunit;
 
 namespace GriffinPlus.Lib.Logging.Collections;
 
+using static FileBackedLogMessageCollectionTests_Static;
+
 /// <summary>
 /// Unit tests targeting the <see cref="FileBackedLogMessageCollection"/> class.
 /// The collection is run with support for read operations only.
@@ -45,7 +47,12 @@ public class FileBackedLogMessageCollectionTests_ReadOnly : FileBackedLogMessage
 		file2.Messages.AutoDelete = true;
 
 		// the collection should now have the default state
-		TestCollectionPropertyDefaults(file2.Messages, count, true);
+		TestCollectionPropertyDefaults(
+			file2.Messages,
+			count,
+			isReadOnly: true,
+			isFixedSize: CollectionIsFixedSize,
+			isSynchronized: CollectionIsSynchronized);
 
 		// the collection should now contain the messages written into it
 		// (the file-backed collection assigns message ids on its own, but they should be the same as the ids assigned to the test set)

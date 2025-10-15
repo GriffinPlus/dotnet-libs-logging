@@ -37,7 +37,7 @@ public class VolatileProcessingPipelineStageSetting<T> : IProcessingPipelineStag
 	static VolatileProcessingPipelineStageSetting()
 	{
 		// Check whether the value type and derived types (if any) are immutable.
-		// May return <c>false</c> although all derived types are immutable in practice,
+		// May return 'false' although all derived types are immutable in practice,
 		// but the analysis could not guarantee that this is always the case (false-negative).
 		// => Immutable types can be shared by the setting and client code without defensive copying
 		sUseDefensiveCopying = !Immutability.HasImmutableDerivationsOnly<T>();
@@ -115,8 +115,8 @@ public class VolatileProcessingPipelineStageSetting<T> : IProcessingPipelineStag
 	/// </summary>
 	/// <param name="handler">Event handler to register.</param>
 	/// <param name="invokeInCurrentSynchronizationContext">
-	/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;<br/>
-	/// <c>false</c> to invoke the event handler in a worker thread.
+	/// <see langword="true"/> to invoke the event handler in the synchronization context of the current thread;<br/>
+	/// <see langword="false"/> to invoke the event handler in a worker thread.
 	/// </param>
 	public void RegisterSettingChangedEventHandler(
 		EventHandler<SettingChangedEventArgs> handler,
@@ -176,8 +176,8 @@ public class VolatileProcessingPipelineStageSetting<T> : IProcessingPipelineStag
 	public Type ValueType => typeof(T);
 
 	/// <summary>
-	/// Gets a value indicating whether the setting has a valid value (<c>true</c>)
-	/// or just its default value (<c>false</c>).
+	/// Gets a value indicating whether the setting has a valid value (<see langword="true"/>)
+	/// or just its default value (<see langword="false"/>).
 	/// </summary>
 	public bool HasValue
 	{

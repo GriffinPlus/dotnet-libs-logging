@@ -61,7 +61,7 @@ public class FileBackedProcessingPipelineStageRawSetting
 	public string Name { get; } // immutable => no sync necessary
 
 	/// <summary>
-	/// Gets a value indicating whether the setting has valid value (<c>true</c>) or just its default value (<c>false</c>).
+	/// Gets a value indicating whether the setting has valid value (<see langword="true"/>) or just its default value (<see langword="false"/>).
 	/// </summary>
 	public bool HasValue
 	{

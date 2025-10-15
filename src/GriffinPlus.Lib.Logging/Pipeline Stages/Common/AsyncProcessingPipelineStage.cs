@@ -110,8 +110,8 @@ public abstract class AsyncProcessingPipelineStage : ProcessingPipelineStage
 	#region Settings
 
 	/// <summary>
-	/// Gets or sets a value indicating whether messages are discarded when the queue is full.
-	/// The default is <c>false</c>.
+	/// Gets or sets a value indicating whether messages are discarded when the queue is full.<br/>
+	/// The default is <see langword="false"/>.
 	/// </summary>
 	public bool DiscardMessagesIfQueueFull
 	{
@@ -224,8 +224,8 @@ public abstract class AsyncProcessingPipelineStage : ProcessingPipelineStage
 	/// </summary>
 	/// <param name="message">Message to process.</param>
 	/// <returns>
-	/// <c>true</c> to pass the message to the following stages;<br/>
-	/// <c>false</c> to stop processing the message.
+	/// <see langword="true"/> to pass the message to the following stages;<br/>
+	/// <see langword="false"/> to stop processing the message.
 	/// </returns>
 	internal override bool OnProcessMessageBase(LocalLogMessage message)
 	{
@@ -275,8 +275,8 @@ public abstract class AsyncProcessingPipelineStage : ProcessingPipelineStage
 	/// Receives a value indicating whether the message should be enqueued for asynchronous processing.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> to pass the message to the following pipeline stages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to pass the message to the following pipeline stages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from

@@ -81,7 +81,7 @@ partial class ProcessingPipelineStage
 		/// The event handler is always invoked by a worker thread to avoid deadlocks that might be caused by lock inversion.
 		/// </summary>
 		/// <param name="handler">Event handler to register.</param>
-		/// <param name="invokeInCurrentSynchronizationContext">Must always be <c>false</c>, invokes the event handler in a worker thread.</param>
+		/// <param name="invokeInCurrentSynchronizationContext">Must always be <see langword="false"/>, invokes the event handler in a worker thread.</param>
 		/// <exception cref="NotSupportedException">Invoking handler in the current synchronization context is not supported.</exception>
 		public void RegisterSettingChangedEventHandler(
 			EventHandler<SettingChangedEventArgs> handler,
@@ -109,8 +109,8 @@ partial class ProcessingPipelineStage
 		/// </summary>
 		/// <param name="configuration">The configuration the proxy should bind to.</param>
 		/// <param name="raiseChangedEvent">
-		/// <c>true</c> to notify clients that the setting has changed;<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> to notify clients that the setting has changed;<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </param>
 		void IUntypedSettingProxy.SetProxyTarget(IProcessingPipelineStageConfiguration configuration, bool raiseChangedEvent)
 		{
@@ -154,7 +154,7 @@ partial class ProcessingPipelineStage
 		}
 
 		/// <summary>
-		/// Gets a value indicating whether the setting has valid value (<c>true</c>) or just its default value (<c>false</c>).
+		/// Gets a value indicating whether the setting has valid value (<see langword="true"/>) or just its default value (<see langword="false"/>).
 		/// </summary>
 		public bool HasValue
 		{
@@ -248,7 +248,7 @@ partial class ProcessingPipelineStage
 							// getting the default value failed as well
 							// => fall back to the default value of the type
 							mStage.WritePipelineError(builder.ToString(), ex);
-							return default;
+							return null;
 						}
 					}
 				}

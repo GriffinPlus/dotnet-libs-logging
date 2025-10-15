@@ -20,9 +20,7 @@ public class SelectableLogMessageFilterTests :
 	protected override LogMessageCollection<LogMessage> CreateCollection(int count, out LogMessage[] messages)
 	{
 		messages = LoggingTestHelpers.GetTestMessages<LogMessage>(count);
-		LogMessageCollection<LogMessage> collection = count == 0
-			                                              ? new LogMessageCollection<LogMessage>()
-			                                              : new LogMessageCollection<LogMessage>(messages);
+		LogMessageCollection<LogMessage> collection = count != 0 ? new LogMessageCollection<LogMessage>(messages) : [];
 
 		// the test assumes that the collection uses single-item notifications
 		collection.UseMultiItemNotifications = false;

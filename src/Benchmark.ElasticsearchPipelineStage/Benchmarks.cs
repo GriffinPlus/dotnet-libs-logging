@@ -73,7 +73,7 @@ public class Benchmarks
 	{
 		// create a new pipeline stage
 		mStage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
-		mStage.ApiBaseUrls = new[] { new Uri("http://127.0.0.1:9200/") };
+		mStage.ApiBaseUrls = [new Uri("http://127.0.0.1:9200/")];
 		mStage.IndexName = "pipeline-stage-benchmark";
 		mStage.BulkRequestMaxMessageCount = int.MaxValue;
 		mStage.DiscardMessagesIfQueueFull = false;

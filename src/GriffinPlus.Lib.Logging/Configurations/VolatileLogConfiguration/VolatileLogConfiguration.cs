@@ -36,8 +36,8 @@ public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguratio
 	/// Disposes the configuration cleaning up unmanaged resources
 	/// </summary>
 	/// <param name="disposing">
-	/// <c>true</c> if called explicitly;<br/>
-	/// <c>false</c> if called due to finalization.
+	/// <see langword="true"/> if called explicitly;<br/>
+	/// <see langword="false"/> if called due to finalization.
 	/// </param>
 	protected override void Dispose(bool disposing) { }
 
@@ -78,14 +78,12 @@ public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguratio
 		{
 			// get the first matching log writer settings
 			LogWriterConfiguration settings = mLogWriterSettings
-				.Where(
-					configuration => configuration
-						.NamePatterns
-						.Any(x => x.Regex.IsMatch(writer.Name)))
-				.FirstOrDefault(
-					configuration => !configuration.TagPatterns.Any() || configuration
-						                 .TagPatterns
-						                 .Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))));
+				.Where(configuration => configuration
+					.NamePatterns
+					.Any(x => x.Regex.IsMatch(writer.Name)))
+				.FirstOrDefault(configuration => !configuration.TagPatterns.Any() || configuration
+					                                 .TagPatterns
+					                                 .Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))));
 
 			if (settings != null)
 			{
@@ -159,8 +157,8 @@ public class VolatileLogConfiguration : LogConfiguration<VolatileLogConfiguratio
 	/// (not supported as the volatile configuration does not support persistence).
 	/// </summary>
 	/// <param name="includeDefaults">
-	/// <c>true</c> to include the default value of settings that have not been explicitly set;<br/>
-	/// <c>false</c> to save only settings that have not been explicitly set.
+	/// <see langword="true"/> to include the default value of settings that have not been explicitly set;<br/>
+	/// <see langword="false"/> to save only settings that have not been explicitly set.
 	/// </param>
 	public override void Save(bool includeDefaults = false) { }
 }

@@ -4,7 +4,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 
 using Xunit;
@@ -32,10 +31,16 @@ public class TableMessageFormatterTests
 		Assert.Equal("", output);
 	}
 
-	public static IEnumerable<object[]> FormatTestData
+	/// <summary>
+	/// Test data for a plain text log message formatter, verifying field extraction and concatenation output.
+	/// </summary>
+	public static TheoryData<LogMessageField, LogMessage, string> FormatTestData
 	{
 		get
 		{
+			var data = new TheoryData<LogMessageField, LogMessage, string>();
+
+			// Base message used for all variants (keeps local time handling as in the original)
 			var message = new LogMessage
 			{
 				Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
@@ -49,98 +54,40 @@ public class TableMessageFormatterTests
 				Text = "MyText"
 			};
 
-			yield return
-			[
-				LogMessageField.None,
-				message,
-				""
-			];
+			// ------------------------------------------------------------------------
+			// Individual field tests
+			// ------------------------------------------------------------------------
 
-			yield return
-			[
-				LogMessageField.Timestamp,
-				message,
-				"2000-01-01 00:00:00Z"
-			];
+			data.Add(LogMessageField.None, message, "");
+			data.Add(LogMessageField.Timestamp, message, "2000-01-01 00:00:00Z");
+			data.Add(LogMessageField.HighPrecisionTimestamp, message, "123");
+			data.Add(LogMessageField.LogWriterName, message, "MyWriter");
+			data.Add(LogMessageField.LogLevelName, message, "MyLevel");
 
-			yield return
-			[
-				LogMessageField.HighPrecisionTimestamp,
-				message,
-				"123"
-			];
+			// Tags: empty
+			data.Add(LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet() }, "");
 
-			yield return
-			[
-				LogMessageField.LogWriterName,
-				message,
-				"MyWriter"
-			];
-
-			yield return
-			[
-				LogMessageField.LogLevelName,
-				message,
-				"MyLevel"
-			];
-
-			yield return
-			[
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet() },
-				""
-			];
-
+			// Tags: single
 			message.Tags = new TagSet("Tag");
-			yield return
-			[
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet("Tag") },
-				"Tag"
-			];
+			data.Add(LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet("Tag") }, "Tag");
 
+			// Tags: multiple
 			message.Tags = new TagSet("Tag1", "Tag2");
-			yield return
-			[
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
-				"Tag1, Tag2"
-			];
+			data.Add(LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") }, "Tag1, Tag2");
 
-			yield return
-			[
-				LogMessageField.ApplicationName,
-				message,
-				"MyApp"
-			];
+			// Remaining fields
+			data.Add(LogMessageField.ApplicationName, message, "MyApp");
+			data.Add(LogMessageField.ProcessName, message, "MyProcess");
+			data.Add(LogMessageField.ProcessId, message, "42");
+			data.Add(LogMessageField.Text, message, "MyText");
 
-			yield return
-			[
-				LogMessageField.ProcessName,
-				message,
-				"MyProcess"
-			];
-
-			yield return
-			[
-				LogMessageField.ProcessId,
-				message,
-				"42"
-			];
-
-			yield return
-			[
-				LogMessageField.Text,
-				message,
-				"MyText"
-			];
-
-			yield return
-			[
+			// Combined case
+			data.Add(
 				LogMessageField.All,
 				message,
-				"2000-01-01 00:00:00Z | 123 | MyWriter | MyLevel | Tag1, Tag2 | MyApp | MyProcess | 42 | MyText"
-			];
+				"2000-01-01 00:00:00Z | 123 | MyWriter | MyLevel | Tag1, Tag2 | MyApp | MyProcess | 42 | MyText");
+
+			return data;
 		}
 	}
 

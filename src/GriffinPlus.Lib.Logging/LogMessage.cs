@@ -56,7 +56,7 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 
 	/// <summary>
 	/// Gets a value indicating whether the log message is initialized.
-	/// (This property can be <c>false</c>, if the log message is configured to be initialized asynchronously,
+	/// (This property can be <see langword="false"/>, if the log message is configured to be initialized asynchronously,
 	/// but has not been initialized, yet).
 	/// </summary>
 	public bool IsInitialized
@@ -147,11 +147,11 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 
 	/// <summary>
 	/// Creates a new log message and prepares it for asynchronous initialization.
-	/// (<see cref="IsInitialized"/> is <c>false</c> at first and set to <c>true</c> as soon as the message is initialized).
+	/// (<see cref="IsInitialized"/> is <see langword="false"/> at first and set to <see langword="true"/> as soon as the message is initialized).
 	/// </summary>
 	/// <param name="readOnly">
-	/// <c>true</c> to create a read-only message that can only be set by the returned initializer;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to create a read-only message that can only be set by the returned initializer;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <param name="initializer">Receives the initializer that allows to update the log message.</param>
 	/// <returns>The created log message.</returns>
@@ -661,13 +661,13 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 
 	/// <summary>
 	/// Indicates whether the log message is protected.
-	/// If <c>true</c>, property setters will throw <see cref="NotSupportedException"/> when invoked.
+	/// If <see langword="true"/>, property setters will throw <see cref="NotSupportedException"/> when invoked.
 	/// </summary>
 	protected internal bool IsReadOnlyInternal;
 
 	/// <summary>
 	/// Gets a value indicating whether the log message is protected.
-	/// If <c>true</c>, property setters will throw <see cref="NotSupportedException"/> when invoked.
+	/// If <see langword="true"/>, property setters will throw <see cref="NotSupportedException"/> when invoked.
 	/// </summary>
 	public bool IsReadOnly
 	{
@@ -713,8 +713,8 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 	/// </summary>
 	/// <param name="other">Log message to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the current log message equals the specified one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the current log message equals the specified one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public virtual bool Equals(ILogMessage other)
 	{
@@ -749,8 +749,8 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 	/// </summary>
 	/// <param name="other">Log message to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the current log message equals the specified one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the current log message equals the specified one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public virtual bool Equals(LogMessage other)
 	{
@@ -777,8 +777,8 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 	/// </summary>
 	/// <param name="obj">Log message to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the current log message equals the specified one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the current log message equals the specified one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool Equals(object obj)
 	{
@@ -841,7 +841,7 @@ public class LogMessage : ILogMessage, ILogMessageInitializer, IEquatable<ILogMe
 	/// </summary>
 	/// <param name="propertyName">
 	/// Name of the property that has changed
-	/// (<c>null</c> to indicate that all properties (might) have changed).
+	/// (<see langword="null"/> to indicate that all properties (might) have changed).
 	/// </param>
 	protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
 	{

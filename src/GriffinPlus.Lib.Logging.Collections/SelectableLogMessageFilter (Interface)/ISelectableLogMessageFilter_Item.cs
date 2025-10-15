@@ -30,8 +30,8 @@ public interface ISelectableLogMessageFilter_Item<out T> : INotifyPropertyChange
 
 	/// <summary>
 	/// Gets a value indicating whether the item value is used in at least one message in the unfiltered message set.
-	/// If <see cref="ISelectableLogMessageFilter_ItemFilter{T}.AccumulateItems"/> is <c>true</c>, this property remains
-	/// <c>true</c> once it is <c>true</c> for static items.
+	/// If <see cref="ISelectableLogMessageFilter_ItemFilter{T}.AccumulateItems"/> is <see langword="true"/>, this property remains
+	/// <see langword="true"/> once it is <see langword="true"/> for static items.
 	/// </summary>
 	bool ValueUsed { get; }
 }

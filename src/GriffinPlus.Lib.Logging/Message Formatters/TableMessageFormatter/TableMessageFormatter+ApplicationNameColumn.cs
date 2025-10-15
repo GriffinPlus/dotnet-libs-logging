@@ -38,8 +38,8 @@ partial class TableMessageFormatter
 		/// <param name="builder">String builder to append the output of the current column to.</param>
 		/// <param name="line">Line number to append (zero-based).</param>
 		/// <returns>
-		/// <c>true</c> if there are more lines to process;<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> if there are more lines to process;<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </returns>
 		public override bool Write(ILogMessage message, StringBuilder builder, int line)
 		{

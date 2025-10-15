@@ -4,14 +4,14 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 using Xunit;
 
 namespace GriffinPlus.Lib.Logging.Collections;
+
+using static FileBackedLogMessageCollectionTests_Static;
 
 /// <summary>
 /// Unit tests targeting the <see cref="FileBackedLogMessageCollection"/> class.
@@ -39,15 +39,20 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <summary>
 	/// Test data for test methods testing the instantiation of the collection.
 	/// </summary>
-	public static IEnumerable<object[]> CreateTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode, bool> CreateTestData
 	{
 		get
 		{
-			return
-				from purpose in LogFilePurposes
-				from writeMode in LogFileWriteModes
-				from populate in new[] { false, true }
-				select (object[]) [purpose, writeMode, populate];
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode, bool>();
+
+			foreach (LogFilePurpose purpose in LogFilePurposes)
+			foreach (LogFileWriteMode writeMode in LogFileWriteModes)
+			foreach (bool populate in new[] { false, true })
+			{
+				data.Add(purpose, writeMode, populate);
+			}
+
+			return data;
 		}
 	}
 
@@ -57,12 +62,12 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="populate">
-	/// <c>true</c> to populate the log file with messages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to populate the log file with messages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(CreateTestData))]
-	private void Create_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
+	protected void Create_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
 	{
 		string backingFilePath = Path.Combine(Environment.CurrentDirectory, "FileBackedLogMessageCollectionBuffer.gplog");
 
@@ -77,7 +82,14 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 			{
 				Assert.True(File.Exists(backingFilePath));
 				Assert.Equal(backingFilePath, collection.FilePath);
-				TestCollectionPropertyDefaults(collection, populate ? messages.Length : 0, false);
+
+				TestCollectionPropertyDefaults(
+					collection,
+					populate ? messages.Length : 0,
+					isReadOnly: false,
+					isFixedSize: CollectionIsFixedSize,
+					isSynchronized: CollectionIsSynchronized);
+
 				if (populate)
 				{
 					Assert.Equal(messages, collection);
@@ -106,12 +118,12 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="populate">
-	/// <c>true</c> to populate the log file with messages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to populate the log file with messages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(CreateTestData))]
-	private void Create_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
+	protected void Create_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode, bool populate)
 	{
 		string backingFilePath = purpose == LogFilePurpose.Recording
 			                         ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
@@ -133,13 +145,19 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <summary>
 	/// Test data for test methods testing the instantiation of the collection.
 	/// </summary>
-	public static IEnumerable<object[]> CreateOrOpenTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode> CreateOrOpenTestData
 	{
 		get
 		{
-			return from purpose in LogFilePurposes
-			       from writeMode in LogFileWriteModes
-			       select (object[])[purpose, writeMode];
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode>();
+
+			foreach (LogFilePurpose purpose in LogFilePurposes)
+			foreach (LogFileWriteMode writeMode in LogFileWriteModes)
+			{
+				data.Add(purpose, writeMode);
+			}
+
+			return data;
 		}
 	}
 
@@ -150,7 +168,7 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <param name="writeMode">Log file write mode to test.</param>
 	[Theory]
 	[MemberData(nameof(CreateOrOpenTestData))]
-	private void OpenOrCreate_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
+	protected void OpenOrCreate_NewFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
 	{
 		string backingFilePath = Path.Combine(Environment.CurrentDirectory, "FileBackedLogMessageCollectionBuffer.gplog");
 
@@ -164,7 +182,12 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 			{
 				Assert.True(File.Exists(backingFilePath));
 				Assert.Equal(backingFilePath, collection.FilePath);
-				TestCollectionPropertyDefaults(collection, 0, false);
+				TestCollectionPropertyDefaults(
+					collection,
+					expectedCount: 0,
+					isReadOnly: false,
+					isFixedSize: CollectionIsFixedSize,
+					isSynchronized: CollectionIsSynchronized);
 			}
 
 			// the file should persist after disposing the collection
@@ -183,7 +206,7 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <param name="writeMode">Log file write mode to test.</param>
 	[Theory]
 	[MemberData(nameof(CreateOrOpenTestData))]
-	private void OpenOrCreate_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
+	protected void OpenOrCreate_ExistingFile(LogFilePurpose purpose, LogFileWriteMode writeMode)
 	{
 		string path = purpose == LogFilePurpose.Recording
 			              ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
@@ -197,7 +220,12 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 			{
 				Assert.True(File.Exists(path));
 				Assert.Equal(path, collection.FilePath);
-				TestCollectionPropertyDefaults(collection, 10000, false);
+				TestCollectionPropertyDefaults(
+					collection,
+					expectedCount: 10000,
+					isReadOnly: false,
+					isFixedSize: CollectionIsFixedSize,
+					isSynchronized: CollectionIsSynchronized);
 			}
 
 			// the file should persist after disposing the collection
@@ -213,13 +241,19 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <summary>
 	/// Test data for test methods testing the instantiation of the collection.
 	/// </summary>
-	public static IEnumerable<object[]> OpenTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode> OpenTestData
 	{
 		get
 		{
-			return from purpose in LogFilePurposes
-			       from writeMode in LogFileWriteModes
-			       select (object[])[purpose, writeMode];
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode>();
+
+			foreach (LogFilePurpose purpose in LogFilePurposes)
+			foreach (LogFileWriteMode writeMode in LogFileWriteModes)
+			{
+				data.Add(purpose, writeMode);
+			}
+
+			return data;
 		}
 	}
 
@@ -230,7 +264,7 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <param name="writeMode">Log file write mode to test.</param>
 	[Theory]
 	[MemberData(nameof(OpenTestData))]
-	private void Open(LogFilePurpose purpose, LogFileWriteMode writeMode)
+	protected void Open(LogFilePurpose purpose, LogFileWriteMode writeMode)
 	{
 		string path = purpose == LogFilePurpose.Recording
 			              ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
@@ -244,7 +278,13 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 			{
 				Assert.True(File.Exists(path));
 				Assert.Equal(path, collection.FilePath);
-				TestCollectionPropertyDefaults(collection, 10000, false);
+
+				TestCollectionPropertyDefaults(
+					collection,
+					expectedCount: 10000,
+					isReadOnly: false,
+					isFixedSize: CollectionIsFixedSize,
+					isSynchronized: CollectionIsSynchronized);
 			}
 
 			// the file should persist after disposing the collection
@@ -264,7 +304,7 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	/// <param name="writeMode">Log file write mode to test.</param>
 	[Theory]
 	[MemberData(nameof(OpenTestData))]
-	private void OpenReadOnly(LogFilePurpose purpose, LogFileWriteMode writeMode)
+	protected void OpenReadOnly(LogFilePurpose purpose, LogFileWriteMode writeMode)
 	{
 		string path = purpose == LogFilePurpose.Recording
 			              ? Fixture.GetCopyOfFile_Recording_RandomMessages_10K()
@@ -278,7 +318,13 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 			{
 				Assert.True(File.Exists(path));
 				Assert.Equal(path, collection.FilePath);
-				TestCollectionPropertyDefaults(collection, 10000, true);
+
+				TestCollectionPropertyDefaults(
+					collection,
+					expectedCount: 10000,
+					isReadOnly: true,
+					isFixedSize: CollectionIsFixedSize,
+					isSynchronized: CollectionIsSynchronized);
 			}
 
 			// the file should persist after disposing the collection
@@ -289,69 +335,6 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 			// remove temporary log file to avoid polluting the output directory
 			File.Delete(path);
 		}
-	}
-
-	#endregion
-
-	#region CreateTemporaryCollection()
-
-	/// <summary>
-	/// Test data for the <see cref="CreateTemporaryCollection"/> test method.
-	/// </summary>
-	public static IEnumerable<object[]> CreateTemporaryCollectionTestData
-	{
-		get
-		{
-			foreach (bool deleteAutomatically in new[] { false, true })
-			foreach (LogFilePurpose purpose in LogFilePurposes)
-			foreach (LogFileWriteMode writeMode in LogFileWriteModes)
-			{
-				yield return [null, deleteAutomatically, purpose, writeMode];                         // default temporary folder
-				yield return [Environment.CurrentDirectory, deleteAutomatically, purpose, writeMode]; // specific temporary folder
-			}
-		}
-	}
-
-	/// <summary>
-	/// Tests creating an instance of the <see cref="FileBackedLogMessageCollection"/> class with a temporary backing log file.
-	/// </summary>
-	/// <param name="deleteAutomatically">
-	/// <c>true</c> to delete the file automatically when the collection is disposed
-	/// (or the next time, a temporary collection is created in the same directory);<br/>
-	/// <c>false</c> to keep it after the collection is disposed.
-	/// </param>
-	/// <param name="temporaryDirectoryPath">
-	/// Path of the temporary directory to use;<br/>
-	/// <c>null</c> to use the default temporary directory (default).
-	/// </param>
-	/// <param name="purpose">
-	/// Purpose of the log file determining whether the log file is primarily used for recording or for analysis (default).
-	/// </param>
-	/// <param name="mode">
-	/// Write mode determining whether to open the log file in 'robust' or 'fast' mode (default).
-	/// </param>
-	[Theory]
-	[MemberData(nameof(CreateTemporaryCollectionTestData))]
-	private void CreateTemporaryCollection(
-		string           temporaryDirectoryPath,
-		bool             deleteAutomatically,
-		LogFilePurpose   purpose,
-		LogFileWriteMode mode)
-	{
-		string effectiveTemporaryFolderPath = temporaryDirectoryPath ?? Path.GetTempPath().TrimEnd(Path.DirectorySeparatorChar);
-		string backingFilePath;
-
-		using (var collection = FileBackedLogMessageCollection.CreateTemporaryCollection(deleteAutomatically, temporaryDirectoryPath, purpose, mode))
-		{
-			Assert.True(File.Exists(collection.FilePath));
-			Assert.Equal(effectiveTemporaryFolderPath, Path.GetDirectoryName(collection.FilePath));
-			TestCollectionPropertyDefaults(collection, 0, false);
-
-			backingFilePath = collection.FilePath;
-		}
-
-		// the file should not persist after disposing the collection, if auto-deletion is enabled
-		Assert.Equal(deleteAutomatically, !File.Exists(backingFilePath));
 	}
 
 	#endregion
@@ -388,54 +371,6 @@ public abstract class FileBackedLogMessageCollectionTests_Base :
 	protected override LogMessage CopyMessage(LogMessage message)
 	{
 		return new LogFileMessage((LogFileMessage)message);
-	}
-
-	#endregion
-
-	#region Helpers
-
-	/// <summary>
-	/// Checks whether properties of the specified collection have the expected default values and
-	/// whether the collection contains the expected amount of log messages.
-	/// </summary>
-	/// <param name="collection">Collection to check.</param>
-	/// <param name="expectedCount">Expected number of log messages in the collection.</param>
-	/// <param name="isReadOnly">
-	/// <c>true</c> if the collection is read-only;<br/>
-	/// otherwise <c>false</c>.
-	/// </param>
-	protected void TestCollectionPropertyDefaults(FileBackedLogMessageCollection collection, long expectedCount, bool isReadOnly)
-	{
-		using LogMessageCollectionEventWatcher eventWatcher = collection.AttachEventWatcher();
-		// check collection specific properties
-		Assert.Equal(expectedCount, collection.Count);
-		Assert.Equal(20, collection.MaxCachePageCount);
-		Assert.Equal(100, collection.CachePageCapacity);
-
-		// check log file specific properties
-		Assert.NotNull(collection.LogFile);
-		Assert.NotNull(collection.FilePath);
-		Assert.Equal(collection.LogFile.FilePath, collection.FilePath);
-
-		// check properties exposed by IList implementation
-		{
-			var list = collection as IList;
-			Assert.Equal(expectedCount, list.Count);
-			Assert.Equal(isReadOnly, list.IsReadOnly);
-			Assert.Equal(CollectionIsFixedSize, list.IsFixedSize);
-			Assert.Equal(CollectionIsSynchronized, list.IsSynchronized);
-			Assert.NotSame(collection, list.SyncRoot); // sync root must not be the same as the collection to avoid deadlocks
-		}
-
-		// check properties exposed by IList<T> implementation
-		{
-			var list = collection as IList<LogMessage>;
-			Assert.Equal(isReadOnly, list.IsReadOnly);
-			Assert.Equal(expectedCount, list.Count);
-		}
-
-		// no events should have been raised
-		eventWatcher.CheckInvocations();
 	}
 
 	#endregion

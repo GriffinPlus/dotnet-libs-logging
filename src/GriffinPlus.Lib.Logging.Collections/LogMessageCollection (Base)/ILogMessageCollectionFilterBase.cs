@@ -24,7 +24,7 @@ public interface ILogMessageCollectionFilterBase<TMessage>
 	/// Attaches the filter to the specified collection.
 	/// </summary>
 	/// <param name="collection">Collection to attach.</param>
-	/// <exception cref="ArgumentNullException">The specified collection is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException">The specified collection is <see langword="null"/>.</exception>
 	void AttachToCollection(ILogMessageCollection<TMessage> collection);
 
 	/// <summary>
@@ -37,9 +37,9 @@ public interface ILogMessageCollectionFilterBase<TMessage>
 	/// </summary>
 	/// <param name="message">Message to check.</param>
 	/// <returns>
-	/// <c>true</c> if the specified message matches the filter criteria;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified message matches the filter criteria;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
-	/// <exception cref="ArgumentNullException">The specified message is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException">The specified message is <see langword="null"/>.</exception>
 	bool Matches(TMessage message);
 }

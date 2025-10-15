@@ -101,7 +101,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// <param name="matchIndex">Receives the index of the first log message matching the filter.</param>
 	/// <returns>
 	/// The first log message matching the filter;<br/>
-	/// <c>null</c> if no message matching the filter was found.
+	/// <see langword="null"/> if no message matching the filter was found.
 	/// </returns>
 	/// <exception cref="ObjectDisposedException">The accessor has been disposed.</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
@@ -152,8 +152,8 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// <param name="count">Maximum number of matching log messages to get.</param>
 	/// <param name="matchIndices">Receives the indices of the log messages matching the filter.</param>
 	/// <param name="reverse">
-	/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the collection;<br/>
-	/// <c>false</c> to return the list of messages in the opposite order.
+	/// <see langword="true"/> to reverse the list of returned messages, so the order of the messages is the same as in the collection;<br/>
+	/// <see langword="false"/> to return the list of messages in the opposite order.
 	/// </param>
 	/// <returns>Log messages matching filter.</returns>
 	/// <exception cref="ObjectDisposedException">The accessor has been disposed.</exception>
@@ -185,8 +185,8 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 		// abort, if no messages were requested or the filtered set is empty
 		if (count == 0 || mFirstMatchingMessageId < 0)
 		{
-			matchIndices = Array.Empty<long>();
-			return Array.Empty<LogMessage>();
+			matchIndices = [];
+			return [];
 		}
 
 		// determine the offset of the collection index to message ids in the log file
@@ -249,7 +249,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// <param name="matchIndex">Receives the index of the first log message matching the filter.</param>
 	/// <returns>
 	/// The first log message matching the filter;<br/>
-	/// <c>null</c> if no message matching the filter was found.
+	/// <see langword="null"/> if no message matching the filter was found.
 	/// </returns>
 	/// <exception cref="ObjectDisposedException">The accessor has been disposed.</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
@@ -328,8 +328,8 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 		// abort, if no messages were requested or the filtered set is empty
 		if (count == 0 || mFirstMatchingMessageId < 0)
 		{
-			matchIndices = Array.Empty<long>();
-			return Array.Empty<LogMessage>();
+			matchIndices = [];
+			return [];
 		}
 
 		// determine the offset of the collection index to message ids in the log file
@@ -421,8 +421,8 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 		// abort, if the filtered set is empty
 		if (mFirstMatchingMessageId < 0)
 		{
-			matchIndices = Array.Empty<long>();
-			return Array.Empty<LogMessage>();
+			matchIndices = [];
+			return [];
 		}
 
 		// determine the offset of the collection index to message ids in the log file
@@ -448,11 +448,11 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 				// abort, if the first matching message is behind the end of the requested range
 				if (message.Id > lastMessage.Id)
 				{
-					matchIndices = Array.Empty<long>();
-					return Array.Empty<LogMessage>();
+					matchIndices = [];
+					return [];
 				}
 
-				// found first in the range message 
+				// found first in the range message
 				messages.Add(message);
 				expectedPredecessorId = message.Id;
 			}
@@ -492,7 +492,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 
 	#region Caching
 
-	private class CacheItem
+	private sealed class CacheItem
 	{
 		private         LogFileMessage            mMessage;
 		public          long                      MessageId;
@@ -547,7 +547,7 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// <summary>
 	/// A comparer for <see cref="CacheItem"/> that takes only <see cref="CacheItem.MessageId"/> into account.
 	/// </summary>
-	private class SearchByMessageIdComparer : IComparer<CacheItem>
+	private sealed class SearchByMessageIdComparer : IComparer<CacheItem>
 	{
 		/// <summary>
 		/// Compares the specified cache items by the id of the cached message.
@@ -727,8 +727,8 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// </summary>
 	/// <param name="messageId">ID of the message to fetch.</param>
 	/// <param name="adjustForward">
-	/// <c>true</c> to adjust forward, if the specified id does not belong to a message matching the filter;<br/>
-	/// <c>false</c> to adjust backwards, if the specified id does not belong to a message matching the filter.
+	/// <see langword="true"/> to adjust forward, if the specified id does not belong to a message matching the filter;<br/>
+	/// <see langword="false"/> to adjust backwards, if the specified id does not belong to a message matching the filter.
 	/// </param>
 	/// <returns>The found message.</returns>
 	private LogFileMessage FetchAndAddMessageToCache(
@@ -806,12 +806,12 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 	/// <param name="messageId">ID of the message to fetch.</param>
 	/// <param name="count">Maximum number of messages to fetch.</param>
 	/// <param name="adjustForward">
-	/// <c>true</c> to adjust forward, if the specified id does not belong to a message matching the filter;<br/>
-	/// <c>false</c> to adjust backwards, if the specified id does not belong to a message matching the filter.
+	/// <see langword="true"/> to adjust forward, if the specified id does not belong to a message matching the filter;<br/>
+	/// <see langword="false"/> to adjust backwards, if the specified id does not belong to a message matching the filter.
 	/// </param>
 	/// <param name="getForward">
-	/// <c>true</c> to get messages following the specified message id;<br/>
-	/// <c>false</c> to get messages preceding the specified message id.
+	/// <see langword="true"/> to get messages following the specified message id;<br/>
+	/// <see langword="false"/> to get messages preceding the specified message id.
 	/// </param>
 	/// <returns>The retrieved messages.</returns>
 	private List<LogFileMessage> FetchAndAddMessagesToCache(
@@ -1168,8 +1168,6 @@ public class FileBackedLogMessageCollectionFilteringAccessor : ILogMessageCollec
 				break;
 
 			case NotifyCollectionChangedAction.Move:
-				break;
-
 			case NotifyCollectionChangedAction.Replace:
 				break;
 

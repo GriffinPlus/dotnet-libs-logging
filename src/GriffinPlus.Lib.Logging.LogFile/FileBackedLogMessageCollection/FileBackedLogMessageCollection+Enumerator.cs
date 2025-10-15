@@ -14,7 +14,7 @@ public partial class FileBackedLogMessageCollection
 	/// <summary>
 	/// Enumerator iterating over a <see cref="FileBackedLogMessageCollection"/>.
 	/// </summary>
-	private class Enumerator : IEnumerator<LogMessage>
+	private sealed class Enumerator : IEnumerator<LogMessage>
 	{
 		private readonly FileBackedLogMessageCollection mCollection;
 		private readonly int                            mCollectionChangeCounter;
@@ -50,8 +50,8 @@ public partial class FileBackedLogMessageCollection
 		/// Advances the enumerator to the next element of the collection
 		/// </summary>
 		/// <returns>
-		/// <c>true</c> if the enumerator was successfully advanced to the next log message;<br/>
-		/// <c>false</c> if the enumerator has passed the end of the collection.
+		/// <see langword="true"/> if the enumerator was successfully advanced to the next log message;<br/>
+		/// <see langword="false"/> if the enumerator has passed the end of the collection.
 		/// </returns>
 		/// <exception cref="InvalidOperationException">The collection was modified after the enumerator was created.</exception>
 		public bool MoveNext()

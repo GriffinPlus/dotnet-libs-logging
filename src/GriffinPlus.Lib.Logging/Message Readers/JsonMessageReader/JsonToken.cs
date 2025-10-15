@@ -58,8 +58,8 @@ struct JsonToken : IEquatable<JsonToken>
 	/// </summary>
 	/// <param name="other">Token to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the current token equals the specified one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the current token equals the specified one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool Equals(JsonToken other)
 	{
@@ -71,8 +71,8 @@ struct JsonToken : IEquatable<JsonToken>
 	/// </summary>
 	/// <param name="obj">Token to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the current token equals the specified one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the current token equals the specified one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool Equals(object obj)
 	{
@@ -83,7 +83,7 @@ struct JsonToken : IEquatable<JsonToken>
 	/// Gets the hash code of the token.
 	/// </summary>
 	/// <returns>Hash code of the token.</returns>
-	public override int GetHashCode()
+	public readonly override int GetHashCode()
 	{
 		unchecked
 		{
@@ -95,7 +95,7 @@ struct JsonToken : IEquatable<JsonToken>
 	/// Gets the string representation of the token.
 	/// </summary>
 	/// <returns>String representation of the token.</returns>
-	public override string ToString()
+	public readonly override string ToString()
 	{
 		return $"{Type} : {Token}";
 	}

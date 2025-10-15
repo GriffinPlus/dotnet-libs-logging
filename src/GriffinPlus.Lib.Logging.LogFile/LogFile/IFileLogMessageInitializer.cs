@@ -15,7 +15,7 @@ public interface IFileLogMessageInitializer
 	/// <summary>
 	/// Initializes the log message.
 	/// </summary>
-	/// <param name="id">Id uniquely identifying the message in the log file.</param>
+	/// <param name="id">ID uniquely identifying the message in the log file.</param>
 	/// <param name="timestamp">Time the message was written to the log.</param>
 	/// <param name="highPrecisionTimestamp">
 	/// Timestamp for relative time measurements with high precision

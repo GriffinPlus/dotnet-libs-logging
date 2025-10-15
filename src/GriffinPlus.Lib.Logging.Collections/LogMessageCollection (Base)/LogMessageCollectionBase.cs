@@ -60,8 +60,8 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// Disposes the collection.
 	/// </summary>
 	/// <param name="disposing">
-	/// <c>true</c> if the object is being disposed;<br/>
-	/// <c>false</c> if it is being finalized.
+	/// <see langword="true"/> if the object is being disposed;<br/>
+	/// <see langword="false"/> if it is being finalized.
 	/// </param>
 	protected abstract void Dispose(bool disposing);
 
@@ -229,7 +229,7 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	#region IsFixedSize
 
 	/// <summary>
-	/// Gets a value indicating whether the collection is of fixed size (always <c>false</c>).
+	/// Gets a value indicating whether the collection is of fixed size (always <see langword="false"/>).
 	/// </summary>
 	public virtual bool IsFixedSize => false;
 
@@ -248,8 +248,8 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 
 	/// <summary>
 	/// Gets or sets a value indicating whether the <see cref="INotifyCollectionChanged.CollectionChanged"/> event
-	/// fires for single messages that are added to or removed from the collection (<c>false</c>) or whether it
-	/// bundles them in a single notification (<c>true</c>, default). Some controls do not support multi-item
+	/// fires for single messages that are added to or removed from the collection (<see langword="false"/>) or whether it
+	/// bundles them in a single notification (<see langword="true"/>, default). Some controls do not support multi-item
 	/// notifications, so it might be necessary to disable them.
 	/// </summary>
 	public bool UseMultiItemNotifications { get; set; } = true;
@@ -395,8 +395,8 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// </summary>
 	/// <param name="message">Log message to check for.</param>
 	/// <returns>
-	/// <c>true</c> if the collection contains the log message;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the collection contains the log message;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public abstract bool Contains(TMessage message);
 
@@ -405,8 +405,8 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// </summary>
 	/// <param name="item">Log message to check for.</param>
 	/// <returns>
-	/// <c>true</c> if the collection contains the log message;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the collection contains the log message;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	bool IList.Contains(object item)
 	{
@@ -465,7 +465,7 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// Adds a log message to the collection.
 	/// </summary>
 	/// <param name="message">Log message to add.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="message"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="message"/> is <see langword="null"/>.</exception>
 	/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 	public abstract void Add(TMessage message);
 
@@ -474,7 +474,7 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// </summary>
 	/// <param name="item">Log message to add.</param>
 	/// <returns>Index of the added item.</returns>
-	/// <exception cref="ArgumentNullException"><paramref name="item"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="item"/> is <see langword="null"/>.</exception>
 	/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 	/// <exception cref="NotSupportedException">The collection is too large to be accessed via the ICollection interface.</exception>
 	int IList.Add(object item)
@@ -493,7 +493,7 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// Adds multiple log messages to the collection at once.
 	/// </summary>
 	/// <param name="messages">Log messages to add.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="messages"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="messages"/> is <see langword="null"/>.</exception>
 	/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 	public abstract void AddRange(IEnumerable<TMessage> messages);
 
@@ -532,8 +532,8 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// </summary>
 	/// <param name="item">Log message to remove from the collection.</param>
 	/// <returns>
-	/// <c>true</c> if the log message was removed;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the log message was removed;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	/// <exception cref="NotSupportedException">Removing log messages is not supported.</exception>
 	bool ICollection<TMessage>.Remove(TMessage item)
@@ -546,8 +546,8 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// </summary>
 	/// <param name="item">Log message to remove from the collection.</param>
 	/// <returns>
-	/// <c>true</c> if the log message was removed;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the log message was removed;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	/// <exception cref="NotSupportedException">Removing log messages is not supported.</exception>
 	void IList.Remove(object item)
@@ -590,7 +590,7 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// </summary>
 	/// <param name="array">Array to copy the log messages into.</param>
 	/// <param name="arrayIndex">Index in the array to start copying to.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="array"/> is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException"><paramref name="array"/> is no a one-dimensional array or the array is too small to store all messages.</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="arrayIndex"/> is out of bounds.</exception>
 	public virtual void CopyTo(TMessage[] array, int arrayIndex)
@@ -613,7 +613,7 @@ public abstract class LogMessageCollectionBase<TMessage> : ILogMessageCollection
 	/// </summary>
 	/// <param name="array">Array to copy the log messages into.</param>
 	/// <param name="arrayIndex">Index in the array to start copying to.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="array"/> is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException"><paramref name="array"/> is no a one-dimensional array or the array is too small to store all messages.</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="arrayIndex"/> is out of bounds.</exception>
 	void ICollection.CopyTo(Array array, int arrayIndex)

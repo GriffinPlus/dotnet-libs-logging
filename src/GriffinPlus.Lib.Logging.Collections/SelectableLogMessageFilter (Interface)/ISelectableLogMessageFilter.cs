@@ -24,8 +24,8 @@ public interface ISelectableLogMessageFilter<TMessage> :
 	/// Gets or sets a value indicating whether the filter is enabled.
 	/// </summary>
 	/// <Value>
-	/// <c>true</c> applies the filter when matching log messages (default).<br/>
-	/// <c>false</c> lets all log messages pass the filter when matching.
+	/// <see langword="true"/> applies the filter when matching log messages (default).<br/>
+	/// <see langword="false"/> lets all log messages pass the filter when matching.
 	/// </Value>
 	bool Enabled { get; set; }
 

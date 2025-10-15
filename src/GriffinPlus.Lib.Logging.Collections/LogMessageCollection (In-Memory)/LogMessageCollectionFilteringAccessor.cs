@@ -21,7 +21,7 @@ public class LogMessageCollectionFilteringAccessor<TMessage> : ILogMessageCollec
 	/// </summary>
 	/// <param name="collection">The unfiltered collection the accessor should work on.</param>
 	/// <param name="filter">
-	/// The filter the accessor should apply (<c>null</c> to create an accessor without filtering capabilities).
+	/// The filter the accessor should apply (<see langword="null"/> to create an accessor without filtering capabilities).
 	/// </param>
 	internal LogMessageCollectionFilteringAccessor(
 		LogMessageCollection<TMessage>        collection,
@@ -63,7 +63,7 @@ public class LogMessageCollectionFilteringAccessor<TMessage> : ILogMessageCollec
 	/// <param name="matchIndex">Receives the index of the first log message matching the filter.</param>
 	/// <returns>
 	/// The first log message matching the filter;<br/>
-	/// <c>null</c> if no message matching the filter was found.
+	/// <see langword="null"/> if no message matching the filter was found.
 	/// </returns>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
 	public TMessage GetPreviousMessage(
@@ -100,8 +100,8 @@ public class LogMessageCollectionFilteringAccessor<TMessage> : ILogMessageCollec
 	/// <param name="count">Maximum number of matching log messages to get.</param>
 	/// <param name="matchIndices">Receives the indices of the log messages matching the filter.</param>
 	/// <param name="reverse">
-	/// <c>true</c> to reverse the list of returned messages, so the order of the messages is the same as in the collection;<br/>
-	/// <c>false</c> to return the list of messages in the opposite order.
+	/// <see langword="true"/> to reverse the list of returned messages, so the order of the messages is the same as in the collection;<br/>
+	/// <see langword="false"/> to return the list of messages in the opposite order.
 	/// </param>
 	/// <returns>Log messages matching filter.</returns>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
@@ -159,7 +159,7 @@ public class LogMessageCollectionFilteringAccessor<TMessage> : ILogMessageCollec
 	/// <param name="matchIndex">Receives the index of the first log message matching the filter.</param>
 	/// <returns>
 	/// The first log message matching the filter;<br/>
-	/// <c>null</c> if no message matching the filter was found.
+	/// <see langword="null"/> if no message matching the filter was found.
 	/// </returns>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromIndex"/> exceeds the bounds of the unfiltered collection.</exception>
 	public TMessage GetNextMessage(

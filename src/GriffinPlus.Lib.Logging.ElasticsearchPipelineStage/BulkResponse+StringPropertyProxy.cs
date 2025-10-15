@@ -43,8 +43,8 @@ partial class BulkResponse
 		/// <param name="index">Index in the array where the string starts.</param>
 		/// <param name="length">Length of the string in the array (in bytes).</param>
 		/// <param name="cache">
-		/// <c>true</c> to cache the string in the <see cref="BulkResponsePool"/>;<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> to cache the string in the <see cref="BulkResponsePool"/>;<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </param>
 		public void Update(
 			byte[] data,

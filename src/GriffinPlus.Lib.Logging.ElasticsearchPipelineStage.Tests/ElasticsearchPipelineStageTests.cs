@@ -21,8 +21,8 @@ public class ElasticsearchPipelineStageTests
 {
 	private Uri[] Setting_Server_ApiBaseUrls { get; } =
 	[
-		new Uri("http://127.0.0.1:9200/"), // Elasticsearch is working on this endpoint
-		new Uri("http://127.0.0.1:9201/")  // there is no Elasticsearch server running at this endpoint
+		new("http://127.0.0.1:9200/"), // Elasticsearch is working on this endpoint
+		new("http://127.0.0.1:9201/")  // there is no Elasticsearch server running at this endpoint
 	];
 
 	private const AuthenticationScheme Setting_Server_Authentication_Schemes          = AuthenticationScheme.Basic | AuthenticationScheme.Digest;
@@ -241,7 +241,7 @@ public class ElasticsearchPipelineStageTests
 	/// Converts an array of <see cref="Uri"/> to a string as used in the configuration.
 	/// </summary>
 	/// <param name="uris">Array of <see cref="Uri"/> to convert to a string.</param>
-	/// <param name="provider">Format provider to use (<c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
+	/// <param name="provider">Format provider to use (<see langword="null"/> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 	/// <returns>The formatted array of <see cref="Uri"/>.</returns>
 	private static string UriArrayToString(Uri[] uris, IFormatProvider provider = null)
 	{
@@ -253,7 +253,7 @@ public class ElasticsearchPipelineStageTests
 	/// The string is expected to contain the uris separated by semicolons.
 	/// </summary>
 	/// <param name="s">String to convert to an array of <see cref="Uri"/>.</param>
-	/// <param name="provider">Format provider to use (<c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
+	/// <param name="provider">Format provider to use (<see langword="null"/> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 	/// <returns>An array of <see cref="Uri"/> corresponding to the specified string.</returns>
 	private static Uri[] StringToUriArray(string s, IFormatProvider provider = null)
 	{

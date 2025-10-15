@@ -27,7 +27,7 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// Initializes a new instance of the <see cref="ProcessingPipelineStageConfigurationBase"/> class.
 	/// </summary>
 	/// <param name="sync">
-	/// The configuration lock used to synchronize access to the configuration (<c>null</c> to create a new lock).
+	/// The configuration lock used to synchronize access to the configuration (<see langword="null"/> to create a new lock).
 	/// </param>
 	protected ProcessingPipelineStageConfigurationBase(object sync)
 	{
@@ -58,7 +58,7 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// <param name="defaultValue">Value of the setting, if the setting does not exist, yet.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/> is <c>null</c>.
+	/// The argument <paramref name="name"/> is <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -105,7 +105,8 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -129,9 +130,9 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// - square brackets ( [] )
 	/// - Period (.)
 	/// </param>
-	/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
+	/// <returns>The setting (<see langword="null"/> if the setting does not exist).</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/> is <c>null</c>.
+	/// The argument <paramref name="name"/> is <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists, but the specified type differs from the value type of the existing setting.
@@ -173,9 +174,10 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// </param>
 	/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
 	/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
-	/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
+	/// <returns>The setting (<see langword="null"/> if the setting does not exist).</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists, but the specified type differs from the value type of the existing setting.
@@ -202,7 +204,7 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// <param name="value">New value of the setting.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/> is <c>null</c>.
+	/// The argument <paramref name="name"/> is <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -248,7 +250,8 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// <param name="stringToValueConverter">Delegate that converts the string representation to an object of the type <typeparamref name="T"/>.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -291,8 +294,8 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// </summary>
 	/// <param name="key">Name of the setting to check.</param>
 	/// <returns>
-	/// <c>true</c> if the setting with the specified name exists in the configuration;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the setting with the specified name exists in the configuration;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public abstract bool ContainsKey(string key);
 
@@ -302,8 +305,8 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// <param name="key">Name of the setting to get.</param>
 	/// <param name="value">Receives the setting, if it exists.</param>
 	/// <returns>
-	/// <c>true</c> if the requested setting was successfully returned;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the requested setting was successfully returned;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public abstract bool TryGetValue(string key, out IUntypedProcessingPipelineStageSetting value);
 
@@ -332,7 +335,7 @@ public abstract class ProcessingPipelineStageConfigurationBase : IProcessingPipe
 	/// Checks the name of a setting and throws an exception, if it is not valid.
 	/// </summary>
 	/// <param name="name">Name to check.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
 	/// <exception cref="FormatException"><paramref name="name"/> is not a valid setting name.</exception>
 	protected static void CheckSettingName(string name)
 	{

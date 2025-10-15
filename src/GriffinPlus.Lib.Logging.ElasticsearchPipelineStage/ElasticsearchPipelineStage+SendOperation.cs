@@ -126,8 +126,8 @@ partial class ElasticsearchPipelineStage
 		/// (<see cref="LocalLogMessage.Release"/> is called automatically when sending completes).
 		/// </param>
 		/// <returns>
-		/// <c>true</c> if the request was successfully added to the request;<br/>
-		/// <c>false</c> if the request is full.
+		/// <see langword="true"/> if the request was successfully added to the request;<br/>
+		/// <see langword="false"/> if the request is full.
 		/// </returns>
 		public bool AddMessage(LocalLogMessage message)
 		{
@@ -240,8 +240,8 @@ partial class ElasticsearchPipelineStage
 		/// <param name="endpoint">Endpoint the request is sent to.</param>
 		/// <param name="cancellationToken">Cancellation token that can be signaled to abort the send operation.</param>
 		/// <returns>
-		/// <c>true</c> if sending was started successfully;<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> if sending was started successfully;<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </returns>
 		public bool StartSending(EndpointInfo endpoint, CancellationToken cancellationToken)
 		{
@@ -291,8 +291,8 @@ partial class ElasticsearchPipelineStage
 		/// Processes a completed send operation (may have succeeded or failed).
 		/// </summary>
 		/// <returns>
-		/// <c>true</c> if the endpoint is considered operational;<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> if the endpoint is considered operational;<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </returns>
 		public bool ProcessSendCompleted()
 		{

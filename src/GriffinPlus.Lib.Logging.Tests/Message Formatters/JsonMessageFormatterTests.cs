@@ -20,7 +20,7 @@ namespace GriffinPlus.Lib.Logging;
 /// </summary>
 public class JsonMessageFormatterTests
 {
-	private static readonly Dictionary<int, string> sEscapedCodePoints = new();
+	private static readonly Dictionary<int, string> sEscapedCodePoints = [];
 	private static readonly string                  sUnescapedString;
 	private static readonly string                  sEscapedString_WithSolidus;
 	private static readonly string                  sEscapedString_WithoutSolidus;
@@ -125,10 +125,17 @@ public class JsonMessageFormatterTests
 	}
 
 
-	public static IEnumerable<object[]> FormatTestData
+	/// <summary>
+	/// Test data for <see cref="JsonMessageFormatter"/> covering all styles,
+	/// field combinations, newline handling, and expected JSON output.
+	/// </summary>
+	public static TheoryData<JsonMessageFormatterStyle, LogMessageField, LogMessage, string, string> FormatTestData
 	{
 		get
 		{
+			var data = new TheoryData<JsonMessageFormatterStyle, LogMessageField, LogMessage, string, string>();
+
+			// Base log message used across all test variants
 			var message = new LogMessage
 			{
 				Timestamp = DateTimeOffset.Parse("2000-01-01 00:00:00Z"),
@@ -143,123 +150,26 @@ public class JsonMessageFormatterTests
 			};
 
 			// ------------------------------------------------------------------------
-			// style: compact
+			// Style: Compact
 			// ------------------------------------------------------------------------
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.None,
-				message,
-				null, // newline sequence is not relevant
-				"{}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.Timestamp,
-				message,
-				null, // newline sequence is not relevant
-				"{\"Timestamp\":\"2000-01-01 00:00:00Z\"}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.HighPrecisionTimestamp,
-				message,
-				null, // newline sequence is not relevant
-				"{\"HighPrecisionTimestamp\":123}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.LogWriterName,
-				message,
-				null, // newline sequence is not relevant
-				"{\"LogWriter\":\"MyWriter\"}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.LogLevelName,
-				message,
-				null, // newline sequence is not relevant
-				"{\"LogLevel\":\"MyLevel\"}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet() },
-				null, // newline sequence is not relevant
-				"{\"Tags\":[]}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet("Tag") },
-				null, // newline sequence is not relevant
-				"{\"Tags\":[\"Tag\"]}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
-				null, // newline sequence is not relevant
-				"{\"Tags\":[\"Tag1\",\"Tag2\"]}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.ApplicationName,
-				message,
-				null, // newline sequence is not relevant
-				"{\"ApplicationName\":\"MyApp\"}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.ProcessName,
-				message,
-				null, // newline sequence is not relevant
-				"{\"ProcessName\":\"MyProcess\"}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.ProcessId,
-				message,
-				null, // newline sequence is not relevant
-				"{\"ProcessId\":42}"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.Compact,
-				LogMessageField.Text,
-				message,
-				null, // newline sequence is not relevant
-				"{\"Text\":\"MyText\"}"
-			];
-
-			yield return
-			[
+			// newline = null => not relevant for compact/one-line variants
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.None, message, null, "{}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.Timestamp, message, null, "{\"Timestamp\":\"2000-01-01 00:00:00Z\"}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.HighPrecisionTimestamp, message, null, "{\"HighPrecisionTimestamp\":123}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.LogWriterName, message, null, "{\"LogWriter\":\"MyWriter\"}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.LogLevelName, message, null, "{\"LogLevel\":\"MyLevel\"}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet() }, null, "{\"Tags\":[]}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet("Tag") }, null, "{\"Tags\":[\"Tag\"]}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") }, null, "{\"Tags\":[\"Tag1\",\"Tag2\"]}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.ApplicationName, message, null, "{\"ApplicationName\":\"MyApp\"}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.ProcessName, message, null, "{\"ProcessName\":\"MyProcess\"}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.ProcessId, message, null, "{\"ProcessId\":42}");
+			data.Add(JsonMessageFormatterStyle.Compact, LogMessageField.Text, message, null, "{\"Text\":\"MyText\"}");
+			data.Add(
 				JsonMessageFormatterStyle.Compact,
 				LogMessageField.All,
 				message,
-				null, // newline sequence is not relevant
+				null,
 				"{" +
 				"\"Timestamp\":\"2000-01-01 00:00:00Z\"," +
 				"\"HighPrecisionTimestamp\":123," +
@@ -270,127 +180,28 @@ public class JsonMessageFormatterTests
 				"\"ProcessName\":\"MyProcess\"," +
 				"\"ProcessId\":42," +
 				"\"Text\":\"MyText\"" +
-				"}"
-			];
+				"}");
 
 			// ------------------------------------------------------------------------
-			// style: one line
+			// Style: OneLine
 			// ------------------------------------------------------------------------
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.None,
-				message,
-				null, // newline sequence is not relevant
-				"{ }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.Timestamp,
-				message,
-				null, // newline sequence is not relevant
-				"{ \"Timestamp\" : \"2000-01-01 00:00:00Z\" }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.HighPrecisionTimestamp,
-				message,
-				null, // newline sequence is not relevant
-				"{ \"HighPrecisionTimestamp\" : 123 }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.LogWriterName,
-				message,
-				null, // newline sequence is not relevant
-				"{ \"LogWriter\" : \"MyWriter\" }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.LogLevelName,
-				message,
-				null, // newline sequence is not relevant
-				"{ \"LogLevel\" : \"MyLevel\" }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet() },
-				null, // newline sequence is not relevant
-				"{ \"Tags\" : [] }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet("Tag") },
-				null, // newline sequence is not relevant
-				"{ \"Tags\" : [ \"Tag\" ] }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.Tags,
-				new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
-				null, // newline sequence is not relevant
-				"{ \"Tags\" : [ \"Tag1\", \"Tag2\" ] }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.ApplicationName,
-				message,
-				null, // newline sequence is not relevant
-				"{ \"ApplicationName\" : \"MyApp\" }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.ProcessName,
-				message,
-				null, // newline sequence is not relevant
-				"{ \"ProcessName\" : \"MyProcess\" }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.ProcessId,
-				message,
-				null, // newline sequence is not relevant
-				"{ \"ProcessId\" : 42 }"
-			];
-
-			yield return
-			[
-				JsonMessageFormatterStyle.OneLine,
-				LogMessageField.Text,
-				message,
-				null, // newline sequence is not relevant
-				"{ \"Text\" : \"MyText\" }"
-			];
-
-			yield return
-			[
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.None, message, null, "{ }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.Timestamp, message, null, "{ \"Timestamp\" : \"2000-01-01 00:00:00Z\" }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.HighPrecisionTimestamp, message, null, "{ \"HighPrecisionTimestamp\" : 123 }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.LogWriterName, message, null, "{ \"LogWriter\" : \"MyWriter\" }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.LogLevelName, message, null, "{ \"LogLevel\" : \"MyLevel\" }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet() }, null, "{ \"Tags\" : [] }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet("Tag") }, null, "{ \"Tags\" : [ \"Tag\" ] }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.Tags, new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") }, null, "{ \"Tags\" : [ \"Tag1\", \"Tag2\" ] }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.ApplicationName, message, null, "{ \"ApplicationName\" : \"MyApp\" }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.ProcessName, message, null, "{ \"ProcessName\" : \"MyProcess\" }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.ProcessId, message, null, "{ \"ProcessId\" : 42 }");
+			data.Add(JsonMessageFormatterStyle.OneLine, LogMessageField.Text, message, null, "{ \"Text\" : \"MyText\" }");
+			data.Add(
 				JsonMessageFormatterStyle.OneLine,
 				LogMessageField.All,
 				message,
-				null, // newline sequence is not relevant
+				null,
 				"{" +
 				" \"Timestamp\" : \"2000-01-01 00:00:00Z\"," +
 				" \"HighPrecisionTimestamp\" : 123," +
@@ -401,148 +212,103 @@ public class JsonMessageFormatterTests
 				" \"ProcessName\" : \"MyProcess\"," +
 				" \"ProcessId\" : 42," +
 				" \"Text\" : \"MyText\"" +
-				" }"
-			];
+				" }");
 
 			// ------------------------------------------------------------------------
-			// style: beautified
+			// Style: Beautified
 			// ------------------------------------------------------------------------
-
 			foreach (string newline in new[] { "\n", "\r\n" })
 			{
-				yield return
-				[
-					JsonMessageFormatterStyle.Beautified,
-					LogMessageField.None,
-					message,
-					newline,
-					$"{{{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+				data.Add(JsonMessageFormatterStyle.Beautified, LogMessageField.None, message, newline, $"{{{newline}" + "}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Timestamp,
 					message,
 					newline,
 					$"{{{newline}" +
 					$"    \"Timestamp\" : \"2000-01-01 00:00:00Z\"{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.HighPrecisionTimestamp,
 					message,
 					newline,
 					$"{{{newline}" +
 					$"    \"HighPrecisionTimestamp\" : 123{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.LogWriterName,
 					message,
 					newline,
 					$"{{{newline}" +
 					$"    \"LogWriter\" : \"MyWriter\"{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.LogLevelName,
 					message,
 					newline,
 					$"{{{newline}" +
 					$"    \"LogLevel\" : \"MyLevel\"{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet() },
 					newline,
 					$"{{{newline}" +
 					$"    \"Tags\" : []{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag") },
 					newline,
 					$"{{{newline}" +
 					$"    \"Tags\" : [ \"Tag\" ]{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Tags,
 					new LogMessage(message) { Tags = new TagSet("Tag1", "Tag2") },
 					newline,
 					$"{{{newline}" +
 					$"    \"Tags\" : [ \"Tag1\", \"Tag2\" ]{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.ApplicationName,
 					message,
 					newline,
 					$"{{{newline}" +
 					$"    \"ApplicationName\" : \"MyApp\"{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.ProcessName,
 					message,
 					newline,
 					$"{{{newline}" +
 					$"    \"ProcessName\" : \"MyProcess\"{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.ProcessId,
 					message,
 					newline,
 					$"{{{newline}" +
 					$"    \"ProcessId\" : 42{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.Text,
 					message,
 					newline,
 					$"{{{newline}" +
 					$"    \"Text\" : \"MyText\"{newline}" +
-					"}"
-				];
-
-				yield return
-				[
+					"}");
+				data.Add(
 					JsonMessageFormatterStyle.Beautified,
 					LogMessageField.All,
 					message,
@@ -557,11 +323,13 @@ public class JsonMessageFormatterTests
 					$"    \"ProcessName\"            : \"MyProcess\",{newline}" +
 					$"    \"ProcessId\"              : 42,{newline}" +
 					$"    \"Text\"                   : \"MyText\"{newline}" +
-					"}"
-				];
+					"}");
 			}
+
+			return data;
 		}
 	}
+
 
 	/// <summary>
 	/// Tests whether formatting specific fields works as expected.

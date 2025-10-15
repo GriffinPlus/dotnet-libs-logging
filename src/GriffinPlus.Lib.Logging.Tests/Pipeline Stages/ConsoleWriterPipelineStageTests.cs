@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -43,29 +42,29 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 	}
 
 	/// <summary>
-	/// Test data for the tests concerning the mapping of log levels to console output streams (stdout/stderr).
+	/// Test data for verifying the mapping of <see cref="LogLevel"/> values
+	/// to console output streams (<see cref="ConsoleOutputStream.Stdout"/> or <see cref="ConsoleOutputStream.Stderr"/>).
 	/// </summary>
-	public static IEnumerable<object[]> LogLevelToStreamMapping_TestData
+	public static TheoryData<List<Tuple<LogLevel, ConsoleOutputStream>>> LogLevelToStreamMapping_TestData
 	{
 		get
 		{
+			var data = new TheoryData<List<Tuple<LogLevel, ConsoleOutputStream>>>();
 			List<Tuple<LogLevel, ConsoleOutputStream>> mappings;
 
-			// test adding log levels to the same stream
+			// Test adding log levels to the same stream (progressively more mappings)
+			// Note: Original code used Stdout twice — preserved as-is for consistency.
 			foreach (ConsoleOutputStream stream in new[] { ConsoleOutputStream.Stdout, ConsoleOutputStream.Stdout })
 			{
-				mappings =
-				[
-					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream)
-				];
-				yield return [mappings];
+				mappings = [new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream)];
+				data.Add(mappings);
 
 				mappings =
 				[
 					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, stream),
 					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream)
 				];
-				yield return [mappings];
+				data.Add(mappings);
 
 				mappings =
 				[
@@ -73,7 +72,7 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, stream),
 					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, stream)
 				];
-				yield return [mappings];
+				data.Add(mappings);
 
 				mappings =
 				[
@@ -82,18 +81,21 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, stream),
 					new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Error, stream)
 				];
-				yield return [mappings];
+				data.Add(mappings);
 			}
 
-			// now test whether overwriting existing mappings work
+			// Test overwriting existing mappings (same LogLevel reassigned to a different stream)
 			mappings =
 			[
 				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Emergency, ConsoleOutputStream.Stdout),
 				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stdout),
 				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Critical, ConsoleOutputStream.Stdout),
-				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stderr) // overwrite (!)
+				// Overwrite existing mapping of 'Alert' with Stderr
+				new Tuple<LogLevel, ConsoleOutputStream>(LogLevel.Alert, ConsoleOutputStream.Stderr)
 			];
-			yield return [mappings];
+			data.Add(mappings);
+
+			return data;
 		}
 	}
 
@@ -187,27 +189,34 @@ public class ConsoleWriterPipelineStageTests : TextWriterPipelineStageBaseTests<
 	}
 
 	/// <summary>
-	/// Test data for the tests concerning the mapping of log levels to console output streams (stdout/stderr).
+	/// Test data for verifying mapping of log levels to console output streams when processing messages.
+	/// Combines a default stream selection, a set of log level => stream mappings, and a local message set.
 	/// </summary>
-	public static IEnumerable<object[]> Process_TestData
+	public static TheoryData<ConsoleOutputStream, List<Tuple<LogLevel, ConsoleOutputStream>>, IEnumerable<LocalLogMessage>> Process_TestData
 	{
 		get
 		{
-			return
-				from defaultStream in new[]
+			var data = new TheoryData<ConsoleOutputStream, List<Tuple<LogLevel, ConsoleOutputStream>>, IEnumerable<LocalLogMessage>>();
+
+			// Default stream options (stdout/stderr)
+			var defaultStreams = new[] { ConsoleOutputStream.Stdout, ConsoleOutputStream.Stderr };
+
+			// IMPORTANT:
+			// LogLevelToStreamMapping_TestData is a TheoryData<List<Tuple<LogLevel, ConsoleOutputStream>>>
+			// which enumerates as object[] with a single element (the mappings list).
+			foreach (ConsoleOutputStream defaultStream in defaultStreams)
+			{
+				foreach (List<Tuple<LogLevel, ConsoleOutputStream>> entry in LogLevelToStreamMapping_TestData)
 				{
-					ConsoleOutputStream.Stdout,
-					ConsoleOutputStream.Stderr
+					// Combine with all local message sets
+					foreach (IEnumerable<LocalLogMessage> messages in TestData.LocalLogMessageSet)
+					{
+						data.Add(defaultStream, entry, messages);
+					}
 				}
-				from args in LogLevelToStreamMapping_TestData
-				let mappings = (List<Tuple<LogLevel, ConsoleOutputStream>>)args[0]
-				from messages in TestData.LocalLogMessageSet
-				select new object[]
-				{
-					defaultStream,
-					mappings,
-					messages
-				};
+			}
+
+			return data;
 		}
 	}
 

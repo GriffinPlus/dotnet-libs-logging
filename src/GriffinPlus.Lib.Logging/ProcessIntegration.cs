@@ -30,7 +30,7 @@ public partial class ProcessIntegration : IDisposable
 	/// <summary>
 	/// Occurs when the integrated process has written a line to its output stream.
 	/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-	/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line"/> set to <c>null</c> at the end of the stream
+	/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line"/> set to <see langword="null"/> at the end of the stream
 	/// (when the process exits).
 	/// </summary>
 	public event EventHandler<LineReceivedEventArgs> OutputStreamReceivedText
@@ -51,7 +51,8 @@ public partial class ProcessIntegration : IDisposable
 	/// <summary>
 	/// Occurs when the integrated process has completed writing a JSON log message to its output stream.
 	/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-	/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message"/> set to <c>null</c> at the end of the stream
+	/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message"/> set to <see langword="null"/> at the end of the
+	/// stream
 	/// (when the process exits).
 	/// </summary>
 	public event EventHandler<MessageReceivedEventArgs> OutputStreamReceivedMessage
@@ -72,7 +73,7 @@ public partial class ProcessIntegration : IDisposable
 	/// <summary>
 	/// Occurs when the integrated process has written a line to its error stream.
 	/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-	/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line"/> set to <c>null</c> at the end of the stream
+	/// The event handler receives an event argument with <see cref="LineReceivedEventArgs.Line"/> set to <see langword="null"/> at the end of the stream
 	/// (when the process exits).
 	/// </summary>
 	public event EventHandler<LineReceivedEventArgs> ErrorStreamReceivedText
@@ -93,7 +94,8 @@ public partial class ProcessIntegration : IDisposable
 	/// <summary>
 	/// Occurs when the integrated process has completed writing a JSON log message to its error stream.
 	/// If the thread registering the event has a synchronization context, the event handler is invoked in the context of that thread.
-	/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message"/> set to <c>null</c> at the end of the stream
+	/// The event handler receives an event argument with <see cref="MessageReceivedEventArgs.Message"/> set to <see langword="null"/> at the end of the
+	/// stream
 	/// (when the process exits).
 	/// </summary>
 	public event EventHandler<MessageReceivedEventArgs> ErrorStreamReceivedMessage
@@ -115,8 +117,8 @@ public partial class ProcessIntegration : IDisposable
 	/// Initializes a new instance of the <see cref="ProcessIntegration"/> class.
 	/// </summary>
 	/// <param name="process">The process.</param>
-	/// <param name="logWriter">Log writer to use when logging received messages (may be <c>null</c>).</param>
-	/// <exception cref="ArgumentNullException">The specified process is <c>null</c>.</exception>
+	/// <param name="logWriter">Log writer to use when logging received messages (may be <see langword="null"/>).</param>
+	/// <exception cref="ArgumentNullException">The specified process is <see langword="null"/>.</exception>
 	private ProcessIntegration(Process process, LogWriter logWriter)
 	{
 		Process = process ?? throw new ArgumentNullException(nameof(process));
@@ -178,7 +180,7 @@ public partial class ProcessIntegration : IDisposable
 	/// must be started using <see cref="StartProcess"/> to kick off reading from its output/error stream.
 	/// </summary>
 	/// <param name="process">Process to configure.</param>
-	/// <param name="logWriter">Log writer to use when logging received messages (may be <c>null</c>).</param>
+	/// <param name="logWriter">Log writer to use when logging received messages (may be <see langword="null"/>).</param>
 	public static ProcessIntegration IntegrateIntoLogging(Process process, LogWriter logWriter = null)
 	{
 		return new ProcessIntegration(process, logWriter);
@@ -210,8 +212,8 @@ public partial class ProcessIntegration : IDisposable
 	/// The maximum is the largest possible value of a 32-bit integer, which represents infinity to the operating system.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> if the associated process has exited;<br/>
-	/// otherwise, <c>false</c>.
+	/// <see langword="true"/> if the associated process has exited;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool WaitForExit(int milliseconds)
 	{

@@ -75,7 +75,7 @@ public class LocalLogServicePipelineStage : SyncProcessingPipelineStage
 	/// <summary>
 	/// Gets or sets the capacity of the queue buffering data blocks that would have been sent to the local
 	/// log service, but could not, because the shared memory queue was full. This can happen in case of severe
-	/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode"/> is <c>false</c>. Set the capacity
+	/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode"/> is <see langword="false"/>. Set the capacity
 	/// to 0 to disable peak buffering messages (notifications are always buffered to avoid getting out of sync).
 	/// </summary>
 	public int PeakBufferCapacity
@@ -102,8 +102,8 @@ public class LocalLogServicePipelineStage : SyncProcessingPipelineStage
 	/// Sends a command telling the log viewer to clear its view.
 	/// </summary>
 	/// <returns>
-	/// <c>true</c> if the command was successfully sent;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the command was successfully sent;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool ClearLogViewer()
 	{
@@ -114,8 +114,8 @@ public class LocalLogServicePipelineStage : SyncProcessingPipelineStage
 	/// Sends a command telling the local log service to save a snapshot of the current log.
 	/// </summary>
 	/// <returns>
-	/// <c>true</c> if the command was successfully sent;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the command was successfully sent;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool SaveSnapshot()
 	{
@@ -143,8 +143,8 @@ public class LocalLogServicePipelineStage : SyncProcessingPipelineStage
 	/// </summary>
 	/// <param name="message">Message to process.</param>
 	/// <returns>
-	/// <c>true</c> to continue processing (pass message to the following stages);<br/>
-	/// <c>false</c> to stop processing.
+	/// <see langword="true"/> to continue processing (pass message to the following stages);<br/>
+	/// <see langword="false"/> to stop processing.
 	/// </returns>
 	protected override bool ProcessSync(LocalLogMessage message)
 	{

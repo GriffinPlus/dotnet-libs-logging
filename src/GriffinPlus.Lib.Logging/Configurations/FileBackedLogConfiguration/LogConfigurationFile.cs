@@ -141,7 +141,7 @@ public class LogConfigurationFile
 	/// </summary>
 	public LogConfigurationFile()
 	{
-		mGlobalSettings = new Dictionary<string, string>();
+		mGlobalSettings = [];
 		ApplicationName = Process.GetCurrentProcess().ProcessName;
 		var writer = LogWriterConfiguration.Default;
 		writer.IsDefault = true; // ensures that the log writer configuration is removed, if some other is added
@@ -271,7 +271,7 @@ public class LogConfigurationFile
 				if (match.Success)
 				{
 					string stageName = match.Groups[1].Value;
-					currentSettings = new Dictionary<string, string>();
+					currentSettings = [];
 					ProcessingPipelineStageSettings[stageName] = currentSettings;
 					continue;
 				}

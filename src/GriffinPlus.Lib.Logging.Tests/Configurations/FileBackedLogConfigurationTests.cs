@@ -29,7 +29,7 @@ public class FileBackedLogConfigurationTests : LogConfigurationTests_Base<FileBa
 			Assert.True(File.Exists(configuration.FullPath));
 		}
 
-		// delete the create configuration
+		// delete the created configuration
 		File.Delete(fileName);
 	}
 }

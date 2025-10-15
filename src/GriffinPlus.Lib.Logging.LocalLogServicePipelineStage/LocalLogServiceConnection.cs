@@ -107,7 +107,7 @@ sealed partial class LocalLogServiceConnection
 	#region Lossless Mode
 
 	/// <summary>
-	/// Gets or sets a value indicating whether the lossless mode is enabled or disabled (default: <c>false</c>).
+	/// Gets or sets a value indicating whether the lossless mode is enabled or disabled (default: <see langword="false"/>).
 	/// Lossless mode ensures that messages and notifications are immediately passed to the local log service.
 	/// If there is no space in the shared memory queue to the local log service, the calling thread blocks until
 	/// there is enough space to enqueue the message/command/notification. The connection's peak buffering is disabled
@@ -146,7 +146,7 @@ sealed partial class LocalLogServiceConnection
 	/// <summary>
 	/// Gets or sets the capacity of the queue buffering data blocks that would have been sent to the local
 	/// log service, but could not, because the shared memory queue was full. This can happen in case of severe
-	/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode"/> is <c>false</c>. Set the capacity
+	/// load peaks. Peak buffering is in effect, if <see cref="LosslessMode"/> is <see langword="false"/>. Set the capacity
 	/// to <c>0</c> to disable peak buffering messages (notifications are always buffered to avoid getting out of sync).
 	/// </summary>
 	/// <remarks>
@@ -320,8 +320,8 @@ sealed partial class LocalLogServiceConnection
 	/// </summary>
 	/// <returns>
 	/// <param name="cancellationToken">Cancellation token that may be signaled to abort the operation.</param>
-	/// <c>true</c> if connecting to the local log service succeeded;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if connecting to the local log service succeeded;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	private async Task EstablishConnectionAsync(CancellationToken cancellationToken)
 	{
@@ -691,8 +691,8 @@ sealed partial class LocalLogServiceConnection
 	/// Checks whether the local log service is alive.
 	/// </summary>
 	/// <returns>
-	/// <c>true</c> if the local log service process is alive;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the local log service process is alive;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool IsLogSinkAlive()
 	{
@@ -1082,8 +1082,8 @@ sealed partial class LocalLogServiceConnection
 	/// </summary>
 	/// <param name="message">Message to send.</param>
 	/// <returns>
-	/// <c>true</c> if the message was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full.
+	/// <see langword="true"/> if the message was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full.
 	/// </returns>
 	public bool EnqueueMessage(LocalLogMessage message)
 	{
@@ -1118,12 +1118,12 @@ sealed partial class LocalLogServiceConnection
 	/// </summary>
 	/// <param name="message">Message to send.</param>
 	/// <param name="defer">
-	/// <c>true</c> to put the message into the peak buffer queue;<br/>
-	/// <c>false</c> to put the message directly into the shared memory queue.
+	/// <see langword="true"/> to put the message into the peak buffer queue;<br/>
+	/// <see langword="false"/> to put the message directly into the shared memory queue.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> if the message was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the message was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	private unsafe bool EnqueueMessage(LocalLogMessage message, bool defer)
 	{
@@ -1295,8 +1295,8 @@ sealed partial class LocalLogServiceConnection
 	/// </summary>
 	/// <param name="level">The added log level.</param>
 	/// <returns>
-	/// <c>true</c> if the notification was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the notification was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	public bool EnqueueLogLevelAddedNotification(LogLevel level)
 	{
@@ -1320,12 +1320,12 @@ sealed partial class LocalLogServiceConnection
 	/// </summary>
 	/// <param name="level">The added log level.</param>
 	/// <param name="defer">
-	/// <c>true</c> to put the notification into the peak buffer queue;<br/>
-	/// <c>false</c> to put the notification directly into the shared memory queue.
+	/// <see langword="true"/> to put the notification into the peak buffer queue;<br/>
+	/// <see langword="false"/> to put the notification directly into the shared memory queue.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> if the notification was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the notification was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	private unsafe bool EnqueueLogLevelAddedNotification(LogLevel level, bool defer)
 	{
@@ -1396,8 +1396,8 @@ sealed partial class LocalLogServiceConnection
 	/// </summary>
 	/// <param name="writer">The added log writer.</param>
 	/// <returns>
-	/// <c>true</c> if the notification was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the notification was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	public bool EnqueueLogWriterAddedNotification(LogWriter writer)
 	{
@@ -1421,12 +1421,12 @@ sealed partial class LocalLogServiceConnection
 	/// </summary>
 	/// <param name="writer">The added log writer.</param>
 	/// <param name="defer">
-	/// <c>true</c> to put the notification into the peak buffer queue;<br/>
-	/// <c>false</c> to put the notification directly into the shared memory queue.
+	/// <see langword="true"/> to put the notification into the peak buffer queue;<br/>
+	/// <see langword="false"/> to put the notification directly into the shared memory queue.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> if the notification was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the notification was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	private unsafe bool EnqueueLogWriterAddedNotification(LogWriter writer, bool defer)
 	{
@@ -1494,8 +1494,8 @@ sealed partial class LocalLogServiceConnection
 	/// Enqueues a command telling the log viewer to clear its view.
 	/// </summary>
 	/// <returns>
-	/// <c>true</c> if the command was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the command was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	public bool EnqueueClearLogViewerCommand()
 	{
@@ -1518,12 +1518,12 @@ sealed partial class LocalLogServiceConnection
 	/// Enqueues a command telling the log viewer to clear its view.
 	/// </summary>
 	/// <param name="defer">
-	/// <c>true</c> to put the command into the peak buffer queue;<br/>
-	/// <c>false</c> to put the command directly into the shared memory queue.
+	/// <see langword="true"/> to put the command into the peak buffer queue;<br/>
+	/// <see langword="false"/> to put the command directly into the shared memory queue.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> if the command was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the command was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	private unsafe bool EnqueueClearLogViewerCommand(bool defer)
 	{
@@ -1578,8 +1578,8 @@ sealed partial class LocalLogServiceConnection
 	/// Enqueues a command telling the local log service to save a snapshot of the current log.
 	/// </summary>
 	/// <returns>
-	/// <c>true</c> if the command was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the command was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	public bool EnqueueSaveSnapshotCommand()
 	{
@@ -1602,12 +1602,12 @@ sealed partial class LocalLogServiceConnection
 	/// Enqueues a command telling the local log service to save a snapshot of the current log.
 	/// </summary>
 	/// <param name="defer">
-	/// <c>true</c> to put the command into the peak buffer queue;<br/>
-	/// <c>false</c> to put the command directly into the shared memory queue.
+	/// <see langword="true"/> to put the command into the peak buffer queue;<br/>
+	/// <see langword="false"/> to put the command directly into the shared memory queue.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> if the command was successfully enqueued;<br/>
-	/// <c>false</c> if the queue is full and lossless mode is disabled.
+	/// <see langword="true"/> if the command was successfully enqueued;<br/>
+	/// <see langword="false"/> if the queue is full and lossless mode is disabled.
 	/// </returns>
 	private unsafe bool EnqueueSaveSnapshotCommand(bool defer)
 	{
@@ -1660,12 +1660,12 @@ sealed partial class LocalLogServiceConnection
 	/// Gets a free block from the shared memory queue.
 	/// </summary>
 	/// <param name="sendDeferredItems">
-	/// <c>true</c> to send deferred items, if any;<br/>
-	/// <c>false</c> to skip sending deferred items (only for use within <see cref="GetLogEntryBlock"/>).
+	/// <see langword="true"/> to send deferred items, if any;<br/>
+	/// <see langword="false"/> to skip sending deferred items (only for use within <see cref="GetLogEntryBlock"/>).
 	/// </param>
 	/// <returns>
 	/// A free log entry block;<br/>
-	/// <c>null</c> if the queue does not contain a free block.
+	/// <see langword="null"/> if the queue does not contain a free block.
 	/// </returns>
 	/// <remarks>
 	/// This method returns a free block from the log entry queue. If the queue does not contain any
@@ -1710,8 +1710,8 @@ sealed partial class LocalLogServiceConnection
 	/// Tries to transfer all items from the peak buffer queue to the shared memory queue.
 	/// </summary>
 	/// <returns>
-	/// <c>true</c> if all items have been sent successfully;<br/>
-	/// <c>false</c> if the queue is full or not initialized.
+	/// <see langword="true"/> if all items have been sent successfully;<br/>
+	/// <see langword="false"/> if the queue is full or not initialized.
 	/// </returns>
 	private bool SendDeferredItems()
 	{
@@ -1758,8 +1758,8 @@ sealed partial class LocalLogServiceConnection
 	/// </summary>
 	/// <param name="extensionMessageCount">Number of extension message blocks following the message block.</param>
 	/// <returns>
-	/// <c>true</c> if the message block and all extension blocks have been sent successfully;<br/>
-	/// <c>false</c> if the queue is full.
+	/// <see langword="true"/> if the message block and all extension blocks have been sent successfully;<br/>
+	/// <see langword="false"/> if the queue is full.
 	/// </returns>
 	private unsafe bool SendDeferredItems_Message(int extensionMessageCount)
 	{
@@ -1803,8 +1803,8 @@ sealed partial class LocalLogServiceConnection
 	/// Tries to transfer the current block from the peak buffer queue to the shared memory queue.
 	/// </summary>
 	/// <returns>
-	/// <c>true</c> if the block has been sent successfully;<br/>
-	/// <c>false</c> if the queue is full.
+	/// <see langword="true"/> if the block has been sent successfully;<br/>
+	/// <see langword="false"/> if the queue is full.
 	/// </returns>
 	private unsafe bool SendDeferredItems_SingleBlock()
 	{

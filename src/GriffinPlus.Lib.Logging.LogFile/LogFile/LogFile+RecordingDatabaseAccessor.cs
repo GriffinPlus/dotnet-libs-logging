@@ -79,12 +79,12 @@ partial class LogFile
 		/// <param name="connection">Database connection to use.</param>
 		/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
 		/// <param name="isReadOnly">
-		/// <c>true</c> if the log file is opened in read-only mode;<br/>
-		/// <c>false</c> if the log file is opened in read/write mode.
+		/// <see langword="true"/> if the log file is opened in read-only mode;<br/>
+		/// <see langword="false"/> if the log file is opened in read/write mode.
 		/// </param>
 		/// <param name="create">
-		/// <c>true</c> to create the database;<br/>
-		/// <c>false</c> to just use it.
+		/// <see langword="true"/> to create the database;<br/>
+		/// <see langword="false"/> to just use it.
 		/// </param>
 		/// <param name="messages">Messages to populate the file with (works for new files only).</param>
 		public RecordingDatabaseAccessor(
@@ -281,8 +281,8 @@ partial class LogFile
 		/// Removes all schema specific data from the log file.
 		/// </summary>
 		/// <param name="messagesOnly">
-		/// <c>true</c> to remove messages only;<br/>
-		/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
+		/// <see langword="true"/> to remove messages only;<br/>
+		/// <see langword="false"/> to remove processes, applications, log writers, log levels and tags as well.
 		/// </param>
 		protected override void ClearSpecific(bool messagesOnly)
 		{
@@ -298,8 +298,8 @@ partial class LogFile
 		/// <param name="count">Number of log messages to get.</param>
 		/// <param name="callback">Callback to invoke for every read message</param>
 		/// <returns>
-		/// <c>true</c> if reading ran to completion;<br/>
-		/// <c>false</c> if reading was cancelled.
+		/// <see langword="true"/> if reading ran to completion;<br/>
+		/// <see langword="false"/> if reading was cancelled.
 		/// </returns>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
@@ -534,7 +534,7 @@ partial class LogFile
 			// abort, if the database is empty
 			if (OldestMessageId < 0)
 			{
-				removedMessages = Array.Empty<LogFileMessage>();
+				removedMessages = [];
 				return 0;
 			}
 
@@ -549,7 +549,7 @@ partial class LogFile
 			NewestMessageId = GetNewestMessageId();
 
 			// assign list of removed messages
-			removedMessages = messages?.ToArray() ?? Array.Empty<LogFileMessage>();
+			removedMessages = messages?.ToArray() ?? [];
 
 			// return the number of removed messages
 			return removeCount;

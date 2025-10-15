@@ -19,7 +19,7 @@ namespace GriffinPlus.Lib.Logging;
 public sealed partial class LogWriterConfiguration
 {
 	internal static readonly WildcardNamePattern DefaultPattern = new("*");
-	internal static readonly INamePattern[]      NoPatterns     = Array.Empty<INamePattern>();
+	internal static readonly INamePattern[]      NoPatterns     = [];
 	internal                 string              mBaseLevel     = LogLevel.Notice.Name;
 	internal readonly        List<INamePattern>  mNamePatterns  = [];
 	internal readonly        List<INamePattern>  mTagPatterns   = [];
@@ -102,8 +102,8 @@ public sealed partial class LogWriterConfiguration
 	/// </summary>
 	/// <param name="name">Name of the log writer to match.</param>
 	/// <param name="baseLevel">Base level to use.</param>
-	/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <c>null</c>).</param>
-	/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <c>null</c>).</param>
+	/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <see langword="null"/>).</param>
+	/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <see langword="null"/>).</param>
 	/// <returns>The created log writer configuration.</returns>
 	internal static LogWriterConfiguration FromName(
 		string              name,
@@ -124,8 +124,8 @@ public sealed partial class LogWriterConfiguration
 	/// </summary>
 	/// <param name="pattern">Wildcard pattern matching log writer names.</param>
 	/// <param name="baseLevel">Base level to use.</param>
-	/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <c>null</c>).</param>
-	/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <c>null</c>).</param>
+	/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <see langword="null"/>).</param>
+	/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <see langword="null"/>).</param>
 	/// <returns>The created log writer configuration.</returns>
 	internal static LogWriterConfiguration FromWildcardPattern(
 		string              pattern,
@@ -146,8 +146,8 @@ public sealed partial class LogWriterConfiguration
 	/// </summary>
 	/// <param name="regex">Regex matching log writer names.</param>
 	/// <param name="baseLevel">Base level to use.</param>
-	/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <c>null</c>).</param>
-	/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <c>null</c>).</param>
+	/// <param name="includes">Log levels (or aspects) to include in addition to those already enabled by the base level (may be <see langword="null"/>).</param>
+	/// <param name="excludes">Log levels (or aspects) to exclude although covered by the base level (may be <see langword="null"/>).</param>
 	/// <returns>The created log writer configuration.</returns>
 	internal static LogWriterConfiguration FromRegexPattern(
 		string              regex,
@@ -172,7 +172,7 @@ public sealed partial class LogWriterConfiguration
 	/// <summary>
 	/// Gets a log writer configuration covering the default log writer 'Timing' writing using log level 'Notice'.
 	/// </summary>
-	public static LogWriterConfiguration TimingWriter => FromName("Timing", LogLevel.None, new string[] { LogLevel.Timing });
+	public static LogWriterConfiguration TimingWriter => FromName("Timing", LogLevel.None, [LogLevel.Timing]);
 
 	/// <summary>
 	/// Gets the list of patterns used to match the name of log writers the configuration should apply to.
@@ -228,8 +228,8 @@ public sealed partial class LogWriterConfiguration
 	/// </summary>
 	/// <param name="other">Object to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the specified object equals the current one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified object equals the current one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool Equals(LogWriterConfiguration other)
 	{

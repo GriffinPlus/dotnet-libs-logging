@@ -23,7 +23,7 @@ namespace GriffinPlus.Lib.Logging;
 /// This class creates or opens a queue in shared memory by a specified name. This queue can be
 /// written by multiple threads (even from different processes) and read by a single thread.
 /// In the case that the queue runs out of free space the queue can either wait until space is available
-/// or just return <c>null</c> indicating that the queue is full.
+/// or just return <see langword="null"/> indicating that the queue is full.
 /// 
 /// The queue uses shared memory to store a fixed amount of elements (blocks). At first all blocks
 /// are kept on a 'free block stack'. When a thread wants to write to the queue, it requests a block
@@ -298,7 +298,7 @@ sealed unsafe partial class UnsafeSharedMemoryQueue : IDisposable
 	/// </summary>
 	/// <returns>
 	/// Pointer to the data buffer within the retrieved block;<br/>
-	/// <c>null</c> if no block is available for writing.
+	/// <see langword="null"/> if no block is available for writing.
 	/// </returns>
 	/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 	/// <remarks>
@@ -446,12 +446,12 @@ sealed unsafe partial class UnsafeSharedMemoryQueue : IDisposable
 	/// <param name="validSize">Receives the number of valid bytes in the block.</param>
 	/// <param name="overflowCount">Receives the number of lost single blocks or block sequences since the last reading attempt.</param>
 	/// <param name="blocksFollowingInSequence">
-	/// Receives <c>true</c>, if there are more blocks in the queue that belong to the block;<br/>
-	/// otherwise <c>false</c>.
+	/// Receives <see langword="true"/>, if there are more blocks in the queue that belong to the block;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <returns>
 	/// Pointer to the data buffer within the retrieved block;<br/>
-	/// <c>null</c> if no block is available for reading.
+	/// <see langword="null"/> if no block is available for reading.
 	/// </returns>
 	/// <exception cref="InvalidOperationException">The queue was not initialized using <see cref="Create"/> or <see cref="Open"/>.</exception>
 	public void* BeginReading(out int validSize, out int overflowCount, out bool blocksFollowingInSequence)
@@ -612,7 +612,7 @@ sealed unsafe partial class UnsafeSharedMemoryQueue : IDisposable
 	/// </summary>
 	/// <returns>
 	/// A free block;<br/>
-	/// <c>null</c> if no free block is available.
+	/// <see langword="null"/> if no free block is available.
 	/// </returns>
 	private QueueBlock* GetFreeBlock()
 	{

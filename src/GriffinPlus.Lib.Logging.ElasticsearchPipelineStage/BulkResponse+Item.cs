@@ -30,7 +30,7 @@ partial class BulkResponse
 		}
 
 		/// <summary>
-		/// Gets or sets the result of an 'create' operation.
+		/// Gets or sets the result of a 'create' operation.
 		/// </summary>
 		public Item_Create Create; // JSON field: 'create'
 

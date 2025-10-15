@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
@@ -71,8 +70,8 @@ public class LogMessageTests : IDisposable
 	/// Tests creating a log message that must be initialized asynchronously, but does not initialize it.
 	/// </summary>
 	/// <param name="readOnly">
-	/// <c>true</c> to create a read-only message;<br/>
-	/// <c>false</c> to create a regular message.
+	/// <see langword="true"/> to create a read-only message;<br/>
+	/// <see langword="false"/> to create a regular message.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -93,20 +92,20 @@ public class LogMessageTests : IDisposable
 	/// <summary>
 	/// Test data for <see cref="CreateWithAsyncInit_FollowedByInitialize"/>.
 	/// </summary>
-	public static IEnumerable<object[]> CreateWithAsyncInitTestData_FollowedByInitialize
+	public static TheoryData<bool, bool, bool> CreateWithAsyncInitTestData_FollowedByInitialize
 	{
 		get
 		{
-			return
-				from readOnly in new[] { false, true }
-				from initInSameThread in new[] { false, true }
-				from withPropertyChanged in new[] { false, true }
-				select (object[])
-				[
-					readOnly,
-					initInSameThread,
-					withPropertyChanged
-				];
+			var data = new TheoryData<bool, bool, bool>();
+
+			foreach (bool readOnly in new[] { false, true })
+			foreach (bool initInSameThread in new[] { false, true })
+			foreach (bool withPropertyChanged in new[] { false, true })
+			{
+				data.Add(readOnly, initInSameThread, withPropertyChanged);
+			}
+
+			return data;
 		}
 	}
 
@@ -114,16 +113,16 @@ public class LogMessageTests : IDisposable
 	/// Tests creating a log message that must be initialized asynchronously abd initializes it.
 	/// </summary>
 	/// <param name="readOnly">
-	/// <c>true</c> to create a read-only message;<br/>
-	/// <c>false</c> to create a regular message.
+	/// <see langword="true"/> to create a read-only message;<br/>
+	/// <see langword="false"/> to create a regular message.
 	/// </param>
 	/// <param name="initInSameThread">
-	/// <c>true</c> to initialize the message in the thread that registers the event;<br/>
-	/// <c>false</c> to initialize the message and raise the event in some other thread.
+	/// <see langword="true"/> to initialize the message in the thread that registers the event;<br/>
+	/// <see langword="false"/> to initialize the message and raise the event in some other thread.
 	/// </param>
 	/// <param name="withPropertyChanged">
-	/// <c>true</c> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(CreateWithAsyncInitTestData_FollowedByInitialize))]
@@ -239,18 +238,19 @@ public class LogMessageTests : IDisposable
 	/// <summary>
 	/// Test data for <see cref="InitWith"/>.
 	/// </summary>
-	public static IEnumerable<object[]> InitWithTestData
+	public static TheoryData<bool, bool> InitWithTestData
 	{
 		get
 		{
-			return
-				from initInSameThread in new[] { false, true }
-				from withPropertyChanged in new[] { false, true }
-				select (object[])
-				[
-					initInSameThread,
-					withPropertyChanged
-				];
+			var data = new TheoryData<bool, bool>();
+
+			foreach (bool initInSameThread in new[] { false, true })
+			foreach (bool withPropertyChanged in new[] { false, true })
+			{
+				data.Add(initInSameThread, withPropertyChanged);
+			}
+
+			return data;
 		}
 	}
 
@@ -258,12 +258,12 @@ public class LogMessageTests : IDisposable
 	/// Tests <see cref="LogMessage.InitWith"/>.
 	/// </summary>
 	/// <param name="initInSameThread">
-	/// <c>true</c> to initialize the message in the thread that registers the event;<br/>
-	/// <c>false</c> to initialize the message and raise the event in some other thread.
+	/// <see langword="true"/> to initialize the message in the thread that registers the event;<br/>
+	/// <see langword="false"/> to initialize the message and raise the event in some other thread.
 	/// </param>
 	/// <param name="withPropertyChanged">
-	/// <c>true</c> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(InitWithTestData))]
@@ -378,26 +378,30 @@ public class LogMessageTests : IDisposable
 
 	#region Message Properties
 
-	public static IEnumerable<object[]> MessagePropertyTestData
+	public static TheoryData<Expression<Func<LogMessage, object>>, object, object, bool> MessagePropertyTestData
 	{
 		get
 		{
+			var data = new TheoryData<Expression<Func<LogMessage, object>>, object, object, bool>();
+
 			foreach (bool protect in new[] { false, true })
 			{
-				yield return [EXPR<LogMessage, object>(x => x.LostMessageCount), 0, 1, protect];
-				yield return [EXPR<LogMessage, object>(x => x.Timestamp), default(DateTimeOffset), DateTimeOffset.Now, protect];
-				yield return [EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 0L, 1L, protect];
-				yield return [EXPR<LogMessage, object>(x => x.LogWriterName), null, "A Log Writer", protect];
-				yield return [EXPR<LogMessage, object>(x => x.LogLevelName), null, "A Log Level", protect];
-				yield return [EXPR<LogMessage, object>(x => x.Tags), null, new TagSet("Tag"), protect];
-				yield return [EXPR<LogMessage, object>(x => x.ApplicationName), null, "Application Name", protect];
-				yield return [EXPR<LogMessage, object>(x => x.ProcessName), null, "Process Name", protect];
-				yield return [EXPR<LogMessage, object>(x => x.ProcessId), -1, 1, protect];
-				yield return [EXPR<LogMessage, object>(x => x.Text), null, "Some Text", protect];
+				data.Add(EXPR<LogMessage, object>(x => x.LostMessageCount), 0, 1, protect);
+				data.Add(EXPR<LogMessage, object>(x => x.Timestamp), default(DateTimeOffset), DateTimeOffset.Now, protect);
+				data.Add(EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 0L, 1L, protect);
+				data.Add(EXPR<LogMessage, object>(x => x.LogWriterName), null, "A Log Writer", protect);
+				data.Add(EXPR<LogMessage, object>(x => x.LogLevelName), null, "A Log Level", protect);
+				data.Add(EXPR<LogMessage, object>(x => x.Tags), null, new TagSet("Tag"), protect);
+				data.Add(EXPR<LogMessage, object>(x => x.ApplicationName), null, "Application Name", protect);
+				data.Add(EXPR<LogMessage, object>(x => x.ProcessName), null, "Process Name", protect);
+				data.Add(EXPR<LogMessage, object>(x => x.ProcessId), -1, 1, protect);
+				data.Add(EXPR<LogMessage, object>(x => x.Text), null, "Some Text", protect);
 			}
 
 			// the IsReadOnly property is tested as part of the other test cases with protect = true
 			// as Protect() sets this property to true and raises the PropertyChanged event.
+
+			return data;
 		}
 	}
 
@@ -434,13 +438,13 @@ public class LogMessageTests : IDisposable
 	/// </summary>
 	[Theory]
 	[MemberData(nameof(MessagePropertyTestData))]
-	private async Task MessageProperty_Set_WithPropertyChanged_ChangeInSameThread(
+	private Task MessageProperty_Set_WithPropertyChanged_ChangeInSameThread(
 		Expression<Func<LogMessage, object>> property,
 		object                               defaultValue,
 		object                               newValue,
 		bool                                 protect)
 	{
-		await TestPropertySetter_WithPropertyChanged(property, defaultValue, newValue, protect, true);
+		return TestPropertySetter_WithPropertyChanged(property, defaultValue, newValue, protect, true);
 	}
 
 	/// <summary>
@@ -448,13 +452,13 @@ public class LogMessageTests : IDisposable
 	/// </summary>
 	[Theory]
 	[MemberData(nameof(MessagePropertyTestData))]
-	private async Task MessageProperty_Set_WithPropertyChanged_ChangeInDifferentThread(
+	private Task MessageProperty_Set_WithPropertyChanged_ChangeInDifferentThread(
 		Expression<Func<LogMessage, object>> property,
 		object                               defaultValue,
 		object                               newValue,
 		bool                                 protect)
 	{
-		await TestPropertySetter_WithPropertyChanged(property, defaultValue, newValue, protect, false);
+		return TestPropertySetter_WithPropertyChanged(property, defaultValue, newValue, protect, false);
 	}
 
 	/// <summary>
@@ -463,8 +467,8 @@ public class LogMessageTests : IDisposable
 	/// <param name="property">Property to test.</param>
 	/// <param name="expectedDefaultValue">Expected default value of the property.</param>
 	/// <param name="protect">
-	/// <c>true</c> to protect the log message before setting the property;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to protect the log message before setting the property;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	private static void TestPropertyGetter(
 		Expression<Func<LogMessage, object>> property,
@@ -494,8 +498,8 @@ public class LogMessageTests : IDisposable
 	/// <param name="expectedDefaultValue">Expected default value of the property.</param>
 	/// <param name="valueToSet">Value of the property after setting it.</param>
 	/// <param name="protect">
-	/// <c>true</c> to protect the log message before setting the property;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to protect the log message before setting the property;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	private static void TestPropertySetter_WithoutPropertyChanged(
 		Expression<Func<LogMessage, object>> property,
@@ -542,12 +546,12 @@ public class LogMessageTests : IDisposable
 	/// <param name="expectedDefaultValue">Expected default value of the property.</param>
 	/// <param name="valueToSet">Value of the property after setting it.</param>
 	/// <param name="protect">
-	/// <c>true</c> to protect the log message before setting the property;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to protect the log message before setting the property;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <param name="changeInSameThread">
-	/// <c>true</c> to change the property in the thread that registers the event;<br/>
-	/// <c>false</c> to change the property and raise the event in some other thread.
+	/// <see langword="true"/> to change the property in the thread that registers the event;<br/>
+	/// <see langword="false"/> to change the property and raise the event in some other thread.
 	/// </param>
 	private async Task TestPropertySetter_WithPropertyChanged(
 		Expression<Func<LogMessage, object>> property,
@@ -589,47 +593,46 @@ public class LogMessageTests : IDisposable
 			// registering the event and changing the property is done in the same thread
 			// => the event handler should be called directly
 
-			await mThread.Factory.Run(
-				() =>
+			await mThread.Factory.Run(() =>
+			{
+				if (protect)
 				{
-					if (protect)
-					{
-						// protect the message
-						// => changes the IsReadOnly property to true
-						// => event handler is called directly
-						message.Protect();
-						Assert.True(handlerCalledEvent.IsSet, "The event handler should have been called directly.");
-						Assert.Same(SynchronizationContext.Current, handlerThreadSynchronizationContext);
-						Assert.Equal(new[] { "IsReadOnly" }, changedPropertyNames.ToArray());
-						handlerCalledEvent.Reset();
+					// protect the message
+					// => changes the IsReadOnly property to true
+					// => event handler is called directly
+					message.Protect();
+					Assert.True(handlerCalledEvent.IsSet, "The event handler should have been called directly.");
+					Assert.Same(SynchronizationContext.Current, handlerThreadSynchronizationContext);
+					Assert.Equal(new[] { "IsReadOnly" }, changedPropertyNames.ToArray());
+					handlerCalledEvent.Reset();
 
-						// the message is protected and setting a property should throw an exception
-						var ex = Assert.Throws<TargetInvocationException>(() => propertyInfo.SetValue(message, valueToSet, null));
-						Assert.IsType<NotSupportedException>(ex.InnerException);
+					// the message is protected and setting a property should throw an exception
+					var ex = Assert.Throws<TargetInvocationException>(() => propertyInfo.SetValue(message, valueToSet, null));
+					Assert.IsType<NotSupportedException>(ex.InnerException);
 
-						// the property value should not have changed
-						value = propertyInfo.GetValue(message);
-						Assert.Equal(expectedDefaultValue, value);
+					// the property value should not have changed
+					value = propertyInfo.GetValue(message);
+					Assert.Equal(expectedDefaultValue, value);
 
-						// the event handler should not have been called directly
-						Assert.False(handlerCalledEvent.IsSet);
-					}
-					else
-					{
-						// set property
-						propertyInfo.SetValue(message, valueToSet, null);
+					// the event handler should not have been called directly
+					Assert.False(handlerCalledEvent.IsSet);
+				}
+				else
+				{
+					// set property
+					propertyInfo.SetValue(message, valueToSet, null);
 
-						// the property value should not be the same as the set value 
-						value = propertyInfo.GetValue(message);
-						if (propertyInfo.PropertyType.IsValueType) Assert.Equal(valueToSet, value);
-						else Assert.Same(valueToSet, value);
+					// the property value should not be the same as the set value
+					value = propertyInfo.GetValue(message);
+					if (propertyInfo.PropertyType.IsValueType) Assert.Equal(valueToSet, value);
+					else Assert.Same(valueToSet, value);
 
-						// the event handler should have been called directly
-						Assert.True(handlerCalledEvent.IsSet);
-						Assert.Same(SynchronizationContext.Current, handlerThreadSynchronizationContext);
-						Assert.Equal(new[] { propertyInfo.Name }, changedPropertyNames.ToArray());
-					}
-				});
+					// the event handler should have been called directly
+					Assert.True(handlerCalledEvent.IsSet);
+					Assert.Same(SynchronizationContext.Current, handlerThreadSynchronizationContext);
+					Assert.Equal(new[] { propertyInfo.Name }, changedPropertyNames.ToArray());
+				}
+			});
 		}
 		else
 		{
@@ -663,7 +666,7 @@ public class LogMessageTests : IDisposable
 				// set property
 				propertyInfo.SetValue(message, valueToSet, null);
 
-				// the property value should not be the same as the set value 
+				// the property value should not be the same as the set value
 				value = propertyInfo.GetValue(message);
 				if (propertyInfo.PropertyType.IsValueType) Assert.Equal(valueToSet, value);
 				else Assert.Same(valueToSet, value);
@@ -696,31 +699,32 @@ public class LogMessageTests : IDisposable
 	/// <summary>
 	/// Test data for <see cref="Protect"/>.
 	/// </summary>
-	public static IEnumerable<object[]> ProtectTestData
+	public static TheoryData<bool, bool> ProtectTestData
 	{
 		get
 		{
-			return
-				from initInSameThread in new[] { false, true }
-				from withPropertyChanged in new[] { false, true }
-				select (object[])
-				[
-					initInSameThread,
-					withPropertyChanged
-				];
+			var data = new TheoryData<bool, bool>();
+
+			foreach (bool initInSameThread in new[] { false, true })
+			foreach (bool withPropertyChanged in new[] { false, true })
+			{
+				data.Add(initInSameThread, withPropertyChanged);
+			}
+
+			return data;
 		}
 	}
 
 	/// <summary>
-	/// Tests whether <see cref="LogMessage.Protect"/> sets the <see cref="LogMessage.IsReadOnly"/> property to <c>true</c>.
+	/// Tests whether <see cref="LogMessage.Protect"/> sets the <see cref="LogMessage.IsReadOnly"/> property to <see langword="true"/>.
 	/// </summary>
 	/// <param name="protectInSameThread">
-	/// <c>true</c> to protect the message in the thread that registers the event;<br/>
-	/// <c>false</c> to protect the message and raise the event in some other thread.
+	/// <see langword="true"/> to protect the message in the thread that registers the event;<br/>
+	/// <see langword="false"/> to protect the message and raise the event in some other thread.
 	/// </param>
 	/// <param name="withPropertyChanged">
-	/// <c>true</c> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to register the <see cref="LogMessage.PropertyChanged"/> event and check whether it is fired correctly;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(InitWithTestData))]
@@ -816,10 +820,12 @@ public class LogMessageTests : IDisposable
 
 	#region GetHashCode() / Equals()
 
-	public static IEnumerable<object[]> EqualityTestData
+	public static TheoryData<LogMessage, Expression<Func<LogMessage, object>>, object> EqualityTestData
 	{
 		get
 		{
+			var data = new TheoryData<LogMessage, Expression<Func<LogMessage, object>>, object>();
+
 			var message = new LogMessage
 			{
 				LostMessageCount = 0,
@@ -834,25 +840,27 @@ public class LogMessageTests : IDisposable
 				Text = "Text"
 			};
 
-			yield return [message, EXPR<LogMessage, object>(x => x.LostMessageCount), -10];
-			yield return [message, EXPR<LogMessage, object>(x => x.LostMessageCount), 10];
-			yield return [message, EXPR<LogMessage, object>(x => x.Timestamp), DateTimeOffset.Parse("2020-01-02T12:00:00+01:00")];
-			yield return [message, EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), -10L];
-			yield return [message, EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 10L];
-			yield return [message, EXPR<LogMessage, object>(x => x.LogWriterName), "Another Log Writer"];
-			yield return [message, EXPR<LogMessage, object>(x => x.LogWriterName), null];
-			yield return [message, EXPR<LogMessage, object>(x => x.LogLevelName), "Another Log Level"];
-			yield return [message, EXPR<LogMessage, object>(x => x.LogLevelName), null];
-			yield return [message, EXPR<LogMessage, object>(x => x.Tags), new TagSet("AnotherTag")];
-			yield return [message, EXPR<LogMessage, object>(x => x.Tags), null];
-			yield return [message, EXPR<LogMessage, object>(x => x.ApplicationName), "Another Application"];
-			yield return [message, EXPR<LogMessage, object>(x => x.ApplicationName), null];
-			yield return [message, EXPR<LogMessage, object>(x => x.ProcessName), "Another Process Name"];
-			yield return [message, EXPR<LogMessage, object>(x => x.ProcessName), null];
-			yield return [message, EXPR<LogMessage, object>(x => x.ProcessId), -10];
-			yield return [message, EXPR<LogMessage, object>(x => x.ProcessId), 10];
-			yield return [message, EXPR<LogMessage, object>(x => x.Text), "Some other Text"];
-			yield return [message, EXPR<LogMessage, object>(x => x.Text), null];
+			data.Add(message, EXPR<LogMessage, object>(x => x.LostMessageCount), -10);
+			data.Add(message, EXPR<LogMessage, object>(x => x.LostMessageCount), 10);
+			data.Add(message, EXPR<LogMessage, object>(x => x.Timestamp), DateTimeOffset.Parse("2020-01-02T12:00:00+01:00"));
+			data.Add(message, EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), -10L);
+			data.Add(message, EXPR<LogMessage, object>(x => x.HighPrecisionTimestamp), 10L);
+			data.Add(message, EXPR<LogMessage, object>(x => x.LogWriterName), "Another Log Writer");
+			data.Add(message, EXPR<LogMessage, object>(x => x.LogWriterName), null);
+			data.Add(message, EXPR<LogMessage, object>(x => x.LogLevelName), "Another Log Level");
+			data.Add(message, EXPR<LogMessage, object>(x => x.LogLevelName), null);
+			data.Add(message, EXPR<LogMessage, object>(x => x.Tags), new TagSet("AnotherTag"));
+			data.Add(message, EXPR<LogMessage, object>(x => x.Tags), null);
+			data.Add(message, EXPR<LogMessage, object>(x => x.ApplicationName), "Another Application");
+			data.Add(message, EXPR<LogMessage, object>(x => x.ApplicationName), null);
+			data.Add(message, EXPR<LogMessage, object>(x => x.ProcessName), "Another Process Name");
+			data.Add(message, EXPR<LogMessage, object>(x => x.ProcessName), null);
+			data.Add(message, EXPR<LogMessage, object>(x => x.ProcessId), -10);
+			data.Add(message, EXPR<LogMessage, object>(x => x.ProcessId), 10);
+			data.Add(message, EXPR<LogMessage, object>(x => x.Text), "Some other Text");
+			data.Add(message, EXPR<LogMessage, object>(x => x.Text), null);
+
+			return data;
 		}
 	}
 
@@ -928,12 +936,12 @@ public class LogMessageTests : IDisposable
 	/// </summary>
 	/// <param name="message">Log message to check.</param>
 	/// <param name="inited">
-	/// <c>true</c>, if the message is initialized;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/>, if the message is initialized;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <param name="readOnly">
-	/// <c>true</c> if the message is read-only;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the message is read-only;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	private static void CheckDefaultState(
 		LogMessage message,

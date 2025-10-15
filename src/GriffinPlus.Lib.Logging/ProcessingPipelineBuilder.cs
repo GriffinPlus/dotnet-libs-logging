@@ -25,7 +25,7 @@ public class ProcessingPipelineBuilder
 	}
 
 	/// <summary>
-	/// Gets the built pipeline stage (may be <c>null</c>).
+	/// Gets the created pipeline stage (may be <see langword="null"/>).
 	/// </summary>
 	public ProcessingPipelineStage PipelineStage { get; private set; }
 

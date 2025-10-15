@@ -16,8 +16,8 @@ public class FilterChangedEventArgs : EventArgs
 	/// Initializes a new instance of the <see cref="FilterChangedEventArgs"/> class.
 	/// </summary>
 	/// <param name="changeEffectsFilterResult">
-	/// <c>true</c> if the change to the filter may change the filtered message set;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the change to the filter may change the filtered message set;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	public FilterChangedEventArgs(bool changeEffectsFilterResult)
 	{

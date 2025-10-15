@@ -23,7 +23,8 @@ public partial class LogWriterConfiguration
 		public RegexNamePattern(string pattern)
 		{
 			if (pattern == null) throw new ArgumentNullException(nameof(pattern));
-			if (!pattern.StartsWith("^") || !pattern.EndsWith("$")) throw new FormatException($"The specified pattern ({pattern}) does not start with '^' and end with '$'.");
+			if (!pattern.StartsWith("^", StringComparison.Ordinal) || !pattern.EndsWith("$", StringComparison.Ordinal))
+				throw new FormatException($"The specified pattern ({pattern}) does not start with '^' and end with '$'.");
 			Pattern = pattern;
 			Regex = new Regex(pattern, RegexOptions.Singleline); // compilation is not needed as the regex matches only once against a log writer name and is then cached
 		}

@@ -61,7 +61,7 @@ public sealed class LocalLogMessage : ILogMessage, IEquatable<ILogMessage>, IRef
 	#region IsReadOnly
 
 	/// <summary>
-	/// Gets a value indicating whether the log message is read-only (always <c>true</c>).
+	/// Gets a value indicating whether the log message is read-only (always <see langword="true"/>).
 	/// </summary>
 	public bool IsReadOnly => true;
 
@@ -383,8 +383,8 @@ public sealed class LocalLogMessage : ILogMessage, IEquatable<ILogMessage>, IRef
 	/// </summary>
 	/// <param name="other">Log message to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the current log message equals the specified one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the current log message equals the specified one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool Equals(ILogMessage other)
 	{
@@ -405,8 +405,8 @@ public sealed class LocalLogMessage : ILogMessage, IEquatable<ILogMessage>, IRef
 	/// </summary>
 	/// <param name="obj">Log message to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the current log message equals the specified one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the current log message equals the specified one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool Equals(object obj)
 	{

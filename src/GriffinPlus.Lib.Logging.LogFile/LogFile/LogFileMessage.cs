@@ -82,8 +82,8 @@ public sealed class LogFileMessage : LogMessage, IFileLogMessageInitializer
 	/// </summary>
 	/// <param name="other">Log message to compare with.</param>
 	/// <returns>
-	/// <c>true</c>, if the current log message equals the specified one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/>, if the current log message equals the specified one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool Equals(LogMessage other)
 	{
@@ -199,11 +199,11 @@ public sealed class LogFileMessage : LogMessage, IFileLogMessageInitializer
 
 	/// <summary>
 	/// Creates a new log message and prepares it for asynchronous initialization.
-	/// (<see cref="LogMessage.IsInitialized"/> is <c>false</c> at first and set to <c>true</c> as soon as the message is initialized).
+	/// (<see cref="LogMessage.IsInitialized"/> is <see langword="false"/> at first and set to <see langword="true"/> as soon as the message is initialized).
 	/// </summary>
 	/// <param name="readOnly">
-	/// <c>true</c> to create a read-only message that can only be set by the returned initializer;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to create a read-only message that can only be set by the returned initializer;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <param name="initializer">Receives the initializer that allows to update the log message.</param>
 	/// <returns>The created log message.</returns>
@@ -223,7 +223,7 @@ public sealed class LogFileMessage : LogMessage, IFileLogMessageInitializer
 	/// <summary>
 	/// Initializes the log message.
 	/// </summary>
-	/// <param name="id">Id uniquely identifying the message in the log file.</param>
+	/// <param name="id">ID uniquely identifying the message in the log file.</param>
 	/// <param name="timestamp">Time the message was written to the log.</param>
 	/// <param name="highPrecisionTimestamp">
 	/// Timestamp for relative time measurements with high precision

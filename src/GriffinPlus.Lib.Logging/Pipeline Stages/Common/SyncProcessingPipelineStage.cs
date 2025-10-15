@@ -83,23 +83,22 @@ public abstract class SyncProcessingPipelineStage : ProcessingPipelineStage
 		if (!mSettingChangedScheduled)
 		{
 			mSettingChangedScheduled = true;
-			ThreadPool.QueueUserWorkItem(
-				_ =>
+			ThreadPool.QueueUserWorkItem(_ =>
+			{
+				mSettingChangedScheduled = false;
+				IUntypedProcessingPipelineStageSetting[] settings = null;
+				lock (mChangedSettings)
 				{
-					mSettingChangedScheduled = false;
-					IUntypedProcessingPipelineStageSetting[] settings = null;
-					lock (mChangedSettings)
+					if (mChangedSettings.Count > 0)
 					{
-						if (mChangedSettings.Count > 0)
-						{
-							settings = mChangedSettings.Cast<IUntypedProcessingPipelineStageSetting>().ToArray();
-							mChangedSettings.Clear();
-						}
+						settings = mChangedSettings.Cast<IUntypedProcessingPipelineStageSetting>().ToArray();
+						mChangedSettings.Clear();
 					}
+				}
 
-					if (settings != null)
-						OnSettingsChanged(settings);
-				});
+				if (settings != null)
+					OnSettingsChanged(settings);
+			});
 		}
 	}
 
@@ -120,8 +119,8 @@ public abstract class SyncProcessingPipelineStage : ProcessingPipelineStage
 	/// </summary>
 	/// <param name="message">Message to process.</param>
 	/// <returns>
-	/// <c>true</c> to pass the message to the following stages;<br/>
-	/// <c>false</c> to stop processing the message.
+	/// <see langword="true"/> to pass the message to the following stages;<br/>
+	/// <see langword="false"/> to stop processing the message.
 	/// </returns>
 	internal override bool OnProcessMessageBase(LocalLogMessage message)
 	{
@@ -147,8 +146,8 @@ public abstract class SyncProcessingPipelineStage : ProcessingPipelineStage
 	/// </summary>
 	/// <param name="message">Message to process.</param>
 	/// <returns>
-	/// <c>true</c> to pass the message to the following pipeline stages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to pass the message to the following pipeline stages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	/// <remarks>
 	/// Call <see cref="LocalLogMessage.AddRef"/> on a message that should be stored any longer to prevent it from

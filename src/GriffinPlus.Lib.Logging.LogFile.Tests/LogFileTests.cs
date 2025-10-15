@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -55,56 +56,94 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <summary>
 	/// Test data providing a mix of purposes.
 	/// </summary>
-	public static IEnumerable<object[]> PurposeMixTestData
+	public static TheoryData<LogFilePurpose> PurposeMixTestData
 	{
-		get { return sLogFilePurposes.Select(purpose => (object[])[purpose]); }
+		get
+		{
+			var data = new TheoryData<LogFilePurpose>();
+
+			foreach (LogFilePurpose purpose in sLogFilePurposes)
+			{
+				data.Add(purpose);
+			}
+
+			return data;
+		}
 	}
 
 	/// <summary>
 	/// Test data providing a mix of write modes.
 	/// </summary>
-	public static IEnumerable<object[]> WriteModeMixTestData
+	public static TheoryData<LogFileWriteMode> WriteModeMixTestData
 	{
-		get { return sLogFileWriteModes.Select(writeMode => (object[])[writeMode]); }
+		get
+		{
+			var data = new TheoryData<LogFileWriteMode>();
+
+			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
+			{
+				data.Add(writeMode);
+			}
+
+			return data;
+		}
 	}
 
 	/// <summary>
 	/// Test data providing a mix of purposes and write modes.
 	/// </summary>
-	public static IEnumerable<object[]> PurposeWriteModeMixTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode> PurposeWriteModeMixTestData
 	{
 		get
 		{
-			return from purpose in sLogFilePurposes
-			       from writeMode in sLogFileWriteModes
-			       select (object[])[purpose, writeMode];
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode>();
+
+			foreach (LogFilePurpose purpose in sLogFilePurposes)
+			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
+			{
+				data.Add(purpose, writeMode);
+			}
+
+			return data;
 		}
 	}
 
 	/// <summary>
 	/// Test data providing a mix of purposes and read-only flags.
 	/// </summary>
-	public static IEnumerable<object[]> PurposeReadOnlyMixTestData
+	public static TheoryData<LogFilePurpose, bool> PurposeReadOnlyMixTestData
 	{
 		get
 		{
-			return from purpose in sLogFilePurposes
-			       from readOnly in new[] { false, true }
-			       select (object[])[purpose, readOnly];
+			var data = new TheoryData<LogFilePurpose, bool>();
+
+			foreach (LogFilePurpose purpose in sLogFilePurposes)
+			foreach (bool readOnly in new[] { false, true })
+			{
+				data.Add(purpose, readOnly);
+			}
+
+			return data;
 		}
 	}
 
 	/// <summary>
 	/// Test data providing a mix of purposes, write modes and read-only flags.
 	/// </summary>
-	public static IEnumerable<object[]> PurposeWriteModeReadOnlyMixTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode, bool> PurposeWriteModeReadOnlyMixTestData
 	{
 		get
 		{
-			return from purpose in sLogFilePurposes
-			       from writeMode in sLogFileWriteModes
-			       from readOnly in new[] { false, true }
-			       select (object[])[purpose, writeMode, readOnly];
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode, bool>();
+
+			foreach (LogFilePurpose purpose in sLogFilePurposes)
+			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
+			foreach (bool readOnly in new[] { false, true })
+			{
+				data.Add(purpose, writeMode, readOnly);
+			}
+
+			return data;
 		}
 	}
 
@@ -115,14 +154,20 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <summary>
 	/// Test data providing a mix of purposes and write modes.
 	/// </summary>
-	public static IEnumerable<object[]> CreateTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode, bool> CreateTestData
 	{
 		get
 		{
-			return from purpose in sLogFilePurposes
-			       from writeMode in sLogFileWriteModes 
-			       from populate in new[] { false, true }
-			       select (object[])[purpose, writeMode, populate];
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode, bool>();
+
+			foreach (LogFilePurpose purpose in sLogFilePurposes)
+			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
+			foreach (bool populate in new[] { false, true })
+			{
+				data.Add(purpose, writeMode, populate);
+			}
+
+			return data;
 		}
 	}
 
@@ -133,8 +178,8 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="populate">
-	/// <c>true</c> to populate the log file with messages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to populate the log file with messages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(CreateTestData))]
@@ -196,8 +241,8 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="populate">
-	/// <c>true</c> to populate the log file with messages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to populate the log file with messages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(CreateTestData))]
@@ -429,20 +474,26 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <summary>
 	/// Test data for methods that return names of log writers, log levels, processes, applications and tags.
 	/// </summary>
-	public static IEnumerable<object[]> GetNamesTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode, bool, bool> GetNamesTestData
 	{
 		get
 		{
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode, bool, bool>();
+
 			foreach (LogFilePurpose purpose in sLogFilePurposes)
 			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 			foreach (bool readOnly in new[] { false, true })
 			{
-				yield return [purpose, writeMode, readOnly, false];
+				// standard case: usedOnly = false
+				data.Add(purpose, writeMode, readOnly, false);
 
 				// usedOnly = true requires the file to be opened for reading and writing,
 				// as the file is pruned to determine whether only used names are returned
-				if (!readOnly) yield return [purpose, writeMode, false, true];
+				if (!readOnly)
+					data.Add(purpose, writeMode, false, true);
 			}
+
+			return data;
 		}
 	}
 
@@ -452,12 +503,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file in read-only mode;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file in read-only mode;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="usedOnly">
-	/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
-	/// <c>false</c> to get all names.
+	/// <see langword="true"/> to test getting names that are referenced in the log file only;<br/>
+	/// <see langword="false"/> to get all names.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(GetNamesTestData))]
@@ -472,7 +523,7 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 			writeMode,
 			readOnly,
 			usedOnly,
-			message => new[] { message.LogWriterName },
+			message => [message.LogWriterName],
 			file => file.GetLogWriterNames(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 	}
 
@@ -482,12 +533,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file in read-only mode;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file in read-only mode;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="usedOnly">
-	/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
-	/// <c>false</c> to get all names.
+	/// <see langword="true"/> to test getting names that are referenced in the log file only;<br/>
+	/// <see langword="false"/> to get all names.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(GetNamesTestData))]
@@ -502,7 +553,7 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 			writeMode,
 			readOnly,
 			usedOnly,
-			message => new[] { message.LogLevelName },
+			message => [message.LogLevelName],
 			file => file.GetLogLevelNames(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 	}
 
@@ -512,12 +563,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file in read-only mode;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file in read-only mode;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="usedOnly">
-	/// <c>true</c> to test getting tags that are referenced in the log file only;<br/>
-	/// <c>false</c> to get all tags.
+	/// <see langword="true"/> to test getting tags that are referenced in the log file only;<br/>
+	/// <see langword="false"/> to get all tags.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(GetNamesTestData))]
@@ -542,12 +593,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file in read-only mode;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file in read-only mode;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="usedOnly">
-	/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
-	/// <c>false</c> to get all names.
+	/// <see langword="true"/> to test getting names that are referenced in the log file only;<br/>
+	/// <see langword="false"/> to get all names.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(GetNamesTestData))]
@@ -562,7 +613,7 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 			writeMode,
 			readOnly,
 			usedOnly,
-			message => new[] { message.ApplicationName },
+			message => [message.ApplicationName],
 			file => file.GetApplicationNames(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 	}
 
@@ -572,12 +623,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file in read-only mode;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file in read-only mode;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="usedOnly">
-	/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
-	/// <c>false</c> to get all names.
+	/// <see langword="true"/> to test getting names that are referenced in the log file only;<br/>
+	/// <see langword="false"/> to get all names.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(GetNamesTestData))]
@@ -592,7 +643,7 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 			writeMode,
 			readOnly,
 			usedOnly,
-			message => new[] { message.ProcessName },
+			message => [message.ProcessName],
 			file => file.GetProcessNames(usedOnly).OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToArray());
 	}
 
@@ -602,12 +653,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file in read-only mode;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file in read-only mode;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="usedOnly">
-	/// <c>true</c> to test getting process ids that are referenced in the log file only;<br/>
-	/// <c>false</c> to get all process ids.
+	/// <see langword="true"/> to test getting process ids that are referenced in the log file only;<br/>
+	/// <see langword="false"/> to get all process ids.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(GetNamesTestData))]
@@ -622,7 +673,7 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 			writeMode,
 			readOnly,
 			usedOnly,
-			message => new[] { message.ProcessId },
+			message => [message.ProcessId],
 			file => file.GetProcessIds()); // unused process ids are not supported anymore...
 	}
 
@@ -632,12 +683,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file in read-only mode;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file in read-only mode;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="usedOnly">
-	/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
-	/// <c>false</c> to get all names.
+	/// <see langword="true"/> to test getting names that are referenced in the log file only;<br/>
+	/// <see langword="false"/> to get all names.
 	/// </param>
 	/// <param name="selector">Selects a string property value out of a log message.</param>
 	/// <param name="action">Action to perform on the log file, returns the strings to compare with the list of selected strings.</param>
@@ -695,12 +746,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file in read-only mode;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file in read-only mode;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="usedOnly">
-	/// <c>true</c> to test getting names that are referenced in the log file only;<br/>
-	/// <c>false</c> to get all names.
+	/// <see langword="true"/> to test getting names that are referenced in the log file only;<br/>
+	/// <see langword="false"/> to get all names.
 	/// </param>
 	/// <param name="selector">Selects a string property value out of a log message.</param>
 	/// <param name="action">Action to perform on the log file, returns the strings to compare with the list of selected strings.</param>
@@ -931,8 +982,8 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file for reading only;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file for reading only;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(PurposeWriteModeReadOnlyMixTestData))]
@@ -985,15 +1036,21 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <summary>
 	/// Test data providing a mix of purpose and write modes.
 	/// </summary>
-	public static IEnumerable<object[]> Read_WithCallbackTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode, bool, bool> Read_WithCallbackTestData
 	{
 		get
 		{
-			return from purpose in sLogFilePurposes
-			       from writeMode in sLogFileWriteModes
-			       from readOnly in new[] { false, true }
-			       from cancelReading in new[] { false, true }
-			       select (object[])[purpose, writeMode, readOnly, cancelReading];
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode, bool, bool>();
+
+			foreach (LogFilePurpose purpose in sLogFilePurposes)
+			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
+			foreach (bool readOnly in new[] { false, true })
+			foreach (bool cancelReading in new[] { false, true })
+			{
+				data.Add(purpose, writeMode, readOnly, cancelReading);
+			}
+
+			return data;
 		}
 	}
 
@@ -1003,12 +1060,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file for reading only;<br/>
-	/// <c>false</c> to open the file for reading and writing.
+	/// <see langword="true"/> to open the file for reading only;<br/>
+	/// <see langword="false"/> to open the file for reading and writing.
 	/// </param>
 	/// <param name="cancelReading">
-	/// <c>true</c> to cancel reading at half of the expected log messages;<br/>
-	/// <c>false</c> to read to the end.
+	/// <see langword="true"/> to cancel reading at half of the expected log messages;<br/>
+	/// <see langword="false"/> to read to the end.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(Read_WithCallbackTestData))]
@@ -1088,15 +1145,21 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <summary>
 	/// Test data providing a mix of purpose and write modes.
 	/// </summary>
-	public static IEnumerable<object[]> ClearTestData_Success
+	public static TheoryData<LogFilePurpose, LogFileWriteMode, bool, bool> ClearTestData_Success
 	{
 		get
 		{
-			return from purpose in sLogFilePurposes
-			       from writeMode in sLogFileWriteModes
-			       from messagesOnly in new[] { false, true }
-			       from compact in new[] { false, true }
-			       select (object[])[purpose, writeMode, messagesOnly, compact];
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode, bool, bool>();
+
+			foreach (LogFilePurpose purpose in sLogFilePurposes)
+			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
+			foreach (bool messagesOnly in new[] { false, true })
+			foreach (bool compact in new[] { false, true })
+			{
+				data.Add(purpose, writeMode, messagesOnly, compact);
+			}
+
+			return data;
 		}
 	}
 
@@ -1106,12 +1169,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="messagesOnly">
-	/// <c>true</c> to remove messages only;<br/>
-	/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
+	/// <see langword="true"/> to remove messages only;<br/>
+	/// <see langword="false"/> to remove processes, applications, log writers, log levels and tags as well.
 	/// </param>
 	/// <param name="compact">
-	/// <c>true</c> to compact the log file after clearing (default);<br/>
-	/// <c>false</c> to clear the log file, but do not compact it.
+	/// <see langword="true"/> to compact the log file after clearing (default);<br/>
+	/// <see langword="false"/> to clear the log file, but do not compact it.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(ClearTestData_Success))]
@@ -1195,14 +1258,20 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <summary>
 	/// Test data providing a mix of purpose and write modes.
 	/// </summary>
-	public static IEnumerable<object[]> ClearTestData_ReadOnly
+	public static TheoryData<LogFilePurpose, bool, bool> ClearTestData_ReadOnly
 	{
 		get
 		{
-			return from purpose in sLogFilePurposes
-			       from messagesOnly in new[] { false, true }
-			       from compact in new[] { false, true }
-			       select (object[])[purpose, messagesOnly, compact];
+			var data = new TheoryData<LogFilePurpose, bool, bool>();
+
+			foreach (LogFilePurpose purpose in sLogFilePurposes)
+			foreach (bool messagesOnly in new[] { false, true })
+			foreach (bool compact in new[] { false, true })
+			{
+				data.Add(purpose, messagesOnly, compact);
+			}
+
+			return data;
 		}
 	}
 
@@ -1212,12 +1281,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// </summary>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="messagesOnly">
-	/// <c>true</c> to remove messages only;<br/>
-	/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
+	/// <see langword="true"/> to remove messages only;<br/>
+	/// <see langword="false"/> to remove processes, applications, log writers, log levels and tags as well.
 	/// </param>
 	/// <param name="compact">
-	/// <c>true</c> to compact the log file after clearing (default);<br/>
-	/// <c>false</c> to clear the log file, but do not compact it.
+	/// <see langword="true"/> to compact the log file after clearing (default);<br/>
+	/// <see langword="false"/> to clear the log file, but do not compact it.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(ClearTestData_ReadOnly))]
@@ -1250,33 +1319,40 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <summary>
 	/// Test data providing a mix of purpose and write modes.
 	/// </summary>
-	public static IEnumerable<object[]> PruneTestData
+	public static TheoryData<LogFilePurpose, LogFileWriteMode, bool, bool, int, int> PruneTestData
 	{
 		get
 		{
+			var data = new TheoryData<LogFilePurpose, LogFileWriteMode, bool, bool, int, int>();
+
 			foreach (LogFilePurpose purpose in sLogFilePurposes)
 			foreach (LogFileWriteMode writeMode in sLogFileWriteModes)
 			foreach (bool readOnly in new[] { false, true })
 			foreach (bool compact in new[] { false, true })
 			{
-				yield return [purpose, writeMode, readOnly, compact, -1, -1];     // do not discard anything
-				yield return [purpose, writeMode, readOnly, compact, 10000, -1];  // discard by message count limit, but the file does not contain more than that messages
-				yield return [purpose, writeMode, readOnly, compact, 9999, -1];   // discard the oldest message by message count
-				yield return [purpose, writeMode, readOnly, compact, 5000, -1];   // discard half of the messages by message count
-				yield return [purpose, writeMode, readOnly, compact, 2, -1];      // discard all but the newest two messages by message count
-				yield return [purpose, writeMode, readOnly, compact, 1, -1];      // discard all but the newest message by message count
-				yield return [purpose, writeMode, readOnly, compact, 0, -1];      // discard all messages by message count
-				yield return [purpose, writeMode, readOnly, compact, -1, 0];      // do not discard anything
-				yield return [purpose, writeMode, readOnly, compact, -1, 1];      // discard the oldest message by timestamp
-				yield return [purpose, writeMode, readOnly, compact, -1, 2];      // discard the oldest two messages by timestamp
-				yield return [purpose, writeMode, readOnly, compact, -1, 5000];   // discard half of the messages by timestamp
-				yield return [purpose, writeMode, readOnly, compact, -1, 9999];   // discard all messages but the newest message by timestamp
-				yield return [purpose, writeMode, readOnly, compact, -1, 10000];  // discard all messages by timestamp
-				yield return [purpose, writeMode, readOnly, compact, 5000, 4999]; // discard half of the messages (by message count discards one more than by timestamp)
-				yield return [purpose, writeMode, readOnly, compact, 4999, 5000]; // discard half of the messages (by timestamp discards one more than by message count)
+				data.Add(purpose, writeMode, readOnly, compact, -1, -1);    // do not discard anything
+				data.Add(purpose, writeMode, readOnly, compact, 10000, -1); // limit by count, but file has <= 10000
+				data.Add(purpose, writeMode, readOnly, compact, 9999, -1);  // discard oldest 1 by count
+				data.Add(purpose, writeMode, readOnly, compact, 5000, -1);  // discard half by count
+				data.Add(purpose, writeMode, readOnly, compact, 2, -1);     // keep newest 2 by count
+				data.Add(purpose, writeMode, readOnly, compact, 1, -1);     // keep newest 1 by count
+				data.Add(purpose, writeMode, readOnly, compact, 0, -1);     // discard all by count
+
+				data.Add(purpose, writeMode, readOnly, compact, -1, 0);     // do not discard anything
+				data.Add(purpose, writeMode, readOnly, compact, -1, 1);     // discard oldest 1 by timestamp
+				data.Add(purpose, writeMode, readOnly, compact, -1, 2);     // discard oldest 2 by timestamp
+				data.Add(purpose, writeMode, readOnly, compact, -1, 5000);  // discard half by timestamp
+				data.Add(purpose, writeMode, readOnly, compact, -1, 9999);  // keep newest 1 by timestamp
+				data.Add(purpose, writeMode, readOnly, compact, -1, 10000); // discard all by timestamp
+
+				data.Add(purpose, writeMode, readOnly, compact, 5000, 4999); // half (count prunes 1 more)
+				data.Add(purpose, writeMode, readOnly, compact, 4999, 5000); // half (timestamp prunes 1 more)
 			}
+
+			return data;
 		}
 	}
+
 
 	/// <summary>
 	/// Tests pruning an existing log file.
@@ -1285,12 +1361,12 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file read-only;<br/>
-	/// <c>false</c> to open the file read/write.
+	/// <see langword="true"/> to open the file read-only;<br/>
+	/// <see langword="false"/> to open the file read/write.
 	/// </param>
 	/// <param name="compact">
-	/// <c>true</c> to compact the log file;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to compact the log file;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <param name="maximumMessageCount">Number of messages to keep in the log file.</param>
 	/// <param name="pruneByTimestampCount">Number of old messages to remove by timestamp.</param>
@@ -1516,8 +1592,8 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 	/// <param name="purpose">Log file purpose to test.</param>
 	/// <param name="writeMode">Log file write mode to test.</param>
 	/// <param name="readOnly">
-	/// <c>true</c> to open the file read-only;<br/>
-	/// <c>false</c> to open the file read/write.
+	/// <see langword="true"/> to open the file read-only;<br/>
+	/// <see langword="false"/> to open the file read/write.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(PurposeWriteModeReadOnlyMixTestData))]
@@ -1526,6 +1602,7 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 		string logFilePath = purpose == LogFilePurpose.Recording
 			                     ? mFixture.GetCopyOfFile_Recording_RandomMessages_10K()
 			                     : mFixture.GetCopyOfFile_Analysis_RandomMessages_10K();
+
 		string snapshotFilePath = logFilePath + ".snapshot";
 
 		try

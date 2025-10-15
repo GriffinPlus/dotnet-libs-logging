@@ -60,8 +60,8 @@ public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfigur
 	/// Disposes the object cleaning up unmanaged resources
 	/// </summary>
 	/// <param name="disposing">
-	/// <c>true</c> if called explicitly;<br/>
-	/// <c>false</c> if called due to finalization.
+	/// <see langword="true"/> if called explicitly;<br/>
+	/// <see langword="false"/> if called due to finalization.
 	/// </param>
 	protected override void Dispose(bool disposing)
 	{
@@ -196,14 +196,12 @@ public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfigur
 			// get the first matching log writer settings
 			LogWriterConfiguration settings = File
 				.LogWriterSettings
-				.Where(
-					configuration => configuration
-						.NamePatterns
-						.Any(x => x.Regex.IsMatch(writer.Name)))
-				.FirstOrDefault(
-					configuration => !configuration.TagPatterns.Any() || configuration
-						                 .TagPatterns
-						                 .Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))));
+				.Where(configuration => configuration
+					.NamePatterns
+					.Any(x => x.Regex.IsMatch(writer.Name)))
+				.FirstOrDefault(configuration => !configuration.TagPatterns.Any() || configuration
+					                                 .TagPatterns
+					                                 .Any(x => writer.Tags.Any<string>(y => x.Regex.IsMatch(y))));
 
 			if (settings != null)
 			{
@@ -248,8 +246,8 @@ public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfigur
 	/// Saves the configuration.
 	/// </summary>
 	/// <param name="includeDefaults">
-	/// <c>true</c> to include the default value of settings that have not been explicitly set;<br/>
-	/// <c>false</c> to save only settings that have not been explicitly set.
+	/// <see langword="true"/> to include the default value of settings that have not been explicitly set;<br/>
+	/// <see langword="false"/> to save only settings that have not been explicitly set.
 	/// </param>
 	public override void Save(bool includeDefaults = false)
 	{
@@ -319,8 +317,8 @@ public class FileBackedLogConfiguration : LogConfiguration<FileBackedLogConfigur
 	/// </summary>
 	/// <param name="fileName">File name to check.</param>
 	/// <returns>
-	/// <c>true</c> if the file name is the name of the configuration file;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the file name is the name of the configuration file;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	private bool IsConfigurationFile(string fileName)
 	{

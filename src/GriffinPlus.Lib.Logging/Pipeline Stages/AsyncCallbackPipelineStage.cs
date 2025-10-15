@@ -24,7 +24,7 @@ public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage
 	public AsyncCallbackPipelineStage() { }
 
 	/// <summary>
-	/// Gets or sets the synchronous message processing callback (may be <c>null</c>).
+	/// Gets or sets the synchronous message processing callback (may be <see langword="null"/>).
 	/// The callback is executed in the context of the thread writing the message.
 	/// </summary>
 	/// <remarks>
@@ -43,7 +43,7 @@ public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage
 	}
 
 	/// <summary>
-	/// Gets or sets the asynchronous message processing callback (may be <c>null</c>).
+	/// Gets or sets the asynchronous message processing callback (may be <see langword="null"/>).
 	/// The callback is executed by a worker thread.
 	/// </summary>
 	/// <remarks>
@@ -108,8 +108,8 @@ public class AsyncCallbackPipelineStage : AsyncProcessingPipelineStage
 /// Receives a value indicating whether the message should be enqueued for asynchronous processing.
 /// </param>
 /// <returns>
-/// <c>true</c> to call the following pipeline stages;<br/>
-/// <c>false</c> to stop processing.
+/// <see langword="true"/> to call the following pipeline stages;<br/>
+/// <see langword="false"/> to stop processing.
 /// </returns>
 public delegate bool SynchronousProcessingCallback(LocalLogMessage message, out bool queueForAsyncProcessing);
 

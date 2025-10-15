@@ -35,7 +35,7 @@ public interface IProcessingPipelineStageConfiguration : IReadOnlyDictionary<str
 	/// <param name="defaultValue">Value of the setting, if the setting does not exist, yet.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/> is <c>null</c>.
+	/// The argument <paramref name="name"/> is <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -64,7 +64,8 @@ public interface IProcessingPipelineStageConfiguration : IReadOnlyDictionary<str
 	/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -88,9 +89,9 @@ public interface IProcessingPipelineStageConfiguration : IReadOnlyDictionary<str
 	/// - square brackets ( [] )
 	/// - Period (.)
 	/// </param>
-	/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
+	/// <returns>The setting (<see langword="null"/> if the setting does not exist).</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/> is <c>null</c>.
+	/// The argument <paramref name="name"/> is <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -115,9 +116,10 @@ public interface IProcessingPipelineStageConfiguration : IReadOnlyDictionary<str
 	/// </param>
 	/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
 	/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
-	/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
+	/// <returns>The setting (<see langword="null"/> if the setting does not exist).</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -144,7 +146,7 @@ public interface IProcessingPipelineStageConfiguration : IReadOnlyDictionary<str
 	/// <param name="value">New value of the setting.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/> is <c>null</c>.
+	/// The argument <paramref name="name"/> is <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -173,7 +175,8 @@ public interface IProcessingPipelineStageConfiguration : IReadOnlyDictionary<str
 	/// <param name="stringToValueConverter">Delegate that converts the string representation to an object of the type <typeparamref name="T"/>.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.

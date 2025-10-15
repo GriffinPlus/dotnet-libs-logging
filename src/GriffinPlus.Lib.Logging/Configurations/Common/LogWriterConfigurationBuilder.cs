@@ -262,7 +262,7 @@ public class LogWriterConfigurationBuilder
 	/// <summary>
 	/// Builds the configured log writer configuration.
 	/// </summary>
-	/// <returns>The built log writer configuration.</returns>
+	/// <returns>The created log writer configuration.</returns>
 	public LogWriterConfiguration Build()
 	{
 		var copy = new LogWriterConfiguration(mConfiguration);

@@ -101,8 +101,8 @@ public sealed class TagSet : ITagSet
 	/// <param name="left">Left tag set.</param>
 	/// <param name="right">Right tag set.</param>
 	/// <returns>
-	/// <c>true</c> if the specified tag sets are equal;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified tag sets are equal;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public static bool operator ==(TagSet left, ITagSet right)
 	{
@@ -116,8 +116,8 @@ public sealed class TagSet : ITagSet
 	/// <param name="left">Left tag set.</param>
 	/// <param name="right">Right tag set.</param>
 	/// <returns>
-	/// <c>true</c> if the specified tag sets are not equal;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified tag sets are not equal;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public static bool operator !=(TagSet left, ITagSet right)
 	{
@@ -224,8 +224,8 @@ public sealed class TagSet : ITagSet
 	/// </summary>
 	/// <param name="other">Tag set to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the specified tag set equals the current one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified tag set equals the current one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool Equals(ITagSet other)
 	{
@@ -237,8 +237,8 @@ public sealed class TagSet : ITagSet
 	/// </summary>
 	/// <param name="obj">Tag set to compare with.</param>
 	/// <returns>
-	/// <c>true</c> if the specified tag set equals the current one;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified tag set equals the current one;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool Equals(object obj)
 	{

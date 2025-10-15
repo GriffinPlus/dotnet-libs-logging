@@ -46,7 +46,7 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 		}
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the search is done case-sensitive (<c>true</c>) or case-insensitive (<c>false</c>).
+		/// Gets or sets a value indicating whether the search is done case-sensitive (<see langword="true"/>) or case-insensitive (<see langword="false"/>).
 		/// </summary>
 		public bool IsCaseSensitive
 		{
@@ -67,8 +67,8 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 		/// </summary>
 		/// <param name="text">Text to check.</param>
 		/// <returns>
-		/// <c>true</c> if the item passes the filter;<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> if the item passes the filter;<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </returns>
 		internal bool Matches(string text)
 		{

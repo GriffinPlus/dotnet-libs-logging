@@ -20,7 +20,7 @@ public class CallbackPipelineStage : SyncProcessingPipelineStage
 	public CallbackPipelineStage() { }
 
 	/// <summary>
-	/// Gets or sets the message processing callback (may be <c>null</c>).
+	/// Gets or sets the message processing callback (may be <see langword="null"/>).
 	/// The callback is executed in the context of the thread writing the message.
 	/// </summary>
 	/// <remarks>
@@ -58,7 +58,7 @@ public class CallbackPipelineStage : SyncProcessingPipelineStage
 /// </summary>
 /// <param name="message">Log message to process.</param>
 /// <returns>
-/// <c>true</c> to call the following pipeline stages;<br/>
-/// <c>false</c> to stop processing.
+/// <see langword="true"/> to call the following pipeline stages;<br/>
+/// <see langword="false"/> to stop processing.
 /// </returns>
 public delegate bool ProcessingCallback(LocalLogMessage message);

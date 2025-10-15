@@ -58,8 +58,8 @@ public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilter
 	/// Disposes the filter detaching it from the collection and releasing unmanaged resources.
 	/// </summary>
 	/// <param name="disposing">
-	/// <c>true</c>, if Dispose() was called intentionally;<br/>
-	/// <c>false</c> if running as part of the finalization.
+	/// <see langword="true"/>, if Dispose() was called intentionally;<br/>
+	/// <see langword="false"/> if running as part of the finalization.
 	/// </param>
 	protected virtual void Dispose(bool disposing)
 	{
@@ -163,8 +163,8 @@ public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilter
 	/// Raises the <see cref="FilterChanged"/> event.
 	/// </summary>
 	/// <param name="changeEffectsFilterResult">
-	/// <c>true</c> if the change to the filter may change the set of filtered messages;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the change to the filter may change the set of filtered messages;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	protected virtual void OnFilterChanged(bool changeEffectsFilterResult)
 	{
@@ -181,8 +181,8 @@ public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilter
 	/// Gets or sets a value indicating whether the filter is enabled.
 	/// </summary>
 	/// <Value>
-	/// <c>true</c> applies the filter when matching log messages (default).<br/>
-	/// <c>false</c> lets all log messages pass the filter when matching.
+	/// <see langword="true"/> applies the filter when matching log messages (default).<br/>
+	/// <see langword="false"/> lets all log messages pass the filter when matching.
 	/// </Value>
 	public bool Enabled
 	{
@@ -327,7 +327,7 @@ public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilter
 	/// Attaches the filter to the specified collection.
 	/// </summary>
 	/// <param name="collection">Collection to attach.</param>
-	/// <exception cref="ArgumentNullException">The specified collection is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException">The specified collection is <see langword="null"/>.</exception>
 	public void AttachToCollection(ILogMessageCollection<TMessage> collection)
 	{
 		if (collection == null)
@@ -422,10 +422,10 @@ public abstract partial class SelectableLogMessageFilterBase<TMessage, TUnfilter
 	/// </summary>
 	/// <param name="message">Message to check.</param>
 	/// <returns>
-	/// <c>true</c> if the specified message matches the filter criteria;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified message matches the filter criteria;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
-	/// <exception cref="ArgumentNullException">The specified message is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException">The specified message is <see langword="null"/>.</exception>
 	public bool Matches(TMessage message)
 	{
 		if (message == null) throw new ArgumentNullException(nameof(message));

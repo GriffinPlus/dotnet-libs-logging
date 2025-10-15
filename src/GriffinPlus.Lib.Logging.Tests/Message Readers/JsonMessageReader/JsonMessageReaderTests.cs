@@ -36,32 +36,49 @@ public class JsonMessageReaderTests
 		Assert.Equal("Text", reader.FieldNames.Text);
 	}
 
-	public static IEnumerable<object[]> ProcessTestData_SingleMessage
+	/// <summary>
+	/// Test data for verifying that a single JSON-formatted message
+	/// can be correctly parsed back into a <see cref="LogMessage"/>.
+	/// </summary>
+	public static TheoryData<string, string, LogMessage> ProcessTestData_SingleMessage
 	{
 		get
 		{
-			// use test data of the json message formatter to test reading log messages
-			foreach (object[] data in JsonMessageFormatterTests.FormatTestData)
-			{
-				// JsonMessageFormatterStyle style = (JsonMessageFormatterStyle) data[0];
-				var field = (LogMessageField)data[1];
-				var message = (LogMessage)data[2];
-				string newline = (string)data[3]; // character sequence used to inject line breaks
-				string json = (string)data[4];
+			var data = new TheoryData<string, string, LogMessage>();
 
+			// Use test data of the JsonMessageFormatter to test the reading/processing of JSON log messages.
+			foreach (object[] entry in JsonMessageFormatterTests.FormatTestData)
+			{
+				// Expected structure of each entry in JsonMessageFormatterTests.FormatTestData:
+				// [0] = JsonMessageFormatterStyle
+				// [1] = LogMessageField
+				// [2] = LogMessage
+				// [3] = string? (newline)
+				// [4] = string (JSON output)
+
+				var field = (LogMessageField)entry[1];
+				var message = (LogMessage)entry[2];
+				string newline = (string)entry[3]; // may be null
+				string json = (string)entry[4];
+
+				// Build expected LogMessage instance containing only the fields included in the JSON.
 				var expected = new LogMessage();
+
 				if (field.HasFlag(LogMessageField.Timestamp)) expected.Timestamp = message.Timestamp;
 				if (field.HasFlag(LogMessageField.HighPrecisionTimestamp)) expected.HighPrecisionTimestamp = message.HighPrecisionTimestamp;
 				if (field.HasFlag(LogMessageField.LogWriterName)) expected.LogWriterName = message.LogWriterName;
 				if (field.HasFlag(LogMessageField.LogLevelName)) expected.LogLevelName = message.LogLevelName;
 				if (field.HasFlag(LogMessageField.Tags)) expected.Tags = message.Tags;
 				if (field.HasFlag(LogMessageField.ApplicationName)) expected.ApplicationName = message.ApplicationName;
-				if (field.HasFlag(LogMessageField.ProcessName)) expected.ProcessName = message.ProcessName;
+				if (field.HasFlag(LogMessageField.ProcessName))	expected.ProcessName = message.ProcessName;
 				if (field.HasFlag(LogMessageField.ProcessId)) expected.ProcessId = message.ProcessId;
 				if (field.HasFlag(LogMessageField.Text)) expected.Text = message.Text;
 
-				yield return [json, newline, expected];
+				// Add tuple (json, newline, expected message) to the dataset.
+				data.Add(json, newline, expected);
 			}
+
+			return data;
 		}
 	}
 
@@ -70,7 +87,7 @@ public class JsonMessageReaderTests
 	/// </summary>
 	/// <param name="json">JSON document containing the log message to read.</param>
 	/// <param name="newline">
-	/// Character sequence that was used to inject line breaks (<c>null</c> if that does not matter).
+	/// Character sequence that was used to inject line breaks (<see langword="null"/> if that does not matter).
 	/// Not used by this test.
 	/// </param>
 	/// <param name="expected">The log message that is expected to be returned.</param>
@@ -89,7 +106,7 @@ public class JsonMessageReaderTests
 	/// </summary>
 	/// <param name="json">JSON document containing the log message to read.</param>
 	/// <param name="newline">
-	/// Character sequence that was used to inject line breaks (<c>null</c> if that does not matter).
+	/// Character sequence that was used to inject line breaks (<see langword="null"/> if that does not matter).
 	/// Not used by this test.
 	/// </param>
 	/// <param name="expected">The log message that is expected to be returned.</param>
@@ -119,7 +136,7 @@ public class JsonMessageReaderTests
 	/// <param name="testSetCount">Number of test data sets.</param>
 	/// <param name="minMessageCount">Minimum number of messages in a test data set.</param>
 	/// <param name="maxMessageCount">Maximum number of messages in a test data set.</param>
-	/// <param name="newline">Character sequence to use for line breaks (<c>null</c> to allow everything in the test set).</param>
+	/// <param name="newline">Character sequence to use for line breaks (<see langword="null"/> to allow everything in the test set).</param>
 	/// <param name="injectRandomWhiteSpaceBetweenMessages">
 	/// true to inject a random whitespace between log messages;
 	/// false to inject a newline character sequence only.

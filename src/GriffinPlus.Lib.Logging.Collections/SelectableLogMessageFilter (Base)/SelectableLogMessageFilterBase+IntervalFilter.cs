@@ -103,8 +103,8 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 		/// </summary>
 		/// <param name="timestamp">Item to check.</param>
 		/// <returns>
-		/// <c>true</c> if the item passes the filter;<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> if the item passes the filter;<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </returns>
 		internal bool Matches(DateTimeOffset timestamp)
 		{

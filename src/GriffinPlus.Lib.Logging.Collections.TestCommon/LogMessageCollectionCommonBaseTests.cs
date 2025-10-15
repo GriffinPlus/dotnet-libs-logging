@@ -67,13 +67,14 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	[Fact]
 	protected virtual void INotifyCollectionChanged_CollectionChanged()
 	{
-		void Handler(object sender, NotifyCollectionChangedEventArgs args) { }
-
 		using TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _);
 		// register and unregister the event
 		// (firing event is tested as part of the methods modifying the collection)
 		collection.CollectionChanged += Handler;
 		collection.CollectionChanged -= Handler;
+		return;
+
+		static void Handler(object sender, NotifyCollectionChangedEventArgs args) { }
 	}
 
 	#endregion
@@ -86,13 +87,14 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 	[Fact]
 	protected virtual void INotifyPropertyChanged_PropertyChanged()
 	{
-		void Handler(object sender, PropertyChangedEventArgs args) { }
-
 		using TLogMessageCollection collection = CreateCollection(0, out LogMessage[] _);
 		// register and unregister the event
 		// (firing event is tested as part of the methods modifying the collection)
 		collection.PropertyChanged += Handler;
 		collection.PropertyChanged -= Handler;
+		return;
+
+		static void Handler(object sender, PropertyChangedEventArgs args) { }
 	}
 
 	#endregion
@@ -899,7 +901,7 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 
 	/// <summary>
 	/// Tests checking whether the collection contains a specific log message using <see cref="IList.Contains"/> with the log
-	/// message being a null reference. Should always return <c>false</c>.
+	/// message being a null reference. Should always return <see langword="false"/>.
 	/// </summary>
 	/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 	[Theory]
@@ -950,7 +952,7 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 
 	/// <summary>
 	/// Tests checking whether the collection contains a specific log message using <see cref="ICollection{T}.Contains"/> with the log
-	/// message being a null reference. Should always return <c>false</c>.
+	/// message being a null reference. Should always return <see langword="false"/>.
 	/// </summary>
 	/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 	[Theory]
@@ -1011,7 +1013,7 @@ public abstract class LogMessageCollectionCommonBaseTests<TLogMessageCollection>
 
 	/// <summary>
 	/// Common test code for checking whether the collection contains a specific log message with the log message being a null reference.
-	/// The operation should always return <c>false</c>.
+	/// The operation should always return <see langword="false"/>.
 	/// </summary>
 	/// <param name="initialCollectionSize">Number of messages to put into the collection before running the test.</param>
 	/// <param name="operation">Operation to invoke on the collection.</param>

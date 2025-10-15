@@ -35,7 +35,7 @@ public abstract class LogConfigurationTests_Base<TConfiguration> where TConfigur
 		Assert.Equal(Aspect3Name, aspect3.Name);
 
 		// the ids of the log levels should be different
-		var ids = new HashSet<int>(new[] { aspect1.Id, aspect2.Id, aspect3.Id });
+		var ids = new HashSet<int>([aspect1.Id, aspect2.Id, aspect3.Id]);
 		Assert.Equal(3, ids.Count);
 	}
 
@@ -366,14 +366,8 @@ public abstract class LogConfigurationTests_Base<TConfiguration> where TConfigur
 
 			switch (i)
 			{
-				// effect of .WithLogWriter<T>()
-				case 0:
-					Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
-					Assert.Equal($"{typeof(TConfiguration).FullName}", pattern.Pattern);
-					break;
-
-				// effect of .WithLogWriter(typeof(T))
-				case 1:
+				case 0: // effect of .WithLogWriter<T>()
+				case 1: // effect of .WithLogWriter(typeof(T))
 					Assert.IsType<LogWriterConfiguration.ExactNamePattern>(pattern);
 					Assert.Equal($"{typeof(TConfiguration).FullName}", pattern.Pattern);
 					break;

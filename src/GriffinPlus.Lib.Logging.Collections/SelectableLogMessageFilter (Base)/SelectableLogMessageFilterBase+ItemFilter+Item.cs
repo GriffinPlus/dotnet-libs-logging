@@ -28,8 +28,8 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 			/// <param name="group">Name of the group the value belongs to.</param>
 			/// <param name="value">Value of the item in the filter.</param>
 			/// <param name="isStatic">
-			/// <c>true</c> if the item stays in the list of selectable items;<br/>
-			/// <c>false</c> if the item can be removed.
+			/// <see langword="true"/> if the item stays in the list of selectable items;<br/>
+			/// <see langword="false"/> if the item can be removed.
 			/// </param>
 			internal Item(string group, T value, bool isStatic)
 			{
@@ -60,14 +60,14 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 			#region IsStatic
 
 			/// <summary>
-			/// Gets a value indicating whether the item stays in the collection of selectable items (<c>true</c>)
-			/// or whether the item can be removed (<c>false</c>).
+			/// Gets a value indicating whether the item stays in the collection of selectable items (<see langword="true"/>)
+			/// or whether the item can be removed (<see langword="false"/>).
 			/// </summary>
 			internal bool IsStatic { get; }
 
 			/// <summary>
-			/// Gets a value indicating whether the item stays in the collection of selectable items (<c>true</c>)
-			/// or whether the item can be removed (<c>false</c>).
+			/// Gets a value indicating whether the item stays in the collection of selectable items (<see langword="true"/>)
+			/// or whether the item can be removed (<see langword="false"/>).
 			/// </summary>
 			bool ISelectableLogMessageFilter_ItemInternal<T>.IsStatic => IsStatic;
 
@@ -115,8 +115,8 @@ partial class SelectableLogMessageFilterBase<TMessage, TUnfilteredCollection>
 
 			/// <summary>
 			/// Gets a value indicating whether the item value is used in at least one message in the unfiltered message set.
-			/// If <see cref="ISelectableLogMessageFilter_ItemFilter{T}.AccumulateItems"/> is <c>true</c>, this property remains
-			/// <c>true</c> once it is <c>true</c> for static items.
+			/// If <see cref="ISelectableLogMessageFilter_ItemFilter{T}.AccumulateItems"/> is <see langword="true"/>, this property remains
+			/// <see langword="true"/> once it is <see langword="true"/> for static items.
 			/// </summary>
 			public bool ValueUsed { get; private set; }
 

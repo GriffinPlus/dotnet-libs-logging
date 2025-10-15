@@ -26,134 +26,129 @@ namespace GriffinPlus.Lib.Logging;
 /// </summary>
 public class ProcessIntegrationTests
 {
-	public static IEnumerable<object[]> IntegrateIntoLogging_TestData
+	/// <summary>
+	/// Test data for integrating process execution into logging and validating exit-wait behaviors.
+	/// </summary>
+	public static TheoryData<string, string, Func<ProcessIntegration, Task>> IntegrateIntoLogging_TestData
 	{
 		get
 		{
+			var data = new TheoryData<string, string, Func<ProcessIntegration, Task>>();
+
 			foreach (string stream in new[] { "stdout", "stderr" })
 			{
-				// test waiting for process exit using the synchronous method:
-				// ProcessIntegration.WaitForExit() (wait infinitely)
-				yield return
-				[
+				// ---------------------------------------------------------------------
+				// WaitForExit() - synchronous, wait indefinitely
+				// ---------------------------------------------------------------------
+				data.Add(
 					stream,
 					"WaitForExit()",
-					new Func<ProcessIntegration, Task>(
-						integration =>
-						{
-							return Task.Factory.StartNew(
-								() => // needed to avoid blocking the only thread in the AsyncContext!
-								{
-									integration.WaitForExit();
-									Assert.True(integration.Process.HasExited);
-									return Task.CompletedTask;
-								},
-								CancellationToken.None,
-								TaskCreationOptions.LongRunning,
-								TaskScheduler.Default);
-						})
-				];
+					integration =>
+					{
+						// Added: run on a background thread to avoid blocking the AsyncContext single thread
+						return Task.Factory.StartNew(
+							() =>
+							{
+								integration.WaitForExit();
+								Assert.True(integration.Process.HasExited);
+								return Task.CompletedTask;
+							},
+							CancellationToken.None,
+							TaskCreationOptions.LongRunning,
+							TaskScheduler.Default);
+					});
 
-				// test waiting for process exit using the synchronous method:
-				// ProcessIntegration.WaitForExit(int milliseconds) with milliseconds = 0 (do not wait)
-				yield return
-				[
+				// ---------------------------------------------------------------------
+				// WaitForExit(0) - do not wait (returns immediately)
+				// ---------------------------------------------------------------------
+				data.Add(
 					stream,
 					"WaitForExit(0)",
-					new Func<ProcessIntegration, Task>(
-						integration =>
-						{
-							bool success = integration.WaitForExit(0);
-							Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
-							Assert.False(integration.Process.HasExited);
-							return Task.CompletedTask;
-						})
-				];
+					integration =>
+					{
+						bool success = integration.WaitForExit(0);
+						// ConsolePrinter process takes at least 1s (fixed delay) to exit
+						Assert.False(success);
+						Assert.False(integration.Process.HasExited);
+						return Task.CompletedTask;
+					});
 
-				// test waiting for process exit using the synchronous method:
-				// ProcessIntegration.WaitForExit(int milliseconds) with milliseconds = 100 (do not wait long enough)
-				yield return
-				[
+				// ---------------------------------------------------------------------
+				// WaitForExit(100) - wait not long enough
+				// ---------------------------------------------------------------------
+				data.Add(
 					stream,
 					"WaitForExit(100)",
-					new Func<ProcessIntegration, Task>(
-						integration =>
-						{
-							return Task.Factory.StartNew(
-								() => // needed to avoid blocking the only thread in the AsyncContext!
-								{
-									bool success = integration.WaitForExit(100);
-									Assert.False(success); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
-									Assert.False(integration.Process.HasExited);
-								},
-								CancellationToken.None,
-								TaskCreationOptions.LongRunning,
-								TaskScheduler.Default);
-						})
-				];
+					integration =>
+					{
+						// Added: run sync wait off-thread to avoid blocking
+						return Task.Factory.StartNew(
+							() =>
+							{
+								bool success = integration.WaitForExit(100);
+								// ConsolePrinter process takes at least 1s (fixed delay) to exit
+								Assert.False(success);
+								Assert.False(integration.Process.HasExited);
+							},
+							CancellationToken.None,
+							TaskCreationOptions.LongRunning,
+							TaskScheduler.Default);
+					});
 
-				// test waiting for process exit using the synchronous method:
-				// ProcessIntegration.WaitForExit(int milliseconds) with milliseconds = 2000 (time is sufficient to allow the process to exit)
-				yield return
-				[
+				// ---------------------------------------------------------------------
+				// WaitForExit(10000) - time should be sufficient
+				// ---------------------------------------------------------------------
+				data.Add(
 					stream,
-					"WaitForExit(2000)",
-					new Func<ProcessIntegration, Task>(
-						integration =>
-						{
-							return Task.Factory.StartNew(
-								() => // needed to avoid blocking the only thread in the AsyncContext!
-								{
-									bool success = integration.WaitForExit(10000);
-									Assert.True(
-										success,
-										"The process should have exited after 10000ms."); // the ConsolePrinter process takes at least 1 second (fixed delay) to exit
-									Assert.True(integration.Process.HasExited);
-								},
-								CancellationToken.None,
-								TaskCreationOptions.LongRunning,
-								TaskScheduler.Default);
-						})
-				];
+					"WaitForExit(10000)",
+					integration =>
+					{
+						// Added: off-thread to avoid blocking
+						return Task.Factory.StartNew(
+							() =>
+							{
+								bool success = integration.WaitForExit(10000);
+								Assert.True(success, "The process should have exited after 10000ms.");
+								Assert.True(integration.Process.HasExited);
+							},
+							CancellationToken.None,
+							TaskCreationOptions.LongRunning,
+							TaskScheduler.Default);
+					});
 
-				// test waiting for process exit using the asynchronous method:
-				// ProcessIntegration.WaitForExitAsync(CancellationToken cancellationToken) (wait infinitely)
-				yield return
-				[
+				// ---------------------------------------------------------------------
+				// WaitForExitAsync(ct) with CancellationToken.None - await indefinitely
+				// ---------------------------------------------------------------------
+				data.Add(
 					stream,
 					"WaitForExitAsync(ct) with ct = CancellationToken.None)",
-					new Func<ProcessIntegration, Task>(
-						async integration =>
-						{
-							await integration
-								.WaitForExitAsync(CancellationToken.None)
-								.ConfigureAwait(false);
+					async integration =>
+					{
+						await integration
+							.WaitForExitAsync(CancellationToken.None)
+							.ConfigureAwait(false);
 
-							Assert.True(integration.Process.HasExited);
-						})
-				];
+						Assert.True(integration.Process.HasExited);
+					});
 
-				// test waiting for process exit using the asynchronous method:
-				// ProcessIntegration.WaitForExitAsync(CancellationToken cancellationToken) (cancel before process completes)
-				yield return
-				[
+				// ---------------------------------------------------------------------
+				// WaitForExitAsync(ct) with cancellation signaled after 100ms
+				// ---------------------------------------------------------------------
+				data.Add(
 					stream,
 					"WaitForExitAsync(ct) with ct signaled after 100ms",
-					new Func<ProcessIntegration, Task>(
-						async integration =>
-						{
-							using var cts = new CancellationTokenSource(100);
-							await Assert
-								.ThrowsAsync<TaskCanceledException>(
-									async () => await integration
-										            .WaitForExitAsync(cts.Token)
-										            .ConfigureAwait(false))
-								.ConfigureAwait(false);
+					async integration =>
+					{
+						using var cts = new CancellationTokenSource(100);
+						await Assert
+							.ThrowsAsync<TaskCanceledException>(() => integration.WaitForExitAsync(cts.Token))
+							.ConfigureAwait(false);
 
-							Assert.False(integration.Process.HasExited);
-						})
-				];
+						Assert.False(integration.Process.HasExited);
+					});
 			}
+
+			return data;
 		}
 	}
 
@@ -199,74 +194,73 @@ public class ProcessIntegrationTests
 			// run processing in a thread that supports marshalling calls into it
 			// to avoid that event handlers are called out of order by pool threads
 			var thread = new AsyncContextThread();
-			thread.Factory.Run(
-					async () =>
+			thread.Factory.Run(async () =>
+				{
+					integration.OutputStreamReceivedText += (_, args) =>
 					{
-						integration.OutputStreamReceivedText += (_, args) =>
+						// abort, if the process has exited
+						if (args.Line == null)
 						{
-							// abort, if the process has exited
-							if (args.Line == null)
-							{
-								stdoutTextFinishedEvent.Set();
-								return;
-							}
+							stdoutTextFinishedEvent.Set();
+							return;
+						}
 
-							stdoutReceivedText.Append(args.Line);
-							stdoutReceivedText.Append(newline);
-						};
+						stdoutReceivedText.Append(args.Line);
+						stdoutReceivedText.Append(newline);
+					};
 
-						integration.OutputStreamReceivedMessage += (_, args) =>
+					integration.OutputStreamReceivedMessage += (_, args) =>
+					{
+						// abort, if the process has exited
+						if (args.Message == null)
 						{
-							// abort, if the process has exited
-							if (args.Message == null)
-							{
-								stdoutMessageFinishedEvent.Set();
-								return;
-							}
+							stdoutMessageFinishedEvent.Set();
+							return;
+						}
 
-							stdoutReceivedMessages.Add(args.Message);
-						};
+						stdoutReceivedMessages.Add(args.Message);
+					};
 
-						integration.ErrorStreamReceivedText += (_, args) =>
+					integration.ErrorStreamReceivedText += (_, args) =>
+					{
+						// abort, if the process has exited
+						if (args.Line == null)
 						{
-							// abort, if the process has exited
-							if (args.Line == null)
-							{
-								stderrTextFinishedEvent.Set();
-								return;
-							}
+							stderrTextFinishedEvent.Set();
+							return;
+						}
 
-							stderrReceivedText.Append(args.Line);
-							stderrReceivedText.Append(newline);
-						};
+						stderrReceivedText.Append(args.Line);
+						stderrReceivedText.Append(newline);
+					};
 
-						integration.ErrorStreamReceivedMessage += (_, args) =>
+					integration.ErrorStreamReceivedMessage += (_, args) =>
+					{
+						// abort, if the process has exited
+						if (args.Message == null)
 						{
-							// abort, if the process has exited
-							if (args.Message == null)
-							{
-								stderrMessageFinishedEvent.Set();
-								return;
-							}
+							stderrMessageFinishedEvent.Set();
+							return;
+						}
 
-							stderrReceivedMessages.Add(args.Message);
-						};
+						stderrReceivedMessages.Add(args.Message);
+					};
 
-						// start process
-						integration.StartProcess();
+					// start process
+					integration.StartProcess();
 
-						// run the various WaitForExit[Async] methods
-						// (some may return before the process has actually exited)
-						await waitForExit(integration);
+					// run the various WaitForExit[Async] methods
+					// (some may return before the process has actually exited)
+					await waitForExit(integration);
 
-						// wait for all event handlers to receive the terminating event arguments
-						// (abort after 30 seconds)
-						using var cts = new CancellationTokenSource(30000);
-						await stdoutTextFinishedEvent.WaitAsync(cts.Token);
-						await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
-						await stderrTextFinishedEvent.WaitAsync(cts.Token);
-						await stderrMessageFinishedEvent.WaitAsync(cts.Token);
-					})
+					// wait for all event handlers to receive the terminating event arguments
+					// (abort after 30 seconds)
+					using var cts = new CancellationTokenSource(30000);
+					await stdoutTextFinishedEvent.WaitAsync(cts.Token);
+					await stdoutMessageFinishedEvent.WaitAsync(cts.Token);
+					await stderrTextFinishedEvent.WaitAsync(cts.Token);
+					await stderrMessageFinishedEvent.WaitAsync(cts.Token);
+				})
 				.WaitAndUnwrapException();
 
 			if (stream == "stdout")

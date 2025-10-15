@@ -65,8 +65,8 @@ public class JsonMessageFieldNames
 	/// </summary>
 	/// <param name="name">Name to check.</param>
 	/// <returns>
-	/// <c>true</c> if the name is a defined field name;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the name is a defined field name;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool IsFieldName(string name)
 	{

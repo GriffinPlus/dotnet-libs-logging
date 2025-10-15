@@ -59,8 +59,8 @@ public class FileBackedProcessingPipelineStageSetting<T> : IProcessingPipelineSt
 	/// </summary>
 	/// <param name="handler">Event handler to register.</param>
 	/// <param name="invokeInCurrentSynchronizationContext">
-	/// <c>true</c> to invoke the event handler in the synchronization context of the current thread;<br/>
-	/// <c>false</c> to invoke the event handler in a worker thread.
+	/// <see langword="true"/> to invoke the event handler in the synchronization context of the current thread;<br/>
+	/// <see langword="false"/> to invoke the event handler in a worker thread.
 	/// </param>
 	public void RegisterSettingChangedEventHandler(
 		EventHandler<SettingChangedEventArgs> handler,
@@ -129,8 +129,8 @@ public class FileBackedProcessingPipelineStageSetting<T> : IProcessingPipelineSt
 	public Type ValueType => typeof(T);
 
 	/// <summary>
-	/// Gets a value indicating whether the setting has valid value (<c>true</c>)
-	/// or just its default value (<c>false</c>).
+	/// Gets a value indicating whether the setting has valid value (<see langword="true"/>)
+	/// or just its default value (<see langword="false"/>).
 	/// </summary>
 	public bool HasValue => Raw.HasValue;
 

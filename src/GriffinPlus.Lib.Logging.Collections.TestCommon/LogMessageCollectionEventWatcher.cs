@@ -26,7 +26,7 @@ public class LogMessageCollectionEventWatcher : IDisposable
 	/// <summary>
 	/// Equality comparer for the <see cref="PropertyChangedEventArgs"/> class.
 	/// </summary>
-	private class PropertyChangedEventArgsEqualityComparer : IEqualityComparer<PropertyChangedEventArgs>
+	private sealed class PropertyChangedEventArgsEqualityComparer : IEqualityComparer<PropertyChangedEventArgs>
 	{
 		public static PropertyChangedEventArgsEqualityComparer Instance { get; } = new();
 
@@ -60,7 +60,7 @@ public class LogMessageCollectionEventWatcher : IDisposable
 	/// <summary>
 	/// Equality comparer for the <see cref="NotifyCollectionChangedEventArgs"/> class.
 	/// </summary>
-	private class NotifyCollectionChangedEventArgsEqualityComparer : IEqualityComparer<NotifyCollectionChangedEventArgs>
+	private sealed class NotifyCollectionChangedEventArgsEqualityComparer : IEqualityComparer<NotifyCollectionChangedEventArgs>
 	{
 		public static NotifyCollectionChangedEventArgsEqualityComparer Instance { get; } = new();
 

@@ -45,8 +45,8 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 	/// Disposes the collection (actually does nothing, just to satisfy the interface).
 	/// </summary>
 	/// <param name="disposing">
-	/// <c>true</c> if the object is being disposed;<br/>
-	/// <c>false</c> if it is being finalized.
+	/// <see langword="true"/> if the object is being disposed;<br/>
+	/// <see langword="false"/> if it is being finalized.
 	/// </param>
 	protected override void Dispose(bool disposing) { }
 
@@ -91,8 +91,8 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 	/// </summary>
 	/// <param name="item">Log message to check for.</param>
 	/// <returns>
-	/// <c>true</c> if the collection contains the log message;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the collection contains the log message;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool Contains(TMessage item)
 	{
@@ -121,7 +121,7 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 	/// Adds a log message to the collection.
 	/// </summary>
 	/// <param name="message">Log message to add.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="message"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="message"/> is <see langword="null"/>.</exception>
 	/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 	public override void Add(TMessage message)
 	{
@@ -151,7 +151,7 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 	/// Adds multiple log messages to the collection at once.
 	/// </summary>
 	/// <param name="messages">Log messages to add.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="messages"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="messages"/> is <see langword="null"/>.</exception>
 	/// <exception cref="NotSupportedException">The collection is read-only.</exception>
 	public override void AddRange(IEnumerable<TMessage> messages)
 	{
@@ -220,7 +220,7 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 	/// </summary>
 	/// <param name="array">Array to copy the log messages into.</param>
 	/// <param name="arrayIndex">Index in the array to start copying to.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="array"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException"><paramref name="array"/> is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException"><paramref name="array"/> is no a one-dimensional array or the array is too small to store all messages.</exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="arrayIndex"/> is out of bounds.</exception>
 	public override void CopyTo(TMessage[] array, int arrayIndex)
@@ -480,12 +480,12 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 
 	#region Managing Overview Collections
 
-	private readonly Dictionary<string, int> mUsedLogWriterCounts       = new();
-	private readonly Dictionary<string, int> mUsedLogLevelCounts        = new();
-	private readonly Dictionary<string, int> mUsedTagsCounts            = new();
-	private readonly Dictionary<string, int> mUsedApplicationNameCounts = new();
-	private readonly Dictionary<string, int> mUsedProcessNameCounts     = new();
-	private readonly Dictionary<int, int>    mUsedProcessIdCounts       = new();
+	private readonly Dictionary<string, int> mUsedLogWriterCounts       = [];
+	private readonly Dictionary<string, int> mUsedLogLevelCounts        = [];
+	private readonly Dictionary<string, int> mUsedTagsCounts            = [];
+	private readonly Dictionary<string, int> mUsedApplicationNameCounts = [];
+	private readonly Dictionary<string, int> mUsedProcessNameCounts     = [];
+	private readonly Dictionary<int, int>    mUsedProcessIdCounts       = [];
 
 	/// <summary>
 	/// Updates the overview collections as the specified message is added to the collection.
@@ -535,7 +535,7 @@ public class LogMessageCollection<TMessage> : LogMessageCollectionBase<TMessage>
 	/// <summary>
 	/// Updates the overview collections as the specified message is removed from the collection.
 	/// </summary>
-	/// <param name="message">Message that is removed from the collection (<c>null</c> if all messages are removed).</param>
+	/// <param name="message">Message that is removed from the collection (<see langword="null"/> if all messages are removed).</param>
 	private void UpdateOverviewCollectionsOnRemove(TMessage message)
 	{
 		if (message != null)

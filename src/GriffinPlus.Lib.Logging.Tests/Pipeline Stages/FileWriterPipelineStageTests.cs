@@ -79,9 +79,20 @@ public class FileWriterPipelineStageTests : TextWriterPipelineStageBaseTests<Fil
 		Assert.StartsWith(AppDomain.CurrentDomain.BaseDirectory, (string)pathSetting.Value.Value);
 	}
 
-	public static IEnumerable<object[]> Process_TestData
+	/// <summary>
+	/// Test data providing all local log message sets for processing tests.
+	/// </summary>
+	public static TheoryData<IEnumerable<LocalLogMessage>> Process_TestData
 	{
-		get { return TestData.LocalLogMessageSet.Select(messages => new object[] { messages }); }
+		get
+		{
+			var data = new TheoryData<IEnumerable<LocalLogMessage>>();
+			foreach (IEnumerable<LocalLogMessage> messages in TestData.LocalLogMessageSet)
+			{
+				data.Add(messages);
+			}
+			return data;
+		}
 	}
 
 	/// <summary>

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Linq.Expressions;
 
 using Xunit;
+
 // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
 
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -56,7 +57,7 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	public void Create_Unbound()
 	{
 		var filter = new TSelectableLogMessageFilter();
-		TestInitialFilterSettings(filter, Array.Empty<LogMessage>(), false);
+		TestInitialFilterSettings(filter, [], false);
 	}
 
 	#endregion
@@ -67,8 +68,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.TimestampFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -102,8 +103,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'From' of the <see cref="ISelectableLogMessageFilter{TMessage}.TimestampFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -130,8 +131,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'To' of the <see cref="ISelectableLogMessageFilter{TMessage}.TimestampFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -162,8 +163,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.ApplicationNameFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -197,8 +198,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.ApplicationNameFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -234,8 +235,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.ProcessNameFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -269,8 +270,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.ProcessNameFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -306,8 +307,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.ProcessIdFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -341,8 +342,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.ProcessIdFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -378,8 +379,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.LogLevelFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -413,8 +414,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.LogLevelFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -450,8 +451,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.LogWriterFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -485,8 +486,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.LogWriterFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -522,8 +523,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.TagFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -557,8 +558,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'AccumulateItems' of the <see cref="ISelectableLogMessageFilter{TMessage}.TagFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -594,8 +595,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'Enable' of the <see cref="ISelectableLogMessageFilter{TMessage}.TextFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -629,8 +630,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'IsCaseSensitive' of the <see cref="ISelectableLogMessageFilter{TMessage}.TextFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -664,8 +665,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Tests setting 'SearchText' of the <see cref="ISelectableLogMessageFilter{TMessage}.TextFilter"/>.
 	/// </summary>
 	/// <param name="attach">
-	/// <c>true</c> to attach the filter to a collection before testing;<br/>
-	/// <c>false</c> to test the filter without being attached to a collection.
+	/// <see langword="true"/> to attach the filter to a collection before testing;<br/>
+	/// <see langword="false"/> to test the filter without being attached to a collection.
 	/// </param>
 	[Theory]
 	[InlineData(false)]
@@ -744,28 +745,30 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// <summary>
 	/// Test data for the <see cref="Matches_TimestampIntervalFilter"/> test method.
 	/// </summary>
-	public static IEnumerable<object[]> MatchesTestData_TimestampIntervalFilter
+	public static TheoryData<int, bool, bool, int, int> MatchesTestData_TimestampIntervalFilter
 	{
 		get
 		{
-			// ReSharper disable once InlineTemporaryVariable
 			const int count = DefaultTestMessageCount;
+			var data = new TheoryData<int, bool, bool, int, int>();
 
 			foreach (bool enableGlobalFilter in new[] { false, true })
 			foreach (bool enableSpecificFilter in new[] { false, true })
 			{
 				// empty collection
-				yield return [0, enableGlobalFilter, enableSpecificFilter, -1, -1];
+				data.Add(0, enableGlobalFilter, enableSpecificFilter, -1, -1);
 
 				// entire interval
-				yield return [count, enableGlobalFilter, enableSpecificFilter, 0, count - 1];
+				data.Add(count, enableGlobalFilter, enableSpecificFilter, 0, count - 1);
 
 				// interval in between
-				yield return [count, enableGlobalFilter, enableSpecificFilter, 0, count - 2];         // all messages, but not the right-most
-				yield return [count, enableGlobalFilter, enableSpecificFilter, 1, count - 1];         // all messages, but not the left-most
-				yield return [count, enableGlobalFilter, enableSpecificFilter, 1, count - 2];         // all messages, but not the left-most and the right-most
-				yield return [count, enableGlobalFilter, enableSpecificFilter, count / 2, count / 2]; // one message in the middle
+				data.Add(count, enableGlobalFilter, enableSpecificFilter, 0, count - 2);         // all messages, but not the right-most
+				data.Add(count, enableGlobalFilter, enableSpecificFilter, 1, count - 1);         // all messages, but not the left-most
+				data.Add(count, enableGlobalFilter, enableSpecificFilter, 1, count - 2);         // all messages, but not the left-most and the right-most
+				data.Add(count, enableGlobalFilter, enableSpecificFilter, count / 2, count / 2); // one message in the middle
 			}
+
+			return data;
 		}
 	}
 
@@ -774,12 +777,12 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// </summary>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="firstMatchingMessageIndex">Index of the first message that should be in the selected interval.</param>
 	/// <param name="lastMatchingMessageIndex">Index of the last message that should be in the selected interval.</param>
@@ -840,16 +843,16 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// </summary>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="accumulateItems">
-	/// <c>true</c> to let the item filter accumulate items;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to let the item filter accumulate items;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(MatchesTestData_ItemFilters))]
@@ -877,16 +880,16 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// </summary>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="accumulateItems">
-	/// <c>true</c> to let the item filter accumulate items;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to let the item filter accumulate items;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(MatchesTestData_ItemFilters))]
@@ -914,16 +917,16 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// </summary>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="accumulateItems">
-	/// <c>true</c> to let the item filter accumulate items;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to let the item filter accumulate items;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(MatchesTestData_ItemFilters))]
@@ -951,16 +954,16 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// </summary>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="accumulateItems">
-	/// <c>true</c> to let the item filter accumulate items;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to let the item filter accumulate items;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(MatchesTestData_ItemFilters))]
@@ -988,16 +991,16 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// </summary>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="accumulateItems">
-	/// <c>true</c> to let the item filter accumulate items;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to let the item filter accumulate items;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(MatchesTestData_ItemFilters))]
@@ -1024,23 +1027,21 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Test data for test method that test <see cref="ILogMessageCollectionFilterBase{TMessage}.Matches"/> for item filters
 	/// (application name, process name, ...)
 	/// </summary>
-	public static IEnumerable<object[]> MatchesTestData_ItemFilters
+	public static TheoryData<int, bool, bool, bool> MatchesTestData_ItemFilters
 	{
 		get
 		{
+			var data = new TheoryData<int, bool, bool, bool>();
+
 			foreach (int count in new[] { 0, 1, 500 })
 			foreach (bool enableGlobally in new[] { false, true })
 			foreach (bool enablePerItem in new[] { false, true })
-			foreach (bool accumulateItems in new[] { false })
+			foreach (bool accumulateItems in new[] { false, true })
 			{
-				yield return
-				[
-					count,
-					enableGlobally,
-					enablePerItem,
-					accumulateItems
-				];
+				data.Add(count, enableGlobally, enablePerItem, accumulateItems);
 			}
+
+			return data;
 		}
 	}
 
@@ -1052,16 +1053,16 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// <param name="itemFilterSelectorExpression">Expression that selects the item filter corresponding to the selected log message property.</param>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="accumulateItems">
-	/// <c>true</c> to let the item filter accumulate items;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to let the item filter accumulate items;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	private void Matches_ItemFilters<T>(
 		Expression<Func<LogMessage, T>>                                                                      propertySelectorExpression,
@@ -1136,16 +1137,16 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// </summary>
 	/// <param name="count">Number of log messages to insert into the collection before starting to filter.</param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="accumulateItems">
-	/// <c>true</c> to let the item filter accumulate items;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to let the item filter accumulate items;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(MatchesTestData_ItemFilters))]
@@ -1206,35 +1207,26 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// <summary>
 	/// Test data for the <see cref="Matches_TextFilter"/> test method.
 	/// </summary>
-	public static IEnumerable<object[]> MatchesTestData_TextFilter
+	public static TheoryData<int, bool, bool, bool, bool> MatchesTestData_TextFilter
 	{
 		get
 		{
 			const int count = 500;
+			var data = new TheoryData<int, bool, bool, bool, bool>();
 
 			foreach (bool enableGlobalFilter in new[] { false, true })
 			foreach (bool enableSpecificFilter in new[] { false, true })
 			foreach (bool isFilterCaseSensitive in new[] { false, true })
 			foreach (bool isSearchTextExact in new[] { false, true })
 			{
-				yield return
-				[
-					0,
-					enableGlobalFilter,
-					enableSpecificFilter,
-					isFilterCaseSensitive,
-					isSearchTextExact
-				];
+				// empty collection
+				data.Add(0, enableGlobalFilter, enableSpecificFilter, isFilterCaseSensitive, isSearchTextExact);
 
-				yield return
-				[
-					count,
-					enableGlobalFilter,
-					enableSpecificFilter,
-					isFilterCaseSensitive,
-					isSearchTextExact
-				];
+				// full collection
+				data.Add(count, enableGlobalFilter, enableSpecificFilter, isFilterCaseSensitive, isSearchTextExact);
 			}
+
+			return data;
 		}
 	}
 
@@ -1245,20 +1237,20 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// Number of log messages to insert into the collection before starting to filter.
 	/// </param>
 	/// <param name="enableGlobalFilter">
-	/// <c>true</c> to enable the filter globally;<br/>
-	/// otherwise <c>false</c> (disables the filter entirely).
+	/// <see langword="true"/> to enable the filter globally;<br/>
+	/// otherwise, <see langword="false"/> (disables the filter entirely).
 	/// </param>
 	/// <param name="enableSpecificFilter">
-	/// <c>true</c> to enable the specific item filter;<br/>
-	/// otherwise <c>false</c> (disables the item filter).
+	/// <see langword="true"/> to enable the specific item filter;<br/>
+	/// otherwise, <see langword="false"/> (disables the item filter).
 	/// </param>
 	/// <param name="isFilterCaseSensitive">
-	/// <c>true</c> to match case-sensitive;<br/>
-	/// <c>false</c> to match case-insensitive.
+	/// <see langword="true"/> to match case-sensitive;<br/>
+	/// <see langword="false"/> to match case-insensitive.
 	/// </param>
 	/// <param name="isSearchTextExact">
-	/// <c>true</c> to pass the search text exactly as it occurs in the message;<br/>
-	/// <c>false</c> to convert it to upper-case expecting that a case-sensitive filter will fail.
+	/// <see langword="true"/> to pass the search text exactly as it occurs in the message;<br/>
+	/// <see langword="false"/> to convert it to upper-case expecting that a case-sensitive filter will fail.
 	/// </param>
 	[Theory]
 	[MemberData(nameof(MatchesTestData_TextFilter))]
@@ -1332,8 +1324,8 @@ public abstract class SelectableLogMessageFilterBaseTests<TSelectableLogMessageF
 	/// <param name="filter">Filter to test.</param>
 	/// <param name="messages">The message set injected into the collection the filter works on.</param>
 	/// <param name="filterIsAttached">
-	/// <c>true</c> if the filter has been attached to a collection;<br/>
-	/// <c>false</c> if the filter was created, but not attached to a collection.
+	/// <see langword="true"/> if the filter has been attached to a collection;<br/>
+	/// <see langword="false"/> if the filter was created, but not attached to a collection.
 	/// </param>
 	protected static void TestInitialFilterSettings(
 		ISelectableLogMessageFilter<LogMessage> filter,

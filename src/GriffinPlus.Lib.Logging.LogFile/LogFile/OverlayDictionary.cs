@@ -20,7 +20,7 @@ class OverlayDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	/// <summary>
 	/// Initializes a new instance of the <see cref="OverlayDictionary{TKey,TValue}"/> class.
 	/// </summary>
-	/// <param name="comparer">Comparer to use to checks keys for equality (may be <c>null</c> to use the default comparer).</param>
+	/// <param name="comparer">Comparer to use to checks keys for equality (may be <see langword="null"/> to use the default comparer).</param>
 	public OverlayDictionary(IEqualityComparer<TKey> comparer = null)
 	{
 		comparer ??= EqualityComparer<TKey>.Default;
@@ -78,8 +78,8 @@ class OverlayDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	/// </summary>
 	/// <param name="item">Item to check.</param>
 	/// <returns>
-	/// <c>true</c> if the specified key-value-pair is in the dictionary;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified key-value-pair is in the dictionary;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
 	{
@@ -101,8 +101,8 @@ class OverlayDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	/// </summary>
 	/// <param name="item">Item to remove.</param>
 	/// <returns>
-	/// <c>true</c> if the specified key-value-pair was removed from the dictionary;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the specified key-value-pair was removed from the dictionary;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
 	{
@@ -112,7 +112,7 @@ class OverlayDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	}
 
 	/// <summary>
-	/// Gets a value indicating whether the dictionary is read-only (always <c>false</c>).
+	/// Gets a value indicating whether the dictionary is read-only (always <see langword="false"/>).
 	/// </summary>
 	bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => false;
 
@@ -126,8 +126,8 @@ class OverlayDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	/// </summary>
 	/// <param name="key">The key to locate in the dictionary.</param>
 	/// <returns>
-	/// <c>true</c>, if the dictionary contains the specified key;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/>, if the dictionary contains the specified key;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool ContainsKey(TKey key)
 	{
@@ -150,8 +150,8 @@ class OverlayDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	/// </summary>
 	/// <param name="key">The key of the element to remove.</param>
 	/// <returns>
-	/// <c>true</c> if the element with the specified key was successfully removed;<br/>
-	/// <c>false</c> if the element does not exist.
+	/// <see langword="true"/> if the element with the specified key was successfully removed;<br/>
+	/// <see langword="false"/> if the element does not exist.
 	/// </returns>
 	public bool Remove(TKey key)
 	{
@@ -166,8 +166,8 @@ class OverlayDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	/// <param name="key">Key of the value to get.</param>
 	/// <param name="value">Receives the value with the specified key.</param>
 	/// <returns>
-	/// <c>true</c> if the dictionary contains an element with the specified key;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the dictionary contains an element with the specified key;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool TryGetValue(TKey key, out TValue value)
 	{

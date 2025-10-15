@@ -19,20 +19,20 @@ public interface ISelectableLogMessageFilter_ItemFilter<T> : ISelectableLogMessa
 
 	/// <summary>
 	/// Gets or sets a value indicating whether <see cref="Items"/> contains items only that belong to at
-	/// least one message in the collection (<c>false</c>) or whether all items are kept even when log
-	/// messages are removed from the collection (<c>true</c>). Default is <c>false</c>.
+	/// least one message in the collection (<see langword="false"/>) or whether all items are kept even when log
+	/// messages are removed from the collection (<see langword="true"/>). Default is <see langword="false"/>.
 	/// </summary>
 	bool AccumulateItems { get; set; }
 
 	/// <summary>
 	/// Gets or sets a value indicating whether the filter is disabled when it is reset.
-	/// Default is <c>false</c>.
+	/// Default is <see langword="false"/>.
 	/// </summary>
 	bool DisableFilterOnReset { get; set; }
 
 	/// <summary>
 	/// Gets or sets a value indicating whether items are unselected when the filter is reset.
-	/// Default is <c>false</c>.
+	/// Default is <see langword="false"/>.
 	/// </summary>
 	bool UnselectItemsOnReset { get; set; }
 }

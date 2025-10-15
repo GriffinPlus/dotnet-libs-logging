@@ -71,8 +71,8 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 	/// <param name="purpose">Purpose of the log file backing the collection.</param>
 	/// <param name="writeMode">Write mode of the log file backing the collection.</param>
 	/// <param name="isReadOnly">
-	/// <c>true</c> to create a read-only log file;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> to create a read-only log file;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	/// <param name="messages">Receives messages that have been put into the collection.</param>
 	/// <returns>A new instance of the collection class to test.</returns>
@@ -118,10 +118,13 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 	/// <summary>
 	/// Test data for methods returning the filtered message set of a log message.
 	/// </summary>
-	public static IEnumerable<object[]> CommonGetMessages_TestData
+
+	public static TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior> CommonGetMessages_TestData
 	{
 		get
 		{
+			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior>();
+
 			LogMessageField[] allFilters =
 			[
 				LogMessageField.Timestamp,
@@ -154,26 +157,22 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 			];
 
 			// global filter switch is disabled
-			// => all messages pass the filter, although specific filters do not match
-			yield return
-			[
-				false,                 // disable global filter switch
-				allFilterFlags,        // enable all specific filters
-				LogMessageField.None,  // configure no specific filters to match
-				MatchBehavior.MatchAll // not in effect as global switch is disabled
-			];
+			// => all messages pass the filter, even if specific filters do not match
+			data.Add(
+				false,                // disable global filter switch
+				allFilterFlags,       // enable all specific filters
+				LogMessageField.None, // configure no specific filters to match
+				MatchBehavior.MatchAll);
 
 			// global filter switch is enabled, non-matching specific filters are enabled one at a time
 			// => no message passes the filter as the specific filter blocks them
 			foreach (LogMessageField enabledFilter in allFilters)
 			{
-				yield return
-				[
-					true,                  // enable global filter switch
-					enabledFilter,         // enable specific filter
-					LogMessageField.None,  // configure no specific filters to match
-					MatchBehavior.MatchAll // not in effect as no field is selected
-				];
+				data.Add(
+					true,                   // enable global filter switch
+					enabledFilter,          // enable specific filter
+					LogMessageField.None,   // configure no specific filters to match
+					MatchBehavior.MatchAll);// not in effect as no field is selected
 			}
 
 			// global filter switch is enabled, matching specific filters are enabled one at a time
@@ -181,14 +180,14 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 			foreach (LogMessageField enabledFilter in allFilters)
 			foreach (MatchBehavior matchBehavior in matchBehaviors)
 			{
-				yield return
-				[
-					true,          // enable global filter switch
-					enabledFilter, // enable specific filter
-					enabledFilter, // configure specific filters to match
-					matchBehavior  // determines whether the first/last message or messages in between are matched
-				];
+				data.Add(
+					true,           // enable global filter switch
+					enabledFilter,  // enable specific filter
+					enabledFilter,  // configure specific filters to match
+					matchBehavior); // determines whether the first/last message or messages in between are matched
 			}
+
+			return data;
 		}
 	}
 
@@ -224,8 +223,8 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 	/// to it and configures it for various test cases.
 	/// </summary>
 	/// <param name="isGloballyEnabled">
-	/// <c>true</c> to enable the filter globally (specific filters are in effect);<br/>
-	/// <c>false</c> to disable the filter globally (all messages bypass specific filters).
+	/// <see langword="true"/> to enable the filter globally (specific filters are in effect);<br/>
+	/// <see langword="false"/> to disable the filter globally (all messages bypass specific filters).
 	/// </param>
 	/// <param name="enabledSpecificFilters">Enabled specific filters (flags).</param>
 	/// <param name="matchingSpecificFilters">Specific filters that should be configured to match (flags).</param>
@@ -622,25 +621,31 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 	/// <summary>
 	/// Test data for <see cref="GetPreviousMessage"/>.
 	/// </summary>
-	public static IEnumerable<object[]> GetPreviousMessage_TestData
+	public static TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double> GetPreviousMessage_TestData
 	{
 		get
 		{
-			return
-				from data in CommonGetMessages_TestData
-				let isGloballyEnabled = (bool)data[0]
-				let enabledSpecificFilters = (LogMessageField)data[1]
-				let matchingSpecificFilters = (LogMessageField)data[2]
-				let matchBehavior = (MatchBehavior)data[3]
-				from startIdRatio in new[] { 0.0, 0.5, 1.0 }
-				select (object[])
-				[
-					isGloballyEnabled,
-					enabledSpecificFilters,
-					matchingSpecificFilters,
-					matchBehavior,
-					startIdRatio
-				];
+			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double>();
+
+			foreach (object[] entry in CommonGetMessages_TestData)
+			{
+				bool isGloballyEnabled = (bool)entry[0]!;
+				var enabledSpecificFilters = (LogMessageField)entry[1]!;
+				var matchingSpecificFilters = (LogMessageField)entry[2]!;
+				var matchBehavior = (MatchBehavior)entry[3]!;
+
+				foreach (double startIdRatio in new[] { 0.0, 0.5, 1.0 })
+				{
+					data.Add(
+						isGloballyEnabled,
+						enabledSpecificFilters,
+						matchingSpecificFilters,
+						matchBehavior,
+						startIdRatio);
+				}
+			}
+
+			return data;
 		}
 	}
 
@@ -692,29 +697,36 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 	/// <summary>
 	/// Test data for <see cref="GetPreviousMessages"/>.
 	/// </summary>
-	public static IEnumerable<object[]> GetPreviousMessages_TestData
+	public static TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, int, bool> GetPreviousMessages_TestData
 	{
 		get
 		{
-			return
-				from data in CommonGetMessages_TestData
-				let isGloballyEnabled = (bool)data[0]
-				let enabledSpecificFilters = (LogMessageField)data[1]
-				let matchingSpecificFilters = (LogMessageField)data[2]
-				let matchBehavior = (MatchBehavior)data[3]
-				from startIdRatio in new[] { 0.0, 0.5, 1.0 }
-				from count in new[] { 5 }
-				from reverse in new[] { false, true }
-				select (object[])
-				[
-					isGloballyEnabled,
-					enabledSpecificFilters,
-					matchingSpecificFilters,
-					matchBehavior,
-					startIdRatio,
-					count,
-					reverse
-				];
+			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, int, bool>();
+
+			// Reuse data from CommonGetMessages_TestData
+			foreach (object[] entry in CommonGetMessages_TestData)
+			{
+				bool isGloballyEnabled = (bool)entry[0]!;
+				var enabledSpecificFilters = (LogMessageField)entry[1]!;
+				var matchingSpecificFilters = (LogMessageField)entry[2]!;
+				var matchBehavior = (MatchBehavior)entry[3]!;
+
+				foreach (double startIdRatio in new[] { 0.0, 0.5, 1.0 })
+				foreach (int count in new[] { 5 })
+				foreach (bool reverse in new[] { false, true })
+				{
+					data.Add(
+						isGloballyEnabled,
+						enabledSpecificFilters,
+						matchingSpecificFilters,
+						matchBehavior,
+						startIdRatio,
+						count,
+						reverse);
+				}
+			}
+
+			return data;
 		}
 	}
 
@@ -769,25 +781,31 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 	/// <summary>
 	/// Test data for <see cref="GetNextMessage"/>.
 	/// </summary>
-	public static IEnumerable<object[]> GetNextMessage_TestData
+	public static TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double> GetNextMessage_TestData
 	{
 		get
 		{
-			return
-				from data in CommonGetMessages_TestData
-				let isGloballyEnabled = (bool)data[0]
-				let enabledSpecificFilters = (LogMessageField)data[1]
-				let matchingSpecificFilters = (LogMessageField)data[2]
-				let matchBehavior = (MatchBehavior)data[3]
-				from startIdRatio in new[] { 0.0, 0.5, 1.0 }
-				select (object[])
-				[
-					isGloballyEnabled,
-					enabledSpecificFilters,
-					matchingSpecificFilters,
-					matchBehavior,
-					startIdRatio
-				];
+			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double>();
+
+			foreach (object[] entry in CommonGetMessages_TestData)
+			{
+				bool isGloballyEnabled = (bool)entry[0]!;
+				var enabledSpecificFilters = (LogMessageField)entry[1]!;
+				var matchingSpecificFilters = (LogMessageField)entry[2]!;
+				var matchBehavior = (MatchBehavior)entry[3]!;
+
+				foreach (double startIdRatio in new[] { 0.0, 0.5, 1.0 })
+				{
+					data.Add(
+						isGloballyEnabled,
+						enabledSpecificFilters,
+						matchingSpecificFilters,
+						matchBehavior,
+						startIdRatio);
+				}
+			}
+
+			return data;
 		}
 	}
 
@@ -840,27 +858,33 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 	/// <summary>
 	/// Test data for <see cref="GetNextMessages"/>.
 	/// </summary>
-	public static IEnumerable<object[]> GetNextMessages_TestData
+	public static TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, int> GetNextMessages_TestData
 	{
 		get
 		{
-			return
-				from data in CommonGetMessages_TestData
-				let isGloballyEnabled = (bool)data[0]
-				let enabledSpecificFilters = (LogMessageField)data[1]
-				let matchingSpecificFilters = (LogMessageField)data[2]
-				let matchBehavior = (MatchBehavior)data[3]
-				from startIdRatio in new[] { 0.0, 0.5, 1.0 }
-				from count in new[] { 5 }
-				select (object[])
-				[
-					isGloballyEnabled,
-					enabledSpecificFilters,
-					matchingSpecificFilters,
-					matchBehavior,
-					startIdRatio,
-					count
-				];
+			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, int>();
+
+			foreach (object[] entry in CommonGetMessages_TestData)
+			{
+				bool isGloballyEnabled = (bool)entry[0]!;
+				var enabledSpecificFilters = (LogMessageField)entry[1]!;
+				var matchingSpecificFilters = (LogMessageField)entry[2]!;
+				var matchBehavior = (MatchBehavior)entry[3]!;
+
+				foreach (double startIdRatio in new[] { 0.0, 0.5, 1.0 })
+				foreach (int count in new[] { 5 })
+				{
+					data.Add(
+						isGloballyEnabled,
+						enabledSpecificFilters,
+						matchingSpecificFilters,
+						matchBehavior,
+						startIdRatio,
+						count);
+				}
+			}
+
+			return data;
 		}
 	}
 
@@ -918,28 +942,36 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 	/// <summary>
 	/// Test data for <see cref="GetMessageRange"/>.
 	/// </summary>
-	public static IEnumerable<object[]> GetMessageRange_TestData
+	public static TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, double> GetMessageRange_TestData
 	{
 		get
 		{
-			return
-				from data in CommonGetMessages_TestData
-				let isGloballyEnabled = (bool)data[0]
-				let enabledSpecificFilters = (LogMessageField)data[1]
-				let matchingSpecificFilters = (LogMessageField)data[2]
-				let matchBehavior = (MatchBehavior)data[3]
-				from startIdRatio in new[] { 0.0, 0.5, 1.0 }
-				from endIdRatio in new[] { 0.0, 0.5, 1.0 }
-				where startIdRatio <= endIdRatio
-				select (object[])
-				[
-					isGloballyEnabled,
-					enabledSpecificFilters,
-					matchingSpecificFilters,
-					matchBehavior,
-					startIdRatio,
-					endIdRatio
-				];
+			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, double>();
+
+			foreach (object[] entry in CommonGetMessages_TestData)
+			{
+				bool isGloballyEnabled = (bool)entry[0]!;
+				var enabledSpecificFilters = (LogMessageField)entry[1]!;
+				var matchingSpecificFilters = (LogMessageField)entry[2]!;
+				var matchBehavior = (MatchBehavior)entry[3]!;
+
+				foreach (double startIdRatio in new[] { 0.0, 0.5, 1.0 })
+				foreach (double endIdRatio in new[] { 0.0, 0.5, 1.0 })
+				{
+					if (startIdRatio <= endIdRatio)
+					{
+						data.Add(
+							isGloballyEnabled,
+							enabledSpecificFilters,
+							matchingSpecificFilters,
+							matchBehavior,
+							startIdRatio,
+							endIdRatio);
+					}
+				}
+			}
+
+			return data;
 		}
 	}
 

@@ -181,7 +181,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// <summary>
 	/// Gets the API endpoints of the Elasticsearch cluster.
 	/// </summary>
-	/// <exception cref="ArgumentNullException">The property is set and the specified list of endpoints is <c>null</c>.</exception>
+	/// <exception cref="ArgumentNullException">The property is set and the specified list of endpoints is <see langword="null"/>.</exception>
 	public IReadOnlyList<Uri> ApiBaseUrls
 	{
 		get => mSetting_Server_ApiBaseUrls.Value;
@@ -192,7 +192,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// Converts an array of <see cref="Uri"/> to a string as used in the configuration.
 	/// </summary>
 	/// <param name="uris">Array of <see cref="Uri"/> to convert to a string.</param>
-	/// <param name="provider">Format provider to use (<c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
+	/// <param name="provider">Format provider to use (<see langword="null"/> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 	/// <returns>The formatted array of <see cref="Uri"/>.</returns>
 	private static string UriArrayToString(Uri[] uris, IFormatProvider provider = null)
 	{
@@ -204,7 +204,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// The string is expected to contain the uris separated by semicolons.
 	/// </summary>
 	/// <param name="s">String to convert to an array of <see cref="Uri"/>.</param>
-	/// <param name="provider">Format provider to use (<c>null</c> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
+	/// <param name="provider">Format provider to use (<see langword="null"/> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
 	/// <returns>An array of <see cref="Uri"/> corresponding to the specified string.</returns>
 	private static Uri[] StringToUriArray(string s, IFormatProvider provider = null)
 	{
@@ -480,7 +480,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// </summary>
 	/// <param name="message">Message to process.</param>
 	/// <returns>
-	/// Always <c>true</c>, so the message is passed to following stages.
+	/// Always <see langword="true"/>, so the message is passed to following stages.
 	/// </returns>
 	protected override bool ProcessSync(LocalLogMessage message)
 	{
@@ -863,7 +863,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// <summary>
 	/// Dequeues a message to process.
 	/// </summary>
-	/// <returns>A message to process (<c>null</c> if the queue is empty).</returns>
+	/// <returns>A message to process (<see langword="null"/> if the queue is empty).</returns>
 	private LocalLogMessage DequeueMessage()
 	{
 		lock (mProcessingQueue)
@@ -891,8 +891,8 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// </summary>
 	/// <param name="endpoint">Endpoint to set.</param>
 	/// <param name="isOperational">
-	/// <c>true</c> if the endpoint is operational;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the endpoint is operational;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </param>
 	private void SetEndpointOperational(EndpointInfo endpoint, bool isOperational)
 	{

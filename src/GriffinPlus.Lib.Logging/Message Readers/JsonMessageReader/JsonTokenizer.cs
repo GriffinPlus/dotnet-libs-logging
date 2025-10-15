@@ -24,6 +24,7 @@ class JsonTokenizer
 	/// <summary>
 	/// Characters creating a line break.
 	/// </summary>
+	// ReSharper disable CanSimplifyStringEscapeSequence
 	private const string LineSeparators = "\u000A" + // line feed
 	                                      "\u000B" + // vertical tab
 	                                      "\u000C" + // form feed
@@ -31,6 +32,7 @@ class JsonTokenizer
 	                                      "\u0085" + // next line
 	                                      "\u2028" + // line separator
 	                                      "\u2029";  // paragraph separator
+	// ReSharper restore CanSimplifyStringEscapeSequence
 
 	/// <summary>
 	/// Characters that have a special meaning in JSON.
@@ -121,8 +123,8 @@ class JsonTokenizer
 	/// </summary>
 	/// <param name="data">JSON string to process.</param>
 	/// <param name="complete">
-	/// <c>true</c> if the passed JSON string contains complete tokens;<br/>
-	/// <c>false</c> if tokens may be split up over multiple calls if the method (<see cref="Flush"/> must be called explicitly at the end).
+	/// <see langword="true"/> if the passed JSON string contains complete tokens;<br/>
+	/// <see langword="false"/> if tokens may be split up over multiple calls if the method (<see cref="Flush"/> must be called explicitly at the end).
 	/// </param>
 	/// <returns>Number of extracted tokens.</returns>
 	/// <exception cref="TokenizingException">The specified data contains an invalid token.</exception>

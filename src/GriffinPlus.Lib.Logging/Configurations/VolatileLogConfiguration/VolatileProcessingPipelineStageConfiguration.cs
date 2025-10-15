@@ -17,7 +17,7 @@ namespace GriffinPlus.Lib.Logging;
 /// </summary>
 public class VolatileProcessingPipelineStageConfiguration : ProcessingPipelineStageConfigurationBase
 {
-	private readonly Dictionary<string, IUntypedProcessingPipelineStageSetting> mSettings = new();
+	private readonly Dictionary<string, IUntypedProcessingPipelineStageSetting> mSettings = [];
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="VolatileProcessingPipelineStageConfiguration"/> class (for internal use only).
@@ -56,7 +56,8 @@ public class VolatileProcessingPipelineStageConfiguration : ProcessingPipelineSt
 	/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -128,9 +129,10 @@ public class VolatileProcessingPipelineStageConfiguration : ProcessingPipelineSt
 	/// </param>
 	/// <param name="valueToStringConverter">Delegate that converts a setting value to its string representation.</param>
 	/// <param name="stringToValueConverter">Delegate that converts the string representation of a setting value to an object of the specified type.</param>
-	/// <returns>The setting (<c>null</c> if the setting does not exist).</returns>
+	/// <returns>The setting (<see langword="null"/> if the setting does not exist).</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists, but the specified type differs from the value type of the existing setting.
@@ -181,7 +183,8 @@ public class VolatileProcessingPipelineStageConfiguration : ProcessingPipelineSt
 	/// <param name="stringToValueConverter">Delegate that converts the string representation to an object of the type <typeparamref name="T"/>.</param>
 	/// <returns>The setting.</returns>
 	/// <exception cref="ArgumentNullException">
-	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is <c>null</c>.
+	/// The argument <paramref name="name"/>, <paramref name="valueToStringConverter"/> and/or <paramref name="stringToValueConverter"/> is
+	/// <see langword="null"/>.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// The setting exists already, but the specified type differs from the value type of the existing setting.
@@ -291,8 +294,8 @@ public class VolatileProcessingPipelineStageConfiguration : ProcessingPipelineSt
 	/// </summary>
 	/// <param name="key">Name of the setting to check.</param>
 	/// <returns>
-	/// <c>true</c> if the setting with the specified name exists in the configuration;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the setting with the specified name exists in the configuration;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool ContainsKey(string key)
 	{
@@ -308,8 +311,8 @@ public class VolatileProcessingPipelineStageConfiguration : ProcessingPipelineSt
 	/// <param name="key">Name of the setting to get.</param>
 	/// <param name="value">Receives the setting, if it exists.</param>
 	/// <returns>
-	/// <c>true</c> if the requested setting was successfully returned;<br/>
-	/// otherwise <c>false</c>.
+	/// <see langword="true"/> if the requested setting was successfully returned;<br/>
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
 	public override bool TryGetValue(string key, out IUntypedProcessingPipelineStageSetting value)
 	{

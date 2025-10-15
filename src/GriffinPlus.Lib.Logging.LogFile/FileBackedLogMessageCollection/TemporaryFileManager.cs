@@ -26,13 +26,13 @@ static class TemporaryFileManager
 	/// optionally marking the file for auto-deletion.
 	/// </summary>
 	/// <param name="deleteAutomatically">
-	/// <c>true</c> to delete the file automatically when the collection is disposed
+	/// <see langword="true"/> to delete the file automatically when the collection is disposed
 	/// (or the next time, a temporary collection is created in the same directory);<br/>
-	/// <c>false</c> to keep it after the collection is disposed.
+	/// <see langword="false"/> to keep it after the collection is disposed.
 	/// </param>
 	/// <param name="temporaryDirectoryPath">
 	/// Path of the temporary directory to use;
-	/// <c>null</c> to use the default temporary directory (default).
+	/// <see langword="null"/> to use the default temporary directory (default).
 	/// </param>
 	/// <returns>The full path of a non-existent file in the temporary directory.</returns>
 	public static string GetTemporaryFileName(bool deleteAutomatically, string temporaryDirectoryPath = null)

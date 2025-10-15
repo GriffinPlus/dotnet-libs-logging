@@ -4,7 +4,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -43,160 +42,172 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 	/// <returns>The created configuration containing the stage configuration (must be disposed at the end of the test).</returns>
 	protected abstract ILogConfiguration CreateConfiguration(string name, out TStageConfiguration stageConfiguration);
 
-	public static IEnumerable<object[]> SettingTypeAndOneValue_TestData
+	/// <summary>
+	/// (Type, single value, expected string)
+	/// </summary>
+	public static TheoryData<Type, object, string> SettingTypeAndOneValue_TestData
 	{
 		get
 		{
+			var data = new TheoryData<Type, object, string>();
+
 			// signed integers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(sbyte), sbyte.MinValue, "-128"];
-			yield return [typeof(sbyte), sbyte.MaxValue, "127"];
-			yield return [typeof(sbyte), (sbyte)0, "0"];
+			data.Add(typeof(sbyte), sbyte.MinValue, "-128");
+			data.Add(typeof(sbyte), sbyte.MaxValue, "127");
+			data.Add(typeof(sbyte), (sbyte)0, "0");
 
-			yield return [typeof(short), short.MinValue, "-32768"];
-			yield return [typeof(short), short.MaxValue, "32767"];
-			yield return [typeof(short), (short)0, "0"];
+			data.Add(typeof(short), short.MinValue, "-32768");
+			data.Add(typeof(short), short.MaxValue, "32767");
+			data.Add(typeof(short), (short)0, "0");
 
-			yield return [typeof(int), int.MinValue, "-2147483648"];
-			yield return [typeof(int), int.MaxValue, "2147483647"];
-			yield return [typeof(int), 0, "0"];
+			data.Add(typeof(int), int.MinValue, "-2147483648");
+			data.Add(typeof(int), int.MaxValue, "2147483647");
+			data.Add(typeof(int), 0, "0");
 
-			yield return [typeof(long), long.MinValue, "-9223372036854775808"];
-			yield return [typeof(long), long.MaxValue, "9223372036854775807"];
-			yield return [typeof(long), 0L, "0"];
+			data.Add(typeof(long), long.MinValue, "-9223372036854775808");
+			data.Add(typeof(long), long.MaxValue, "9223372036854775807");
+			data.Add(typeof(long), 0L, "0");
 
 			// unsigned integers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(byte), byte.MinValue, "0"];
-			yield return [typeof(byte), byte.MaxValue, "255"];
-			yield return [typeof(byte), (byte)(byte.MaxValue / 2), "127"];
+			data.Add(typeof(byte), byte.MinValue, "0");
+			data.Add(typeof(byte), byte.MaxValue, "255");
+			data.Add(typeof(byte), (byte)(byte.MaxValue / 2), "127");
 
-			yield return [typeof(ushort), ushort.MinValue, "0"];
-			yield return [typeof(ushort), ushort.MaxValue, "65535"];
-			yield return [typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767"];
+			data.Add(typeof(ushort), ushort.MinValue, "0");
+			data.Add(typeof(ushort), ushort.MaxValue, "65535");
+			data.Add(typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767");
 
-			yield return [typeof(uint), uint.MinValue, "0"];
-			yield return [typeof(uint), uint.MaxValue, "4294967295"];
-			yield return [typeof(uint), uint.MaxValue / 2, "2147483647"];
+			data.Add(typeof(uint), uint.MinValue, "0");
+			data.Add(typeof(uint), uint.MaxValue, "4294967295");
+			data.Add(typeof(uint), uint.MaxValue / 2, "2147483647");
 
-			yield return [typeof(ulong), ulong.MinValue, "0"];
-			yield return [typeof(ulong), ulong.MaxValue, "18446744073709551615"];
-			yield return [typeof(ulong), ulong.MaxValue / 2, "9223372036854775807"];
+			data.Add(typeof(ulong), ulong.MinValue, "0");
+			data.Add(typeof(ulong), ulong.MaxValue, "18446744073709551615");
+			data.Add(typeof(ulong), ulong.MaxValue / 2, "9223372036854775807");
 
 			// floating point numbers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(float), float.NegativeInfinity, "-Infinity"];
-			yield return [typeof(float), float.PositiveInfinity, "Infinity"];
-			yield return [typeof(float), 0.0f, "0"];
+			data.Add(typeof(float), float.NegativeInfinity, "-Infinity");
+			data.Add(typeof(float), float.PositiveInfinity, "Infinity");
+			data.Add(typeof(float), 0.0f, "0");
 
-			yield return [typeof(double), double.NegativeInfinity, "-Infinity"];
-			yield return [typeof(double), double.PositiveInfinity, "Infinity"];
-			yield return [typeof(double), 0.0, "0"];
+			data.Add(typeof(double), double.NegativeInfinity, "-Infinity");
+			data.Add(typeof(double), double.PositiveInfinity, "Infinity");
+			data.Add(typeof(double), 0.0, "0");
 
 			// decimal numbers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(decimal), decimal.MinValue, "-79228162514264337593543950335"];
-			yield return [typeof(decimal), decimal.MaxValue, "79228162514264337593543950335"];
-			yield return [typeof(decimal), 0.0m, "0.0"];
+			data.Add(typeof(decimal), decimal.MinValue, "-79228162514264337593543950335");
+			data.Add(typeof(decimal), decimal.MaxValue, "79228162514264337593543950335");
+			data.Add(typeof(decimal), 0.0m, "0.0");
 
 			// strings
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(string), "Value1", "Value1"];
+			data.Add(typeof(string), "Value1", "Value1");
 
 			// enumerations
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(DateTimeKind), DateTimeKind.Utc, "Utc"];
-			yield return [typeof(ColorFlags), ColorFlags.None, "None"];
-			yield return [typeof(ColorFlags), ColorFlags.Red, "Red"];
-			yield return [typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green, "RedAndGreen"];
-			yield return [typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green | ColorFlags.Blue, "RedAndGreen, Blue"];
+			data.Add(typeof(DateTimeKind), DateTimeKind.Utc, "Utc");
+			data.Add(typeof(ColorFlags), ColorFlags.None, "None");
+			data.Add(typeof(ColorFlags), ColorFlags.Red, "Red");
+			data.Add(typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green, "RedAndGreen");
+			data.Add(typeof(ColorFlags), ColorFlags.Red | ColorFlags.Green | ColorFlags.Blue, "RedAndGreen, Blue");
+
+			return data;
 		}
 	}
 
-	public static IEnumerable<object[]> SettingTypeAndTwoValues_TestData
+	/// <summary>
+	/// (Type, value1, expected1, value2, expected2)
+	/// </summary>
+	public static TheoryData<Type, object, string, object, string> SettingTypeAndTwoValues_TestData
 	{
 		get
 		{
+			var data = new TheoryData<Type, object, string, object, string>();
+
 			// signed integers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(sbyte), sbyte.MinValue, "-128", (sbyte)0, "0"];
-			yield return [typeof(sbyte), sbyte.MaxValue, "127", (sbyte)0, "0"];
-			yield return [typeof(sbyte), (sbyte)0, "0", sbyte.MinValue, "-128"];
-			yield return [typeof(sbyte), (sbyte)0, "0", sbyte.MaxValue, "127"];
+			data.Add(typeof(sbyte), sbyte.MinValue, "-128", (sbyte)0, "0");
+			data.Add(typeof(sbyte), sbyte.MaxValue, "127", (sbyte)0, "0");
+			data.Add(typeof(sbyte), (sbyte)0, "0", sbyte.MinValue, "-128");
+			data.Add(typeof(sbyte), (sbyte)0, "0", sbyte.MaxValue, "127");
 
-			yield return [typeof(short), short.MinValue, "-32768", (short)0, "0"];
-			yield return [typeof(short), short.MaxValue, "32767", (short)0, "0"];
-			yield return [typeof(short), (short)0, "0", short.MinValue, "-32768"];
-			yield return [typeof(short), (short)0, "0", short.MaxValue, "32767"];
+			data.Add(typeof(short), short.MinValue, "-32768", (short)0, "0");
+			data.Add(typeof(short), short.MaxValue, "32767", (short)0, "0");
+			data.Add(typeof(short), (short)0, "0", short.MinValue, "-32768");
+			data.Add(typeof(short), (short)0, "0", short.MaxValue, "32767");
 
-			yield return [typeof(int), int.MinValue, "-2147483648", 0, "0"];
-			yield return [typeof(int), int.MaxValue, "2147483647", 0, "0"];
-			yield return [typeof(int), 0, "0", int.MinValue, "-2147483648"];
-			yield return [typeof(int), 0, "0", int.MaxValue, "2147483647"];
+			data.Add(typeof(int), int.MinValue, "-2147483648", 0, "0");
+			data.Add(typeof(int), int.MaxValue, "2147483647", 0, "0");
+			data.Add(typeof(int), 0, "0", int.MinValue, "-2147483648");
+			data.Add(typeof(int), 0, "0", int.MaxValue, "2147483647");
 
-			yield return [typeof(long), long.MinValue, "-9223372036854775808", 0L, "0"];
-			yield return [typeof(long), long.MaxValue, "9223372036854775807", 0L, "0"];
-			yield return [typeof(long), 0L, "0", long.MinValue, "-9223372036854775808"];
-			yield return [typeof(long), 0L, "0", long.MaxValue, "9223372036854775807"];
+			data.Add(typeof(long), long.MinValue, "-9223372036854775808", 0L, "0");
+			data.Add(typeof(long), long.MaxValue, "9223372036854775807", 0L, "0");
+			data.Add(typeof(long), 0L, "0", long.MinValue, "-9223372036854775808");
+			data.Add(typeof(long), 0L, "0", long.MaxValue, "9223372036854775807");
 
 			// unsigned integers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(byte), byte.MinValue, "0", (byte)(byte.MaxValue / 2), "127"];
-			yield return [typeof(byte), byte.MaxValue, "255", (byte)(byte.MaxValue / 2), "127"];
-			yield return [typeof(byte), (byte)(byte.MaxValue / 2), "127", byte.MinValue, "0"];
-			yield return [typeof(byte), (byte)(byte.MaxValue / 2), "127", byte.MaxValue, "255"];
+			data.Add(typeof(byte), byte.MinValue, "0", (byte)(byte.MaxValue / 2), "127");
+			data.Add(typeof(byte), byte.MaxValue, "255", (byte)(byte.MaxValue / 2), "127");
+			data.Add(typeof(byte), (byte)(byte.MaxValue / 2), "127", byte.MinValue, "0");
+			data.Add(typeof(byte), (byte)(byte.MaxValue / 2), "127", byte.MaxValue, "255");
 
-			yield return [typeof(ushort), ushort.MinValue, "0", (ushort)(ushort.MaxValue / 2), "32767"];
-			yield return [typeof(ushort), ushort.MaxValue, "65535", (ushort)(ushort.MaxValue / 2), "32767"];
-			yield return [typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767", ushort.MinValue, "0"];
-			yield return [typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767", ushort.MaxValue, "65535"];
+			data.Add(typeof(ushort), ushort.MinValue, "0", (ushort)(ushort.MaxValue / 2), "32767");
+			data.Add(typeof(ushort), ushort.MaxValue, "65535", (ushort)(ushort.MaxValue / 2), "32767");
+			data.Add(typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767", ushort.MinValue, "0");
+			data.Add(typeof(ushort), (ushort)(ushort.MaxValue / 2), "32767", ushort.MaxValue, "65535");
 
-			yield return [typeof(uint), uint.MinValue, "0", uint.MaxValue / 2, "2147483647"];
-			yield return [typeof(uint), uint.MaxValue, "4294967295", uint.MaxValue / 2, "2147483647"];
-			yield return [typeof(uint), uint.MaxValue / 2, "2147483647", uint.MinValue, "0"];
-			yield return [typeof(uint), uint.MaxValue / 2, "2147483647", uint.MaxValue, "4294967295"];
+			data.Add(typeof(uint), uint.MinValue, "0", uint.MaxValue / 2, "2147483647");
+			data.Add(typeof(uint), uint.MaxValue, "4294967295", uint.MaxValue / 2, "2147483647");
+			data.Add(typeof(uint), uint.MaxValue / 2, "2147483647", uint.MinValue, "0");
+			data.Add(typeof(uint), uint.MaxValue / 2, "2147483647", uint.MaxValue, "4294967295");
 
-			yield return [typeof(ulong), ulong.MinValue, "0", ulong.MaxValue / 2, "9223372036854775807"];
-			yield return [typeof(ulong), ulong.MaxValue, "18446744073709551615", ulong.MaxValue / 2, "9223372036854775807"];
-			yield return [typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MinValue, "0"];
-			yield return [typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MaxValue, "18446744073709551615"];
+			data.Add(typeof(ulong), ulong.MinValue, "0", ulong.MaxValue / 2, "9223372036854775807");
+			data.Add(typeof(ulong), ulong.MaxValue, "18446744073709551615", ulong.MaxValue / 2, "9223372036854775807");
+			data.Add(typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MinValue, "0");
+			data.Add(typeof(ulong), ulong.MaxValue / 2, "9223372036854775807", ulong.MaxValue, "18446744073709551615");
 
 			// floating point numbers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(float), float.NegativeInfinity, "-Infinity", 0.0f, "0"];
-			yield return [typeof(float), float.PositiveInfinity, "Infinity", 0.0f, "0"];
-			yield return [typeof(float), 0.0f, "0", float.NegativeInfinity, "-Infinity"];
-			yield return [typeof(float), 0.0f, "0", float.PositiveInfinity, "Infinity"];
+			data.Add(typeof(float), float.NegativeInfinity, "-Infinity", 0.0f, "0");
+			data.Add(typeof(float), float.PositiveInfinity, "Infinity", 0.0f, "0");
+			data.Add(typeof(float), 0.0f, "0", float.NegativeInfinity, "-Infinity");
+			data.Add(typeof(float), 0.0f, "0", float.PositiveInfinity, "Infinity");
 
-			yield return [typeof(double), double.NegativeInfinity, "-Infinity", 0.0, "0"];
-			yield return [typeof(double), double.PositiveInfinity, "Infinity", 0.0, "0"];
-			yield return [typeof(double), 0.0, "0", double.NegativeInfinity, "-Infinity"];
-			yield return [typeof(double), 0.0, "0", double.PositiveInfinity, "Infinity"];
+			data.Add(typeof(double), double.NegativeInfinity, "-Infinity", 0.0, "0");
+			data.Add(typeof(double), double.PositiveInfinity, "Infinity", 0.0, "0");
+			data.Add(typeof(double), 0.0, "0", double.NegativeInfinity, "-Infinity");
+			data.Add(typeof(double), 0.0, "0", double.PositiveInfinity, "Infinity");
 
 			// decimal numbers
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(decimal), decimal.MinValue, "-79228162514264337593543950335", 0.0m, "0.0"];
-			yield return [typeof(decimal), decimal.MaxValue, "79228162514264337593543950335", 0.0m, "0.0"];
-			yield return [typeof(decimal), 0.0m, "0.0", decimal.MinValue, "-79228162514264337593543950335"];
-			yield return [typeof(decimal), 0.0m, "0.0", decimal.MaxValue, "79228162514264337593543950335"];
+			data.Add(typeof(decimal), decimal.MinValue, "-79228162514264337593543950335", 0.0m, "0.0");
+			data.Add(typeof(decimal), decimal.MaxValue, "79228162514264337593543950335", 0.0m, "0.0");
+			data.Add(typeof(decimal), 0.0m, "0.0", decimal.MinValue, "-79228162514264337593543950335");
+			data.Add(typeof(decimal), 0.0m, "0.0", decimal.MaxValue, "79228162514264337593543950335");
 
 			// strings
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(string), "Value1", "Value1", "Value2", "Value2"];
+			data.Add(typeof(string), "Value1", "Value1", "Value2", "Value2");
 
 			// enumerations
 			// ----------------------------------------------------------------------------------------------------------------
-			yield return [typeof(DateTimeKind), DateTimeKind.Utc, "Utc", DateTimeKind.Local, "Local"];
-			yield return [typeof(ColorFlags), ColorFlags.None, "None", ColorFlags.Red, "Red"];
-			yield return [typeof(ColorFlags), ColorFlags.Red, "Red", ColorFlags.None, "None"];
-			yield return
-			[
+			data.Add(typeof(DateTimeKind), DateTimeKind.Utc, "Utc", DateTimeKind.Local, "Local");
+			data.Add(typeof(ColorFlags), ColorFlags.None, "None", ColorFlags.Red, "Red");
+			data.Add(typeof(ColorFlags), ColorFlags.Red, "Red", ColorFlags.None, "None");
+			data.Add(
 				typeof(ColorFlags),
 				ColorFlags.Red | ColorFlags.Green | ColorFlags.Blue,
 				"RedAndGreen, Blue",
 				ColorFlags.Red | ColorFlags.Green,
-				"RedAndGreen"
-			];
+				"RedAndGreen");
+
+			return data;
 		}
 	}
 
@@ -476,36 +487,43 @@ public abstract class ProcessingPipelineStageConfigurationTests_Base<TStageConfi
 
 	#region GetSetting() - Setting does not exist
 
-	public static IEnumerable<object[]> GetSettingTestData_SettingDoesNotExist
+	/// <summary>
+	/// Test data for settings that do not exist.
+	/// </summary>
+	public static TheoryData<Type> GetSettingTestData_SettingDoesNotExist
 	{
 		get
 		{
+			var data = new TheoryData<Type>();
+
 			// signed integers
-			yield return [typeof(sbyte)];
-			yield return [typeof(short)];
-			yield return [typeof(int)];
-			yield return [typeof(long)];
+			data.Add(typeof(sbyte));
+			data.Add(typeof(short));
+			data.Add(typeof(int));
+			data.Add(typeof(long));
 
 			// unsigned integers
-			yield return [typeof(byte)];
-			yield return [typeof(ushort)];
-			yield return [typeof(uint)];
-			yield return [typeof(ulong)];
+			data.Add(typeof(byte));
+			data.Add(typeof(ushort));
+			data.Add(typeof(uint));
+			data.Add(typeof(ulong));
 
 			// floating point numbers
-			yield return [typeof(float)];
-			yield return [typeof(double)];
+			data.Add(typeof(float));
+			data.Add(typeof(double));
 
 			// other common types
-			yield return [typeof(decimal)];
-			yield return [typeof(string)];
-			yield return [typeof(DateTimeKind)];
+			data.Add(typeof(decimal));
+			data.Add(typeof(string));
+			data.Add(typeof(DateTimeKind));
+
+			return data;
 		}
 	}
 
 	/// <summary>
 	/// Tests getting a setting that does not exist.
-	/// <see cref="ProcessingPipelineStageConfigurationBase.GetSetting{T}(string)"/> should return <c>null</c>.
+	/// <see cref="ProcessingPipelineStageConfigurationBase.GetSetting{T}(string)"/> should return <see langword="null"/>.
 	/// </summary>
 	/// <param name="type">Type of setting value.</param>
 	[Theory]

@@ -22,11 +22,11 @@ partial class LogFile
 		private readonly bool mCanRollback;
 
 		// dictionaries caching mappings from names to corresponding ids used to reference these names
-		private readonly OverlayDictionary<string, long> mProcessNameToId     = new();
-		private readonly OverlayDictionary<string, long> mApplicationNameToId = new();
-		private readonly OverlayDictionary<string, long> mLogWriterNameToId   = new();
-		private readonly OverlayDictionary<string, long> mLogLevelNameToId    = new();
-		private readonly OverlayDictionary<string, long> mTagToId             = new();
+		private readonly OverlayDictionary<string, long> mProcessNameToId     = [];
+		private readonly OverlayDictionary<string, long> mApplicationNameToId = [];
+		private readonly OverlayDictionary<string, long> mLogWriterNameToId   = [];
+		private readonly OverlayDictionary<string, long> mLogLevelNameToId    = [];
+		private readonly OverlayDictionary<string, long> mTagToId             = [];
 
 		// sqlite specific commands
 		private readonly List<SQLiteCommand> mCommands;                                                   //
@@ -136,8 +136,8 @@ partial class LogFile
 		/// <param name="connection">Database connection to use.</param>
 		/// <param name="writeMode">Write mode that determines whether the database should be operating in robust mode or as fast as possible.</param>
 		/// <param name="isReadOnly">
-		/// <c>true</c> if the log file is opened in read-only mode;<br/>
-		/// <c>false</c> if the log file is opened in read/write mode.
+		/// <see langword="true"/> if the log file is opened in read-only mode;<br/>
+		/// <see langword="false"/> if the log file is opened in read/write mode.
 		/// </param>
 		protected DatabaseAccessor(
 			SQLiteConnection connection,
@@ -337,7 +337,8 @@ partial class LogFile
 		public SQLiteConnection Connection { get; }
 
 		/// <summary>
-		/// Gets a value determining whether the log file is opened for reading and writing (<c>false</c>) or for reading only (<c>true</c>).
+		/// Gets a value determining whether the log file is opened for reading and writing (<see langword="false"/>) or for reading only (<see langword="true"/>
+		/// ).
 		/// </summary>
 		public bool IsReadOnly { get; }
 
@@ -380,8 +381,8 @@ partial class LogFile
 		/// Gets the name of processes that are/were associated with log messages.
 		/// </summary>
 		/// <param name="usedOnly">
-		/// <c>true</c> to get the name of processes that are referenced by messages in the log file only;<br/>
-		/// <c>false</c> to get all process names (even if referencing log messages have been removed after clearing/pruning).
+		/// <see langword="true"/> to get the name of processes that are referenced by messages in the log file only;<br/>
+		/// <see langword="false"/> to get all process names (even if referencing log messages have been removed after clearing/pruning).
 		/// </param>
 		/// <returns>A list of process names.</returns>
 		public string[] GetProcessNames(bool usedOnly)
@@ -415,8 +416,8 @@ partial class LogFile
 		/// Gets the name of applications that are/were associated with log messages.
 		/// </summary>
 		/// <param name="usedOnly">
-		/// <c>true</c> to get the name of applications that are referenced by messages in the log file only;<br/>
-		/// <c>false</c> to get all application names (even if referencing log messages have been removed after clearing/pruning).
+		/// <see langword="true"/> to get the name of applications that are referenced by messages in the log file only;<br/>
+		/// <see langword="false"/> to get all application names (even if referencing log messages have been removed after clearing/pruning).
 		/// </param>
 		/// <returns>A list of application names.</returns>
 		public string[] GetApplicationNames(bool usedOnly)
@@ -440,8 +441,8 @@ partial class LogFile
 		/// Gets the name of log writers that are/were associated with log messages.
 		/// </summary>
 		/// <param name="usedOnly">
-		/// <c>true</c> to get the name of log writers that are referenced by messages in the log file only;<br/>
-		/// <c>false</c> to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+		/// <see langword="true"/> to get the name of log writers that are referenced by messages in the log file only;<br/>
+		/// <see langword="false"/> to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
 		/// </param>
 		/// <returns>A list of log writer names.</returns>
 		public string[] GetLogWriterNames(bool usedOnly)
@@ -465,8 +466,8 @@ partial class LogFile
 		/// Gets the name of log levels that are/were associated with log messages.
 		/// </summary>
 		/// <param name="usedOnly">
-		/// <c>true</c> to get the name of log writers that are referenced by messages in the log file only;<br/>
-		/// <c>false</c> to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
+		/// <see langword="true"/> to get the name of log writers that are referenced by messages in the log file only;<br/>
+		/// <see langword="false"/> to get all log writer names (even if referencing log messages have been removed after clearing/pruning).
 		/// </param>
 		/// <returns>A list of log level names.</returns>
 		public string[] GetLogLevelNames(bool usedOnly)
@@ -490,8 +491,8 @@ partial class LogFile
 		/// Gets the tags that are/were associated with log messages.
 		/// </summary>
 		/// <param name="usedOnly">
-		/// <c>true</c> to get the tags that are referenced by messages in the log file only;<br/>
-		/// <c>false</c> to get all tags (even if referencing log messages have been removed after clearing/pruning).
+		/// <see langword="true"/> to get the tags that are referenced by messages in the log file only;<br/>
+		/// <see langword="false"/> to get all tags (even if referencing log messages have been removed after clearing/pruning).
 		/// </param>
 		/// <returns>A list of tags.</returns>
 		public string[] GetTags(bool usedOnly)
@@ -515,8 +516,8 @@ partial class LogFile
 		/// Removes all data from the log file.
 		/// </summary>
 		/// <param name="messagesOnly">
-		/// <c>true</c> to remove messages only;<br/>
-		/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
+		/// <see langword="true"/> to remove messages only;<br/>
+		/// <see langword="false"/> to remove processes, applications, log writers, log levels and tags as well.
 		/// </param>
 		/// <exception cref="NotSupportedException">The file is read-only.</exception>
 		public virtual void Clear(bool messagesOnly)
@@ -555,8 +556,8 @@ partial class LogFile
 		/// Removes all schema specific data from the log file.
 		/// </summary>
 		/// <param name="messagesOnly">
-		/// <c>true</c> to remove messages only;<br/>
-		/// <c>false</c> to remove processes, applications, log writers, log levels and tags as well.
+		/// <see langword="true"/> to remove messages only;<br/>
+		/// <see langword="false"/> to remove processes, applications, log writers, log levels and tags as well.
 		/// </param>
 		protected abstract void ClearSpecific(bool messagesOnly);
 
@@ -598,8 +599,8 @@ partial class LogFile
 		/// <param name="count">Number of log messages to get.</param>
 		/// <param name="callback">Callback to invoke for every read message</param>
 		/// <returns>
-		/// <c>true</c> if reading ran to completion;<br/>
-		/// <c>false</c> if reading was cancelled.
+		/// <see langword="true"/> if reading ran to completion;<br/>
+		/// <see langword="false"/> if reading was cancelled.
 		/// </returns>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="fromId"/> is not in the interval [OldestMessageId,NewestMessageId].</exception>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> must be positive.</exception>
@@ -768,7 +769,7 @@ partial class LogFile
 		/// <param name="path">Path of the file to save the snapshot to.</param>
 		public void SaveSnapshot(string path)
 		{
-			// determine the full path and convert it to an URI
+			// determine the full path and convert it to a URI
 			path = Path.GetFullPath(path);
 			var pathUri = new Uri(path);
 
@@ -787,7 +788,7 @@ partial class LogFile
 		/// <param name="path">Path of the file to save the snapshot to.</param>
 		/// <param name="progressCallback">
 		/// Callback method receiving progress information
-		/// (may be <c>null</c>, the callback may be called multiple times with the same progress, if database locking issues occur).
+		/// (may be <see langword="null"/>, the callback may be called multiple times with the same progress, if database locking issues occur).
 		/// </param>
 		public void SaveSnapshot(string path, ProgressCallback progressCallback)
 		{
@@ -880,7 +881,7 @@ partial class LogFile
 		/// </summary>
 		/// <param name="name">Name of the process to add.</param>
 		/// <returns>ID associated with the process name.</returns>
-		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
+		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <see langword="null"/>.</exception>
 		protected long AddProcessName(string name)
 		{
 			if (name == null) throw new ArgumentNullException(nameof(name));
@@ -907,7 +908,7 @@ partial class LogFile
 		/// </summary>
 		/// <param name="name">Name of the application to add.</param>
 		/// <returns>ID associated with the application name.</returns>
-		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
+		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <see langword="null"/>.</exception>
 		protected long AddApplicationName(string name)
 		{
 			if (name == null) throw new ArgumentNullException(nameof(name));
@@ -934,7 +935,7 @@ partial class LogFile
 		/// </summary>
 		/// <param name="name">Name of the log writer to add.</param>
 		/// <returns>ID associated with the log writer name.</returns>
-		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
+		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <see langword="null"/>.</exception>
 		protected long AddLogWriterName(string name)
 		{
 			if (name == null) throw new ArgumentNullException(nameof(name));
@@ -961,7 +962,7 @@ partial class LogFile
 		/// </summary>
 		/// <param name="name">Name of the log level to add.</param>
 		/// <returns>ID associated with the log level name.</returns>
-		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <c>null</c>.</exception>
+		/// <exception cref="ArgumentNullException">The <paramref name="name"/> parameter must not be <see langword="null"/>.</exception>
 		protected long AddLogLevelName(string name)
 		{
 			if (name == null) throw new ArgumentNullException(nameof(name));
@@ -988,7 +989,7 @@ partial class LogFile
 		/// </summary>
 		/// <param name="tag">Tag to add.</param>
 		/// <returns>ID associated with the tag.</returns>
-		/// <exception cref="ArgumentNullException">The <paramref name="tag"/> parameter must not be <c>null</c>.</exception>
+		/// <exception cref="ArgumentNullException">The <paramref name="tag"/> parameter must not be <see langword="null"/>.</exception>
 		protected long AddTag(string tag)
 		{
 			if (tag == null) throw new ArgumentNullException(nameof(tag));
@@ -1117,13 +1118,13 @@ partial class LogFile
 
 		/// <summary>
 		/// Executes the specified sqlite command and returns the first column and the first row of the result set,
-		/// or <c>null</c>, if the result set is empty.
+		/// or <see langword="null"/>, if the result set is empty.
 		/// </summary>
 		/// <param name="connection">Connection to use.</param>
 		/// <param name="commandText">Command text to execute.</param>
 		/// <returns>
 		/// The result of the query;<br/>
-		/// <c>null</c> if the result was empty.
+		/// <see langword="null"/> if the result was empty.
 		/// </returns>
 		public static object ExecuteScalarCommand(SQLiteConnection connection, string commandText)
 		{
@@ -1144,12 +1145,12 @@ partial class LogFile
 
 		/// <summary>
 		/// Executes the specified prepared sqlite command and returns the first column and the first row of the result set,
-		/// or <c>null</c>, if the result set is empty.
+		/// or <see langword="null"/>, if the result set is empty.
 		/// </summary>
 		/// <param name="command">Command to execute.</param>
 		/// <returns>
 		/// The result of the query;<br/>
-		/// <c>null</c> if the result was empty.
+		/// <see langword="null"/> if the result was empty.
 		/// </returns>
 		public static object ExecuteScalarCommand(SQLiteCommand command)
 		{

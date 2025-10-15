@@ -69,8 +69,8 @@ partial class JsonMessageFormatter
 		/// </summary>
 		/// <param name="s">String to escape.</param>
 		/// <param name="escapeSolidus">
-		/// <c>true</c> to escape the solidus ('/');<br/>
-		/// otherwise <c>false</c>.
+		/// <see langword="true"/> to escape the solidus ('/');<br/>
+		/// otherwise, <see langword="false"/>.
 		/// </param>
 		/// <returns>The escaped string.</returns>
 		private static string GetEscapedString(string s, bool escapeSolidus)

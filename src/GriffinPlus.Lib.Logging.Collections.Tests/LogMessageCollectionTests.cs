@@ -25,9 +25,7 @@ public class LogMessageCollectionTests : LogMessageCollectionBaseTests<ILogMessa
 	protected override ILogMessageCollection<LogMessage> CreateCollection(int count, out LogMessage[] messages)
 	{
 		messages = LoggingTestHelpers.GetTestMessages<LogMessage>(count);
-		LogMessageCollection<LogMessage> collection = count == 0
-			                                              ? new LogMessageCollection<LogMessage>()
-			                                              : new LogMessageCollection<LogMessage>(messages);
+		LogMessageCollection<LogMessage> collection = count != 0 ? new LogMessageCollection<LogMessage>(messages) : [];
 
 		// the test assumes that the collection uses single-item notifications
 		collection.UseMultiItemNotifications = false;
@@ -80,7 +78,7 @@ public class LogMessageCollectionTests : LogMessageCollectionBaseTests<ILogMessa
 
 		// check properties exposed by IList implementation
 		{
-			var list = collection as IList;
+			IList list = collection;
 			Assert.Equal(expectedCount, list.Count);
 			Assert.Equal(CollectionIsReadOnly, list.IsReadOnly);
 			Assert.Equal(CollectionIsFixedSize, list.IsFixedSize);
