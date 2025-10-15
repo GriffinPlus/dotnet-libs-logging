@@ -645,11 +645,7 @@ partial class LogFile
 			CheckReadOnly();
 
 			long count = 0;
-
 			ExecuteInTransaction(Operation);
-
-			NewestMessageId += count;
-			if (OldestMessageId < 0) OldestMessageId = NewestMessageId - count + 1;
 			return count;
 
 			void Operation()
@@ -657,7 +653,10 @@ partial class LogFile
 				// ReSharper disable once PossibleMultipleEnumeration
 				foreach (ILogMessage message in messages)
 				{
-					WriteLogMessage(message, NewestMessageId + count + 1);
+					long messageId = NewestMessageId + 1;
+					WriteLogMessage(message, messageId);
+					if (OldestMessageId < 0) OldestMessageId = messageId;
+					NewestMessageId = messageId;
 					count++;
 				}
 			}

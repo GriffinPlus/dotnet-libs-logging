@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -913,7 +912,14 @@ public class LogFileTests : IClassFixture<LogFileTestsFixture>
 		// the state of an empty log file is already tested in CreateEmptyFile()
 		// => nothing to do here...
 
-		// write the message
+		// write empty collection
+		// => should not do anything
+		file.Write(messages: []);
+		Assert.Equal(0, file.MessageCount);
+		Assert.Equal(-1, file.OldestMessageId);
+		Assert.Equal(-1, file.NewestMessageId);
+
+		// write test messages
 		file.Write(messages);
 
 		// the file should now contain the written messages
