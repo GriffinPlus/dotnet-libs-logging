@@ -1,6 +1,31 @@
 # Changelog
 ---
 
+## Release 7.0.6
+
+### Bugfixes
+
+#### Fix writing empty collection of log messages
+
+The `LogFile` class did not handle writing an empty collection of log messages properly. After writing an empty collection the log file reported `OldestMessageId = 0` and `NewestMessageId = -1`. Both should be `-1` in this case.
+
+### Optimizations
+
+#### Eliminate allocations for closures in `LogFile`
+
+The `LogFile` class used closures in some places causing unnecessary allocations. These closures have been replaced with an alloc-less approach.
+
+### Other Changes
+
+#### Update Package Dependencies
+
+The following package dependencies have been updated to work the highest version that is available for a certain target framework:
+
+- `Update System.Diagnostics.EventLog`: 9.0.10 (.NET Framework 4.8, .NET 8 only)
+- `System.Text.Json`: 9.0.10 (.NET Framework 4.8 only)
+
+---
+
 ## Release 7.0.5
 
 ### Other Changes
