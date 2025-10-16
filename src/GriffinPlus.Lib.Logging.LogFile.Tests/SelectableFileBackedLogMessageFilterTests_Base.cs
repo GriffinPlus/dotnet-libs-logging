@@ -113,6 +113,35 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 		return file2.Messages;
 	}
 
+#if NET48_OR_GREATER || NETCOREAPP
+	/// <summary>
+	/// Verifies that the <see cref="CommonGetMessages_TestData"/> collection does not contain duplicate entries.
+	/// </summary>
+	[Fact]
+	public void CommonGetMessages_HasNoDuplicates()
+	{
+		var rows = CommonGetMessages_TestData.Select(e => new
+			{
+				g = (bool)e[0]!,
+				en = (LogMessageField)e[1]!,
+				ma = (LogMessageField)e[2]!,
+				mb = (MatchBehavior)e[3]!
+			})
+			.ToList();
+
+		string Key(dynamic r) => $"{r.g}|{(int)r.en}|{(int)r.ma}|{(int)r.mb}";
+
+		IEnumerable<IGrouping<string, (int i, string key)>> dupes = rows.Select((r, i) => (i, key: Key(r)))
+			.GroupBy(x => x.key)
+			.Where(g => g.Count() > 1);
+
+		Assert.False(
+			dupes.Any(),
+			"Duplicates in CommonGetMessages_TestData:\n" +
+			string.Join("\n\n", dupes.Select(g => $"KEY: {g.Key}\nINDICES: {string.Join(", ", g.Select(x => x.i))}")));
+	}
+#endif
+
 	#region Common Test Data for Get[Previous|Next]Message[s]()
 
 	/// <summary>
@@ -200,17 +229,17 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 		/// <summary>
 		/// Filter under test should match the first message in the message set.
 		/// </summary>
-		MatchFirst,
+		MatchFirst = 1 << 0,
 
 		/// <summary>
 		/// Filter under test should match the last message in the message set.
 		/// </summary>
-		MatchLast,
+		MatchLast = 1 << 1,
 
 		/// <summary>
 		/// Filter under test should match the message between the first and the last message.
 		/// </summary>
-		MatchInBetween,
+		MatchInBetween = 1 << 2,
 
 		/// <summary>
 		/// Filter under test should match all messages from the first to the last message.
@@ -626,6 +655,14 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 		get
 		{
 			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double>();
+			var seen = new HashSet<string>();
+
+			static string Key(
+				bool            g,
+				LogMessageField en,
+				LogMessageField ma,
+				MatchBehavior   mb,
+				double          s) => $"{g}|{(int)en}|{(int)ma}|{(int)mb}|{s:0.###}";
 
 			foreach (object[] entry in CommonGetMessages_TestData)
 			{
@@ -636,6 +673,10 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 
 				foreach (double startIdRatio in new[] { 0.0, 0.5, 1.0 })
 				{
+					string key = Key(isGloballyEnabled, enabledSpecificFilters, matchingSpecificFilters, matchBehavior, startIdRatio);
+					if (!seen.Add(key))
+						throw new InvalidOperationException($"Duplicate in GetPreviousMessage_TestData: {key}");
+
 					data.Add(
 						isGloballyEnabled,
 						enabledSpecificFilters,
@@ -702,6 +743,16 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 		get
 		{
 			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, int, bool>();
+			var seen = new HashSet<string>();
+
+			static string Key(
+				bool            g,
+				LogMessageField en,
+				LogMessageField ma,
+				MatchBehavior   mb,
+				double          s,
+				int             c,
+				bool            r) => $"{g}|{(int)en}|{(int)ma}|{(int)mb}|{s:0.###}|{c}|{r}";
 
 			// Reuse data from CommonGetMessages_TestData
 			foreach (object[] entry in CommonGetMessages_TestData)
@@ -715,6 +766,10 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 				foreach (int count in new[] { 5 })
 				foreach (bool reverse in new[] { false, true })
 				{
+					string key = Key(isGloballyEnabled, enabledSpecificFilters, matchingSpecificFilters, matchBehavior, startIdRatio, count, reverse);
+					if (!seen.Add(key))
+						throw new InvalidOperationException($"Duplicate in GetPreviousMessages_TestData: {key}");
+
 					data.Add(
 						isGloballyEnabled,
 						enabledSpecificFilters,
@@ -786,6 +841,14 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 		get
 		{
 			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double>();
+			var seen = new HashSet<string>();
+
+			static string Key(
+				bool            g,
+				LogMessageField en,
+				LogMessageField ma,
+				MatchBehavior   mb,
+				double          s) => $"{g}|{(int)en}|{(int)ma}|{(int)mb}|{s:0.###}";
 
 			foreach (object[] entry in CommonGetMessages_TestData)
 			{
@@ -796,6 +859,10 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 
 				foreach (double startIdRatio in new[] { 0.0, 0.5, 1.0 })
 				{
+					string key = Key(isGloballyEnabled, enabledSpecificFilters, matchingSpecificFilters, matchBehavior, startIdRatio);
+					if (!seen.Add(key))
+						throw new InvalidOperationException($"Duplicate in GetNextMessage_TestData: {key}");
+
 					data.Add(
 						isGloballyEnabled,
 						enabledSpecificFilters,
@@ -863,6 +930,15 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 		get
 		{
 			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, int>();
+			var seen = new HashSet<string>();
+
+			static string Key(
+				bool            g,
+				LogMessageField en,
+				LogMessageField ma,
+				MatchBehavior   mb,
+				double          s,
+				int             c) => $"{g}|{(int)en}|{(int)ma}|{(int)mb}|{s:0.###}|{c}";
 
 			foreach (object[] entry in CommonGetMessages_TestData)
 			{
@@ -874,6 +950,10 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 				foreach (double startIdRatio in new[] { 0.0, 0.5, 1.0 })
 				foreach (int count in new[] { 5 })
 				{
+					string key = Key(isGloballyEnabled, enabledSpecificFilters, matchingSpecificFilters, matchBehavior, startIdRatio, count);
+					if (!seen.Add(key))
+						throw new InvalidOperationException($"Duplicate in GetNextMessages_TestData: {key}");
+
 					data.Add(
 						isGloballyEnabled,
 						enabledSpecificFilters,
@@ -947,6 +1027,15 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 		get
 		{
 			var data = new TheoryData<bool, LogMessageField, LogMessageField, MatchBehavior, double, double>();
+			var seen = new HashSet<string>();
+
+			static string Key(
+				bool            g,
+				LogMessageField en,
+				LogMessageField ma,
+				MatchBehavior   mb,
+				double          s,
+				double          e) => $"{g}|{(int)en}|{(int)ma}|{(int)mb}|{s:0.###}->{e:0.###}";
 
 			foreach (object[] entry in CommonGetMessages_TestData)
 			{
@@ -960,6 +1049,10 @@ public abstract class SelectableFileBackedLogMessageFilterTests_Base :
 				{
 					if (startIdRatio <= endIdRatio)
 					{
+						string key = Key(isGloballyEnabled, enabledSpecificFilters, matchingSpecificFilters, matchBehavior, startIdRatio, endIdRatio);
+						if (!seen.Add(key))
+							throw new InvalidOperationException($"Duplicate in GetMessageRange_TestData: {key}");
+
 						data.Add(
 							isGloballyEnabled,
 							enabledSpecificFilters,
