@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release 7.1.0
+
+### Features
+
+#### Update GriffinPlus.Lib.Logging.Interface to version 1.3.0
+
+The `GriffinPlus.Lib.Logging.Interface` package has been updated to version 1.3.0 to support formatting runtime metadata using the new `PrettyFormatter` class.
+
+---
+
 ## Release 7.0.6
 
 ### Bugfixes
