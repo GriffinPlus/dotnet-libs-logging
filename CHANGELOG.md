@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release 7.1.1
+
+### Other Changes
+
+#### Update GriffinPlus.Lib.Logging.Interface to version 1.3.1
+
+The `GriffinPlus.Lib.Logging.Interface` package has been updated to version 1.3.1 to fix various minor formatting issues concerning the new `PrettyFormatter` class.
+
+---
+
 ## Release 7.1.0
 
 ### Features
