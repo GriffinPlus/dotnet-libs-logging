@@ -1,6 +1,28 @@
 # Changelog
 ---
 
+## Release 7.1.2
+
+### Other Changes
+
+#### Update Package Dependencies
+
+##### System.Diagnostics.EventLog
+
+The referenced `System.Diagnostics.EventLog` package caused issues in applications targeting .NET Framework 4.6.1 and 4.8 due to assembly binding redirects. Adjusting versions to:
+
+- .NET Framework 4.6.1 / 4.8: no package reference, use built-in assembly
+- .NET 5: System.Diagnostics.EventLog 5.0.1
+- .NET 6: System.Diagnostics.EventLog 6.0.0
+- .NET 7: System.Diagnostics.EventLog 7.0.0
+- .NET 7: System.Diagnostics.EventLog 8.0.2
+
+##### System.Text.Json
+
+The referenced `System.Text.Json` package has been downgraded to version 8.0.4 for .NET Framework 4.8 to avoid pulling in unneeded dependencies. Applications may use a higher version by adding an explicit package reference.
+
+---
+
 ## Release 7.1.1
 
 ### Other Changes
