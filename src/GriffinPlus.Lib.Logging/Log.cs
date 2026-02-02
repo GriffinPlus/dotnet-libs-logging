@@ -238,6 +238,9 @@ public class Log
 				Configuration.Dispose();
 				Configuration = null;
 			}
+
+			// reset the configuration to default settings
+			Initialize();
 		}
 	}
 
