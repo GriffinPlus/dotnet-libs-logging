@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## Release 7.1.3
+
+### Bugfixes
+
+#### Fix shutting down
+
+`Log.Shutdown()` did not restore the same state as the static constructor. This lead to issues when re-initializing the logging system. Now `Log.Shutdown()` calls `Log.Initialize()` at the end to use a `VolatileLogConfiguration` with default settings and a `ConsoleWriterPipelineStage`.
+
+---
+
 ## Release 7.1.2
 
 ### Other Changes
