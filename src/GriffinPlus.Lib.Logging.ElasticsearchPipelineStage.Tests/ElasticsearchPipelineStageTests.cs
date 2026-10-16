@@ -235,7 +235,127 @@ public class ElasticsearchPipelineStageTests
 
 	#endregion
 
+	#region Oversized Messages
+
+	/// <summary>
+	/// Tests whether a single message that exceeds the maximum bulk request size is discarded instead of being
+	/// rejected over and over again, which would block the processing queue forever.
+	/// </summary>
+	[Fact]
+	public void SendOperation_AddMessage_DiscardsOversizedMessage()
+	{
+		ElasticsearchPipelineStage stage = CreateStageWithSmallBulkRequestSize(out int maxSize);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		LocalLogMessage oversizedMessage = CreateMessage(new string('x', 2 * maxSize));
+		LocalLogMessage smallMessage = CreateMessage("small");
+
+		try
+		{
+			// the oversized message must be consumed (discarded) and released
+			Assert.True(operation.AddMessage(oversizedMessage));
+			Assert.Equal(0, operation.MessageCount);
+			Assert.False(operation.IsFull);
+			Assert.Equal(1, oversizedMessage.RefCount);
+
+			// the operation must still accept regular messages afterward
+			Assert.True(operation.AddMessage(smallMessage));
+			Assert.Equal(1, operation.MessageCount);
+			Assert.Equal(2, smallMessage.RefCount);
+		}
+		finally
+		{
+			operation.Reset();
+			oversizedMessage.Release();
+			smallMessage.Release();
+		}
+	}
+
+	/// <summary>
+	/// Tests whether a message that fits into an empty request, but not into a request that already contains a
+	/// message, is rejected (not discarded), so it can be sent with the next request.
+	/// </summary>
+	[Fact]
+	public void SendOperation_AddMessage_RejectsMessageIfRequestIsFull()
+	{
+		// Arrange
+		// (each text takes more than half of the maximum request size, so two messages never fit into one request,
+		// but a single message fits as long as the per-message overhead is below half of the maximum request size)
+		ElasticsearchPipelineStage stage = CreateStageWithSmallBulkRequestSize(out int maxSize);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var probeOperation = new ElasticsearchPipelineStage.SendOperation(stage);
+		LocalLogMessage firstMessage = CreateMessage(new string('a', maxSize / 2 + 1));
+		LocalLogMessage secondMessage = CreateMessage(new string('b', maxSize / 2 + 1));
+
+		try
+		{
+			// verify the precondition: the second message fits into an empty request on its own
+			// (the send operation takes over a reference, so add one for the probe operation)
+			secondMessage.AddRef();
+			Assert.True(probeOperation.AddMessage(secondMessage));
+			Assert.Equal(1, probeOperation.MessageCount);
+			Assert.False(probeOperation.IsFull);
+			probeOperation.Reset(); // releases the reference held by the probe operation
+			Assert.Equal(2, secondMessage.RefCount);
+
+			Assert.True(operation.AddMessage(firstMessage));
+
+			// Act
+			bool added = operation.AddMessage(secondMessage);
+
+			// Assert
+			// the second message does not fit anymore => rejected, but not discarded
+			Assert.False(added);
+			Assert.True(operation.IsFull);
+			Assert.Equal(1, operation.MessageCount);
+			Assert.Equal(2, secondMessage.RefCount);
+		}
+		finally
+		{
+			operation.Reset();
+			firstMessage.Release();
+			secondMessage.Release();
+		}
+	}
+
+	#endregion
+
 	#region Helpers
+
+	/// <summary>
+	/// Creates a stage with the smallest supported bulk request size and loads its configuration.
+	/// </summary>
+	/// <param name="maxSize">Receives the effective maximum bulk request size (in bytes).</param>
+	/// <returns>The created stage.</returns>
+	private static ElasticsearchPipelineStage CreateStageWithSmallBulkRequestSize(out int maxSize)
+	{
+		maxSize = 10 * 1024; // minimum bulk request size supported by the stage
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		stage.BulkRequestMaxSize = maxSize;
+		stage.ReloadConfigurationIfNecessary();
+		return stage;
+	}
+
+	/// <summary>
+	/// Creates a log message with the specified text
+	/// (an additional reference is held, so the test can check whether the stage releases the message).
+	/// </summary>
+	/// <param name="text">Text of the message.</param>
+	/// <returns>The created message.</returns>
+	private static LocalLogMessage CreateMessage(string text)
+	{
+		LocalLogMessage message = LocalLogMessagePool.Default.GetMessage(
+			DateTimeOffset.Now,
+			0,
+			LogWriter.Get<ElasticsearchPipelineStageTests>(),
+			LogLevel.Error,
+			"Test Application",
+			"Test Process",
+			42,
+			text);
+
+		message.AddRef(); // reference held by the test
+		return message;
+	}
 
 	/// <summary>
 	/// Converts an array of <see cref="Uri"/> to a string as used in the configuration.

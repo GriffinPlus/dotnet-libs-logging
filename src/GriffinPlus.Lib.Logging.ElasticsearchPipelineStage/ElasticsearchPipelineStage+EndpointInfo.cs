@@ -12,7 +12,7 @@ partial class ElasticsearchPipelineStage
 	/// <summary>
 	/// Information about an Elasticsearch API endpoint.
 	/// </summary>
-	private sealed class EndpointInfo
+	internal sealed class EndpointInfo
 	{
 		private bool mIsOperational;
 

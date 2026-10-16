@@ -27,7 +27,7 @@ partial class ElasticsearchPipelineStage
 	/// <summary>
 	/// A send operation in the pipeline stage.
 	/// </summary>
-	private sealed class SendOperation
+	internal sealed class SendOperation
 	{
 		private readonly ElasticsearchPipelineStage mStage;
 		private readonly JsonWriterOptions          mJsonWriterOptions      = new() { SkipValidation = true };
@@ -144,15 +144,15 @@ partial class ElasticsearchPipelineStage
 			if (mContentStream.Position > mStage.mBulkRequestMaxSize)
 			{
 				// the maximum request size has been exceeded
-				if (lastStreamPosition < 0)
+				if (mMessagesPreparedToSend.Count == 0)
 				{
 					// the current message is so big that it does not fit into a bulk request
 					// => discard it
 					mStage.WritePipelineError(
-						$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxMessageCount} bytes). Discarding message...",
+						$"Message is too large ({mContentStream.Position - lastStreamPosition} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxSize} bytes). Discarding message...",
 						null);
 					message.Release();
-					mContentStream.SetLength(0);
+					mContentStream.SetLength(lastStreamPosition);
 					return true; // pretend to have added it to the request...
 				}
 
@@ -190,7 +190,7 @@ partial class ElasticsearchPipelineStage
 						// the current message is so big that it does not fit into a bulk request
 						// => discard it
 						mStage.WritePipelineError(
-							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxMessageCount} bytes). Discarding message...",
+							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxSize} bytes). Discarding message...",
 							null);
 						message.Release();
 						mMessagesPreparedToSend.RemoveAt(i--);

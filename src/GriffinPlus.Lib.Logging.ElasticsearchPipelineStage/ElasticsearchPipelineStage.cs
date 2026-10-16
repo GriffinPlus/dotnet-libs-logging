@@ -750,7 +750,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// <summary>
 	/// Reloads the configuration and populates processing thread specific data.
 	/// </summary>
-	private void ReloadConfigurationIfNecessary()
+	internal void ReloadConfigurationIfNecessary()
 	{
 		if (mReloadConfiguration)
 		{
