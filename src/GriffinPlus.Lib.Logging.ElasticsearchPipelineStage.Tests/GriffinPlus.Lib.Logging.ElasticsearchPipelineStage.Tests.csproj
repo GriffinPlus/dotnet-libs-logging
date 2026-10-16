@@ -17,7 +17,7 @@
 		<CheckEolTargetFramework>false</CheckEolTargetFramework>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
-		<RootNamespace>GriffinPlus.Lib.Logging</RootNamespace>
+		<RootNamespace>GriffinPlus.Lib.Logging.Elasticsearch.Tests</RootNamespace>
 		<OmitDocumentationFile>true</OmitDocumentationFile>
 		<NoWarn>$(NoWarn);NU1902;NU1903;xUnit1026</NoWarn>
 		<WarningsAsErrors>NU1605</WarningsAsErrors>

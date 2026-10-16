@@ -4,246 +4,107 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Globalization;
 using System.Linq;
-using System.Threading;
 
 using Xunit;
 
-#pragma warning disable xUnit2013
-
-namespace GriffinPlus.Lib.Logging.Elasticsearch;
+namespace GriffinPlus.Lib.Logging.Elasticsearch.Tests;
 
 /// <summary>
 /// Unit tests targeting the <see cref="ElasticsearchPipelineStage"/> class.
+/// The tests do not require an Elasticsearch server.
 /// </summary>
+[Trait("Category", "Unit")]
 public class ElasticsearchPipelineStageTests
 {
-	private Uri[] Setting_Server_ApiBaseUrls { get; } =
-	[
-		new("http://127.0.0.1:9200/"), // Elasticsearch is working on this endpoint
-		new("http://127.0.0.1:9201/")  // there is no Elasticsearch server running at this endpoint
-	];
-
-	private const AuthenticationScheme Setting_Server_Authentication_Schemes          = AuthenticationScheme.Basic | AuthenticationScheme.Digest;
-	private const string               Setting_Server_Authentication_Username         = "JohnDoe";
-	private const string               Setting_Server_Authentication_Password         = "Secret";
-	private const string               Setting_Server_Authentication_Domain           = "My-Domain";
-	private const string               Setting_Server_IndexName                       = "My-Index";
-	private const int                  Setting_Server_BulkRequest_MaxConcurrencyLevel = 3;
-	private const int                  Setting_Server_BulkRequest_MaxMessageCount     = 1500;
-	private const int                  Setting_Server_BulkRequest_MaxSize             = 10 * 1024 * 1024;
-	private const string               Setting_Data_Organization_Id                   = "My-Organization-Id";
-	private const string               Setting_Data_Organization_Name                 = "My-Organization-Name";
-	private const int                  Setting_Stage_SendQueueSize                    = 10000;
-
-	#region Construction
+	#region Create<ElasticsearchPipelineStage>()
 
 	/// <summary>
-	/// Tests creating a new instance using <see cref="ElasticsearchPipelineStage"/>.
+	/// Tests whether <see cref="ProcessingPipelineStage.Create{TStage}"/> creates an uninitialized,
+	/// non-operational stage with the specified name and without following stages.
 	/// </summary>
 	[Fact]
-	public void Create_Default()
+	public void Create_WhenCalled_InitializesBaseProperties()
 	{
-		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		// Arrange
+		const string name = "Elasticsearch";
 
-		// check common stage properties
-		// ------------------------------------------------------------------------------------
+		// Act
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>(name, null);
+
+		// Assert
+		Assert.Equal(name, stage.Name);
 		Assert.False(stage.IsInitialized);
 		Assert.False(stage.IsDefaultStage);
-		Assert.Equal("Elasticsearch", stage.Name);
+		Assert.False(stage.IsOperational);
 		Assert.Empty(stage.NextStages);
+	}
 
-		// check setting 'Server.ApiBaseUrls'
-		// ------------------------------------------------------------------------------------
-		var expectedApiEndpoints = new[] { new Uri("http://127.0.0.1:9200/") };
-		IProcessingPipelineStageSetting<Uri[]> endpointsSetting = stage.Settings.GetSetting("Server.ApiBaseUrls", UriArrayToString, StringToUriArray);
-		Assert.Equal(expectedApiEndpoints, endpointsSetting.DefaultValue);
-		Assert.Equal(expectedApiEndpoints, endpointsSetting.Value);
+	/// <summary>
+	/// Test data for <see cref="Create_WhenCalled_SetsSettingDefault"/>:
+	/// scenario name, setting name, expected default value
+	/// (<see cref="Uri"/> arrays are represented by their configuration string, see <see cref="UriArrayConverter"/>).
+	/// </summary>
+	public static TheoryData<string, string, object> Create_SettingDefaults_Data => new()
+	{
+		// a single local endpoint
+		{ "ApiBaseUrls", "Server.ApiBaseUrls", "http://127.0.0.1:9200/" },
+		// password based authentication schemes
+		{ "AuthenticationSchemes", "Server.Authentication.Schemes", AuthenticationScheme.PasswordBased },
+		// no custom credentials
+		{ "Username", "Server.Authentication.Username", "" },
+		{ "Password", "Server.Authentication.Password", "" },
+		{ "Domain", "Server.Authentication.Domain", "" },
+		// bulk request limits (message count 0 = unlimited)
+		{ "BulkRequestMaxConcurrencyLevel", "Server.BulkRequest.MaxConcurrencyLevel", 5 },
+		{ "BulkRequestMaxMessageCount", "Server.BulkRequest.MaxMessageCount", 0 },
+		{ "BulkRequestMaxSize", "Server.BulkRequest.MaxSize", 5 * 1024 * 1024 },
+		// default index
+		{ "IndexName", "Server.IndexName", "logs" },
+		// no organization information
+		{ "OrganizationId", "Data.Organization.Id", "" },
+		{ "OrganizationName", "Data.Organization.Name", "" },
+		// size of the send queue
+		{ "SendQueueSize", "Stage.SendQueueSize", 50000 }
+	};
 
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(1, stage.ApiBaseUrls.Count);
-		Assert.Equal(expectedApiEndpoints, stage.ApiBaseUrls);
+	/// <summary>
+	/// Tests whether <see cref="ProcessingPipelineStage.Create{TStage}"/> registers the specified setting with the
+	/// expected default value and whether the corresponding stage property reflects that value.
+	/// </summary>
+	/// <param name="scenario">Name of the scenario (for test output only).</param>
+	/// <param name="settingName">Name of the setting to check.</param>
+	/// <param name="expectedDefault">Expected default value of the setting.</param>
+	[Theory]
+	[MemberData(nameof(Create_SettingDefaults_Data))]
+	public void Create_WhenCalled_SetsSettingDefault(string scenario, string settingName, object expectedDefault)
+	{
+		// Arrange
+		// (nothing to do)
 
-		// check setting 'Server.Authentication.Schemes'
-		// ------------------------------------------------------------------------------------
-		const AuthenticationScheme expectedAuthenticationSchemes = AuthenticationScheme.PasswordBased;
-		IProcessingPipelineStageSetting<AuthenticationScheme> authenticationSchemesSetting = stage.Settings.GetSetting<AuthenticationScheme>("Server.Authentication.Schemes");
-		Assert.Equal(expectedAuthenticationSchemes, authenticationSchemesSetting.DefaultValue);
-		Assert.Equal(expectedAuthenticationSchemes, authenticationSchemesSetting.Value);
+		// Act
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
 
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedAuthenticationSchemes, stage.AuthenticationSchemes);
-
-		// check setting 'Server.Authentication.Username'
-		// ------------------------------------------------------------------------------------
-		const string expectedUsername = "";
-		IProcessingPipelineStageSetting<string> usernameSetting = stage.Settings.GetSetting<string>("Server.Authentication.Username");
-		Assert.Equal(expectedUsername, usernameSetting.DefaultValue);
-		Assert.Equal(expectedUsername, usernameSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedUsername, stage.Username);
-
-		// check setting 'Server.Authentication.Password'
-		// ------------------------------------------------------------------------------------
-		const string expectedPassword = "";
-		IProcessingPipelineStageSetting<string> passwordSetting = stage.Settings.GetSetting<string>("Server.Authentication.Password");
-		Assert.Equal(expectedPassword, passwordSetting.DefaultValue);
-		Assert.Equal(expectedPassword, passwordSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedPassword, stage.Password);
-
-		// check setting 'Server.Authentication.Domain'
-		// ------------------------------------------------------------------------------------
-		const string expectedDomain = "";
-		IProcessingPipelineStageSetting<string> domainSetting = stage.Settings.GetSetting<string>("Server.Authentication.Domain");
-		Assert.Equal(expectedDomain, domainSetting.DefaultValue);
-		Assert.Equal(expectedDomain, domainSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedDomain, stage.Domain);
-
-		// check setting 'Server.BulkRequest.MaxConcurrencyLevel'
-		// ------------------------------------------------------------------------------------
-		const int expectedMaxConcurrencyLevel = 5;
-		IProcessingPipelineStageSetting<int> maxConcurrencyLevelSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxConcurrencyLevel");
-		Assert.Equal(expectedMaxConcurrencyLevel, maxConcurrencyLevelSetting.DefaultValue);
-		Assert.Equal(expectedMaxConcurrencyLevel, maxConcurrencyLevelSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedMaxConcurrencyLevel, stage.BulkRequestMaxConcurrencyLevel);
-
-		// check setting 'Server.BulkRequest.MaxMessageCount'
-		// ------------------------------------------------------------------------------------
-		const int expectedMaxMessageCount = 0; // unlimited
-		IProcessingPipelineStageSetting<int> maxMessageCountSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxMessageCount");
-		Assert.Equal(expectedMaxMessageCount, maxMessageCountSetting.DefaultValue);
-		Assert.Equal(expectedMaxMessageCount, maxMessageCountSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedMaxMessageCount, stage.BulkRequestMaxMessageCount);
-
-		// check setting 'Server.BulkRequest.MaxSize'
-		// ------------------------------------------------------------------------------------
-		const int expectedMaxSize = 5 * 1024 * 1024;
-		IProcessingPipelineStageSetting<int> maxSizeSetting = stage.Settings.GetSetting<int>("Server.BulkRequest.MaxSize");
-		Assert.Equal(expectedMaxSize, maxSizeSetting.DefaultValue);
-		Assert.Equal(expectedMaxSize, maxSizeSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedMaxSize, stage.BulkRequestMaxSize);
-
-		// check setting 'Server.IndexName'
-		// ------------------------------------------------------------------------------------
-		const string expectedIndexName = "logs";
-		IProcessingPipelineStageSetting<string> indexNameSetting = stage.Settings.GetSetting<string>("Server.IndexName");
-		Assert.Equal(expectedIndexName, indexNameSetting.DefaultValue);
-		Assert.Equal(expectedIndexName, indexNameSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedIndexName, stage.IndexName);
-
-		// check setting 'Data.Organization.Id'
-		// ------------------------------------------------------------------------------------
-		const string expectedOrganizationId = "";
-		IProcessingPipelineStageSetting<string> organizationIdSetting = stage.Settings.GetSetting<string>("Data.Organization.Id");
-		Assert.Equal(expectedOrganizationId, organizationIdSetting.DefaultValue);
-		Assert.Equal(expectedOrganizationId, organizationIdSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedOrganizationId, stage.OrganizationId);
-
-		// check setting 'Data.Organization.Name'
-		// ------------------------------------------------------------------------------------
-		const string expectedOrganizationName = "";
-		IProcessingPipelineStageSetting<string> organizationNameSetting = stage.Settings.GetSetting<string>("Data.Organization.Name");
-		Assert.Equal(expectedOrganizationName, organizationNameSetting.DefaultValue);
-		Assert.Equal(expectedOrganizationName, organizationNameSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedOrganizationName, stage.OrganizationName);
-
-		// check setting 'Server.SendQueueSize'
-		// ------------------------------------------------------------------------------------
-		const int expectedSendQueueSize = 50000;
-		IProcessingPipelineStageSetting<int> sendQueueSizeSetting = stage.Settings.GetSetting<int>("Stage.SendQueueSize");
-		Assert.Equal(expectedSendQueueSize, sendQueueSizeSetting.DefaultValue);
-		Assert.Equal(expectedSendQueueSize, sendQueueSizeSetting.Value);
-
-		// the corresponding stage property should reflect the default setting
-		Assert.Equal(expectedSendQueueSize, stage.SendQueueSize);
-
-		// the stage should be in-operational at start
-		// ------------------------------------------------------------------------------------
-		Assert.False(stage.IsOperational);
+		// Assert
+		GetSettingState(stage, settingName, out object defaultValue, out object value, out object propertyValue);
+		Assert.Equal(expectedDefault, defaultValue);
+		Assert.Equal(expectedDefault, value);
+		Assert.Equal(expectedDefault, propertyValue);
 	}
 
 	#endregion
 
-	#region Initialize and Shutdown
+	#region SendOperation.AddMessage(LocalLogMessage)
 
 	/// <summary>
-	/// Initializes the stage, lets the stage run for some time and shuts it down at the end.
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.AddMessage"/> discards and releases a single
+	/// message that exceeds the maximum bulk request size, so the message does not block the processing queue,
+	/// and whether the send operation accepts regular messages afterward.
 	/// </summary>
 	[Fact]
-	public void InitializeAndShutdown()
+	public void AddMessage_WhenMessageExceedsMaxRequestSize_DiscardsMessage()
 	{
-		var configuration = new VolatileLogConfiguration();
-		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", configuration);
-
-		// let the configuration provide the appropriate Elasticsearch endpoints
-		IProcessingPipelineStageConfiguration stageSettings = configuration.ProcessingPipeline.Stages.First(x => x.Name == "Elasticsearch");
-		stageSettings.SetSetting("Server.ApiBaseUrls", Setting_Server_ApiBaseUrls, UriArrayToString, StringToUriArray);
-		stageSettings.SetSetting("Server.Authentication.Schemes", Setting_Server_Authentication_Schemes);
-		stageSettings.SetSetting("Server.Authentication.Username", Setting_Server_Authentication_Username);
-		stageSettings.SetSetting("Server.Authentication.Password", Setting_Server_Authentication_Password);
-		stageSettings.SetSetting("Server.Authentication.Domain", Setting_Server_Authentication_Domain);
-		stageSettings.SetSetting("Server.BulkRequest.MaxConcurrencyLevel", Setting_Server_BulkRequest_MaxConcurrencyLevel);
-		stageSettings.SetSetting("Server.BulkRequest.MaxMessageCount", Setting_Server_BulkRequest_MaxMessageCount);
-		stageSettings.SetSetting("Server.BulkRequest.MaxSize", Setting_Server_BulkRequest_MaxSize);
-		stageSettings.SetSetting("Server.IndexName", Setting_Server_IndexName);
-		stageSettings.SetSetting("Data.Organization.Id", Setting_Data_Organization_Id);
-		stageSettings.SetSetting("Data.Organization.Name", Setting_Data_Organization_Name);
-		stageSettings.SetSetting("Stage.SendQueueSize", Setting_Stage_SendQueueSize);
-
-		// initialize the stage
-		stage.Initialize();
-		Assert.True(stage.IsInitialized);
-		Assert.False(stage.IsOperational);
-		Assert.Equal(Setting_Server_ApiBaseUrls, stage.ApiBaseUrls);
-		Assert.Equal(Setting_Server_Authentication_Schemes, stage.AuthenticationSchemes);
-		Assert.Equal(Setting_Server_Authentication_Username, stage.Username);
-		Assert.Equal(Setting_Server_Authentication_Password, stage.Password);
-		Assert.Equal(Setting_Server_Authentication_Domain, stage.Domain);
-		Assert.Equal(Setting_Server_BulkRequest_MaxConcurrencyLevel, stage.BulkRequestMaxConcurrencyLevel);
-		Assert.Equal(Setting_Server_BulkRequest_MaxMessageCount, stage.BulkRequestMaxMessageCount);
-		Assert.Equal(Setting_Server_BulkRequest_MaxSize, stage.BulkRequestMaxSize);
-		Assert.Equal(Setting_Server_IndexName, stage.IndexName);
-		Assert.Equal(Setting_Data_Organization_Id, stage.OrganizationId);
-		Assert.Equal(Setting_Data_Organization_Name, stage.OrganizationName);
-		Assert.Equal(Setting_Stage_SendQueueSize, stage.SendQueueSize);
-
-		// wait for some time before shutting down
-		Thread.Sleep(1000);
-
-		// shut the stage down
-		stage.Shutdown();
-		Assert.False(stage.IsInitialized);
-	}
-
-	#endregion
-
-	#region Oversized Messages
-
-	/// <summary>
-	/// Tests whether a single message that exceeds the maximum bulk request size is discarded instead of being
-	/// rejected over and over again, which would block the processing queue forever.
-	/// </summary>
-	[Fact]
-	public void SendOperation_AddMessage_DiscardsOversizedMessage()
-	{
+		// Arrange
 		ElasticsearchPipelineStage stage = CreateStageWithSmallBulkRequestSize(out int maxSize);
 		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
 		LocalLogMessage oversizedMessage = CreateMessage(new string('x', 2 * maxSize));
@@ -251,13 +112,17 @@ public class ElasticsearchPipelineStageTests
 
 		try
 		{
-			// the oversized message must be consumed (discarded) and released
-			Assert.True(operation.AddMessage(oversizedMessage));
+			// Act
+			bool added = operation.AddMessage(oversizedMessage);
+
+			// Assert
+			// the oversized message is consumed (discarded) and released
+			Assert.True(added);
 			Assert.Equal(0, operation.MessageCount);
 			Assert.False(operation.IsFull);
 			Assert.Equal(1, oversizedMessage.RefCount);
 
-			// the operation must still accept regular messages afterward
+			// the send operation still accepts regular messages
 			Assert.True(operation.AddMessage(smallMessage));
 			Assert.Equal(1, operation.MessageCount);
 			Assert.Equal(2, smallMessage.RefCount);
@@ -271,11 +136,12 @@ public class ElasticsearchPipelineStageTests
 	}
 
 	/// <summary>
-	/// Tests whether a message that fits into an empty request, but not into a request that already contains a
-	/// message, is rejected (not discarded), so it can be sent with the next request.
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.AddMessage"/> rejects (but does not discard)
+	/// a message that fits into an empty request, but not into a request that already contains a message,
+	/// so it can be sent with the next request.
 	/// </summary>
 	[Fact]
-	public void SendOperation_AddMessage_RejectsMessageIfRequestIsFull()
+	public void AddMessage_WhenRequestCannotHoldMessage_RejectsMessage()
 	{
 		// Arrange
 		// (each text takes more than half of the maximum request size, so two messages never fit into one request,
@@ -322,6 +188,111 @@ public class ElasticsearchPipelineStageTests
 	#region Helpers
 
 	/// <summary>
+	/// Gets the default value and the current value of the specified setting as well as the value of the corresponding
+	/// stage property (<see cref="Uri"/> arrays are returned as their configuration string).
+	/// </summary>
+	/// <param name="stage">Stage to query.</param>
+	/// <param name="settingName">Name of the setting.</param>
+	/// <param name="defaultValue">Receives the default value of the setting.</param>
+	/// <param name="value">Receives the current value of the setting.</param>
+	/// <param name="propertyValue">Receives the value of the stage property corresponding to the setting.</param>
+	/// <exception cref="ArgumentException">The setting is not known.</exception>
+	private static void GetSettingState(
+		ElasticsearchPipelineStage stage,
+		string                     settingName,
+		out object                 defaultValue,
+		out object                 value,
+		out object                 propertyValue)
+	{
+		switch (settingName)
+		{
+			case "Server.ApiBaseUrls":
+				IProcessingPipelineStageSetting<Uri[]> uris = stage.Settings.GetSetting(settingName, UriArrayConverter.Format, UriArrayConverter.Parse);
+				defaultValue = UriArrayConverter.Format(uris.DefaultValue);
+				value = UriArrayConverter.Format(uris.Value);
+				propertyValue = UriArrayConverter.Format(stage.ApiBaseUrls.ToArray());
+				return;
+
+			case "Server.Authentication.Schemes":
+				GetTypedSettingState<AuthenticationScheme>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.AuthenticationSchemes;
+				return;
+
+			case "Server.Authentication.Username":
+				GetTypedSettingState<string>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.Username;
+				return;
+
+			case "Server.Authentication.Password":
+				GetTypedSettingState<string>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.Password;
+				return;
+
+			case "Server.Authentication.Domain":
+				GetTypedSettingState<string>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.Domain;
+				return;
+
+			case "Server.BulkRequest.MaxConcurrencyLevel":
+				GetTypedSettingState<int>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.BulkRequestMaxConcurrencyLevel;
+				return;
+
+			case "Server.BulkRequest.MaxMessageCount":
+				GetTypedSettingState<int>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.BulkRequestMaxMessageCount;
+				return;
+
+			case "Server.BulkRequest.MaxSize":
+				GetTypedSettingState<int>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.BulkRequestMaxSize;
+				return;
+
+			case "Server.IndexName":
+				GetTypedSettingState<string>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.IndexName;
+				return;
+
+			case "Data.Organization.Id":
+				GetTypedSettingState<string>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.OrganizationId;
+				return;
+
+			case "Data.Organization.Name":
+				GetTypedSettingState<string>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.OrganizationName;
+				return;
+
+			case "Stage.SendQueueSize":
+				GetTypedSettingState<int>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.SendQueueSize;
+				return;
+
+			default:
+				throw new ArgumentException($"Setting '{settingName}' is not supported by the test.", nameof(settingName));
+		}
+	}
+
+	/// <summary>
+	/// Gets the default value and the current value of the specified setting.
+	/// </summary>
+	/// <typeparam name="T">Type of the setting value.</typeparam>
+	/// <param name="stage">Stage to query.</param>
+	/// <param name="settingName">Name of the setting.</param>
+	/// <param name="defaultValue">Receives the default value of the setting.</param>
+	/// <param name="value">Receives the current value of the setting.</param>
+	private static void GetTypedSettingState<T>(
+		ElasticsearchPipelineStage stage,
+		string                     settingName,
+		out object                 defaultValue,
+		out object                 value)
+	{
+		IProcessingPipelineStageSetting<T> setting = stage.Settings.GetSetting<T>(settingName);
+		defaultValue = setting.DefaultValue;
+		value = setting.Value;
+	}
+
+	/// <summary>
 	/// Creates a stage with the smallest supported bulk request size and loads its configuration.
 	/// </summary>
 	/// <param name="maxSize">Receives the effective maximum bulk request size (in bytes).</param>
@@ -355,33 +326,6 @@ public class ElasticsearchPipelineStageTests
 
 		message.AddRef(); // reference held by the test
 		return message;
-	}
-
-	/// <summary>
-	/// Converts an array of <see cref="Uri"/> to a string as used in the configuration.
-	/// </summary>
-	/// <param name="uris">Array of <see cref="Uri"/> to convert to a string.</param>
-	/// <param name="provider">Format provider to use (<see langword="null"/> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
-	/// <returns>The formatted array of <see cref="Uri"/>.</returns>
-	private static string UriArrayToString(Uri[] uris, IFormatProvider provider = null)
-	{
-		return uris != null ? string.Join("; ", uris.Select(x => x.ToString())) : "";
-	}
-
-	/// <summary>
-	/// Converts a string to an array of <see cref="Uri"/>.
-	/// The string is expected to contain the uris separated by semicolons.
-	/// </summary>
-	/// <param name="s">String to convert to an array of <see cref="Uri"/>.</param>
-	/// <param name="provider">Format provider to use (<see langword="null"/> to use <see cref="CultureInfo.InvariantCulture"/>).</param>
-	/// <returns>An array of <see cref="Uri"/> corresponding to the specified string.</returns>
-	private static Uri[] StringToUriArray(string s, IFormatProvider provider = null)
-	{
-		return (
-			       from endpointToken in s.Trim().Split(';')
-			       select endpointToken.Trim() into apiEndpointString
-			       where apiEndpointString.Length > 0
-			       select new Uri(apiEndpointString)).ToArray();
 	}
 
 	#endregion
