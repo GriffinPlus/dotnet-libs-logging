@@ -12,7 +12,7 @@ namespace GriffinPlus.Lib.Logging.Elasticsearch.Tests;
 /// <summary>
 /// Converts arrays of <see cref="Uri"/> to and from the string representation used in the log configuration.
 /// </summary>
-static class UriArrayConverter
+internal static class UriArrayConverter
 {
 	/// <summary>
 	/// Converts an array of <see cref="Uri"/> to a string as used in the configuration.

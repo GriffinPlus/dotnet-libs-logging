@@ -1053,8 +1053,8 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 
 		// create new http client using the new settings
 		mHttpClient = HttpMessageHandlerTestHook != null
-						  ? new HttpClient(HttpMessageHandlerTestHook, false)
-						  : new HttpClient(handler);
+			              ? new HttpClient(HttpMessageHandlerTestHook, false)
+			              : new HttpClient(handler);
 
 		// apply the request timeout (fall back to the default, if the configured timeout is invalid)
 		int timeout = RequestTimeout;
