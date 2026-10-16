@@ -34,11 +34,19 @@ internal sealed class StubHttpMessageHandler : HttpMessageHandler
 	public List<byte[]> RequestContents { get; } = [];
 
 	/// <summary>
-	/// Records the content of the specified request and returns the response created by the response factory.
+	/// Gets or sets the time to wait before responding to a request (allows testing timeouts).
+	/// The wait is aborted, if the request is canceled. Default: <see cref="TimeSpan.Zero"/> (respond immediately).
+	/// </summary>
+	public TimeSpan ResponseDelay { get; set; } = TimeSpan.Zero;
+
+	/// <summary>
+	/// Records the content of the specified request and returns the response created by the response factory
+	/// after waiting for <see cref="ResponseDelay"/>.
 	/// </summary>
 	/// <param name="request">The received request.</param>
 	/// <param name="cancellationToken">Token that can be signaled to cancel the operation.</param>
 	/// <returns>The response created by the response factory.</returns>
+	/// <exception cref="OperationCanceledException">The request was canceled while waiting for <see cref="ResponseDelay"/>.</exception>
 	protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
 		byte[] content = request.Content != null
@@ -46,6 +54,7 @@ internal sealed class StubHttpMessageHandler : HttpMessageHandler
 							 : [];
 
 		lock (RequestContents) RequestContents.Add(content);
+		if (ResponseDelay > TimeSpan.Zero) await Task.Delay(ResponseDelay, cancellationToken).ConfigureAwait(false);
 		return mResponseFactory(content);
 	}
 }

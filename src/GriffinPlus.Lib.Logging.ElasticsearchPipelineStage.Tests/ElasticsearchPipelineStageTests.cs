@@ -100,6 +100,12 @@ public class ElasticsearchPipelineStageTests
 			"Server.BulkRequest.MaxSize",
 			5 * 1024 * 1024
 		},
+		// request timeout (in seconds)
+		{
+			"RequestTimeout",
+			"Server.RequestTimeout",
+			100
+		},
 		// default index
 		{
 			"IndexName",
@@ -796,6 +802,57 @@ public class ElasticsearchPipelineStageTests
 		}
 	}
 
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> handles a request that
+	/// does not complete within the configured <see cref="ElasticsearchPipelineStage.RequestTimeout"/> like a network
+	/// error: the endpoint is considered non-operational and all messages are kept and put into the rebuilt request,
+	/// so they can be sent once again.
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenRequestTimesOut_KeepsMessages()
+	{
+		// Arrange
+		// (the server stub responds after 30 seconds, but the request times out after 1 second)
+		var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK))
+		{
+			ResponseDelay = TimeSpan.FromSeconds(30)
+		};
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		stage.RequestTimeout = 1;
+		stage.HttpMessageHandlerTestHook = handler;
+		stage.ReloadConfigurationIfNecessary();
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages = [CreateMessage("a"), CreateMessage("b")];
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the endpoint is not considered operational, but the request was not throttled
+			Assert.False(operational);
+			Assert.False(operation.WasThrottled);
+
+			// all messages are kept and put into the rebuilt request
+			Assert.Single(handler.RequestContents);
+			Assert.Equal(2, operation.MessageCount);
+			Assert.Equal(["a", "b"], GetRequestMessageTexts(operation));
+			Assert.All(messages, message => Assert.Equal(2, message.RefCount));
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
 	#endregion
 
 	#region SendOperation.GetRetryAfter(RetryConditionHeaderValue, DateTimeOffset)
@@ -1046,6 +1103,64 @@ public class ElasticsearchPipelineStageTests
 			messages[0].Release();
 			foreach (LocalLogMessage message in messages) message.Release();
 		}
+	}
+
+	#endregion
+
+	#region ReloadConfigurationIfNecessary()
+
+	/// <summary>
+	/// Test data for <see cref="ReloadConfigurationIfNecessary_WhenCalled_AppliesRequestTimeout"/>:
+	/// scenario, configured request timeout (in seconds) and expected timeout of the HTTP client.
+	/// </summary>
+	public static TheoryData<string, int, TimeSpan> ReloadConfiguration_RequestTimeout_Data => new()
+	{
+		// a valid timeout is applied as configured
+		{
+			"Configured",
+			30,
+			TimeSpan.FromSeconds(30)
+		},
+		// zero selects the default
+		{
+			"Zero",
+			0,
+			TimeSpan.FromSeconds(100)
+		},
+		// a negative timeout selects the default
+		{
+			"Negative",
+			-1,
+			TimeSpan.FromSeconds(100)
+		}
+	};
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.ReloadConfigurationIfNecessary"/> applies the configured
+	/// <see cref="ElasticsearchPipelineStage.RequestTimeout"/> to the HTTP client and falls back to the default of
+	/// 100 seconds, if the configured timeout is less than or equal to 0, without changing the configured value.
+	/// </summary>
+	/// <param name="scenario">Name of the test scenario.</param>
+	/// <param name="requestTimeout">Configured request timeout (in seconds).</param>
+	/// <param name="expectedTimeout">Expected timeout of the HTTP client.</param>
+	[Theory]
+	[MemberData(nameof(ReloadConfiguration_RequestTimeout_Data))]
+	public void ReloadConfigurationIfNecessary_WhenCalled_AppliesRequestTimeout(
+		string   scenario,
+		int      requestTimeout,
+		TimeSpan expectedTimeout)
+	{
+		// Arrange
+		_ = scenario;
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		stage.RequestTimeout = requestTimeout;
+
+		// Act
+		stage.ReloadConfigurationIfNecessary();
+
+		// Assert
+		Assert.Equal(expectedTimeout, stage.HttpClientTimeout);
+		Assert.Equal(requestTimeout, stage.RequestTimeout);
 	}
 
 	#endregion
@@ -1342,6 +1457,11 @@ public class ElasticsearchPipelineStageTests
 			case "Server.BulkRequest.MaxSize":
 				GetTypedSettingState<int>(stage, settingName, out defaultValue, out value);
 				propertyValue = stage.BulkRequestMaxSize;
+				return;
+
+			case "Server.RequestTimeout":
+				GetTypedSettingState<int>(stage, settingName, out defaultValue, out value);
+				propertyValue = stage.RequestTimeout;
 				return;
 
 			case "Server.IndexName":

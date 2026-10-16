@@ -178,6 +178,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	private static readonly int                  sDefault_Server_BulkRequest_MaxConcurrencyLevel = 5;
 	private static readonly int                  sDefault_Server_BulkRequest_MaxMessageCount     = 0; // unlimited
 	private static readonly int                  sDefault_Server_BulkRequest_MaxSize             = 5 * 1024 * 1024;
+	private static readonly int                  sDefault_Server_RequestTimeout                  = 100; // seconds
 	private static readonly string               sDefault_Server_IndexName                       = "logs";
 	private static readonly string               sDefault_Data_Organization_Id                   = "";
 	private static readonly string               sDefault_Data_Organization_Name                 = "";
@@ -192,6 +193,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	private readonly IProcessingPipelineStageSetting<int>                  mSetting_Server_BulkRequest_MaxConcurrencyLevel;
 	private readonly IProcessingPipelineStageSetting<int>                  mSetting_Server_BulkRequest_MaxMessageCount;
 	private readonly IProcessingPipelineStageSetting<int>                  mSetting_Server_BulkRequest_MaxSize;
+	private readonly IProcessingPipelineStageSetting<int>                  mSetting_Server_RequestTimeout;
 	private readonly IProcessingPipelineStageSetting<string>               mSetting_Server_IndexName;
 	private readonly IProcessingPipelineStageSetting<string>               mSetting_Data_Organization_Id;
 	private readonly IProcessingPipelineStageSetting<string>               mSetting_Organization_Name;
@@ -211,6 +213,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 		mSetting_Server_BulkRequest_MaxConcurrencyLevel = RegisterSetting("Server.BulkRequest.MaxConcurrencyLevel", sDefault_Server_BulkRequest_MaxConcurrencyLevel);
 		mSetting_Server_BulkRequest_MaxMessageCount = RegisterSetting("Server.BulkRequest.MaxMessageCount", sDefault_Server_BulkRequest_MaxMessageCount);
 		mSetting_Server_BulkRequest_MaxSize = RegisterSetting("Server.BulkRequest.MaxSize", sDefault_Server_BulkRequest_MaxSize);
+		mSetting_Server_RequestTimeout = RegisterSetting("Server.RequestTimeout", sDefault_Server_RequestTimeout);
 		mSetting_Server_IndexName = RegisterSetting("Server.IndexName", sDefault_Server_IndexName);
 		mSetting_Data_Organization_Id = RegisterSetting("Data.Organization.Id", sDefault_Data_Organization_Id);
 		mSetting_Organization_Name = RegisterSetting("Data.Organization.Name", sDefault_Data_Organization_Name);
@@ -353,6 +356,23 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	{
 		get => mSetting_Server_BulkRequest_MaxSize.Value;
 		set => mSetting_Server_BulkRequest_MaxSize.Value = value;
+	}
+
+	#endregion
+
+	#region RequestTimeout
+
+	/// <summary>
+	/// Gets or sets the time to wait for a response to a request sent to the Elasticsearch cluster (in seconds).
+	/// A request that does not complete within this time is treated like a network error, i.e. the endpoint is
+	/// considered non-operational and the messages are sent once again later on.
+	/// A value less than or equal to 0 selects the default.
+	/// Default: 100 seconds
+	/// </summary>
+	public int RequestTimeout
+	{
+		get => mSetting_Server_RequestTimeout.Value;
+		set => mSetting_Server_RequestTimeout.Value = value;
 	}
 
 	#endregion
@@ -1033,9 +1053,19 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 
 		// create new http client using the new settings
 		mHttpClient = HttpMessageHandlerTestHook != null
-			              ? new HttpClient(HttpMessageHandlerTestHook, false)
-			              : new HttpClient(handler);
+						  ? new HttpClient(HttpMessageHandlerTestHook, false)
+						  : new HttpClient(handler);
+
+		// apply the request timeout (fall back to the default, if the configured timeout is invalid)
+		int timeout = RequestTimeout;
+		mHttpClient.Timeout = TimeSpan.FromSeconds(timeout > 0 ? timeout : sDefault_Server_RequestTimeout);
 	}
+
+	/// <summary>
+	/// Gets the timeout of the HTTP client currently in use (for testing purposes only).
+	/// The value is <see langword="null"/>, if the configuration has not been loaded, yet.
+	/// </summary>
+	internal TimeSpan? HttpClientTimeout => mHttpClient?.Timeout;
 
 	/// <summary>
 	/// Gets or sets an HTTP message handler that replaces the regular HTTP client handler when the HTTP client is
