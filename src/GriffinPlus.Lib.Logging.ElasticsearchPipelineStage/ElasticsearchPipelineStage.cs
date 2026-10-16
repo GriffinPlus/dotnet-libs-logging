@@ -226,13 +226,13 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region ApiBaseUrls
 
 	/// <summary>
-	/// Gets the API endpoints of the Elasticsearch cluster.
+	/// Gets or sets the API endpoints of the Elasticsearch cluster.
 	/// </summary>
 	/// <exception cref="ArgumentNullException">The property is set and the specified list of endpoints is <see langword="null"/>.</exception>
 	public IReadOnlyList<Uri> ApiBaseUrls
 	{
 		get => mSetting_Server_ApiBaseUrls.Value;
-		set => mSetting_Server_ApiBaseUrls.Value = value.ToArray();
+		set => mSetting_Server_ApiBaseUrls.Value = value?.ToArray() ?? throw new ArgumentNullException(nameof(value));
 	}
 
 	/// <summary>

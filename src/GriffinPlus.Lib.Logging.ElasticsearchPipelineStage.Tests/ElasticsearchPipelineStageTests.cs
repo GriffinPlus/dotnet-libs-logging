@@ -157,6 +157,29 @@ public class ElasticsearchPipelineStageTests
 
 	#endregion
 
+	#region ApiBaseUrls
+
+	/// <summary>
+	/// Tests whether setting <see cref="ElasticsearchPipelineStage.ApiBaseUrls"/> to <see langword="null"/> throws an
+	/// <see cref="ArgumentNullException"/> and leaves the configured endpoints unchanged.
+	/// </summary>
+	[Fact]
+	public void ApiBaseUrls_WhenSetToNull_ThrowsArgumentNullException()
+	{
+		// Arrange
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		Uri[] expectedUrls = [new("http://127.0.0.1:9200/")];
+
+		// Act
+		var ex = Assert.Throws<ArgumentNullException>(() => stage.ApiBaseUrls = null);
+
+		// Assert
+		Assert.Equal("value", ex.ParamName);
+		Assert.Equal(expectedUrls, stage.ApiBaseUrls);
+	}
+
+	#endregion
+
 	#region SendOperation.AddMessage(LocalLogMessage)
 
 	/// <summary>
