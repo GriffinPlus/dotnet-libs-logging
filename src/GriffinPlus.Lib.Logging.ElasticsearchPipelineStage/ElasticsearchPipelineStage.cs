@@ -962,9 +962,9 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// </summary>
 	/// <param name="writer">JSON writer to use.</param>
 	/// <param name="message">Message to write.</param>
-	private void WriteJsonMessage_ECS110(Utf8JsonWriter writer, LocalLogMessage message)
+	internal void WriteJsonMessage_ECS110(Utf8JsonWriter writer, LocalLogMessage message)
 	{
-		// determine the event severity and the name of the log level to use in the written JSON document
+		// determine the event severity
 		GetEcsLevelAndSeverity(message, out int ecsEventSeverity, out string ecsLogLevel);
 
 		// start a new object

@@ -4,7 +4,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 using Xunit;
 
@@ -180,6 +182,70 @@ public class ElasticsearchPipelineStageTests
 			operation.Reset();
 			firstMessage.Release();
 			secondMessage.Release();
+		}
+	}
+
+	#endregion
+
+	#region WriteJsonMessage_ECS110(Utf8JsonWriter, LocalLogMessage)
+
+	/// <summary>
+	/// Message texts containing valid and invalid UTF-16 sequences along with the expected text in the written JSON document.
+	/// </summary>
+	public static TheoryData<string, string, string> WriteJsonMessage_Utf16_Data => new()
+	{
+		// a valid surrogate pair is preserved
+		{ "Valid surrogate pair", "abc\uD83D\uDE00def", "abc\uD83D\uDE00def" },
+		// a high surrogate without a following low surrogate is replaced
+		{ "Lone high surrogate", "abc\uD800def", "abc\uFFFDdef" },
+		// a low surrogate without a preceding high surrogate is replaced
+		{ "Lone low surrogate", "abc\uDC00def", "abc\uFFFDdef" },
+		// a high surrogate at the end of the text is replaced
+		{ "Trailing high surrogate", "abc\uD800", "abc\uFFFD" },
+		// a surrogate pair in reversed order consists of two lone surrogates, both are replaced
+		{ "Reversed surrogate pair", "abc\uDE00\uD83Ddef", "abc\uFFFD\uFFFDdef" }
+	};
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.WriteJsonMessage_ECS110"/> writes a message text containing
+	/// invalid UTF-16 sequences without throwing an exception and replaces each invalid code unit with the Unicode
+	/// replacement character (U+FFFD), so the message is not lost, while valid surrogate pairs are preserved.
+	/// </summary>
+	/// <param name="scenario">Name of the test scenario.</param>
+	/// <param name="text">Text of the message to write.</param>
+	/// <param name="expectedText">Text expected in the <c>message</c> field of the written JSON document.</param>
+	[Theory]
+	[MemberData(nameof(WriteJsonMessage_Utf16_Data))]
+	public void WriteJsonMessage_ECS110_WhenTextContainsUtf16Sequence_WritesExpectedText(
+		string scenario,
+		string text,
+		string expectedText)
+	{
+		// Arrange
+		_ = scenario;
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		stage.ReloadConfigurationIfNecessary();
+		LocalLogMessage message = CreateMessage(text);
+		var stream = new MemoryStream();
+
+		try
+		{
+			// Act
+			using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { SkipValidation = true }))
+			{
+				stage.WriteJsonMessage_ECS110(writer, message);
+			}
+
+			// Assert
+			// the written document is valid JSON and contains the expected text
+			using JsonDocument document = JsonDocument.Parse(stream.ToArray());
+			string writtenText = document.RootElement.GetProperty("message").GetString();
+			Assert.Equal(expectedText, writtenText);
+		}
+		finally
+		{
+			message.Release();
+			message.Release();
 		}
 	}
 
