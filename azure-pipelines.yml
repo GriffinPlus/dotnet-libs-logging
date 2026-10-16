@@ -219,7 +219,7 @@ stages:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net461'
+        arguments: '--framework net461 --blame-hang --blame-hang-timeout 10m'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Framework 4.8'
       condition: eq(variables['agent.os'], 'Windows_NT')
@@ -227,49 +227,49 @@ stages:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net48'
+        arguments: '--framework net48 --blame-hang --blame-hang-timeout 10m'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 2.2'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework netcoreapp2.2'
+        arguments: '--framework netcoreapp2.2 --blame-hang --blame-hang-timeout 10m'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET Core 3.1'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework netcoreapp3.1'
+        arguments: '--framework netcoreapp3.1 --blame-hang --blame-hang-timeout 10m'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET 5.0'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net5.0'
+        arguments: '--framework net5.0 --blame-hang --blame-hang-timeout 10m'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET 6.0'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net6.0'
+        arguments: '--framework net6.0 --blame-hang --blame-hang-timeout 10m'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET 7.0'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net7.0'
+        arguments: '--framework net7.0 --blame-hang --blame-hang-timeout 10m'
     - task: DotNetCoreCLI@2
       displayName: 'Test .NET 8.0'
       inputs:
         command: 'test'
         projects: '**/*Tests/*.csproj'
         nobuild: true
-        arguments: '--framework net8.0'
+        arguments: '--framework net8.0 --blame-hang --blame-hang-timeout 10m'
 
 ########################################################################################################################
 # Stage: Deployment
