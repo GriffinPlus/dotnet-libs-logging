@@ -963,10 +963,13 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 			{
 				// too many send operations
 				// => remove operations from the back of the list
-				//    (the first operation may still contain messages to send)
+				//    (only the first operation may still contain messages to send, so removed operations are expected
+				//    to be empty, but they are reset nevertheless to release any message references and pooled buffers)
 				while (mFreeSendOperations.Count > sendOperationCount)
 				{
-					mFreeSendOperations.RemoveFromBack();
+					SendOperation operation = mFreeSendOperations.RemoveFromBack();
+					Debug.Assert(operation.MessageCount == 0);
+					operation.Reset();
 				}
 			}
 			else if (mFreeSendOperations.Count < sendOperationCount)
