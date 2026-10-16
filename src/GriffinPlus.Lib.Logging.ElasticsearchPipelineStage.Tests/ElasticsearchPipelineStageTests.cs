@@ -56,24 +56,72 @@ public class ElasticsearchPipelineStageTests
 	public static TheoryData<string, string, object> Create_SettingDefaults_Data => new()
 	{
 		// a single local endpoint
-		{ "ApiBaseUrls", "Server.ApiBaseUrls", "http://127.0.0.1:9200/" },
+		{
+			"ApiBaseUrls",
+			"Server.ApiBaseUrls",
+			"http://127.0.0.1:9200/"
+		},
 		// password based authentication schemes
-		{ "AuthenticationSchemes", "Server.Authentication.Schemes", AuthenticationScheme.PasswordBased },
+		{
+			"AuthenticationSchemes",
+			"Server.Authentication.Schemes",
+			AuthenticationScheme.PasswordBased
+		},
 		// no custom credentials
-		{ "Username", "Server.Authentication.Username", "" },
-		{ "Password", "Server.Authentication.Password", "" },
-		{ "Domain", "Server.Authentication.Domain", "" },
+		{
+			"Username",
+			"Server.Authentication.Username",
+			""
+		},
+		{
+			"Password",
+			"Server.Authentication.Password",
+			""
+		},
+		{
+			"Domain",
+			"Server.Authentication.Domain",
+			""
+		},
 		// bulk request limits (message count 0 = unlimited)
-		{ "BulkRequestMaxConcurrencyLevel", "Server.BulkRequest.MaxConcurrencyLevel", 5 },
-		{ "BulkRequestMaxMessageCount", "Server.BulkRequest.MaxMessageCount", 0 },
-		{ "BulkRequestMaxSize", "Server.BulkRequest.MaxSize", 5 * 1024 * 1024 },
+		{
+			"BulkRequestMaxConcurrencyLevel",
+			"Server.BulkRequest.MaxConcurrencyLevel",
+			5
+		},
+		{
+			"BulkRequestMaxMessageCount",
+			"Server.BulkRequest.MaxMessageCount",
+			0
+		},
+		{
+			"BulkRequestMaxSize",
+			"Server.BulkRequest.MaxSize",
+			5 * 1024 * 1024
+		},
 		// default index
-		{ "IndexName", "Server.IndexName", "logs" },
+		{
+			"IndexName",
+			"Server.IndexName",
+			"logs"
+		},
 		// no organization information
-		{ "OrganizationId", "Data.Organization.Id", "" },
-		{ "OrganizationName", "Data.Organization.Name", "" },
+		{
+			"OrganizationId",
+			"Data.Organization.Id",
+			""
+		},
+		{
+			"OrganizationName",
+			"Data.Organization.Name",
+			""
+		},
 		// size of the send queue
-		{ "SendQueueSize", "Stage.SendQueueSize", 50000 }
+		{
+			"SendQueueSize",
+			"Stage.SendQueueSize",
+			50000
+		}
 	};
 
 	/// <summary>
@@ -447,6 +495,148 @@ public class ElasticsearchPipelineStageTests
 			Assert.Equal(2, operation.MessageCount);
 			Assert.All(messages, message => Assert.Equal(2, message.RefCount));
 			Assert.Equal(["a", "b"], GetRequestMessageTexts(operation));
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Test data for <see cref="ProcessSendCompleted_WhenResponseDoesNotMatchRequest_KeepsAllMessages"/>
+	/// (scenario, response body for a request with three messages).
+	/// </summary>
+	public static TheoryData<string, string> ProcessSendCompleted_ResponseMismatch_Data => new()
+	{
+		// the response does not contain any items
+		{
+			"items missing",
+			"{\"took\":1,\"errors\":false}"
+		},
+		// the response contains less items than messages were sent
+		{
+			"too few items",
+			"{\"took\":1,\"errors\":false,\"items\":[{\"create\":{\"status\":201}},{\"create\":{\"status\":201}}]}"
+		},
+		// the response contains more items than messages were sent
+		{
+			"too many items",
+			"{\"took\":1,\"errors\":false,\"items\":[{\"create\":{\"status\":201}},{\"create\":{\"status\":201}},{\"create\":{\"status\":201}},{\"create\":{\"status\":201}}]}"
+		},
+		// an item does not contain a 'create' result
+		{
+			"item without create",
+			"{\"took\":1,\"errors\":true,\"items\":[{\"create\":{\"status\":201}},{\"index\":{\"status\":201}},{\"create\":{\"status\":201}}]}"
+		}
+	};
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> keeps all messages and
+	/// considers the endpoint not operational, if the bulk response does not contain exactly one <c>create</c> result
+	/// for each sent message, so no message is released or sent twice due to a wrong assignment.
+	/// </summary>
+	/// <param name="scenario">Name of the test scenario.</param>
+	/// <param name="responseBody">Body of the HTTP 200 response.</param>
+	[Theory]
+	[MemberData(nameof(ProcessSendCompleted_ResponseMismatch_Data))]
+	public void ProcessSendCompleted_WhenResponseDoesNotMatchRequest_KeepsAllMessages(string scenario, string responseBody)
+	{
+		// Arrange
+		_ = scenario;
+		var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+		{
+			Content = new StringContent(responseBody, Encoding.UTF8, "application/json")
+		});
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(40 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages = [CreateMessage("a"), CreateMessage("b"), CreateMessage("c")];
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the endpoint is considered not operational
+			Assert.False(operational);
+
+			// all messages are kept and the request is rebuilt unchanged
+			Assert.Equal(3, operation.MessageCount);
+			Assert.All(messages, message => Assert.Equal(2, message.RefCount));
+			Assert.Equal(["a", "b", "c"], GetRequestMessageTexts(operation));
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> assigns the items of a
+	/// bulk response only to the messages contained in the sent request, if the send operation holds more messages than
+	/// fit into the request: the response of a request containing only the first message is accepted and the failed
+	/// item discards only that message, while the other messages are kept for subsequent requests.
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenOperationHoldsMoreMessagesThanSent_EvaluatesOnlySentMessages()
+	{
+		// Arrange
+		// (three messages of about 12 KB fit into a 40 KB request, but only one fits into half of it;
+		// the first request is rejected as too large, the second one contains only the first message that fails to index)
+		string[] texts = [new('a', 12 * 1024), new('b', 12 * 1024), new('c', 12 * 1024)];
+		int requestCount = 0;
+		var handler = new StubHttpMessageHandler(_ =>
+		{
+			if (Interlocked.Increment(ref requestCount) == 1)
+				return new HttpResponseMessage((HttpStatusCode)413);
+
+			return new HttpResponseMessage(HttpStatusCode.OK)
+			{
+				Content = new StringContent(
+					"{\"took\":1,\"errors\":true,\"items\":[{\"create\":{\"status\":400,\"error\":{\"type\":\"mapper_parsing_exception\",\"reason\":\"failed to parse\"}}}]}",
+					Encoding.UTF8,
+					"application/json")
+			};
+		});
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(40 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages = texts.Select(CreateMessage).ToArray();
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+			Assert.True(operation.ProcessSendCompleted()); // 413 => request now contains only message 'a'
+			Assert.Equal([texts[0]], GetRequestMessageTexts(operation));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the response is accepted and the endpoint is considered operational
+			Assert.True(operational);
+
+			// only the failed message 'a' is discarded and released, messages 'b' and 'c' are kept
+			Assert.Equal(2, operation.MessageCount);
+			Assert.Equal(1, messages[0].RefCount);
+			Assert.Equal(2, messages[1].RefCount);
+			Assert.Equal(2, messages[2].RefCount);
+
+			// the next request contains message 'b' only
+			Assert.Equal([texts[1]], GetRequestMessageTexts(operation));
 		}
 		finally
 		{

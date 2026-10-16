@@ -38,6 +38,8 @@ partial class ElasticsearchPipelineStage
 		private          Task<HttpResponseMessage>  mSendBulkRequestTask;
 		private          CancellationToken          mCancellationToken;
 		private          long                       mSentRequestSize;
+		private          int                        mRequestMessageCount;
+		private          int                        mSentMessageCount;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SendOperation"/> class.
@@ -112,6 +114,7 @@ partial class ElasticsearchPipelineStage
 			mContentStream?.Dispose(); // returns buffers back to the pool
 			mContentStream = new MemoryBlockStream(ArrayPool<byte>.Shared);
 			mRequestContentWriter = new Utf8JsonWriter(mContentStream, mJsonWriterOptions);
+			mRequestMessageCount = 0;
 			IsFull = false;
 		}
 
@@ -171,6 +174,7 @@ partial class ElasticsearchPipelineStage
 
 			// the message was added to the request successfully
 			mMessagesPreparedToSend.AddToBack(message);
+			mRequestMessageCount++;
 			return true;
 		}
 
@@ -222,6 +226,7 @@ partial class ElasticsearchPipelineStage
 
 				// the message was prepared to the request successfully
 				lastStreamPosition = mContentStream.Position;
+				mRequestMessageCount++;
 			}
 		}
 
@@ -312,6 +317,7 @@ partial class ElasticsearchPipelineStage
 				// create http request telling Elasticsearch to index the messages
 				mContentStream.Position = 0;
 				mSentRequestSize = mContentStream.Length;
+				mSentMessageCount = mRequestMessageCount;
 				var content = new StreamContent(mContentStream);
 				content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-ndjson");
 				mSendBulkRequestMessage = new HttpRequestMessage(HttpMethod.Post, endpoint.BulkRequestApiUrl) { Content = content };
@@ -369,6 +375,21 @@ partial class ElasticsearchPipelineStage
 					byte[] responseData = response.Content.ReadAsByteArrayAsync().WaitAndUnwrapException(); // should return immediately
 					bulkResponse = mStage.mBulkResponsePool.GetBulkResponse();
 					bulkResponse.InitFromJson(responseData);
+
+					// ensure that the response matches the request
+					// (the response items are assigned to the sent messages by position)
+					if (!IsBulkResponseMatchingRequest(bulkResponse))
+					{
+						mStage.WritePipelineError(
+							$"The response of endpoint {mSendBulkRequestMessage?.RequestUri} does not match the request " +
+							$"(expected {mSentMessageCount} items with a 'create' result, received {bulkResponse.Items?.Count.ToString() ?? "no"} items).",
+							null);
+
+						// keep all messages and send the request once again
+						// => the endpoint is not considered operational
+						RebuildContentStream();
+						return false;
+					}
 
 					// check response for elasticsearch errors
 					if (bulkResponse.Errors)
@@ -478,6 +499,27 @@ partial class ElasticsearchPipelineStage
 				mSendBulkRequestTask?.Dispose();
 				mSendBulkRequestTask = null;
 			}
+		}
+
+		/// <summary>
+		/// Checks whether the specified bulk response contains exactly one item with a <c>create</c> result for each
+		/// message in the sent request, so the items can be assigned to the sent messages by position.
+		/// </summary>
+		/// <param name="bulkResponse">Bulk response to check.</param>
+		/// <returns>
+		/// <see langword="true"/> if the response matches the sent request;<br/>
+		/// otherwise, <see langword="false"/>.
+		/// </returns>
+		private bool IsBulkResponseMatchingRequest(BulkResponse bulkResponse)
+		{
+			List<BulkResponse.Item> items = bulkResponse.Items;
+			if (items == null || items.Count != mSentMessageCount) return false;
+			for (int i = 0; i < items.Count; i++)
+			{
+				if (items[i].Create == null) return false;
+			}
+
+			return true;
 		}
 
 		/// <summary>
