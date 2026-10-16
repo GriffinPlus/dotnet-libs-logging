@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 
 using Xunit;
@@ -185,6 +186,106 @@ public class ElasticsearchPipelineStageTests
 		}
 	}
 
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.AddMessage"/> discards and releases a message
+	/// that fails to serialize, removes the partially written data from the request and keeps accepting messages afterward.
+	/// </summary>
+	[Fact]
+	public void AddMessage_WhenSerializationFails_DiscardsMessage()
+	{
+		// Arrange
+		ElasticsearchPipelineStage stage = CreateStageWithSmallBulkRequestSize(out int _);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		LocalLogMessage firstMessage = CreateMessage("first");
+		LocalLogMessage failingMessage = CreateMessage("failing");
+		LocalLogMessage lastMessage = CreateMessage("last");
+		operation.SerializationTestHook = message =>
+		{
+			if (ReferenceEquals(message, failingMessage))
+				throw new InvalidOperationException("Simulated serialization failure.");
+		};
+
+		try
+		{
+			Assert.True(operation.AddMessage(firstMessage));
+
+			// Act
+			bool added = operation.AddMessage(failingMessage);
+
+			// Assert
+			// the failing message is consumed (discarded) and released
+			Assert.True(added);
+			Assert.Equal(1, operation.MessageCount);
+			Assert.False(operation.IsFull);
+			Assert.Equal(1, failingMessage.RefCount);
+
+			// the send operation still accepts regular messages and the request contains no partial data
+			// (the request must be a well-formed bulk request containing the regular messages only)
+			Assert.True(operation.AddMessage(lastMessage));
+			Assert.Equal(2, operation.MessageCount);
+			Assert.Equal(["first", "last"], GetRequestMessageTexts(operation));
+		}
+		finally
+		{
+			operation.Reset();
+			firstMessage.Release();
+			failingMessage.Release();
+			lastMessage.Release();
+		}
+	}
+
+	#endregion
+
+	#region SendOperation.RebuildContentStream()
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.RebuildContentStream"/> discards and releases
+	/// only a message that fails to serialize, while the other messages are kept in the rebuilt request.
+	/// </summary>
+	[Fact]
+	public void RebuildContentStream_WhenSerializationFails_DiscardsOnlyFailingMessage()
+	{
+		// Arrange
+		ElasticsearchPipelineStage stage = CreateStageWithSmallBulkRequestSize(out int _);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		LocalLogMessage firstMessage = CreateMessage("first");
+		LocalLogMessage failingMessage = CreateMessage("failing");
+		LocalLogMessage lastMessage = CreateMessage("last");
+
+		try
+		{
+			Assert.True(operation.AddMessage(firstMessage));
+			Assert.True(operation.AddMessage(failingMessage));
+			Assert.True(operation.AddMessage(lastMessage));
+			operation.SerializationTestHook = message =>
+			{
+				if (ReferenceEquals(message, failingMessage))
+					throw new InvalidOperationException("Simulated serialization failure.");
+			};
+
+			// Act
+			operation.RebuildContentStream();
+
+			// Assert
+			// only the failing message is discarded and released
+			Assert.Equal(2, operation.MessageCount);
+			Assert.False(operation.IsFull);
+			Assert.Equal(1, failingMessage.RefCount);
+			Assert.Equal(2, firstMessage.RefCount);
+			Assert.Equal(2, lastMessage.RefCount);
+
+			// the request is a well-formed bulk request containing the remaining messages only
+			Assert.Equal(["first", "last"], GetRequestMessageTexts(operation));
+		}
+		finally
+		{
+			operation.Reset();
+			firstMessage.Release();
+			failingMessage.Release();
+			lastMessage.Release();
+		}
+	}
+
 	#endregion
 
 	#region WriteJsonMessage_ECS110(Utf8JsonWriter, LocalLogMessage)
@@ -356,6 +457,54 @@ public class ElasticsearchPipelineStageTests
 		IProcessingPipelineStageSetting<T> setting = stage.Settings.GetSetting<T>(settingName);
 		defaultValue = setting.DefaultValue;
 		value = setting.Value;
+	}
+
+	/// <summary>
+	/// Gets the texts of the messages contained in the prepared request of the specified send operation and asserts
+	/// that the request is a well-formed bulk request (newline-terminated lines, each message document is a valid
+	/// JSON document preceded by a valid <c>create</c> action document). The position of the content stream is preserved.
+	/// </summary>
+	/// <param name="operation">Send operation to query.</param>
+	/// <returns>The texts of the messages in the request (in request order).</returns>
+	private static string[] GetRequestMessageTexts(ElasticsearchPipelineStage.SendOperation operation)
+	{
+		// copy the request content
+		Stream contentStream = operation.ContentStream;
+		long position = contentStream.Position;
+		var copy = new MemoryStream();
+		try
+		{
+			contentStream.Position = 0;
+			contentStream.CopyTo(copy);
+		}
+		finally
+		{
+			contentStream.Position = position;
+		}
+
+		// the request consists of newline-terminated lines
+		string content = Encoding.UTF8.GetString(copy.ToArray());
+		if (content.Length == 0) return [];
+		Assert.EndsWith("\n", content);
+		string[] lines = content.Substring(0, content.Length - 1).Split('\n');
+
+		// each message is represented by an action line followed by a document line
+		Assert.Equal(0, lines.Length % 2);
+		string[] texts = new string[lines.Length / 2];
+		for (int i = 0; i < lines.Length; i += 2)
+		{
+			using (JsonDocument action = JsonDocument.Parse(lines[i]))
+			{
+				Assert.True(action.RootElement.TryGetProperty("create", out var _));
+			}
+
+			using (JsonDocument document = JsonDocument.Parse(lines[i + 1]))
+			{
+				texts[i / 2] = document.RootElement.GetProperty("message").GetString();
+			}
+		}
+
+		return texts;
 	}
 
 	/// <summary>

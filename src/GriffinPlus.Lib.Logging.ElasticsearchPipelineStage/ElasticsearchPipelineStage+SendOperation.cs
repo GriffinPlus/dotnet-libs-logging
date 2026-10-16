@@ -139,7 +139,13 @@ partial class ElasticsearchPipelineStage
 			long lastStreamPosition = mContentStream.Position;
 
 			// serialize indexing request for the message into the stream
-			SerializeIndexingRequest(message);
+			if (!TrySerializeIndexingRequest(message, lastStreamPosition))
+			{
+				// the message could not be serialized
+				// => discard it to avoid blocking the processing queue
+				message.Release();
+				return true; // pretend to have added it to the request...
+			}
 
 			if (mContentStream.Position > mStage.mBulkRequestMaxSize)
 			{
@@ -169,8 +175,10 @@ partial class ElasticsearchPipelineStage
 
 		/// <summary>
 		/// Rebuilds the content stream, so it reflects changes in <see cref="mMessagesPreparedToSend"/>.
+		/// Messages that cannot be serialized or that are too large to fit into a bulk request are released
+		/// and removed from <see cref="mMessagesPreparedToSend"/>, so the remaining messages can still be sent.
 		/// </summary>
-		private void RebuildContentStream()
+		internal void RebuildContentStream()
 		{
 			// reset the content stream, before filling it afresh
 			ResetContentStream();
@@ -180,7 +188,14 @@ partial class ElasticsearchPipelineStage
 			{
 				// serialize indexing request
 				LocalLogMessage message = mMessagesPreparedToSend[i];
-				SerializeIndexingRequest(message);
+				if (!TrySerializeIndexingRequest(message, Math.Max(lastStreamPosition, 0)))
+				{
+					// the message could not be serialized
+					// => discard it, but keep the other messages
+					message.Release();
+					mMessagesPreparedToSend.RemoveAt(i--);
+					continue;
+				}
 
 				// determine whether the maximum request size is exceeded
 				if (mContentStream.Position > mStage.mBulkRequestMaxSize)
@@ -210,6 +225,44 @@ partial class ElasticsearchPipelineStage
 		}
 
 		/// <summary>
+		/// Gets or sets a callback that is invoked while serializing an indexing request, after the bulk request action
+		/// has been written and before the message itself is written (for testing purposes only, <see langword="null"/> by default).
+		/// Throwing an exception in the callback simulates a serialization failure leaving a partially written request.
+		/// </summary>
+		internal Action<LocalLogMessage> SerializationTestHook { get; set; }
+
+		/// <summary>
+		/// Gets the stream containing the prepared request content (for testing purposes only).
+		/// </summary>
+		internal MemoryBlockStream ContentStream => mContentStream;
+
+		/// <summary>
+		/// Serializes an indexing operation in a bulk request and truncates the content stream to the specified position,
+		/// if serialization fails (the failure is logged as a pipeline error).
+		/// </summary>
+		/// <param name="message">Message to serialize.</param>
+		/// <param name="streamPositionBefore">Position of the content stream before serializing the message.</param>
+		/// <returns>
+		/// <see langword="true"/> if the message was serialized successfully;<br/>
+		/// <see langword="false"/> if serialization failed and the content stream was restored.
+		/// </returns>
+		private bool TrySerializeIndexingRequest(LocalLogMessage message, long streamPositionBefore)
+		{
+			try
+			{
+				SerializeIndexingRequest(message);
+				return true;
+			}
+			catch (Exception ex)
+			{
+				mStage.WritePipelineError("Serializing message for a bulk request failed. Discarding message...", ex);
+				mRequestContentWriter.Reset(); // discards data that has not been flushed, yet
+				mContentStream.SetLength(streamPositionBefore);
+				return false;
+			}
+		}
+
+		/// <summary>
 		/// Serializes an indexing operation in a bulk request
 		/// </summary>
 		/// <param name="message">Message to serialize.</param>
@@ -221,6 +274,8 @@ partial class ElasticsearchPipelineStage
 
 			// finalize line with a newline character
 			mContentStream.WriteByte((byte)'\n');
+
+			SerializationTestHook?.Invoke(message);
 
 			// serialize the actual log message
 			mRequestContentWriter.Reset();

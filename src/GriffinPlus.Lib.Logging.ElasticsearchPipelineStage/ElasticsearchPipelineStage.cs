@@ -604,7 +604,17 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 								// the endpoint is not operational
 								// => try to send the entire request once again using some other endpoint...
 								SetEndpointOperational(operation.Endpoint, false);
-								mScheduledSendOperations.AddToFront(operation); // old messages must be sent first!
+								if (operation.MessageCount > 0)
+								{
+									mScheduledSendOperations.AddToFront(operation); // old messages must be sent first!
+								}
+								else
+								{
+									// all messages have been discarded while rebuilding the request
+									// => prepare operation for re-use
+									operation.Reset();
+									mFreeSendOperations.AddToBack(operation);
+								}
 							}
 						}
 					}
