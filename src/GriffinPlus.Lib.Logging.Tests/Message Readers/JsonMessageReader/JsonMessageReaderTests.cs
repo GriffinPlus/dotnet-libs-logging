@@ -56,7 +56,7 @@ public class JsonMessageReaderTests
 				// [3] = string? (newline)
 				// [4] = string (JSON output)
 
-				var field = (LogMessageField)entry[1];
+				var fields = (LogMessageField)entry[1];
 				var message = (LogMessage)entry[2];
 				string newline = (string)entry[3]; // may be null
 				string json = (string)entry[4];
@@ -64,15 +64,15 @@ public class JsonMessageReaderTests
 				// Build expected LogMessage instance containing only the fields included in the JSON.
 				var expected = new LogMessage();
 
-				if (field.HasFlag(LogMessageField.Timestamp)) expected.Timestamp = message.Timestamp;
-				if (field.HasFlag(LogMessageField.HighPrecisionTimestamp)) expected.HighPrecisionTimestamp = message.HighPrecisionTimestamp;
-				if (field.HasFlag(LogMessageField.LogWriterName)) expected.LogWriterName = message.LogWriterName;
-				if (field.HasFlag(LogMessageField.LogLevelName)) expected.LogLevelName = message.LogLevelName;
-				if (field.HasFlag(LogMessageField.Tags)) expected.Tags = message.Tags;
-				if (field.HasFlag(LogMessageField.ApplicationName)) expected.ApplicationName = message.ApplicationName;
-				if (field.HasFlag(LogMessageField.ProcessName))	expected.ProcessName = message.ProcessName;
-				if (field.HasFlag(LogMessageField.ProcessId)) expected.ProcessId = message.ProcessId;
-				if (field.HasFlag(LogMessageField.Text)) expected.Text = message.Text;
+				if (fields.HasFlag(LogMessageField.Timestamp)) expected.Timestamp = message.Timestamp;
+				if (fields.HasFlag(LogMessageField.HighPrecisionTimestamp)) expected.HighPrecisionTimestamp = message.HighPrecisionTimestamp;
+				if (fields.HasFlag(LogMessageField.LogWriterName)) expected.LogWriterName = message.LogWriterName;
+				if (fields.HasFlag(LogMessageField.LogLevelName)) expected.LogLevelName = message.LogLevelName;
+				if (fields.HasFlag(LogMessageField.Tags)) expected.Tags = message.Tags;
+				if (fields.HasFlag(LogMessageField.ApplicationName)) expected.ApplicationName = message.ApplicationName;
+				if (fields.HasFlag(LogMessageField.ProcessName))	expected.ProcessName = message.ProcessName;
+				if (fields.HasFlag(LogMessageField.ProcessId)) expected.ProcessId = message.ProcessId;
+				if (fields.HasFlag(LogMessageField.Text)) expected.Text = message.Text;
 
 				// Add tuple (json, newline, expected message) to the dataset.
 				data.Add(json, newline, expected);

@@ -81,7 +81,7 @@ public partial class JsonMessageFormatter : ILogMessageFormatter
 				if (mEscapeSolidus != value)
 				{
 					mEscapeSolidus = value;
-					foreach (FieldBase field in mFields) field.UpdateEscapedJsonKey();
+					foreach (FieldBase formatterField in mFields) formatterField.UpdateEscapedJsonKey();
 					UpdateMaxEscapedJsonKeyLength();
 				}
 			}
