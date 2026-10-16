@@ -206,7 +206,7 @@ stages:
     - task: NuGetToolInstaller@1
       displayName: 'Install NuGet'
       inputs:
-        versionSpec: '6.x'
+        versionSpec: '7.x'
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Pipeline Artifacts'
       inputs:
@@ -284,7 +284,7 @@ stages:
     - task: NuGetToolInstaller@1
       displayName: 'Install NuGet'
       inputs:
-        versionSpec: '6.x'
+        versionSpec: '7.x'
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Pipeline Artifacts'
       inputs:
@@ -341,7 +341,7 @@ stages:
     - task: NuGetToolInstaller@1
       displayName: 'Install NuGet'
       inputs:
-        versionSpec: '6.x'
+        versionSpec: '7.x'
     - task: DownloadPipelineArtifact@2
       displayName: 'Download Pipeline Artifacts'
       inputs:
