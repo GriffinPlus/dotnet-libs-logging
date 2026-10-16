@@ -38,6 +38,24 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	private const int RetryEndpointAfterErrorTimeMs = 30000;
 
 	/// <summary>
+	/// The initial time sending is paused after the server rejected messages due to overload (in ms).
+	/// The time doubles with every subsequent rejection up to <see cref="MaxThrottlingBackoffTimeMs"/>.
+	/// </summary>
+	private const int InitialThrottlingBackoffTimeMs = 1000;
+
+	/// <summary>
+	/// The maximum time sending is paused after the server rejected messages due to overload,
+	/// if the server did not specify a delay (in ms).
+	/// </summary>
+	private const int MaxThrottlingBackoffTimeMs = 30000;
+
+	/// <summary>
+	/// The maximum time sending is paused after the server rejected messages due to overload,
+	/// if the server specified a delay (in ms, protects against unreasonable delays).
+	/// </summary>
+	private const int MaxThrottlingRetryAfterTimeMs = 5 * 60 * 1000;
+
+	/// <summary>
 	/// Minimum size of a bulk request (in bytes).
 	/// </summary>
 	private const int MinimumBulkRequestSize = 10 * 1024;
@@ -121,6 +139,8 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	private          int                  mBulkRequestMaxSize             = 0;             // caches BulkRequestMaxSize
 	private          int                  mEffectiveBulkRequestMaxSize    = 0;             // BulkRequestMaxSize reduced at runtime, if the server rejects requests as too large
 	private          int                  mBulkRequestMaxMessageCount     = 0;             // caches BulkRequestMaxMessageCount
+	private          int                  mThrottlingBackoffTimeMs        = 0;             // current time to pause sending due to overload (0 = not throttled)
+	private          int                  mThrottledUntilTickCount        = 0;             // tick count until sending is paused due to overload (valid, if mThrottlingBackoffTimeMs > 0)
 	private          string               mOrganizationId                 = null;          // caches OrganizationId
 	private          string               mOrganizationName               = null;          // caches OrganizationName
 	private          TimeSpan             mLastTimezoneOffset             = TimeSpan.Zero; // Timezone formatted into mLastTimezoneOffsetAsString
@@ -587,6 +607,18 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 								// (elasticsearch processed the request)
 								SetEndpointOperational(operation.Endpoint, true);
 
+								// pause sending, if the server is overloaded,
+								// otherwise stop pausing
+								if (operation.WasThrottled)
+								{
+									int delay = GetThrottlingDelay(operation.RetryAfter, ref mThrottlingBackoffTimeMs);
+									mThrottledUntilTickCount = Environment.TickCount + delay;
+								}
+								else
+								{
+									mThrottlingBackoffTimeMs = 0;
+								}
+
 								if (operation.MessageCount == 0)
 								{
 									// the request was processed entirely
@@ -628,6 +660,14 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 					if (!endpoint.IsOperational && ticks - endpoint.ErrorTickCount < RetryEndpointAfterErrorTimeMs && !mIsShutdownRequested)
 					{
 						forcedWait = RetryEndpointAfterErrorTimeMs - ticks + endpoint.ErrorTickCount;
+						continue;
+					}
+
+					// return to waiting, if sending is paused, because the server is overloaded
+					// --------------------------------------------------------------------------------------------------------------
+					if (mThrottlingBackoffTimeMs > 0 && mThrottledUntilTickCount - ticks > 0 && !mIsShutdownRequested)
+					{
+						forcedWait = mThrottledUntilTickCount - ticks;
 						continue;
 					}
 
@@ -756,6 +796,35 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 		{
 			operationCancellationTokenSource?.Dispose();
 		}
+	}
+
+	/// <summary>
+	/// Gets the time to pause sending after the server rejected messages due to overload and updates the exponential backoff.
+	/// </summary>
+	/// <param name="retryAfter">
+	/// Delay the server asked to wait (<c>Retry-After</c> header);<br/>
+	/// <see langword="null"/> if the server did not specify a delay.
+	/// </param>
+	/// <param name="backoffTimeMs">
+	/// Current backoff time (in ms, 0 if sending is not throttled, yet);<br/>
+	/// receives the next backoff time (starts at <see cref="InitialThrottlingBackoffTimeMs"/> and doubles
+	/// with every call up to <see cref="MaxThrottlingBackoffTimeMs"/>).
+	/// </param>
+	/// <returns>
+	/// The time to pause sending (in ms): the delay specified by the server (limited to <see cref="MaxThrottlingRetryAfterTimeMs"/>),
+	/// if any, otherwise the next backoff time.
+	/// </returns>
+	internal static int GetThrottlingDelay(TimeSpan? retryAfter, ref int backoffTimeMs)
+	{
+		backoffTimeMs = backoffTimeMs <= 0
+							? InitialThrottlingBackoffTimeMs
+							: (int)Math.Min((long)backoffTimeMs * 2, MaxThrottlingBackoffTimeMs);
+
+		if (retryAfter == null)
+			return backoffTimeMs;
+
+		double retryAfterMs = Math.Max(retryAfter.Value.TotalMilliseconds, 0);
+		return (int)Math.Min(retryAfterMs, MaxThrottlingRetryAfterTimeMs);
 	}
 
 	/// <summary>

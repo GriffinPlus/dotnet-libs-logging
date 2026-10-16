@@ -73,6 +73,19 @@ partial class ElasticsearchPipelineStage
 		/// </summary>
 		public EndpointInfo Endpoint { get; private set; }
 
+		/// <summary>
+		/// Gets a value indicating whether the server rejected the last request or some of its messages due to overload
+		/// (HTTP status 429), so sending should be paused before trying again. Set by <see cref="ProcessSendCompleted"/>.
+		/// </summary>
+		public bool WasThrottled { get; private set; }
+
+		/// <summary>
+		/// Gets the delay the server asked to wait before sending again (<c>Retry-After</c> header), if the server rejected
+		/// the last request or some of its messages due to overload; <see langword="null"/> if the server did not provide
+		/// a delay. Set by <see cref="ProcessSendCompleted"/>.
+		/// </summary>
+		public TimeSpan? RetryAfter { get; private set; }
+
 		#region Reset
 
 		/// <summary>
@@ -362,6 +375,9 @@ partial class ElasticsearchPipelineStage
 			Debug.Assert(mSendBulkRequestTask != null);
 			Debug.Assert(mSendBulkRequestTask.IsCompleted);
 
+			WasThrottled = false;
+			RetryAfter = null;
+
 			BulkResponse bulkResponse = null;
 			try
 			{
@@ -397,6 +413,7 @@ partial class ElasticsearchPipelineStage
 						// there are messages that were not indexed successfully
 						// => evaluate the response
 						List<BulkResponse.Item> bulkResponseItems = bulkResponse.Items;
+						int throttledCount = 0;
 						for (int i = bulkResponseItems.Count - 1; i >= 0; i--)
 						{
 							int status = bulkResponseItems[i].Create.Status;
@@ -410,7 +427,7 @@ partial class ElasticsearchPipelineStage
 							{
 								// the server is under heavy load
 								// => keep message and try again later
-								mStage.WritePipelineWarning("Elasticsearch server seems to be overloaded (responded with 429). Trying again later...");
+								throttledCount++;
 							}
 							else
 							{
@@ -425,6 +442,15 @@ partial class ElasticsearchPipelineStage
 								mMessagesPreparedToSend[i].Release();
 								mMessagesPreparedToSend.RemoveAt(i);
 							}
+						}
+
+						if (throttledCount > 0)
+						{
+							// the server is under heavy load
+							// => tell the stage to pause sending
+							WasThrottled = true;
+							RetryAfter = GetRetryAfter(response.Headers.RetryAfter, DateTimeOffset.UtcNow);
+							mStage.WritePipelineWarning($"Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) seems to be overloaded and rejected {throttledCount} of {bulkResponseItems.Count} messages (429). Trying again later...");
 						}
 					}
 					else
@@ -450,6 +476,17 @@ partial class ElasticsearchPipelineStage
 					// the server rejected the request as too large
 					// => the endpoint is operational, but the request must be smaller
 					HandleRequestEntityTooLarge();
+					return true;
+				}
+
+				if ((int)response.StatusCode == 429)
+				{
+					// the server (or a proxy in front of it) rejected the entire request due to overload
+					// => the endpoint is operational, keep all messages and tell the stage to pause sending
+					WasThrottled = true;
+					RetryAfter = GetRetryAfter(response.Headers.RetryAfter, DateTimeOffset.UtcNow);
+					mStage.WritePipelineWarning($"Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) seems to be overloaded and rejected the request (429). Trying again later...");
+					RebuildContentStream();
 					return true;
 				}
 
@@ -502,7 +539,23 @@ partial class ElasticsearchPipelineStage
 		}
 
 		/// <summary>
-		/// Checks whether the specified bulk response contains exactly one item with a <c>create</c> result for each
+		/// Gets the delay specified in a <c>Retry-After</c> header.
+		/// </summary>
+		/// <param name="retryAfter">Value of the <c>Retry-After</c> header (may be <see langword="null"/>).</param>
+		/// <param name="now">Current time (used to calculate the delay, if the header specifies a point in time).</param>
+		/// <returns>
+		/// The delay to wait before sending again (never negative);<br/>
+		/// <see langword="null"/> if the header is not present or does not specify a delay.
+		/// </returns>
+		internal static TimeSpan? GetRetryAfter(RetryConditionHeaderValue retryAfter, DateTimeOffset now)
+		{
+			TimeSpan? delay = retryAfter?.Delta ?? retryAfter?.Date - now;
+			if (delay == null) return null;
+			return delay.Value < TimeSpan.Zero ? TimeSpan.Zero : delay.Value;
+		}
+
+		/// <summary>
+		/// Checks whether the specified bulk response contains exactly one item
 		/// message in the sent request, so the items can be assigned to the sent messages by position.
 		/// </summary>
 		/// <param name="bulkResponse">Bulk response to check.</param>

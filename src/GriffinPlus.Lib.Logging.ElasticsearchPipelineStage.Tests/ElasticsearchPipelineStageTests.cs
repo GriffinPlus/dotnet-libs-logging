@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -646,6 +647,322 @@ public class ElasticsearchPipelineStageTests
 		}
 	}
 
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> keeps only the messages
+	/// the server rejected due to overload (item status 429), releases the indexed messages, considers the endpoint
+	/// operational and reports the throttling including the delay specified in the <c>Retry-After</c> header.
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenItemsThrottled_KeepsThrottledMessagesAndReportsThrottling()
+	{
+		// Arrange
+		var handler = new StubHttpMessageHandler(_ =>
+		{
+			var response = new HttpResponseMessage(HttpStatusCode.OK)
+			{
+				Content = new StringContent(
+					"{\"took\":1,\"errors\":true,\"items\":[{\"create\":{\"status\":201}},{\"create\":{\"status\":429}},{\"create\":{\"status\":201}}]}",
+					Encoding.UTF8,
+					"application/json")
+			};
+			response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(5));
+			return response;
+		});
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(40 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages = [CreateMessage("a"), CreateMessage("b"), CreateMessage("c")];
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the endpoint is considered operational, but sending should be paused as requested by the server
+			Assert.True(operational);
+			Assert.True(operation.WasThrottled);
+			Assert.Equal(TimeSpan.FromSeconds(5), operation.RetryAfter);
+
+			// only the throttled message 'b' is kept, the indexed messages are released
+			Assert.Equal(1, operation.MessageCount);
+			Assert.Equal(1, messages[0].RefCount);
+			Assert.Equal(2, messages[1].RefCount);
+			Assert.Equal(1, messages[2].RefCount);
+			Assert.Equal(["b"], GetRequestMessageTexts(operation));
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> keeps all messages,
+	/// considers the endpoint operational and reports the throttling without a delay, if the server rejects the entire
+	/// request due to overload (HTTP status 429 without <c>Retry-After</c> header).
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenRequestThrottled_KeepsAllMessagesAndReportsThrottling()
+	{
+		// Arrange
+		var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage((HttpStatusCode)429));
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(40 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages = [CreateMessage("a"), CreateMessage("b")];
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the endpoint is considered operational, but sending should be paused (no delay specified by the server)
+			Assert.True(operational);
+			Assert.True(operation.WasThrottled);
+			Assert.Null(operation.RetryAfter);
+
+			// all messages are kept and the request is rebuilt unchanged
+			Assert.Equal(2, operation.MessageCount);
+			Assert.All(messages, message => Assert.Equal(2, message.RefCount));
+			Assert.Equal(["a", "b"], GetRequestMessageTexts(operation));
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> releases all messages,
+	/// leaves the send operation empty and considers the endpoint operational, if the server indexed all messages
+	/// successfully. Throttling must not be reported in this case.
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenAllMessagesIndexed_ReleasesAllMessages()
+	{
+		// Arrange
+		var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+		{
+			Content = new StringContent(
+				"{\"took\":1,\"errors\":false,\"items\":[{\"create\":{\"status\":201}},{\"create\":{\"status\":201}},{\"create\":{\"status\":201}}]}",
+				Encoding.UTF8,
+				"application/json")
+		});
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(40 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages = [CreateMessage("a"), CreateMessage("b"), CreateMessage("c")];
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the endpoint is considered operational
+			Assert.True(operational);
+
+			// all messages are released and the operation is empty
+			Assert.Equal(0, operation.MessageCount);
+			Assert.All(messages, message => Assert.Equal(1, message.RefCount));
+
+			// throttling is not reported
+			Assert.False(operation.WasThrottled);
+			Assert.Null(operation.RetryAfter);
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
+	#endregion
+
+	#region SendOperation.GetRetryAfter(RetryConditionHeaderValue, DateTimeOffset)
+
+	/// <summary>
+	/// Test data for <see cref="GetRetryAfter_WhenCalled_ReturnsDelay"/>
+	/// (scenario, header value, expected delay).
+	/// </summary>
+	public static TheoryData<string, RetryConditionHeaderValue, TimeSpan?> GetRetryAfter_Data => new()
+	{
+		// no header
+		{
+			"no header",
+			null,
+			null
+		},
+		// delay in seconds
+		{
+			"delta",
+			new RetryConditionHeaderValue(TimeSpan.FromSeconds(7)),
+			TimeSpan.FromSeconds(7)
+		},
+		// point in time in the future
+		{
+			"date in future",
+			new RetryConditionHeaderValue(sRetryAfterNow.AddSeconds(10)),
+			TimeSpan.FromSeconds(10)
+		},
+		// point in time in the past (no negative delay)
+		{
+			"date in past",
+			new RetryConditionHeaderValue(sRetryAfterNow.AddSeconds(-10)),
+			TimeSpan.Zero
+		}
+	};
+
+	/// <summary>
+	/// Fixed point in time used as the current time in <see cref="GetRetryAfter_Data"/>.
+	/// </summary>
+	private static readonly DateTimeOffset sRetryAfterNow = new(2024, 1, 1, 12, 0, 0, TimeSpan.Zero);
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.GetRetryAfter"/> determines the delay specified
+	/// in a <c>Retry-After</c> header as a delay or as a point in time.
+	/// </summary>
+	/// <param name="scenario">Name of the test scenario.</param>
+	/// <param name="header">Value of the <c>Retry-After</c> header.</param>
+	/// <param name="expected">Expected delay.</param>
+	[Theory]
+	[MemberData(nameof(GetRetryAfter_Data))]
+	public void GetRetryAfter_WhenCalled_ReturnsDelay(string scenario, RetryConditionHeaderValue header, TimeSpan? expected)
+	{
+		// Arrange
+		_ = scenario;
+
+		// Act
+		TimeSpan? delay = ElasticsearchPipelineStage.SendOperation.GetRetryAfter(header, sRetryAfterNow);
+
+		// Assert
+		Assert.Equal(expected, delay);
+	}
+
+	#endregion
+
+	#region GetThrottlingDelay(TimeSpan?, ref int)
+
+	/// <summary>
+	/// Test data for <see cref="GetThrottlingDelay_WhenCalled_ReturnsDelayAndUpdatesBackoff"/>
+	/// (scenario, delay specified by the server, current backoff, expected delay, expected next backoff).
+	/// </summary>
+	public static TheoryData<string, TimeSpan?, int, int, int> GetThrottlingDelay_Data => new()
+	{
+		// first throttling without delay specified by the server => initial backoff
+		{
+			"first, no retry-after",
+			null,
+			0,
+			1000,
+			1000
+		},
+		// subsequent throttling => backoff doubles
+		{
+			"second, no retry-after",
+			null,
+			1000,
+			2000,
+			2000
+		},
+		// backoff is limited to its maximum
+		{
+			"backoff limited",
+			null,
+			16000,
+			30000,
+			30000
+		},
+		// backoff stays at its maximum
+		{
+			"backoff at maximum",
+			null,
+			30000,
+			30000,
+			30000
+		},
+		// delay specified by the server takes precedence (backoff is updated nevertheless)
+		{
+			"retry-after",
+			TimeSpan.FromSeconds(5),
+			0,
+			5000,
+			1000
+		},
+		// delay specified by the server may exceed the backoff maximum
+		{
+			"retry-after above backoff maximum",
+			TimeSpan.FromSeconds(60),
+			0,
+			60000,
+			1000
+		},
+		// unreasonable delay specified by the server is limited
+		{
+			"retry-after limited",
+			TimeSpan.FromHours(1),
+			0,
+			300000,
+			1000
+		},
+		// zero delay specified by the server
+		{
+			"retry-after zero",
+			TimeSpan.Zero,
+			0,
+			0,
+			1000
+		}
+	};
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.GetThrottlingDelay"/> returns the delay specified by the
+	/// server (limited to a reasonable maximum), if any, otherwise an exponentially increasing backoff time.
+	/// </summary>
+	/// <param name="scenario">Name of the test scenario.</param>
+	/// <param name="retryAfter">Delay specified by the server.</param>
+	/// <param name="backoff">Current backoff time (in ms).</param>
+	/// <param name="expectedDelay">Expected delay (in ms).</param>
+	/// <param name="expectedBackoff">Expected next backoff time (in ms).</param>
+	[Theory]
+	[MemberData(nameof(GetThrottlingDelay_Data))]
+	public void GetThrottlingDelay_WhenCalled_ReturnsDelayAndUpdatesBackoff(
+		string    scenario,
+		TimeSpan? retryAfter,
+		int       backoff,
+		int       expectedDelay,
+		int       expectedBackoff)
+	{
+		// Arrange
+		_ = scenario;
+
+		// Act
+		int delay = ElasticsearchPipelineStage.GetThrottlingDelay(retryAfter, ref backoff);
+
+		// Assert
+		Assert.Equal(expectedDelay, delay);
+		Assert.Equal(expectedBackoff, backoff);
+	}
+
 	#endregion
 
 	#region SendOperation.GetErrorResponseDescription(byte[])
@@ -803,15 +1120,35 @@ public class ElasticsearchPipelineStageTests
 	public static TheoryData<string, string, string> WriteJsonMessage_Utf16_Data => new()
 	{
 		// a valid surrogate pair is preserved
-		{ "Valid surrogate pair", "abc\uD83D\uDE00def", "abc\uD83D\uDE00def" },
+		{
+			"Valid surrogate pair", 
+			"abc\uD83D\uDE00def",
+			"abc\uD83D\uDE00def"
+		},
 		// a high surrogate without a following low surrogate is replaced
-		{ "Lone high surrogate", "abc\uD800def", "abc\uFFFDdef" },
+		{
+			"Lone high surrogate", 
+			"abc\uD800def",
+			"abc\uFFFDdef"
+		},
 		// a low surrogate without a preceding high surrogate is replaced
-		{ "Lone low surrogate", "abc\uDC00def", "abc\uFFFDdef" },
+		{
+			"Lone low surrogate", 
+			"abc\uDC00def",
+			"abc\uFFFDdef"
+		},
 		// a high surrogate at the end of the text is replaced
-		{ "Trailing high surrogate", "abc\uD800", "abc\uFFFD" },
+		{
+			"Trailing high surrogate", 
+			"abc\uD800", 
+			"abc\uFFFD"
+		},
 		// a surrogate pair in reversed order consists of two lone surrogates, both are replaced
-		{ "Reversed surrogate pair", "abc\uDE00\uD83Ddef", "abc\uFFFD\uFFFDdef" }
+		{
+			"Reversed surrogate pair",
+			"abc\uDE00\uD83Ddef", 
+			"abc\uFFFD\uFFFDdef"
+		}
 	};
 
 	/// <summary>
