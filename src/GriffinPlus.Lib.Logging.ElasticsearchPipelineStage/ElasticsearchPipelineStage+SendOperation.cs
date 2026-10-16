@@ -37,6 +37,7 @@ partial class ElasticsearchPipelineStage
 		private          HttpRequestMessage         mSendBulkRequestMessage;
 		private          Task<HttpResponseMessage>  mSendBulkRequestTask;
 		private          CancellationToken          mCancellationToken;
+		private          long                       mSentRequestSize;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SendOperation"/> class.
@@ -147,7 +148,7 @@ partial class ElasticsearchPipelineStage
 				return true; // pretend to have added it to the request...
 			}
 
-			if (mContentStream.Position > mStage.mBulkRequestMaxSize)
+			if (mContentStream.Position > mStage.mEffectiveBulkRequestMaxSize)
 			{
 				// the maximum request size has been exceeded
 				if (mMessagesPreparedToSend.Count == 0)
@@ -155,7 +156,7 @@ partial class ElasticsearchPipelineStage
 					// the current message is so big that it does not fit into a bulk request
 					// => discard it
 					mStage.WritePipelineError(
-						$"Message is too large ({mContentStream.Position - lastStreamPosition} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxSize} bytes). Discarding message...",
+						$"Message is too large ({mContentStream.Position - lastStreamPosition} bytes) to fit into a bulk request (max. {mStage.mEffectiveBulkRequestMaxSize} bytes). Discarding message...",
 						null);
 					message.Release();
 					mContentStream.SetLength(lastStreamPosition);
@@ -198,14 +199,14 @@ partial class ElasticsearchPipelineStage
 				}
 
 				// determine whether the maximum request size is exceeded
-				if (mContentStream.Position > mStage.mBulkRequestMaxSize)
+				if (mContentStream.Position > mStage.mEffectiveBulkRequestMaxSize)
 				{
 					if (lastStreamPosition < 0)
 					{
 						// the current message is so big that it does not fit into a bulk request
 						// => discard it
 						mStage.WritePipelineError(
-							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mBulkRequestMaxSize} bytes). Discarding message...",
+							$"Message is too large ({mContentStream.Position} bytes) to fit into a bulk request (max. {mStage.mEffectiveBulkRequestMaxSize} bytes). Discarding message...",
 							null);
 						message.Release();
 						mMessagesPreparedToSend.RemoveAt(i--);
@@ -310,6 +311,7 @@ partial class ElasticsearchPipelineStage
 			{
 				// create http request telling Elasticsearch to index the messages
 				mContentStream.Position = 0;
+				mSentRequestSize = mContentStream.Length;
 				var content = new StreamContent(mContentStream);
 				content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-ndjson");
 				mSendBulkRequestMessage = new HttpRequestMessage(HttpMethod.Post, endpoint.BulkRequestApiUrl) { Content = content };
@@ -422,6 +424,14 @@ partial class ElasticsearchPipelineStage
 					return true;
 				}
 
+				if ((int)response.StatusCode == 413)
+				{
+					// the server rejected the request as too large
+					// => the endpoint is operational, but the request must be smaller
+					HandleRequestEntityTooLarge();
+					return true;
+				}
+
 				// log incident...
 				mStage.WritePipelineError(
 					$"The request to endpoint {mSendBulkRequestMessage?.RequestUri} failed with error code {(int)response.StatusCode} ({response.ReasonPhrase}).",
@@ -466,6 +476,32 @@ partial class ElasticsearchPipelineStage
 				mSendBulkRequestTask?.Dispose();
 				mSendBulkRequestTask = null;
 			}
+		}
+
+		/// <summary>
+		/// Handles a request the server rejected as too large (HTTP status 413).
+		/// The maximum bulk request size in effect is reduced and the request is rebuilt, so messages that do not fit
+		/// into the smaller request remain in the send operation and are sent with subsequent requests. If the maximum
+		/// size is already at its minimum, the oldest message is discarded to guarantee progress.
+		/// </summary>
+		private void HandleRequestEntityTooLarge()
+		{
+			if (!mStage.ReduceEffectiveBulkRequestMaxSize(mSentRequestSize))
+			{
+				// the request cannot be made any smaller by reducing the maximum request size
+				// => discard the oldest message to avoid sending the same request over and over again
+				mStage.WritePipelineError(
+					$"Elasticsearch endpoint ({mSendBulkRequestMessage?.RequestUri}) rejected a bulk request of {mSentRequestSize} bytes as too large (413), " +
+					$"although the maximum bulk request size is already at its minimum ({mStage.mEffectiveBulkRequestMaxSize} bytes). Discarding message...",
+					null);
+
+				mMessagesPreparedToSend.RemoveFromFront().Release();
+			}
+
+			// rebuild the request using the reduced maximum request size,
+			// otherwise prepare for re-use
+			if (mMessagesPreparedToSend.Count > 0) RebuildContentStream();
+			else Reset();
 		}
 
 		#endregion

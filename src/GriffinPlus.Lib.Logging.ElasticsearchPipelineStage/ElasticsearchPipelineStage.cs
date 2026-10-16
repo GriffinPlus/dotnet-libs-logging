@@ -119,6 +119,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	private          string               mIndexName                      = null;          // caches IndexName
 	private          int                  mBulkRequestMaxConcurrencyLevel = 0;             // caches BulkRequestMaxConcurrencyLevel
 	private          int                  mBulkRequestMaxSize             = 0;             // caches BulkRequestMaxSize
+	private          int                  mEffectiveBulkRequestMaxSize    = 0;             // BulkRequestMaxSize reduced at runtime, if the server rejects requests as too large
 	private          int                  mBulkRequestMaxMessageCount     = 0;             // caches BulkRequestMaxMessageCount
 	private          string               mOrganizationId                 = null;          // caches OrganizationId
 	private          string               mOrganizationName               = null;          // caches OrganizationName
@@ -786,6 +787,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 			mBulkRequestMaxMessageCount = mBulkRequestMaxMessageCount > 0 ? mBulkRequestMaxMessageCount : int.MaxValue;
 			mBulkRequestMaxSize = mBulkRequestMaxSize >= MinimumBulkRequestSize ? mBulkRequestMaxSize : MinimumBulkRequestSize;
 			mBulkRequestMaxSize = mBulkRequestMaxSize <= MaximumBulkRequestSize ? mBulkRequestMaxSize : MaximumBulkRequestSize;
+			mEffectiveBulkRequestMaxSize = mBulkRequestMaxSize;
 
 			// rebuild request URLs
 			mEndpoints.Clear();
@@ -867,7 +869,46 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 		}
 
 		// create new http client using the new settings
-		mHttpClient = new HttpClient(handler);
+		mHttpClient = HttpMessageHandlerTestHook != null
+						  ? new HttpClient(HttpMessageHandlerTestHook, false)
+						  : new HttpClient(handler);
+	}
+
+	/// <summary>
+	/// Gets or sets an HTTP message handler that replaces the regular HTTP client handler when the HTTP client is
+	/// (re-)created (for testing purposes only, <see langword="null"/> by default).
+	/// </summary>
+	internal HttpMessageHandler HttpMessageHandlerTestHook { get; set; }
+
+	/// <summary>
+	/// Gets the maximum size of a bulk request (in bytes) that is currently in effect. The value is initialized with
+	/// the configured maximum size when the configuration is (re-)loaded and is reduced at runtime, if a server
+	/// rejects a request as too large (HTTP status 413).
+	/// </summary>
+	internal int EffectiveBulkRequestMaxSize => mEffectiveBulkRequestMaxSize;
+
+	/// <summary>
+	/// Reduces the maximum size of a bulk request in effect after a server rejected a request of the specified size
+	/// as too large. The maximum size is set to half of the rejected request size, but not below
+	/// <see cref="MinimumBulkRequestSize"/>.
+	/// </summary>
+	/// <param name="rejectedRequestSize">Size of the rejected request (in bytes).</param>
+	/// <returns>
+	/// <see langword="true"/> if the maximum size was reduced;<br/>
+	/// <see langword="false"/> if the maximum size is already at its minimum.
+	/// </returns>
+	internal bool ReduceEffectiveBulkRequestMaxSize(long rejectedRequestSize)
+	{
+		long newSize = Math.Min(mEffectiveBulkRequestMaxSize, rejectedRequestSize / 2);
+		if (newSize < MinimumBulkRequestSize) newSize = MinimumBulkRequestSize;
+		if (newSize >= mEffectiveBulkRequestMaxSize) return false;
+
+		WritePipelineWarning(
+			$"Elasticsearch rejected a bulk request of {rejectedRequestSize} bytes as too large (413). " +
+			$"Reducing the maximum bulk request size from {mEffectiveBulkRequestMaxSize} to {newSize} bytes.");
+
+		mEffectiveBulkRequestMaxSize = (int)newSize;
+		return true;
 	}
 
 	/// <summary>

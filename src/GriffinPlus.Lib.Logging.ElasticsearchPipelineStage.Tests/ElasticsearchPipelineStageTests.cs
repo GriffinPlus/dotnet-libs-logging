@@ -6,10 +6,15 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 using Xunit;
+
+// ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
 
 namespace GriffinPlus.Lib.Logging.Elasticsearch.Tests;
 
@@ -231,6 +236,176 @@ public class ElasticsearchPipelineStageTests
 			firstMessage.Release();
 			failingMessage.Release();
 			lastMessage.Release();
+		}
+	}
+
+	#endregion
+
+	#region SendOperation.ProcessSendCompleted()
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> handles a request the
+	/// server rejects as too large (HTTP status 413) by reducing the maximum bulk request size in effect to half of the
+	/// rejected request size and rebuilding the request, while keeping all messages in the send operation and
+	/// considering the endpoint operational.
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenRequestTooLarge_ReducesMaxSizeAndKeepsMessages()
+	{
+		// Arrange
+		// (three messages of about 12 KB fit into a 40 KB request, but only one fits into half of it)
+		var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage((HttpStatusCode)413));
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(40 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages =
+		[
+			CreateMessage(new string('a', 12 * 1024)),
+			CreateMessage(new string('b', 12 * 1024)),
+			CreateMessage(new string('c', 12 * 1024))
+		];
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+			int rejectedRequestSize = Assert.Single(handler.RequestContents).Length;
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the endpoint is considered operational and the maximum request size is halved
+			Assert.True(operational);
+			Assert.Equal(rejectedRequestSize / 2, stage.EffectiveBulkRequestMaxSize);
+
+			// all messages are kept, but the rebuilt request contains only the first message
+			Assert.Equal(3, operation.MessageCount);
+			Assert.True(operation.IsFull);
+			Assert.Equal([new string('a', 12 * 1024)], GetRequestMessageTexts(operation));
+			Assert.All(messages, message => Assert.Equal(2, message.RefCount));
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> delivers every message
+	/// of a request the server rejected as too large (HTTP status 413) exactly once and in the original order: after the
+	/// rejection, the request is rebuilt with the reduced maximum size and each successful response releases only the
+	/// messages it acknowledges, while the remaining messages are sent with subsequent requests.
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenRequestTooLarge_DeliversAllMessagesExactlyOnce()
+	{
+		// Arrange
+		// (three messages of about 12 KB fit into a 40 KB request, but only one fits into half of it;
+		// the first request is rejected as too large, subsequent requests are acknowledged entirely)
+		string[] texts = [new('a', 12 * 1024), new('b', 12 * 1024), new('c', 12 * 1024)];
+		int requestCount = 0;
+		var handler = new StubHttpMessageHandler(content =>
+		{
+			if (Interlocked.Increment(ref requestCount) == 1)
+				return new HttpResponseMessage((HttpStatusCode)413);
+
+			int itemCount = GetBulkRequestMessageTexts(content).Length;
+			string items = string.Join(",", Enumerable.Repeat("{\"create\":{\"status\":201}}", itemCount));
+			return new HttpResponseMessage(HttpStatusCode.OK)
+			{
+				Content = new StringContent($"{{\"took\":1,\"errors\":false,\"items\":[{items}]}}", Encoding.UTF8, "application/json")
+			};
+		});
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(40 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages = texts.Select(CreateMessage).ToArray();
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+
+			// Act
+			// (send until the operation does not contain any messages anymore, at most once per message plus the rejected request)
+			for (int i = 0; i <= messages.Length && operation.MessageCount > 0; i++)
+			{
+				Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+				Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+				Assert.True(operation.ProcessSendCompleted());
+			}
+
+			// Assert
+			// all messages have been delivered and released
+			Assert.Equal(0, operation.MessageCount);
+			Assert.All(messages, message => Assert.Equal(1, message.RefCount));
+
+			// expected requests:
+			// 1. all messages (rejected with 413)
+			// 2. message 'a' only (acknowledged)
+			// 3. message 'b' only (acknowledged)
+			// 4. message 'c' only (acknowledged)
+			string[][] sentTexts = handler.RequestContents.Select(GetBulkRequestMessageTexts).ToArray();
+			Assert.Equal(4, sentTexts.Length);
+			Assert.Equal([texts[0], texts[1], texts[2]], sentTexts[0]);
+			Assert.Equal([texts[0]], sentTexts[1]);
+			Assert.Equal([texts[1]], sentTexts[2]);
+			Assert.Equal([texts[2]], sentTexts[3]);
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> discards the oldest
+	/// message when the server rejects a request as too large (HTTP status 413), although the maximum bulk request size
+	/// in effect is already at its minimum, so the same request is not sent over and over again.
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenRequestTooLargeAtMinimumSize_DiscardsOldestMessage()
+	{
+		// Arrange
+		var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage((HttpStatusCode)413));
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(10 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage firstMessage = CreateMessage("first");
+		LocalLogMessage lastMessage = CreateMessage("last");
+
+		try
+		{
+			Assert.True(operation.AddMessage(firstMessage));
+			Assert.True(operation.AddMessage(lastMessage));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the endpoint is considered operational and the maximum request size stays at its minimum
+			Assert.True(operational);
+			Assert.Equal(10 * 1024, stage.EffectiveBulkRequestMaxSize);
+
+			// the oldest message is discarded and released, the other message is kept
+			Assert.Equal(1, operation.MessageCount);
+			Assert.Equal(1, firstMessage.RefCount);
+			Assert.Equal(2, lastMessage.RefCount);
+			Assert.Equal(["last"], GetRequestMessageTexts(operation));
+		}
+		finally
+		{
+			operation.Reset();
+			firstMessage.Release();
+			lastMessage.Release();
+			handler.Dispose();
 		}
 	}
 
@@ -482,8 +657,20 @@ public class ElasticsearchPipelineStageTests
 			contentStream.Position = position;
 		}
 
+		return GetBulkRequestMessageTexts(copy.ToArray());
+	}
+
+	/// <summary>
+	/// Gets the texts of the messages contained in the specified bulk request content and asserts that the content is
+	/// a well-formed bulk request (newline-terminated lines, each message document is a valid JSON document preceded by
+	/// a valid <c>create</c> action document).
+	/// </summary>
+	/// <param name="requestContent">Content of the bulk request.</param>
+	/// <returns>The texts of the messages in the request (in request order).</returns>
+	private static string[] GetBulkRequestMessageTexts(byte[] requestContent)
+	{
 		// the request consists of newline-terminated lines
-		string content = Encoding.UTF8.GetString(copy.ToArray());
+		string content = Encoding.UTF8.GetString(requestContent);
 		if (content.Length == 0) return [];
 		Assert.EndsWith("\n", content);
 		string[] lines = content.Substring(0, content.Length - 1).Split('\n');
@@ -495,7 +682,7 @@ public class ElasticsearchPipelineStageTests
 		{
 			using (JsonDocument action = JsonDocument.Parse(lines[i]))
 			{
-				Assert.True(action.RootElement.TryGetProperty("create", out var _));
+				Assert.True(action.RootElement.TryGetProperty("create", out JsonElement _));
 			}
 
 			using (JsonDocument document = JsonDocument.Parse(lines[i + 1]))
@@ -505,6 +692,22 @@ public class ElasticsearchPipelineStageTests
 		}
 
 		return texts;
+	}
+
+	/// <summary>
+	/// Creates a stage with the specified maximum bulk request size that sends requests to the specified HTTP message
+	/// handler instead of a real server and loads its configuration.
+	/// </summary>
+	/// <param name="maxSize">Maximum bulk request size (in bytes).</param>
+	/// <param name="handler">HTTP message handler receiving the requests.</param>
+	/// <returns>The created stage.</returns>
+	private static ElasticsearchPipelineStage CreateStageWithHttpStub(int maxSize, HttpMessageHandler handler)
+	{
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		stage.BulkRequestMaxSize = maxSize;
+		stage.HttpMessageHandlerTestHook = handler;
+		stage.ReloadConfigurationIfNecessary();
+		return stage;
 	}
 
 	/// <summary>
