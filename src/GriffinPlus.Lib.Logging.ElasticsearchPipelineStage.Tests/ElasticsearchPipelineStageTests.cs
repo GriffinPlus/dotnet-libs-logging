@@ -965,6 +965,91 @@ public class ElasticsearchPipelineStageTests
 
 	#endregion
 
+	#region EnqueueMessage(LocalLogMessage)
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.EnqueueMessage"/> enqueues messages (adding a reference) as
+	/// long as there is space in the processing queue and discards and counts messages (without adding a reference)
+	/// when the queue is full.
+	/// </summary>
+	[Fact]
+	public void EnqueueMessage_WhenQueueIsFull_DiscardsAndCountsMessages()
+	{
+		// Arrange
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		stage.SendQueueSize = 2;
+		stage.UpdateProcessingQueueSize();
+		LocalLogMessage[] messages = [CreateMessage("a"), CreateMessage("b"), CreateMessage("c"), CreateMessage("d")];
+
+		try
+		{
+			// Act
+			bool[] enqueued = messages.Select(stage.EnqueueMessage).ToArray();
+
+			// Assert
+			// the first two messages are enqueued, the others are discarded
+			Assert.Equal([true, true, false, false], enqueued);
+
+			// only the enqueued messages are referenced by the stage
+			Assert.Equal(3, messages[0].RefCount);
+			Assert.Equal(3, messages[1].RefCount);
+			Assert.Equal(2, messages[2].RefCount);
+			Assert.Equal(2, messages[3].RefCount);
+
+			// the discarded messages are counted
+			Assert.Equal(2, stage.TakeDiscardedMessageCount());
+		}
+		finally
+		{
+			// the stage is not initialized, so it must not be shut down
+			// => release the references held by the processing queue manually
+			messages[0].Release();
+			messages[1].Release();
+			foreach (LocalLogMessage message in messages) message.Release();
+		}
+	}
+
+	#endregion
+
+	#region TakeDiscardedMessageCount()
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.TakeDiscardedMessageCount"/> resets the counter of
+	/// discarded messages, so every discarded message is reported only once.
+	/// </summary>
+	[Fact]
+	public void TakeDiscardedMessageCount_WhenCalled_ResetsCounter()
+	{
+		// Arrange
+		var stage = ProcessingPipelineStage.Create<ElasticsearchPipelineStage>("Elasticsearch", null);
+		stage.SendQueueSize = 1;
+		stage.UpdateProcessingQueueSize();
+		LocalLogMessage[] messages = [CreateMessage("a"), CreateMessage("b")];
+
+		try
+		{
+			Assert.True(stage.EnqueueMessage(messages[0]));
+			Assert.False(stage.EnqueueMessage(messages[1]));
+
+			// Act
+			long first = stage.TakeDiscardedMessageCount();
+			long second = stage.TakeDiscardedMessageCount();
+
+			// Assert
+			Assert.Equal(1, first);
+			Assert.Equal(0, second);
+		}
+		finally
+		{
+			// the stage is not initialized, so it must not be shut down
+			// => release the reference held by the processing queue manually
+			messages[0].Release();
+			foreach (LocalLogMessage message in messages) message.Release();
+		}
+	}
+
+	#endregion
+
 	#region SendOperation.GetErrorResponseDescription(byte[])
 
 	/// <summary>
@@ -1121,32 +1206,32 @@ public class ElasticsearchPipelineStageTests
 	{
 		// a valid surrogate pair is preserved
 		{
-			"Valid surrogate pair", 
+			"Valid surrogate pair",
 			"abc\uD83D\uDE00def",
 			"abc\uD83D\uDE00def"
 		},
 		// a high surrogate without a following low surrogate is replaced
 		{
-			"Lone high surrogate", 
+			"Lone high surrogate",
 			"abc\uD800def",
 			"abc\uFFFDdef"
 		},
 		// a low surrogate without a preceding high surrogate is replaced
 		{
-			"Lone low surrogate", 
+			"Lone low surrogate",
 			"abc\uDC00def",
 			"abc\uFFFDdef"
 		},
 		// a high surrogate at the end of the text is replaced
 		{
-			"Trailing high surrogate", 
-			"abc\uD800", 
+			"Trailing high surrogate",
+			"abc\uD800",
 			"abc\uFFFD"
 		},
 		// a surrogate pair in reversed order consists of two lone surrogates, both are replaced
 		{
 			"Reversed surrogate pair",
-			"abc\uDE00\uD83Ddef", 
+			"abc\uDE00\uD83Ddef",
 			"abc\uFFFD\uFFFDdef"
 		}
 	};

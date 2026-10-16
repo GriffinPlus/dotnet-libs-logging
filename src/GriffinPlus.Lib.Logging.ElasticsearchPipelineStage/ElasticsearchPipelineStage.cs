@@ -56,6 +56,11 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	private const int MaxThrottlingRetryAfterTimeMs = 5 * 60 * 1000;
 
 	/// <summary>
+	/// The minimum time between two warnings about messages discarded due to a full processing queue (in ms).
+	/// </summary>
+	private const int DiscardedMessagesWarningIntervalMs = 10000;
+
+	/// <summary>
 	/// Minimum size of a bulk request (in bytes).
 	/// </summary>
 	private const int MinimumBulkRequestSize = 10 * 1024;
@@ -92,6 +97,24 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	/// The maximum number of messages in <see cref="mProcessingQueue"/>.
 	/// </summary>
 	private int mProcessingQueueSize = 0;
+
+	/// <summary>
+	/// The number of messages discarded due to a full processing queue since the last warning.
+	/// Synchronized via monitor using <see cref="mProcessingQueue"/>.
+	/// </summary>
+	private long mDiscardedMessageCount = 0;
+
+	/// <summary>
+	/// The tick count when the last warning about discarded messages was written
+	/// (valid, if <see cref="mHasWrittenDiscardedMessagesWarning"/> is <see langword="true"/>, managed by the processing thread).
+	/// </summary>
+	private int mDiscardedMessagesWarningTickCount = 0;
+
+	/// <summary>
+	/// Indicates whether a warning about discarded messages has been written
+	/// (managed by the processing thread).
+	/// </summary>
+	private bool mHasWrittenDiscardedMessagesWarning = false;
 
 	/// <summary>
 	/// Indicates whether the stage is operational.
@@ -482,14 +505,23 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	protected override void OnSettingsChanged(IUntypedProcessingPipelineStageSetting[] settings)
 	{
 		// reload the maximum number of messages in the processing queue
+		UpdateProcessingQueueSize();
+
+		// tell the process thread to reload its configuration
+		mReloadConfiguration = true;
+	}
+
+	/// <summary>
+	/// Updates the maximum number of messages in the processing queue from the <see cref="SendQueueSize"/> setting
+	/// (at least 1).
+	/// </summary>
+	internal void UpdateProcessingQueueSize()
+	{
 		lock (mProcessingQueue)
 		{
 			mProcessingQueueSize = mSetting_Stage_SendQueueSize.Value;
 			if (mProcessingQueueSize < 1) mProcessingQueueSize = 1;
 		}
-
-		// tell the process thread to reload its configuration
-		mReloadConfiguration = true;
 	}
 
 	#endregion
@@ -507,6 +539,28 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	{
 		Debug.Assert(Monitor.IsEntered(Sync));
 
+		// enqueue the message and trigger processing, if the message was enqueued
+		// (a discarded message is counted and reported by the processing thread, as writing a warning here might
+		// re-enter the logging pipeline)
+		if (EnqueueMessage(message))
+			TriggerProcessing();
+
+		return true;
+	}
+
+	/// <summary>
+	/// Enqueues the specified message for sending.
+	/// If the processing queue is full, the message is discarded and counted (see <see cref="TakeDiscardedMessageCount"/>),
+	/// if <see cref="DiscardMessagesIfQueueFull"/> is <see langword="true"/>, otherwise the method blocks until
+	/// there is space in the queue.
+	/// </summary>
+	/// <param name="message">Message to enqueue (a reference is added, if the message is enqueued).</param>
+	/// <returns>
+	/// <see langword="true"/> if the message was enqueued;<br/>
+	/// <see langword="false"/> if the message was discarded.
+	/// </returns>
+	internal bool EnqueueMessage(LocalLogMessage message)
+	{
 		while (true)
 		{
 			lock (mProcessingQueue)
@@ -516,24 +570,57 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 				{
 					message.AddRef();
 					mProcessingQueue.AddToBack(message);
-					break;
+					return true;
 				}
 
 				// the queue is full
 				// => discard the message, if configured (default)
 				if (mDiscardMessagesIfQueueFull)
-					return true;
+				{
+					mDiscardedMessageCount++;
+					return false;
+				}
 			}
 
 			// the queue is full
 			// => wait some time before trying to enqueue it again
 			Thread.Sleep(10);
 		}
+	}
 
-		// the message was enqueued successfully
-		// => trigger processing
-		TriggerProcessing();
-		return true;
+	/// <summary>
+	/// Gets the number of messages discarded due to a full processing queue since the last call and resets the counter.
+	/// </summary>
+	/// <returns>The number of discarded messages.</returns>
+	internal long TakeDiscardedMessageCount()
+	{
+		lock (mProcessingQueue)
+		{
+			long count = mDiscardedMessageCount;
+			mDiscardedMessageCount = 0;
+			return count;
+		}
+	}
+
+	/// <summary>
+	/// Writes a warning about messages discarded due to a full processing queue, if messages have been discarded and
+	/// the last warning was written at least <see cref="DiscardedMessagesWarningIntervalMs"/> ago
+	/// (messages discarded in the meantime are reported with the next warning, called by the processing thread).
+	/// </summary>
+	private void WriteDiscardedMessagesWarningIfNecessary()
+	{
+		int ticks = Environment.TickCount;
+		if (mHasWrittenDiscardedMessagesWarning && ticks - mDiscardedMessagesWarningTickCount < DiscardedMessagesWarningIntervalMs)
+			return;
+
+		long count = TakeDiscardedMessageCount();
+		if (count == 0) return;
+
+		int queueSize;
+		lock (mProcessingQueue) queueSize = mProcessingQueueSize;
+		WritePipelineWarning($"{count} message(s) have been discarded, because the send queue was full (SendQueueSize: {queueSize}).");
+		mDiscardedMessagesWarningTickCount = ticks;
+		mHasWrittenDiscardedMessagesWarning = true;
 	}
 
 	/// <summary>
@@ -579,6 +666,10 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 						Task.Delay(forcedWait, threadCancellationToken).WaitAndUnwrapException(threadCancellationToken);
 						forcedWait = 0;
 					}
+
+					// report messages discarded due to a full processing queue
+					// --------------------------------------------------------------------------------------------------------------
+					WriteDiscardedMessagesWarningIfNecessary();
 
 					// reload configuration and prepare the http client, if necessary
 					// (ensure there are no send pending operations to avoid mixing up send operations)
@@ -817,8 +908,8 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	internal static int GetThrottlingDelay(TimeSpan? retryAfter, ref int backoffTimeMs)
 	{
 		backoffTimeMs = backoffTimeMs <= 0
-							? InitialThrottlingBackoffTimeMs
-							: (int)Math.Min((long)backoffTimeMs * 2, MaxThrottlingBackoffTimeMs);
+			                ? InitialThrottlingBackoffTimeMs
+			                : (int)Math.Min((long)backoffTimeMs * 2, MaxThrottlingBackoffTimeMs);
 
 		if (retryAfter == null)
 			return backoffTimeMs;
@@ -939,8 +1030,8 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 
 		// create new http client using the new settings
 		mHttpClient = HttpMessageHandlerTestHook != null
-						  ? new HttpClient(HttpMessageHandlerTestHook, false)
-						  : new HttpClient(handler);
+			              ? new HttpClient(HttpMessageHandlerTestHook, false)
+			              : new HttpClient(handler);
 	}
 
 	/// <summary>
