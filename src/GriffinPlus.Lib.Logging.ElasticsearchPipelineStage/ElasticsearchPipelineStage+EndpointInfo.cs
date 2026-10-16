@@ -19,9 +19,20 @@ partial class ElasticsearchPipelineStage
 		/// <summary>
 		/// Initializes a new instance of the <see cref="EndpointInfo"/> class.
 		/// </summary>
-		/// <param name="apiBaseUrl">Base URL of the API endpoint.</param>
+		/// <param name="apiBaseUrl">
+		/// Base URL of the API endpoint. The path of the URL is treated as a directory, even if it does not end with a slash,
+		/// so the bulk request endpoint is always appended to the complete path (e.g. <c>http://proxy/es</c> results in
+		/// <c>http://proxy/es/_bulk</c>).
+		/// </param>
 		public EndpointInfo(Uri apiBaseUrl)
 		{
+			if (!apiBaseUrl.AbsolutePath.EndsWith("/", StringComparison.Ordinal))
+			{
+				var builder = new UriBuilder(apiBaseUrl);
+				builder.Path += "/";
+				apiBaseUrl = builder.Uri;
+			}
+
 			BulkRequestApiUrl = new Uri(apiBaseUrl, "_bulk");
 
 			// the endpoint is considered to be non-operational at start
