@@ -267,7 +267,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region AuthenticationSchemes
 
 	/// <summary>
-	/// Gets the authentication types (flags) to use when authenticating against the Elasticsearch cluster.
+	/// Gets or sets the authentication types (flags) to use when authenticating against the Elasticsearch cluster.
 	/// </summary>
 	public AuthenticationScheme AuthenticationSchemes
 	{
@@ -280,7 +280,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region Username
 
 	/// <summary>
-	/// Gets the username to use when authenticating against the Elasticsearch cluster.
+	/// Gets or sets the username to use when authenticating against the Elasticsearch cluster.
 	/// </summary>
 	public string Username
 	{
@@ -293,7 +293,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region Password
 
 	/// <summary>
-	/// Gets the password to use when authenticating against the Elasticsearch cluster.
+	/// Gets or sets the password to use when authenticating against the Elasticsearch cluster.
 	/// </summary>
 	public string Password
 	{
@@ -320,7 +320,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region BulkRequestMaxConcurrencyLevel
 
 	/// <summary>
-	/// Gets or sets the maximum number of bulk requests that may are on the line at the same time.
+	/// Gets or sets the maximum number of bulk requests that may be on the line at the same time.
 	/// There is always one request on the line. More requests are sent, if there are enough messages to fill them up entirely.
 	/// Default: 5
 	/// </summary>
@@ -380,7 +380,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region IndexName
 
 	/// <summary>
-	/// Gets the name of the Elasticsearch index to ingest messages into.
+	/// Gets or sets the name of the Elasticsearch index to ingest messages into.
 	/// </summary>
 	public string IndexName
 	{
@@ -393,7 +393,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region OrganizationId
 
 	/// <summary>
-	/// Gets the string to put into the ECS field 'organization.id' of every a written message.
+	/// Gets or sets the string to put into the ECS field 'organization.id' of every written message.
 	/// Default: &lt;empty&gt;
 	/// </summary>
 	public string OrganizationId
@@ -407,7 +407,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region OrganizationName
 
 	/// <summary>
-	/// Gets the string to put into the ECS field 'organization.name' of every a written message.
+	/// Gets or sets the string to put into the ECS field 'organization.name' of every written message.
 	/// Default: &lt;empty&gt;
 	/// </summary>
 	public string OrganizationName
@@ -421,7 +421,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region SendQueueSize
 
 	/// <summary>
-	/// Gets the size of the send queue buffering messages to send to the Elasticsearch cluster (in messages).
+	/// Gets or sets the size of the send queue buffering messages to send to the Elasticsearch cluster (in messages).
 	/// </summary>
 	public int SendQueueSize
 	{
@@ -438,7 +438,7 @@ public sealed partial class ElasticsearchPipelineStage : SyncProcessingPipelineS
 	#region DiscardMessagesIfQueueFull
 
 	/// <summary>
-	/// Indicates whether the stage discards messages, if the queue is full (default).
+	/// Gets or sets a value indicating whether the stage discards messages, if the queue is full (default).
 	/// This should only be disabled for testing purposes as blocking for sending a log message is usually not desirable.
 	/// </summary>
 	public bool DiscardMessagesIfQueueFull
