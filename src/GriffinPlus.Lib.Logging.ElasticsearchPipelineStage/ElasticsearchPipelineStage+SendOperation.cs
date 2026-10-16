@@ -432,9 +432,11 @@ partial class ElasticsearchPipelineStage
 					return true;
 				}
 
-				// log incident...
+				// log incident including the error details provided by the server (if any)...
+				string errorDescription = GetErrorResponseDescription(response);
 				mStage.WritePipelineError(
-					$"The request to endpoint {mSendBulkRequestMessage?.RequestUri} failed with error code {(int)response.StatusCode} ({response.ReasonPhrase}).",
+					$"The request to endpoint {mSendBulkRequestMessage?.RequestUri} failed with error code {(int)response.StatusCode} ({response.ReasonPhrase})." +
+					(errorDescription != null ? Environment.NewLine + $"Error: {errorDescription}" : ""),
 					null);
 
 				// the bulk request failed entirely which is a severe condition
@@ -475,6 +477,69 @@ partial class ElasticsearchPipelineStage
 				mSendBulkRequestMessage = null;
 				mSendBulkRequestTask?.Dispose();
 				mSendBulkRequestTask = null;
+			}
+		}
+
+		/// <summary>
+		/// Gets a description of the error reported in the body of an error response.
+		/// </summary>
+		/// <param name="response">Error response to evaluate.</param>
+		/// <returns>
+		/// The error description (see <see cref="GetErrorResponseDescription(byte[])"/>);<br/>
+		/// <see langword="null"/> if the response does not provide any error details or reading the body failed.
+		/// </returns>
+		private static string GetErrorResponseDescription(HttpResponseMessage response)
+		{
+			try
+			{
+				if (response.Content == null) return null;
+				byte[] responseData = response.Content.ReadAsByteArrayAsync().WaitAndUnwrapException(); // should return immediately
+				return GetErrorResponseDescription(responseData);
+			}
+			catch (Exception)
+			{
+				// reading the body failed
+				// => the error is logged without details
+				return null;
+			}
+		}
+
+		/// <summary>
+		/// Gets a description of the error reported in the body of an Elasticsearch error response, e.g.
+		/// <c>{"error":{"type":"...","reason":"..."},"status":400}</c>.
+		/// </summary>
+		/// <param name="responseData">Body of the error response.</param>
+		/// <returns>
+		/// <c>"&lt;type&gt;: &lt;reason&gt;"</c> if the <c>error</c> property is an object (the type or the reason
+		/// alone, if only one of them is present), the value of the <c>error</c> property if it is a string;<br/>
+		/// <see langword="null"/> if the body is not a JSON object with an <c>error</c> property providing any of this information.
+		/// </returns>
+		internal static string GetErrorResponseDescription(byte[] responseData)
+		{
+			if (responseData == null || responseData.Length == 0)
+				return null;
+
+			try
+			{
+				using JsonDocument document = JsonDocument.Parse(responseData);
+				if (document.RootElement.ValueKind != JsonValueKind.Object || !document.RootElement.TryGetProperty("error", out JsonElement error))
+					return null;
+
+				if (error.ValueKind == JsonValueKind.String)
+					return error.GetString();
+
+				if (error.ValueKind != JsonValueKind.Object)
+					return null;
+
+				string type = error.TryGetProperty("type", out JsonElement typeElement) && typeElement.ValueKind == JsonValueKind.String ? typeElement.GetString() : null;
+				string reason = error.TryGetProperty("reason", out JsonElement reasonElement) && reasonElement.ValueKind == JsonValueKind.String ? reasonElement.GetString() : null;
+				if (type != null && reason != null) return $"{type}: {reason}";
+				return type ?? reason;
+			}
+			catch (JsonException)
+			{
+				// the body is not valid JSON
+				return null;
 			}
 		}
 

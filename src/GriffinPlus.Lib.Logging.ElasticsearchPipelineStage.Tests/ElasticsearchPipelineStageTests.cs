@@ -409,6 +409,148 @@ public class ElasticsearchPipelineStageTests
 		}
 	}
 
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.ProcessSendCompleted"/> treats a request the
+	/// server rejected entirely (HTTP status 400) as an endpoint failure: no message is discarded and the unchanged
+	/// request is prepared to be sent once again.
+	/// </summary>
+	[Fact]
+	public void ProcessSendCompleted_WhenBadRequest_KeepsAllMessages()
+	{
+		// Arrange
+		var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.BadRequest)
+		{
+			Content = new StringContent(
+				"{\"error\":{\"type\":\"invalid_index_name_exception\",\"reason\":\"Invalid index name\"},\"status\":400}",
+				Encoding.UTF8,
+				"application/json")
+		});
+		ElasticsearchPipelineStage stage = CreateStageWithHttpStub(40 * 1024, handler);
+		var operation = new ElasticsearchPipelineStage.SendOperation(stage);
+		var endpoint = new ElasticsearchPipelineStage.EndpointInfo(new Uri("http://127.0.0.1:9200/"));
+		LocalLogMessage[] messages = [CreateMessage("a"), CreateMessage("b")];
+
+		try
+		{
+			foreach (LocalLogMessage message in messages) Assert.True(operation.AddMessage(message));
+			Assert.True(operation.StartSending(endpoint, CancellationToken.None));
+			Assert.True(SpinWait.SpinUntil(() => operation.HasCompletedSending, 10000));
+
+			// Act
+			bool operational = operation.ProcessSendCompleted();
+
+			// Assert
+			// the endpoint is considered not operational
+			Assert.False(operational);
+
+			// all messages are kept and the request is rebuilt unchanged
+			Assert.Equal(2, operation.MessageCount);
+			Assert.All(messages, message => Assert.Equal(2, message.RefCount));
+			Assert.Equal(["a", "b"], GetRequestMessageTexts(operation));
+		}
+		finally
+		{
+			operation.Reset();
+			foreach (LocalLogMessage message in messages) message.Release();
+			handler.Dispose();
+		}
+	}
+
+	#endregion
+
+	#region SendOperation.GetErrorResponseDescription(byte[])
+
+	/// <summary>
+	/// Test data for <see cref="GetErrorResponseDescription_WhenCalled_ReturnsDescription"/>
+	/// (scenario, response body, expected description).
+	/// </summary>
+	public static TheoryData<string, string, string> GetErrorResponseDescription_Data => new()
+	{
+		// typical Elasticsearch error response
+		{
+			"type and reason",
+			"{\"error\":{\"root_cause\":[],\"type\":\"invalid_index_name_exception\",\"reason\":\"Invalid index name\"},\"status\":400}",
+			"invalid_index_name_exception: Invalid index name"
+		},
+		// error object with type only
+		{
+			"type only",
+			"{\"error\":{\"type\":\"some_exception\"}}",
+			"some_exception"
+		},
+		// error object with reason only
+		{
+			"reason only",
+			"{\"error\":{\"reason\":\"Something failed\"}}",
+			"Something failed"
+		},
+		// error object without type and reason
+		{
+			"empty error object",
+			"{\"error\":{}}",
+			null
+		},
+		// error reported as plain string (older versions/proxies)
+		{
+			"error string",
+			"{\"error\":\"Something failed\"}",
+			"Something failed"
+		},
+		// error property of an unexpected kind
+		{
+			"error number",
+			"{\"error\":42}",
+			null
+		},
+		// JSON object without error property
+		{
+			"no error property",
+			"{\"status\":400}",
+			null
+		},
+		// JSON value that is not an object
+		{
+			"json array",
+			"[1,2,3]",
+			null
+		},
+		// body that is not JSON (e.g. an HTML page of a proxy)
+		{
+			"invalid json",
+			"<html>Bad Request</html>",
+			null
+		},
+		// empty body
+		{
+			"empty body",
+			"",
+			null
+		}
+	};
+
+	/// <summary>
+	/// Tests whether <see cref="ElasticsearchPipelineStage.SendOperation.GetErrorResponseDescription(byte[])"/> extracts
+	/// the error details from the body of an error response and returns <see langword="null"/> for bodies that do not
+	/// provide any error details.
+	/// </summary>
+	/// <param name="scenario">Name of the test scenario.</param>
+	/// <param name="body">Body of the error response.</param>
+	/// <param name="expected">Expected description.</param>
+	[Theory]
+	[MemberData(nameof(GetErrorResponseDescription_Data))]
+	public void GetErrorResponseDescription_WhenCalled_ReturnsDescription(string scenario, string body, string expected)
+	{
+		// Arrange
+		_ = scenario;
+		byte[] data = Encoding.UTF8.GetBytes(body);
+
+		// Act
+		string description = ElasticsearchPipelineStage.SendOperation.GetErrorResponseDescription(data);
+
+		// Assert
+		Assert.Equal(expected, description);
+	}
+
 	#endregion
 
 	#region SendOperation.RebuildContentStream()
