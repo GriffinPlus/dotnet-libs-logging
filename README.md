@@ -778,7 +778,8 @@ By default, recognized log messages written by the started process are logged as
 
 ## Contributors ✨
 
-Many thanks to the following people for their contribution to this project ([emoji keys](https://allcontributors.org/docs/en/emoji-key)):
+
+Many thanks to the following people for their contribution to this project [emoji keys](https://allcontributors.org/en/reference/emoji-key/):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
